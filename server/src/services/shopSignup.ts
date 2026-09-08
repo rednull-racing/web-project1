@@ -1,4 +1,5 @@
-import { IdCard, Permit, PermitFile, S3Metadata, ShopSignup } from "../models/index.js";
+import { Op } from "sequelize";
+import { Address, BankAccount, IdCard, Name, Permit, PermitFile, S3Metadata, ShopSignup } from "../models/index.js";
 import {
     CreateShopSignupParams,
     UpdateBankAccountParams,
@@ -55,6 +56,37 @@ export const getMyShopSignupHasS3Data = ({ shopSignupId, userId }: UserShopSignu
                         ],
                     },
                 ],
+            },
+        ],
+    });
+};
+
+export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdParams) => {
+    return ShopSignup.findAll({
+        where: {
+            id: { [Op.ne]: shopSignupId },
+            user_id: userId,
+        },
+        include: [
+            {
+                model: Address,
+            },
+            {
+                model: Name,
+                as: "RepresentativeName",
+            },
+            {
+                model: Name,
+                as: "ContactName",
+            },
+            {
+                model: BankAccount,
+            },
+            {
+                model: IdCard,
+            },
+            {
+                model: Permit,
             },
         ],
     });
