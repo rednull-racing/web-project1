@@ -73,3 +73,11 @@ export type UpdateShopSignupAnyParams = {
     data: ShopSignupUpdateData;
     transaction?: Transaction;
 };
+
+export type UpdateShopSignupRequestAllParams = {
+    shopSignup: InstanceType<typeof ShopSignup>;
+    data: {
+        request_all: boolean;
+    };
+    transaction?: Transaction;
+};

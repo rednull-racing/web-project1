@@ -1,6 +1,6 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { getMyShopSignup, getOldShopSignupAll } from "../../../services/shopSignup.js";
+import { getMyShopSignup, getOldShopSignupAll, updateShopSignupRequestAll } from "../../../services/shopSignup.js";
 import { deleteOldShopSignup } from "./oldShopSignup.js";
 
 type Params = {
@@ -24,5 +24,11 @@ export const updateShopSignup5UseCase = async ({ shopSignupId, userId }: Params)
         if (oldShopSignup.length > 0) {
             await deleteOldShopSignup({ oldShopSignup, transaction: t });
         }
+
+        await updateShopSignupRequestAll({
+            shopSignup,
+            data: { request_all: true },
+            transaction: t,
+        });
     });
 };
