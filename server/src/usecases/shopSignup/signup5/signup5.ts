@@ -1,11 +1,12 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
 import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
-import { ShopSignup } from "../../../models/index.js";
+import { S3Metadata, ShopSignup } from "../../../models/index.js";
 import { deleteAddress } from "../../../services/address.js";
 import { deleteBankAccount } from "../../../services/bankAccount.js";
 import { deleteIdCard } from "../../../services/idCard.js";
 import { deleteName } from "../../../services/name.js";
+import { deletePermit } from "../../../services/permit.js";
 import { deleteS3Metadata } from "../../../services/s3Metadata.js";
 import { getMyShopSignup, getOldShopSignupAll } from "../../../services/shopSignup.js";
 import { OldShopSignup } from "./oldShopSignup.js";
@@ -99,6 +100,30 @@ export const updateShopSignup5UseCase = async ({ shopSignupId, userId }: Params)
                     }
 
                     if (oldData.Permit) {
+                        const permit = oldData.Permit;
+                        const s3MetadataList = permit.PermitFile.S3Metadata;
+
+                        if (s3MetadataList.length > 0) {
+                            await Promise.all(
+                                s3MetadataList.map(async (s3Metadata: InstanceType<typeof S3Metadata>) => {
+                                    deleteS3Object({
+                                        bucketName: s3Metadata.bucket_name,
+                                        objectKey: s3Metadata.object_key,
+                                        versionId: s3Metadata.version_id,
+                                    });
+
+                                    await deleteS3Metadata({
+                                        s3Metadata,
+                                        transaction: t,
+                                    });
+                                }),
+                            );
+                        }
+
+                        await deletePermit({
+                            permit,
+                            transaction: t,
+                        });
                     }
                 }),
             );
