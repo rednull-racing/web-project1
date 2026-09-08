@@ -31,4 +31,6 @@ export const updateShopSignup5UseCase = async ({ shopSignupId, userId }: Params)
             transaction: t,
         });
     });
+
+    // メール送信処理
 };
