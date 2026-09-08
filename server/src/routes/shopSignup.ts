@@ -3,6 +3,7 @@ import {
     shopSignupPostRootController,
     updateShopSignup2Controller,
     updateShopSignup3Controller,
+    updateShopSignup5Controller,
     updateShopSignupEditController,
     updateShopSignupOptionController,
 } from "../controllers/shopSignup.js";
@@ -12,6 +13,7 @@ import {
     createShopSignupRateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
+    shopSignup5RateLimit,
     signup2RateLimit,
     signup3RateLimit,
 } from "../middleware/rateLimit/shopSignup.js";
@@ -90,6 +92,17 @@ router.patch(
     validateParams(idParamSchema),
     validateBody(shopSignupEditBodySchema),
     updateShopSignupEditController,
+);
+
+// PATCH /shop-signup/:id/signup5
+// summary: ショップ登録 確定
+// page: /shop-signup/step5/[id]
+router.patch(
+    "/:id/signup5",
+    authenticateToken,
+    shopSignup5RateLimit,
+    validateParams(idParamSchema),
+    updateShopSignup5Controller,
 );
 
 export default router;
