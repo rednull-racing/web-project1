@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+import { Permit } from "../../models/index.js";
 
 export type CreatePermitParams = {
     data: {
@@ -8,4 +9,9 @@ export type CreatePermitParams = {
         expired_at: Date | null;
     };
     transaction?: Transaction;
+};
+
+export type PermitTransactionParams = {
+    permit: InstanceType<typeof Permit>;
+    transaction: Transaction;
 };

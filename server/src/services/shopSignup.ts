@@ -84,9 +84,35 @@ export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdPa
             },
             {
                 model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
             },
             {
                 model: Permit,
+                required: false,
+                include: [
+                    {
+                        model: PermitFile,
+                        required: false,
+                        include: [
+                            {
+                                model: S3Metadata,
+                                required: false,
+                            },
+                        ],
+                    },
+                ],
             },
         ],
     });
