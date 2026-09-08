@@ -16,7 +16,6 @@ import {
     shopInfoPatchByIdOptionController,
     shopInfoPatchByIdPhoneNumberController,
     shopInfoPatchByIdRepNameController,
-    shopInfoPatchByIdSignup5Controller,
 } from "../controllers/shopInfo.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
@@ -36,7 +35,6 @@ import {
     shopOptionEditRateLimit,
     shopPhoneNumberEditRateLimit,
     shopRepNameEditRateLimit,
-    shopSignup5RateLimit,
 } from "../middleware/rateLimit/shopInfoRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
@@ -80,17 +78,6 @@ router.patch(
     validateParams(idParamSchema),
     validateBody(shopOptionBodySchema),
     shopInfoPatchByIdOptionController,
-);
-
-// PATCH /shop-info/:id/signup/5
-// summary: ショップ登録 確定
-// page: /shop-signup/step5/[id]
-router.patch(
-    "/:id/signup/5",
-    authenticateToken,
-    shopSignup5RateLimit,
-    validateParams(idParamSchema),
-    shopInfoPatchByIdSignup5Controller,
 );
 
 // GET /shop-info/my

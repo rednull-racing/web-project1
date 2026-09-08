@@ -8,7 +8,6 @@ import {
     UpdateShopIdCardParams,
     UpdateShopNameParams,
     UpdateShopPhoneNumberParams,
-    UpdateShopRequestAllParams,
     UpdateShopUserLogicalDeleteParams,
 } from "../../types/serviceType/shopInfo.js";
 
@@ -37,10 +36,6 @@ export const updateShopOption = async ({ shopInfo, data, transaction }: UpdateOp
 };
 
 export const updateShopBankAccount = async ({ shopInfo, data, transaction }: UpdateBankAccountParams) => {
-    await shopInfo.update(data, { transaction });
-};
-
-export const updateShopRequestAll = async ({ shopInfo, data, transaction }: UpdateShopRequestAllParams) => {
     await shopInfo.update(data, { transaction });
 };
 
