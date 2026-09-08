@@ -1,9 +1,11 @@
-import { IdCard, Permit, PermitFile, S3Metadata, ShopSignup } from "../models/index.js";
+import { Op } from "sequelize";
+import { Address, BankAccount, IdCard, Name, Permit, PermitFile, S3Metadata, ShopSignup } from "../models/index.js";
 import {
     CreateShopSignupParams,
     UpdateBankAccountParams,
     UpdateOptionParams,
     UpdateShopSignupAnyParams,
+    UpdateShopSignupRequestAllParams,
     UpdateSignup3Params,
     UserShopSignupIdParams,
 } from "../types/serviceType/shopSignup.js";
@@ -60,6 +62,63 @@ export const getMyShopSignupHasS3Data = ({ shopSignupId, userId }: UserShopSignu
     });
 };
 
+export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdParams) => {
+    return ShopSignup.findAll({
+        where: {
+            id: { [Op.ne]: shopSignupId },
+            user_id: userId,
+        },
+        include: [
+            {
+                model: Address,
+            },
+            {
+                model: Name,
+                as: "RepresentativeName",
+            },
+            {
+                model: Name,
+                as: "ContactName",
+            },
+            {
+                model: BankAccount,
+            },
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+            {
+                model: Permit,
+                required: false,
+                include: [
+                    {
+                        model: PermitFile,
+                        required: false,
+                        include: [
+                            {
+                                model: S3Metadata,
+                                required: false,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    });
+};
+
 export const createShopSignup = ({ data, transaction }: CreateShopSignupParams) => {
     return ShopSignup.create(data, { transaction });
 };
@@ -77,5 +136,9 @@ export const updateShopSignupOption = async ({ shopSignup, data, transaction }: 
 };
 
 export const updateShopSignupAny = async ({ shopSignup, data, transaction }: UpdateShopSignupAnyParams) => {
+    await shopSignup.update(data, { transaction });
+};
+
+export const updateShopSignupRequestAll = async ({ shopSignup, data, transaction }: UpdateShopSignupRequestAllParams) => {
     await shopSignup.update(data, { transaction });
 };

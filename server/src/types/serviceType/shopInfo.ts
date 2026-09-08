@@ -64,14 +64,6 @@ export type UpdateOptionParams = {
     transaction?: Transaction;
 };
 
-export type UpdateShopRequestAllParams = {
-    shopInfo: InstanceType<typeof ShopInfo>;
-    data: {
-        request_all: boolean;
-    };
-    transaction?: Transaction;
-};
-
 export type UpdateBankAccountParams = {
     shopInfo: InstanceType<typeof ShopInfo>;
     data: {

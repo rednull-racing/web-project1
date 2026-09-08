@@ -11,6 +11,7 @@ import {
 } from "../validators/body/shopSignup.js";
 import { updateShopSignup4UseCase } from "../usecases/shopSignup/signup4.js";
 import { updateShopSignupEditUseCase } from "../usecases/shopSignup/signup5/signupEdit.js";
+import { updateShopSignup5UseCase } from "../usecases/shopSignup/signup5/signup5.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -101,6 +102,26 @@ export const updateShopSignupEditController = async (
         await updateShopSignupEditUseCase({ shopSignupId, userId, updateData });
 
         res.status(200).json({ message: "更新しました。", updated: updateData });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// PATCH /shop-signup/:id/signup5
+// summary: ショップ登録 確定
+// page: /shop-signup/step5/[id]
+export const updateShopSignup5Controller = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        await updateShopSignup5UseCase({ shopSignupId, userId });
+
+        res.status(200).json({ message: "ショップ登録のリクエストが完了しました！" });
     } catch (err) {
         next(err);
     }
