@@ -6,7 +6,6 @@ import BankAccount from "./bank_account.js";
 import ComOrFreeOption from "./com_or_free_option.js";
 import IdCard from "./id_card.js";
 import Name from "./name.js";
-import Permit from "./permit.js";
 import User from "./user.js";
 
 export class ShopSignup extends Model {
@@ -60,6 +59,8 @@ export class ShopSignup extends Model {
         ShopSignup.belongsTo(IdCard, {
             foreignKey: "idcard_id",
         });
+
+        // 削除
         ShopSignup.belongsTo(Permit, {
             foreignKey: "permit_id",
         });
@@ -73,6 +74,8 @@ export class ShopSignup extends Model {
         ContactName: Association<ShopSignup, Name>;
         BankAccount: Association<ShopSignup, BankAccount>;
         IdCard: Association<ShopSignup, IdCard>;
+
+        // 削除
         Permit: Association<ShopSignup, Permit>;
     };
 }
@@ -219,6 +222,18 @@ ShopSignup.init(
             onUpdate: "CASCADE",
             onDelete: "SET NULL",
         },
+        createdAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+        },
+
+        // 削除
         permit_id: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -229,16 +244,6 @@ ShopSignup.init(
             },
             onUpdate: "CASCADE",
             onDelete: "SET NULL",
-        },
-        createdAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-            defaultValue: DataTypes.NOW,
-        },
-        updatedAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-            defaultValue: DataTypes.NOW,
         },
     },
     {

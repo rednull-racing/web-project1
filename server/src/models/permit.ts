@@ -143,6 +143,26 @@ Permit.init(
         tableName: "permit",
         freezeTableName: true,
         timestamps: true,
+        indexes: [
+            {
+                unique: true,
+                name: "permit_shop_reference_unique",
+                fields: ["shop_info_id", "shop_info_edit_id", "shop_signup_id"],
+            },
+        ],
+        validate: {
+            hasShopReference() {
+                const referenceCount = [this.shop_info_id, this.shop_info_edit_id, this.shop_signup_id].filter(
+                    (value) => value !== null && value !== undefined,
+                ).length;
+
+                if (referenceCount !== 1) {
+                    throw new Error(
+                        "shop_info_id、shop_info_edit_id、shop_signup_idのいずれか一つだけが必須です。",
+                    );
+                }
+            },
+        },
     },
 );
 
