@@ -10,6 +10,26 @@ export type TodouhukenOption = {
     name: string;
 };
 
+export type S3Metadata = {
+    id: number;
+    original_file_name: string | null;
+    content_type: string | null;
+    file_size: number | null;
+};
+
+export type PermitFile = {
+    id: number;
+    document_name: string | null;
+    memo: string | null;
+    S3Metadata?: S3Metadata;
+};
+
+export type IdCard = {
+    id: number;
+    FrontIdCard?: S3Metadata;
+    RearIdCard?: S3Metadata;
+};
+
 export type BankAccount = {
     id: string;
     bank_name: string;
@@ -38,7 +58,7 @@ export type Name = {
     mei_kana: string;
 };
 
-export type ShopInfo = {
+export type ShopSignup = {
     id: string;
     company_name?: string;
     shop_name?: string;
@@ -50,9 +70,6 @@ export type ShopInfo = {
     capital?: number;
     member_count?: number;
     founded_date?: Date;
-    id_card_front?: string;
-    id_card_rear?: string;
-    permit_url: string[];
     auto_trans: boolean;
     open_info: boolean;
     ComOrFreeOption?: ComOrFreeOption | null;
