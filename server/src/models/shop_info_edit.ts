@@ -6,9 +6,9 @@ import BankAccount from "./bank_account.js";
 import ComOrFreeOption from "./com_or_free_option.js";
 import IdCard from "./id_card.js";
 import Name from "./name.js";
-import Permit from "./permit.js";
 import ShopInfo from "./shop_info.js";
 import User from "./user.js";
+import Permit from "./permit.js";
 
 export class ShopInfoEdit extends Model {
     declare id: number;
@@ -30,8 +30,10 @@ export class ShopInfoEdit extends Model {
     declare name_contact_id: number | null;
     declare address_id: number | null;
     declare account_id: number | null;
-    declare permit_id: number | null;
     declare idcard_id: number | null;
+
+    // 削除
+    declare permit_id: number | null;
 
     static associate() {
         ShopInfoEdit.belongsTo(User, {
@@ -57,11 +59,11 @@ export class ShopInfoEdit extends Model {
         ShopInfoEdit.belongsTo(BankAccount, {
             foreignKey: "account_id",
         });
-        ShopInfoEdit.belongsTo(Permit, {
-            foreignKey: "permit_id",
-        });
         ShopInfoEdit.belongsTo(IdCard, {
             foreignKey: "idcard_id",
+        });
+        ShopInfoEdit.hasMany(Permit, {
+            foreignKey: "shop_info_edit_id",
         });
     }
 
@@ -73,8 +75,8 @@ export class ShopInfoEdit extends Model {
         RepresentativeNameEdit: Association<ShopInfoEdit, Name>;
         ContactNameEdit: Association<ShopInfoEdit, Name>;
         BankAccount: Association<ShopInfoEdit, BankAccount>;
-        Permit: Association<ShopInfoEdit, Permit>;
         IdCard: Association<ShopInfoEdit, IdCard>;
+        Permit: Association<ShopInfoEdit, Permit>;
     };
 }
 
@@ -196,17 +198,6 @@ ShopInfoEdit.init(
             onUpdate: "CASCADE",
             onDelete: "SET NULL",
         },
-        permit_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            unique: true,
-            references: {
-                model: "permit",
-                key: "id",
-            },
-            onUpdate: "CASCADE",
-            onDelete: "SET NULL",
-        },
         idcard_id: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -227,6 +218,19 @@ ShopInfoEdit.init(
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: DataTypes.NOW,
+        },
+
+        // 削除
+        permit_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            unique: true,
+            references: {
+                model: "permit",
+                key: "id",
+            },
+            onUpdate: "CASCADE",
+            onDelete: "SET NULL",
         },
     },
     {
