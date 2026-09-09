@@ -32,9 +32,6 @@ export class ShopInfoEdit extends Model {
     declare account_id: number | null;
     declare idcard_id: number | null;
 
-    // 削除
-    declare permit_id: number | null;
-
     static associate() {
         ShopInfoEdit.belongsTo(User, {
             foreignKey: "user_id",
@@ -218,19 +215,6 @@ ShopInfoEdit.init(
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: DataTypes.NOW,
-        },
-
-        // 削除
-        permit_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            unique: true,
-            references: {
-                model: "permit",
-                key: "id",
-            },
-            onUpdate: "CASCADE",
-            onDelete: "SET NULL",
         },
     },
     {

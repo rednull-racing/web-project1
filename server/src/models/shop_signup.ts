@@ -32,7 +32,6 @@ export class ShopSignup extends Model {
     declare address_id: number | null;
     declare account_id: number | null;
     declare idcard_id: number | null;
-    declare permit_id: number | null;
     declare createdAt: Date;
     declare updatedAt: Date;
 
@@ -228,19 +227,6 @@ ShopSignup.init(
             type: DataTypes.DATE,
             allowNull: false,
             defaultValue: DataTypes.NOW,
-        },
-
-        // 削除
-        permit_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            unique: true,
-            references: {
-                model: "permit",
-                key: "id",
-            },
-            onUpdate: "CASCADE",
-            onDelete: "SET NULL",
         },
     },
     {
