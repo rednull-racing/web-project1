@@ -2,7 +2,7 @@ import { Association, DataTypes, Model } from "sequelize";
 import sequelize from "../db.js";
 
 import IdCard from "./id_card.js";
-import PermitFile from "./permit_file.js";
+import PermitFile from "./permit.js";
 
 export class S3Metadata extends Model {
     declare id: number;

@@ -87,11 +87,14 @@ export default {
             );
 
             await queryInterface.removeColumn("permit_file", "permit_id", { transaction });
+            await queryInterface.renameTable("permit_file", "permit", { transaction });
         });
     },
 
     async down(queryInterface, Sequelize) {
         await queryInterface.sequelize.transaction(async (transaction) => {
+            await queryInterface.renameTable("permit", "permit_file", { transaction });
+
             await queryInterface.addColumn(
                 "permit_file",
                 "permit_id",
