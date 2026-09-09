@@ -4,8 +4,8 @@ import sequelize from "../db.js";
 import Permit from "./permit.js";
 import S3Metadata from "./s3_metadata.js";
 import ShopInfo from "./shop_info.js";
-import ShopSignup from "./shop_signup.js";
 import ShopInfoEdit from "./shop_info_edit.js";
+import ShopSignup from "./shop_signup.js";
 
 export class PermitFile extends Model {
     declare id: number;
@@ -38,13 +38,13 @@ export class PermitFile extends Model {
         });
 
         // 追加
-        Permit.belongsTo(ShopInfo, {
+        PermitFile.belongsTo(ShopInfo, {
             foreignKey: "shop_info_id",
         });
-        Permit.belongsTo(ShopSignup, {
+        PermitFile.belongsTo(ShopSignup, {
             foreignKey: "shop_signup_id",
         });
-        Permit.belongsTo(ShopInfoEdit, {
+        PermitFile.belongsTo(ShopInfoEdit, {
             foreignKey: "shop_info_edit_id",
         });
 
@@ -58,6 +58,9 @@ export class PermitFile extends Model {
         S3Metadata: Association<PermitFile, S3Metadata>;
 
         // 追加
+        ShopInfo: Association<PermitFile, ShopInfo>;
+        ShopSignup: Association<PermitFile, ShopSignup>;
+        ShopInfoEdit: Association<PermitFile, ShopInfoEdit>;
 
         // 削除
         Permit: Association<PermitFile, Permit>;
@@ -107,6 +110,52 @@ PermitFile.init(
         },
 
         // 追加
+        permit_number: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        permit_type: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        issued_at: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        expired_at: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        shop_info_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "shop_info",
+                key: "id",
+            },
+            onUpdate: "CASCADE",
+            onDelete: "CASCADE",
+        },
+        shop_info_edit_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "shop_info_edit",
+                key: "id",
+            },
+            onUpdate: "CASCADE",
+            onDelete: "CASCADE",
+        },
+        shop_signup_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "shop_signup",
+                key: "id",
+            },
+            onUpdate: "CASCADE",
+            onDelete: "CASCADE",
+        },
 
         // 削除
         permit_id: {
