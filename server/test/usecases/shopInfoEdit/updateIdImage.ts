@@ -297,7 +297,7 @@ describe("updateShopEditIdImageUseCase", () => {
                 RearIdCard: oldRearS3Metadata,
             },
             Permit: {
-                PermitFile: oldPermitS3Metadata.map((S3Metadata) => ({ S3Metadata })),
+                Permit: oldPermitS3Metadata.map((S3Metadata) => ({ S3Metadata })),
             },
         };
         mocks.getMyShopEditHasShop.mockResolvedValueOnce(shopEditWithOldData);

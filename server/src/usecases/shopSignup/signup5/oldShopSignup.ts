@@ -68,7 +68,7 @@ export const deleteOldShopSignup = async ({ oldShopSignup, transaction }: Params
 
             if (oldData.Permit) {
                 const permit = oldData.Permit;
-                const s3MetadataList = permit.PermitFile.S3Metadata;
+                const s3MetadataList = permit.S3Metadata;
 
                 if (s3MetadataList.length > 0) {
                     await Promise.all(

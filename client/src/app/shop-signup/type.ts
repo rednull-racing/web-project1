@@ -17,10 +17,14 @@ export type S3Metadata = {
     file_size: number | null;
 };
 
-export type PermitFile = {
+export type Permit = {
     id: number;
     document_name: string | null;
     memo: string | null;
+    permit_number: string | null;
+    permit_type: string | null;
+    issued_at: Date | null;
+    expired_at: Date | null;
     S3Metadata?: S3Metadata;
 };
 
@@ -36,7 +40,7 @@ export type BankAccount = {
     bank_code: string;
     branch: string;
     branch_code: string;
-    account_type: AccountType | null;
+    account_type: AccountType;
     account_number: string;
     meigi: string;
 };
@@ -47,7 +51,7 @@ export type Address = {
     shikutyouson: string;
     banchi: string;
     building?: string;
-    AddressTodouhuken?: TodouhukenOption | null;
+    AddressTodouhuken?: TodouhukenOption;
 };
 
 export type Name = {
@@ -72,11 +76,13 @@ export type ShopSignup = {
     founded_date?: Date;
     auto_trans: boolean;
     open_info: boolean;
-    ComOrFreeOption?: ComOrFreeOption | null;
-    Address?: Address | null;
-    RepresentativeName?: Name | null;
-    ContactName?: Name | null;
-    BankAccount?: BankAccount | null;
+    ComOrFreeOption?: ComOrFreeOption;
+    Address?: Address;
+    RepresentativeName?: Name;
+    ContactName?: Name;
+    BankAccount?: BankAccount;
+    IdCard?: IdCard;
+    Permit?: Permit[];
 };
 
 export type User = {
@@ -84,7 +90,7 @@ export type User = {
     user_name: string;
     email: string;
     phone_number: string;
-    Address?: Address | null;
-    Name?: Name | null;
-    BankAccount?: BankAccount | null;
+    Address?: Address;
+    Name?: Name;
+    BankAccount?: BankAccount;
 };

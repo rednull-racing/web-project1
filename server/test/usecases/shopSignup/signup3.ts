@@ -290,7 +290,7 @@ describe("updateShopSignup3UseCase", () => {
                 RearIdCard: { RearS3Metadata: oldRearS3Metadata },
             },
             Permit: {
-                PermitFile: { S3Metadata: oldPermitS3Metadata },
+                Permit: { S3Metadata: oldPermitS3Metadata },
             },
         };
         mocks.getMyShopSignupHasS3Data.mockResolvedValueOnce(shopSignupWithOldData);

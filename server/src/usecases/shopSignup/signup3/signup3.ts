@@ -231,7 +231,7 @@ export const updateShopSignup3UseCase = async ({ shopSignupId, userId, body }: P
     const oldFrontS3Metadata = idCard?.FrontIdCard?.FrontS3Metadata ?? null;
     const oldRearS3Metadata = idCard?.RearIdCard?.RearS3Metadata ?? null;
 
-    const oldPermitS3Metadata = shopSignup.Permit?.PermitFile?.S3Metadata ?? null;
+    const oldPermitS3Metadata = shopSignup.Permit?.S3Metadata ?? [];
 
     await sequelize.transaction(async (t) => {
         if (oldFrontS3Metadata) {
@@ -242,7 +242,7 @@ export const updateShopSignup3UseCase = async ({ shopSignupId, userId, body }: P
             await deleteS3Metadata({ s3Metadata: oldRearS3Metadata, transaction: t });
         }
 
-        if (oldPermitS3Metadata) {
+        if (oldPermitS3Metadata.length > 0) {
             await Promise.all(
                 oldPermitS3Metadata.map((s3Metadata: Parameters<typeof deleteS3Metadata>[0]["s3Metadata"]) =>
                     deleteS3Metadata({ s3Metadata, transaction: t }),
