@@ -5,7 +5,6 @@ import { buckets } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
 import { createIdCard } from "../../../services/idCard.js";
 import { createPermit } from "../../../services/permit.js";
-import { createPermitFile } from "../../../services/permitFile.js";
 import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata.js";
 import { getMyShopSignupHasS3Data, updateSignup3 } from "../../../services/shopSignup.js";
 import { ShopSignup3Body } from "../../../validators/body/shopSignup.js";
@@ -168,40 +167,28 @@ export const updateShopSignup3UseCase = async ({ shopSignupId, userId, body }: P
                 transaction: t,
             });
 
-            // Permit / PermitFile更新
-            let newPermitId: number | null = null;
-
+            // Permit更新
             if (permitS3MetadataList.length > 0) {
-                const newPermit = await createPermit({
-                    data: {
-                        permit_number: null,
-                        permit_type: null,
-                        issued_at: null,
-                        expired_at: null,
-                    },
-                    transaction: t,
-                });
-
-                newPermitId = newPermit.id;
-
-                if (newPermitId) {
-                    const permitId = newPermitId;
-
-                    await Promise.all(
-                        permitS3MetadataList.map((permitFile) =>
-                            createPermitFile({
-                                data: {
-                                    permit_id: permitId,
-                                    s3_metadata_id: permitFile.s3MetadataId,
-                                    sort_order: permitFile.sortOrder,
-                                    document_name: null,
-                                    memo: null,
-                                },
-                                transaction: t,
-                            }),
-                        ),
-                    );
-                }
+                await Promise.all(
+                    permitS3MetadataList.map((permit) =>
+                        createPermit({
+                            data: {
+                                s3_metadata_id: permit.s3MetadataId,
+                                sort_order: permit.sortOrder,
+                                document_name: null,
+                                memo: null,
+                                permit_number: null,
+                                permit_type: null,
+                                issued_at: null,
+                                expired_at: null,
+                                shop_info_id: null,
+                                shop_info_edit_id: null,
+                                shop_signup_id: shopSignupId,
+                            },
+                            transaction: t,
+                        }),
+                    ),
+                );
             }
 
             // shopSignup更新
@@ -209,7 +196,6 @@ export const updateShopSignup3UseCase = async ({ shopSignupId, userId, body }: P
                 shopSignup,
                 data: {
                     idcard_id: newIdCard.id,
-                    permit_id: newPermitId,
                 },
                 transaction: t,
             });
