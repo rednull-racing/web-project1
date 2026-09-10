@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
     getShopSignup1Controller,
     getShopSignup2Controller,
+    getShopSignup3Controller,
     shopSignupPostRootController,
     updateShopSignup2Controller,
     updateShopSignup3Controller,
@@ -15,6 +16,7 @@ import {
     createShopSignupRateLimit,
     getShopSignup1RateLimit,
     getShopSignup2RateLimit,
+    getShopSignup3RateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
     shopSignup5RateLimit,
@@ -118,11 +120,22 @@ router.get("/1", getShopSignup1RateLimit, authenticateToken, getShopSignup1Contr
 // summary: ショップ口座登録ページ インプット表示データ取得
 // page: /shop-signup/step2/[id]
 router.get(
-    "/:id/signup/2",
+    "/:id/2",
     getShopSignup2RateLimit,
     authenticateToken,
     validateParams(idParamSchema),
     getShopSignup2Controller,
+);
+
+// GET /shop-signup/:id/3
+// summary: ショップ口座登録ページ インプット表示データ取得
+// page: /shop-signup/step3/[id]
+router.get(
+    "/:id/3",
+    getShopSignup3RateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignup3Controller,
 );
 
 export default router;

@@ -14,6 +14,7 @@ import {
 } from "../validators/body/shopSignup.js";
 import { getShopSignup1UseCase } from "../usecases/shopSignup/get/signup1.js";
 import { getShopSignup2UseCase } from "../usecases/shopSignup/get/signup2.js";
+import { getShopSignup3UseCase } from "../usecases/shopSignup/get/signup3.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -155,6 +156,26 @@ export const getShopSignup2Controller = async (
         const account = await getShopSignup2UseCase({ userId, shopSignupId });
 
         res.status(200).json({ account });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:id/3
+// summary: ショップ口座登録ページ インプット表示データ取得
+// page: /shop-signup/step3/[id]
+export const getShopSignup3Controller = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const shopSignupId = Number(req.params.id);
+
+        const shop = await getShopSignup3UseCase({ shopSignupId, userId });
+
+        res.status(200).json({ shop });
     } catch (err) {
         next(err);
     }
