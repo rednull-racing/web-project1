@@ -6,7 +6,6 @@ import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
 import { createIdCard } from "../../../services/idCard.js";
 import { createNotification } from "../../../services/notification.js";
 import { createPermit } from "../../../services/permit.js";
-import { createPermitFile } from "../../../services/permitFile.js";
 import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata.js";
 import { UpdateShopEditIdPermit } from "../../../services/shopInfoEdit/command.js";
 import { getMyShopEditHasShop } from "../../../services/shopInfoEdit/query.js";
@@ -138,29 +137,22 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
                 transaction,
             });
 
-            let newPermitId: number | null = null;
-
             if (permitS3MetadataList.length > 0) {
-                const newPermit = await createPermit({
-                    data: {
-                        permit_number: null,
-                        permit_type: null,
-                        issued_at: null,
-                        expired_at: null,
-                    },
-                    transaction,
-                });
-                newPermitId = newPermit.id;
-
                 await Promise.all(
-                    permitS3MetadataList.map((permitFile) =>
-                        createPermitFile({
+                    permitS3MetadataList.map((permit) =>
+                        createPermit({
                             data: {
-                                permit_id: newPermit.id,
-                                s3_metadata_id: permitFile.s3MetadataId,
-                                sort_order: permitFile.sortOrder,
+                                s3_metadata_id: permit.s3MetadataId,
+                                sort_order: permit.sortOrder,
                                 document_name: null,
                                 memo: null,
+                                permit_number: null,
+                                permit_type: null,
+                                issued_at: null,
+                                expired_at: null,
+                                shop_info_id: null,
+                                shop_info_edit_id: shopEditId,
+                                shop_signup_id: null,
                             },
                             transaction,
                         }),
@@ -172,7 +164,6 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
                 shopEdit,
                 data: {
                     idcard_id: newIdCard.id,
-                    permit_id: newPermitId,
                 },
                 transaction,
             });
@@ -197,7 +188,7 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
 
     const oldFrontS3Metadata = shopEdit.IdCard?.FrontIdCard ?? null;
     const oldRearS3Metadata = shopEdit.IdCard?.RearIdCard ?? null;
-    const oldPermitFiles = shopEdit.Permit?.PermitFile ?? [];
+    const oldPermitFiles = shopEdit.Permit ?? [];
     type S3MetadataInstance = Parameters<typeof deleteS3Metadata>[0]["s3Metadata"];
     const oldPermitS3Metadata = oldPermitFiles
         .map((permitFile: { S3Metadata?: S3MetadataInstance | null }) => permitFile.S3Metadata)
