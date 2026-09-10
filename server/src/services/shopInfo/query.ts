@@ -252,16 +252,6 @@ export const getMyShopHasConName = ({ shopId, userId }: UserShopIdParams) => {
     });
 };
 
-export const getMyShopIdCard = ({ shopId, userId }: UserShopIdParams) => {
-    return ShopInfo.findOne({
-        where: {
-            id: shopId,
-            user_id: userId,
-        },
-        attributes: ["id", "id_card_front", "id_card_rear", "permit_url", "user_id"],
-    });
-};
-
 export const getMyShopHasRepName = ({ shopId, userId }: UserShopIdParams) => {
     return ShopInfo.findOne({
         where: {
