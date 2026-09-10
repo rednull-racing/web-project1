@@ -93,4 +93,5 @@ export type User = {
     Address?: Address;
     Name?: Name;
     BankAccount?: BankAccount;
+    IdCard?: IdCard;
 };
