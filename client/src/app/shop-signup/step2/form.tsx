@@ -258,7 +258,12 @@ export const Form = ({ shopSignupId, account }: Props) => {
                 <select
                     aria-label="口座種別"
                     value={accountType}
-                    onChange={(e) => setAccountType(e.target.value)}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "ordinary" || value === "checking" || value === "savings") {
+                            setAccountType(value);
+                        }
+                    }}
                     className={styles.select}
                 >
                     <option value="" disabled className={styles.option}>

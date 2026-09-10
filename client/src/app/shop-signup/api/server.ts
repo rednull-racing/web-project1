@@ -21,8 +21,8 @@ export const fetchSignup1Page = async (): Promise<Signup1Response> => {
     });
 };
 
-export const fetchSignup2Page = async (shopId: string): Promise<Signup2Response> => {
-    return apiFetchServer(`/shop-info/${shopId}/signup/2`, {
+export const fetchSignup2Page = async (shopSignupId: string): Promise<Signup2Response> => {
+    return apiFetchServer(`/shop-signup/${shopSignupId}/2`, {
         cache: "no-store",
     });
 };

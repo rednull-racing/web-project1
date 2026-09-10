@@ -23,5 +23,5 @@ export default async function Page({ params }: Props) {
 
     const data = await fetchSignup2Page(id);
 
-    return <Form shopId={id} account={data.account} />;
+    return <Form shopSignupId={id} account={data.account} />;
 }
