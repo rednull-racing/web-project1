@@ -12,6 +12,7 @@ import {
     ShopSignupEditBody,
     ShopSignupOptionBody,
 } from "../validators/body/shopSignup.js";
+import { getShopSignup1UseCase } from "../usecases/shopSignup/get/signup1.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -118,6 +119,21 @@ export const updateShopSignup5Controller = async (req: Request, res: Response, n
         await updateShopSignup5UseCase({ shopSignupId, userId });
 
         res.status(200).json({ message: "ショップ登録のリクエストが完了しました！" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/1
+// summary: 事業者情報登録ページ インプット表示データ取得
+// page: /shop-signup/step1
+export const getShopSignup1Controller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+
+        const { shopSignup, user, comFree } = await getShopSignup1UseCase({ userId });
+
+        res.status(200).json({ shopSignup, user, comFree });
     } catch (err) {
         next(err);
     }

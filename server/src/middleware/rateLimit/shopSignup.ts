@@ -90,3 +90,10 @@ export const shopSignup5RateLimit = rateLimit({
         return `admin:${authReq.user.id}`;
     },
 });
+
+export const getShopSignup1RateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
