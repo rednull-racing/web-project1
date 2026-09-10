@@ -109,13 +109,6 @@ export const getShopComFreeRateLimit = rateLimit({
     legacyHeaders: false,
 });
 
-export const getShopSignup2RateLimit = rateLimit({
-    windowMs: 1000 * 60,
-    limit: 100,
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-
 export const getShopSignup3RateLimit = rateLimit({
     windowMs: 1000 * 60,
     limit: 30,
