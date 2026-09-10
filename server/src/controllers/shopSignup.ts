@@ -173,9 +173,9 @@ export const getShopSignup3Controller = async (
         const userId = req.user!.id;
         const shopSignupId = Number(req.params.id);
 
-        const shop = await getShopSignup3UseCase({ shopSignupId, userId });
+        const shopSignup = await getShopSignup3UseCase({ shopSignupId, userId });
 
-        res.status(200).json({ shop });
+        res.status(200).json({ shopSignup });
     } catch (err) {
         next(err);
     }

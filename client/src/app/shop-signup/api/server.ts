@@ -12,7 +12,7 @@ type Signup2Response = {
 };
 
 type SignupResponse = {
-    shop: ShopInfo;
+    shopSignup: ShopSignup;
 };
 
 export const fetchSignup1Page = async (): Promise<Signup1Response> => {
@@ -27,8 +27,8 @@ export const fetchSignup2Page = async (shopSignupId: string): Promise<Signup2Res
     });
 };
 
-export const fetchSignup3Page = async (shopId: string): Promise<SignupResponse> => {
-    return apiFetchServer(`/shop-info/${shopId}/signup/3`, {
+export const fetchSignup3Page = async (shopSignupId: string): Promise<SignupResponse> => {
+    return apiFetchServer(`/shop-signup/${shopSignupId}/3`, {
         cache: "no-store",
     });
 };
