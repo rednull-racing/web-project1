@@ -1,5 +1,16 @@
 import { Op } from "sequelize";
-import { Address, BankAccount, IdCard, Name, Permit, S3Metadata, ShopSignup } from "../models/index.js";
+import {
+    Address,
+    BankAccount,
+    ComOrFreeOption,
+    IdCard,
+    Name,
+    Permit,
+    S3Metadata,
+    ShopSignup,
+    TodouhukenOption,
+    User,
+} from "../models/index.js";
 import {
     CreateShopSignupParams,
     UpdateBankAccountParams,
@@ -7,8 +18,86 @@ import {
     UpdateShopSignupAnyParams,
     UpdateShopSignupRequestAllParams,
     UpdateSignup3Params,
+    UserIdParams,
     UserShopSignupIdParams,
 } from "../types/serviceType/shopSignup.js";
+
+export const getShopSignup1One = ({ userId }: UserIdParams) => {
+    return ShopSignup.findOne({
+        attributes: [
+            "id",
+            "company_name",
+            "shop_name",
+            "email",
+            "phone_number",
+            "homepage_url",
+            "open_date_time",
+            "company_number",
+            "capital",
+            "member_count",
+            "founded_date",
+            "user_id",
+        ],
+        where: {
+            user_id: userId,
+            request_all: false,
+        },
+        order: [["createdAt", "DESC"]],
+        include: [
+            {
+                model: ComOrFreeOption,
+                required: false,
+            },
+            {
+                model: Address,
+                attributes: ["id", "post_number", "shikutyouson", "banchi", "building"],
+                include: [
+                    {
+                        model: TodouhukenOption,
+                        as: "AddressTodouhuken",
+                        required: false,
+                    },
+                ],
+                required: false,
+            },
+            {
+                model: Name,
+                as: "RepresentativeName",
+                attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
+                required: false,
+            },
+            {
+                model: Name,
+                as: "ContactName",
+                attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
+                required: false,
+            },
+        ],
+        require: false,
+    });
+};
+
+export const getUserShopSignup1 = ({ userId }: UserIdParams) => {
+    return User.findByPk(userId, {
+        attributes: ["id", "user_name", "email", "phone_number"],
+        include: [
+            {
+                model: Address,
+                attributes: ["id", "post_number", "shikutyouson", "banchi", "building"],
+                include: [
+                    {
+                        model: TodouhukenOption,
+                        as: "AddressTodouhuken",
+                    },
+                ],
+            },
+            {
+                model: Name,
+                attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
+            },
+        ],
+    });
+};
 
 export const getMyShopSignup = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
     return ShopSignup.findOne({
