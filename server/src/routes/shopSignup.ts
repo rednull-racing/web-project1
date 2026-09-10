@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     getShopSignup1Controller,
+    getShopSignup2Controller,
     shopSignupPostRootController,
     updateShopSignup2Controller,
     updateShopSignup3Controller,
@@ -13,6 +14,7 @@ import { parseMultipartBody } from "../middleware/multipart.js";
 import {
     createShopSignupRateLimit,
     getShopSignup1RateLimit,
+    getShopSignup2RateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
     shopSignup5RateLimit,
@@ -111,5 +113,16 @@ router.patch(
 // summary: 事業者情報登録ページ インプット表示データ取得
 // page: /shop-signup/step1
 router.get("/1", getShopSignup1RateLimit, authenticateToken, getShopSignup1Controller);
+
+// GET /shop-signup/:id/2
+// summary: ショップ口座登録ページ インプット表示データ取得
+// page: /shop-signup/step2/[id]
+router.get(
+    "/:id/signup/2",
+    getShopSignup2RateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignup2Controller,
+);
 
 export default router;
