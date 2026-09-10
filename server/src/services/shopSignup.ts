@@ -108,6 +108,32 @@ export const getMyShopSignup = ({ shopSignupId, userId }: UserShopSignupIdParams
     });
 };
 
+export const getMyShopSignupHasBankAccount = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+    return ShopSignup.findOne({
+        where: {
+            id: shopSignupId,
+            user_id: userId,
+        },
+        attributes: ["id", "user_id"],
+        include: [
+            {
+                model: BankAccount,
+                attributes: [
+                    "id",
+                    "bank_name",
+                    "branch",
+                    "account_type",
+                    "account_number",
+                    "meigi",
+                    "bank_code",
+                    "branch_code",
+                ],
+                required: false,
+            },
+        ],
+    });
+};
+
 export const getMyShopSignupHasS3Data = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
     return ShopSignup.findOne({
         where: {
