@@ -11,7 +11,6 @@ import { getMyShopIdUseCase } from "../usecases/shopInfo/get/getMyShop.js";
 import { getShopOptionUseCase } from "../usecases/shopInfo/get/getOption.js";
 import { getShopPhoneNumberUseCase } from "../usecases/shopInfo/get/getPhoneNumber.js";
 import { getRepNameUseCase } from "../usecases/shopInfo/get/getRepName.js";
-import { getShopSignup1UseCase } from "../usecases/shopInfo/get/signup1.js";
 import { getShopSignup2UseCase } from "../usecases/shopInfo/get/signup2.js";
 import { getShopSignup3UseCase } from "../usecases/shopInfo/get/signup3.js";
 import { getShopSignup5UseCase } from "../usecases/shopInfo/get/signup5.js";
@@ -255,21 +254,6 @@ export const shopInfoGetByIdComFreeController = async (
         const { shop, comFree } = await getShopComFreeUseCase({ shopId, userId });
 
         res.status(200).json({ shop, comFree });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// GET /shop-info/signup/1
-// summary: 事業者情報登録ページ インプット表示データ取得
-// page: /shop-signup/step1
-export const shopInfoGetSignup1Controller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const userId = req.user!.id;
-
-        const { shop, user, comFree } = await getShopSignup1UseCase({ userId });
-
-        res.status(200).json({ shop, user, comFree });
     } catch (err) {
         next(err);
     }
