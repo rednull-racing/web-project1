@@ -134,6 +134,46 @@ export const getMyShopSignupHasBankAccount = ({ shopSignupId, userId }: UserShop
     });
 };
 
+export const getShopSignup3 = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+    return ShopSignup.findOne({
+        where: {
+            id: shopSignupId,
+            user_id: userId,
+        },
+        attributes: ["id"],
+        include: [
+            {
+                model: IdCard,
+                attributes: ["id"],
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+            {
+                model: Permit,
+                required: false,
+                attributes: ["id"],
+                include: [
+                    {
+                        model: S3Metadata,
+                        required: false,
+                    },
+                ],
+            },
+        ],
+    });
+};
+
 export const getMyShopSignupHasS3Data = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
     return ShopSignup.findOne({
         where: {

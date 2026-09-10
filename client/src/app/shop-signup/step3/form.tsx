@@ -14,11 +14,11 @@ import { ButtonDiv } from "../buttonDiv";
 import styles from "../ss.module.css";
 import SSUI from "../ssUI";
 import { StepBar } from "../stepBar";
-import { ShopInfo } from "../type";
+import { ShopSignup } from "../type";
 
 type Props = {
-    shopId: string;
-    shopInfo: ShopInfo;
+    shopSignupId: string;
+    shopSignup: ShopSignup;
 };
 
 type PermitImage = {
@@ -27,20 +27,28 @@ type PermitImage = {
     preview: string;
 };
 
-export const Form = ({ shopId, shopInfo }: Props) => {
-    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(shopInfo.id_card_front ?? "");
-    const [idFrontPreview, setIdFrontPreview] = useState(shopInfo.id_card_front ?? "");
+export const Form = ({ shopSignupId, shopSignup }: Props) => {
+    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(shopSignup.id_card_front ?? "");
+    const [idFrontPreview, setIdFrontPreview] = useState(shopSignup.id_card_front ?? "");
     const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
 
-    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(shopInfo.id_card_rear ?? "");
-    const [idRearPreview, setIdRearPreview] = useState(shopInfo.id_card_rear ?? "");
+    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(shopSignup.id_card_rear ?? "");
+    const [idRearPreview, setIdRearPreview] = useState(shopSignup.id_card_rear ?? "");
     const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
 
     const [checked, setChecked] = useState(false);
 
-    const initialPermit = (shopInfo.permit_url ?? []).map((url) => ({
-        file: null,
-        preview: url,
+    const initialPermit = (shopSignup.Permit ?? []).map((permit) => ({
+        permitId: permit.id,
+        s3MetadataId: permit.S3Metadata?.id,
+        documentName: permit.document_name,
+        memo: permit.memo,
+        permitNumber: permit.permit_number,
+        permitType: permit.permit_type,
+        file: null as File | null,
+        preview: permit.S3Metadata
+            ? `/api/shop-signup/${shopSignupId}/files/${permit.S3Metadata.id}`
+            : "",
         uploaded: false,
     }));
 
@@ -145,7 +153,7 @@ export const Form = ({ shopId, shopInfo }: Props) => {
         };
 
         try {
-            const data = await fetchStep3(shopId, body);
+            const data = await fetchStep3(shopSignupId, body);
 
             if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
                 const uploadFrontRes = await fetch(data.frontSignedUrl, {
@@ -202,7 +210,7 @@ export const Form = ({ shopId, shopInfo }: Props) => {
             toast.success("身分証・各種証明書をアップロードしました");
             await sleep(1500);
 
-            router.push(`/shop-signup/step4/${shopId}`);
+            router.push(`/shop-signup/step4/${shopSignupId}`);
         } catch (err) {
             if (err instanceof ApiError) {
                 toast.error("画像データの送信に失敗しました");
@@ -213,7 +221,7 @@ export const Form = ({ shopId, shopInfo }: Props) => {
         }
     };
 
-    const backSubmit = () => router.push(`/shop-signup/step2/${shopId}`);
+    const backSubmit = () => router.push(`/shop-signup/step2/${shopSignupId}`);
 
     return (
         <SSUI title="代表者身分証・許認可証登録">

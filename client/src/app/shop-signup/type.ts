@@ -12,6 +12,9 @@ export type TodouhukenOption = {
 
 export type S3Metadata = {
     id: number;
+    bucket_name: string | null;
+    object_key: string | null;
+    version_id: string | null;
     original_file_name: string | null;
     content_type: string | null;
     file_size: number | null;
