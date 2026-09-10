@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Address, BankAccount, IdCard, Name, Permit, PermitFile, S3Metadata, ShopSignup } from "../models/index.js";
+import { Address, BankAccount, IdCard, Name, Permit, S3Metadata, ShopSignup } from "../models/index.js";
 import {
     CreateShopSignupParams,
     UpdateBankAccountParams,
@@ -47,14 +47,8 @@ export const getMyShopSignupHasS3Data = ({ shopSignupId, userId }: UserShopSignu
                 required: false,
                 include: [
                     {
-                        model: PermitFile,
+                        model: S3Metadata,
                         required: false,
-                        include: [
-                            {
-                                model: S3Metadata,
-                                required: false,
-                            },
-                        ],
                     },
                 ],
             },
@@ -104,14 +98,8 @@ export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdPa
                 required: false,
                 include: [
                     {
-                        model: PermitFile,
+                        model: S3Metadata,
                         required: false,
-                        include: [
-                            {
-                                model: S3Metadata,
-                                required: false,
-                            },
-                        ],
                     },
                 ],
             },
@@ -139,6 +127,10 @@ export const updateShopSignupAny = async ({ shopSignup, data, transaction }: Upd
     await shopSignup.update(data, { transaction });
 };
 
-export const updateShopSignupRequestAll = async ({ shopSignup, data, transaction }: UpdateShopSignupRequestAllParams) => {
+export const updateShopSignupRequestAll = async ({
+    shopSignup,
+    data,
+    transaction,
+}: UpdateShopSignupRequestAllParams) => {
     await shopSignup.update(data, { transaction });
 };
