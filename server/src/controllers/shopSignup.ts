@@ -1,7 +1,10 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
-import { createShopSignup1 } from "../usecases/shopSignup/signup1.js";
+import { createShopSignup1 } from "../usecases/shopSignup/signup1/signup1.js";
 import { updateShopSignup2UseCase } from "../usecases/shopSignup/signup2.js";
 import { updateShopSignup3UseCase } from "../usecases/shopSignup/signup3/signup3.js";
+import { updateShopSignup4UseCase } from "../usecases/shopSignup/signup4.js";
+import { updateShopSignup5UseCase } from "../usecases/shopSignup/signup5/signup5.js";
+import { updateShopSignupEditUseCase } from "../usecases/shopSignup/signup5/signupEdit.js";
 import { BankBody } from "../validators/body/bankAccount.js";
 import {
     CreateSignup1Body,
@@ -9,9 +12,6 @@ import {
     ShopSignupEditBody,
     ShopSignupOptionBody,
 } from "../validators/body/shopSignup.js";
-import { updateShopSignup4UseCase } from "../usecases/shopSignup/signup4.js";
-import { updateShopSignupEditUseCase } from "../usecases/shopSignup/signup5/signupEdit.js";
-import { updateShopSignup5UseCase } from "../usecases/shopSignup/signup5/signup5.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -110,11 +110,7 @@ export const updateShopSignupEditController = async (
 // PATCH /shop-signup/:id/signup5
 // summary: ショップ登録 確定
 // page: /shop-signup/step5/[id]
-export const updateShopSignup5Controller = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
+export const updateShopSignup5Controller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const shopSignupId = Number(req.params.id);
         const userId = req.user!.id;

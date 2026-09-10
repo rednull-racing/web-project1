@@ -1,40 +1,14 @@
-import sequelize from "../../db.js";
-import { AppError } from "../../errors.js";
-import { createAddress } from "../../services/address.js";
-import { createNameShop } from "../../services/name.js";
-import { createShopSignup } from "../../services/shopSignup.js";
-import { fetchAddressFromZipUseCase } from "../address/zipUseCase.js";
-
-type Body = {
-    selectOption: number;
-    companyName: string;
-    shopName: string;
-    phoneNumber: string;
-    email: string;
-    openDateTime: string;
-    foundedDate: Date;
-    memberCount: number;
-    homepage?: string;
-    repSei: string;
-    repMei: string;
-    repSeiKana: string;
-    repMeiKana: string;
-    conSei: string;
-    conMei: string;
-    conSeiKana: string;
-    conMeiKana: string;
-    postNumber: string;
-    todouhuken: string;
-    shikutyouson: string;
-    banchi: string;
-    building?: string;
-    companyNumber?: string;
-    capital?: number;
-};
+import sequelize from "../../../db.js";
+import { AppError } from "../../../errors.js";
+import { createAddress } from "../../../services/address.js";
+import { createNameShop } from "../../../services/name.js";
+import { createShopSignup } from "../../../services/shopSignup.js";
+import { fetchAddressFromZipUseCase } from "../../address/zipUseCase.js";
+import { Signup1Body } from "./body.js";
 
 type Params = {
     userId: number;
-    body: Body;
+    body: Signup1Body;
 };
 
 // POST /shop-signup
