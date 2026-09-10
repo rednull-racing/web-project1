@@ -55,7 +55,7 @@ vi.mock("../../../src/services/shopSignup.js", () => ({
     updateSignup3: mocks.updateSignup3,
 }));
 
-import { updateShopSignup3UseCase } from "../../../src/usecases/shopSignup/signup3/signup3.js";
+import { updateShopSignup3UseCase } from "../../../src/usecases/shopSignup/edit/signup3/signup3.js";
 
 const transaction = { id: "transaction" };
 const now = 1_700_000_000_000;

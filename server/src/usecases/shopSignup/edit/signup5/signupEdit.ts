@@ -1,7 +1,7 @@
-import { AppError } from "../../../errors.js";
-import { getMyShopSignup, updateShopSignupAny } from "../../../services/shopSignup.js";
-import { ShopSignupUpdateData } from "../../../types/serviceType/shopSignup.js";
-import { ShopSignupEditBody } from "../../../validators/body/shopSignup.js";
+import { AppError } from "../../../../errors.js";
+import { getMyShopSignup, updateShopSignupAny } from "../../../../services/shopSignup.js";
+import { ShopSignupUpdateData } from "../../../../types/serviceType/shopSignup.js";
+import { ShopSignupEditBody } from "../../../../validators/body/shopSignup.js";
 
 type Params = {
     shopSignupId: number;

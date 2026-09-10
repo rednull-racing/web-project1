@@ -1,10 +1,10 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
-import { createShopSignup1 } from "../usecases/shopSignup/signup1/signup1.js";
-import { updateShopSignup2UseCase } from "../usecases/shopSignup/signup2.js";
-import { updateShopSignup3UseCase } from "../usecases/shopSignup/signup3/signup3.js";
-import { updateShopSignup4UseCase } from "../usecases/shopSignup/signup4.js";
-import { updateShopSignup5UseCase } from "../usecases/shopSignup/signup5/signup5.js";
-import { updateShopSignupEditUseCase } from "../usecases/shopSignup/signup5/signupEdit.js";
+import { createShopSignup1 } from "../usecases/shopSignup/edit/signup1/signup1.js";
+import { updateShopSignup2UseCase } from "../usecases/shopSignup/edit/signup2.js";
+import { updateShopSignup3UseCase } from "../usecases/shopSignup/edit/signup3/signup3.js";
+import { updateShopSignup4UseCase } from "../usecases/shopSignup/edit/signup4.js";
+import { updateShopSignup5UseCase } from "../usecases/shopSignup/edit/signup5/signup5.js";
+import { updateShopSignupEditUseCase } from "../usecases/shopSignup/edit/signup5/signupEdit.js";
 import { BankBody } from "../validators/body/bankAccount.js";
 import {
     CreateSignup1Body,

@@ -1,6 +1,6 @@
-import sequelize from "../../../db.js";
-import { AppError } from "../../../errors.js";
-import { getMyShopSignup, getOldShopSignupAll, updateShopSignupRequestAll } from "../../../services/shopSignup.js";
+import sequelize from "../../../../db.js";
+import { AppError } from "../../../../errors.js";
+import { getMyShopSignup, getOldShopSignupAll, updateShopSignupRequestAll } from "../../../../services/shopSignup.js";
 import { deleteOldShopSignup } from "./oldShopSignup.js";
 
 type Params = {

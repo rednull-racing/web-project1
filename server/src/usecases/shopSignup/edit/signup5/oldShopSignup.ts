@@ -1,13 +1,13 @@
 import { Transaction } from "sequelize";
 
-import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
-import { S3Metadata, ShopSignup } from "../../../models/index.js";
-import { deleteAddress } from "../../../services/address.js";
-import { deleteBankAccount } from "../../../services/bankAccount.js";
-import { deleteIdCard } from "../../../services/idCard.js";
-import { deleteName } from "../../../services/name.js";
-import { deletePermit } from "../../../services/permit.js";
-import { deleteS3Metadata } from "../../../services/s3Metadata.js";
+import { deleteS3Object } from "../../../../infra/aws/deleteS3Object.js";
+import { S3Metadata, ShopSignup } from "../../../../models/index.js";
+import { deleteAddress } from "../../../../services/address.js";
+import { deleteBankAccount } from "../../../../services/bankAccount.js";
+import { deleteIdCard } from "../../../../services/idCard.js";
+import { deleteName } from "../../../../services/name.js";
+import { deletePermit } from "../../../../services/permit.js";
+import { deleteS3Metadata } from "../../../../services/s3Metadata.js";
 
 type Params = {
     oldShopSignup: InstanceType<typeof ShopSignup>[];
