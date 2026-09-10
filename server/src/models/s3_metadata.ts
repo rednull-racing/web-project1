@@ -38,7 +38,7 @@ export class S3Metadata extends Model {
     static associations: {
         FrontIdCard: Association<S3Metadata, IdCard>;
         RearIdCard: Association<S3Metadata, IdCard>;
-        PermitFile: Association<S3Metadata, Permit>;
+        Permit: Association<S3Metadata, Permit>;
     };
 }
 
