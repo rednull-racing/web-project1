@@ -16,7 +16,7 @@ type SignupResponse = {
 };
 
 export const fetchSignup1Page = async (): Promise<Signup1Response> => {
-    return apiFetchServer("/shop-info/signup/1", {
+    return apiFetchServer("/shop-signup/1", {
         cache: "no-store",
     });
 };
