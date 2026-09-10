@@ -17,5 +17,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
     const data = await fetchSignup1Page();
 
-    return <Form user={data.user} shopInfo={data.shop || null} ComOrFreeOption={data.comFree} />;
+    return <Form user={data.user} shopSignup={data.shopSignup || null} ComOrFreeOption={data.comFree} />;
 }

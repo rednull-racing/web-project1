@@ -1,9 +1,9 @@
 import { apiFetchServer } from "../../../lib/api/server";
-import { BankAccount, ComOrFreeOption, ShopInfo, User } from "../type";
+import { BankAccount, ComOrFreeOption, ShopSignup, User } from "../type";
 
 type Signup1Response = {
     user: User;
-    shop?: ShopInfo;
+    shopSignup?: ShopSignup;
     comFree: ComOrFreeOption[];
 };
 
