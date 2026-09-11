@@ -207,11 +207,7 @@ export const getShopSignupFileController = async (req: Request, res: Response, n
 // GET /shop-signup/:id/5
 // summary: ショップ登録確認ページデータ取得
 // page: /shop-signup/step5/[id]
-export const getShopSignup5Controller = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
+export const getShopSignup5Controller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req.user!.id;
         const shopSignupId = Number(req.params.id);

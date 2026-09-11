@@ -157,9 +157,7 @@ Permit.init(
                 ).length;
 
                 if (referenceCount !== 1) {
-                    throw new Error(
-                        "shop_info_id、shop_info_edit_id、shop_signup_idのいずれか一つだけが必須です。",
-                    );
+                    throw new Error("shop_info_id、shop_info_edit_id、shop_signup_idのいずれか一つだけが必須です。");
                 }
             },
         },
