@@ -138,4 +138,8 @@ router.get(
     getShopSignup3Controller,
 );
 
+// GET /shop-signup/:shopSignupId/files/:s3MetadataId
+// summary: ショップ身分証アップロードページ 画像取得
+// page: /shop-signup/step3/[id]
+
 export default router;

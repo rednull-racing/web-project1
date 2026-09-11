@@ -1,6 +1,7 @@
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { AppError } from "../../errors.js";
 import { s3 } from "./s3.js";
+import { Readable } from "node:stream";
 
 type Params = {
     bucketName?: string;
@@ -19,8 +20,8 @@ export const getS3Object = async ({ bucketName, objectKey, versionId }: Params) 
         }),
     );
 
-    if (!result.Body) {
-        throw new AppError("S3_OBJECT_NOT_FOUND", 404);
+    if (!(result.Body instanceof Readable)) {
+        throw new AppError("S3_OBJECT_BODY_INVALID", 500);
     }
 
     return {

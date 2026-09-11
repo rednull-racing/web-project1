@@ -5,6 +5,10 @@ import { updateShopSignup3UseCase } from "../usecases/shopSignup/edit/signup3/si
 import { updateShopSignup4UseCase } from "../usecases/shopSignup/edit/signup4.js";
 import { updateShopSignup5UseCase } from "../usecases/shopSignup/edit/signup5/signup5.js";
 import { updateShopSignupEditUseCase } from "../usecases/shopSignup/edit/signup5/signupEdit.js";
+import { getSHopSignupFileUseCase } from "../usecases/shopSignup/get/getFile.js";
+import { getShopSignup1UseCase } from "../usecases/shopSignup/get/signup1.js";
+import { getShopSignup2UseCase } from "../usecases/shopSignup/get/signup2.js";
+import { getShopSignup3UseCase } from "../usecases/shopSignup/get/signup3.js";
 import { BankBody } from "../validators/body/bankAccount.js";
 import {
     CreateSignup1Body,
@@ -12,9 +16,6 @@ import {
     ShopSignupEditBody,
     ShopSignupOptionBody,
 } from "../validators/body/shopSignup.js";
-import { getShopSignup1UseCase } from "../usecases/shopSignup/get/signup1.js";
-import { getShopSignup2UseCase } from "../usecases/shopSignup/get/signup2.js";
-import { getShopSignup3UseCase } from "../usecases/shopSignup/get/signup3.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -144,11 +145,7 @@ export const getShopSignup1Controller = async (req: Request, res: Response, next
 // GET /shop-signup/:id/2
 // summary: ショップ口座登録ページ インプット表示データ取得
 // page: /shop-signup/step2/[id]
-export const getShopSignup2Controller = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
+export const getShopSignup2Controller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req.user!.id;
         const shopSignupId = Number(req.params.id);
@@ -164,11 +161,7 @@ export const getShopSignup2Controller = async (
 // GET /shop-signup/:id/3
 // summary: ショップ身分証アップロードページ メタデータ取得
 // page: /shop-signup/step3/[id]
-export const getShopSignup3Controller = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
+export const getShopSignup3Controller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req.user!.id;
         const shopSignupId = Number(req.params.id);
@@ -176,6 +169,35 @@ export const getShopSignup3Controller = async (
         const shopSignup = await getShopSignup3UseCase({ shopSignupId, userId });
 
         res.status(200).json({ shopSignup });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:shopSignupId/files/:s3MetadataId
+// summary: ショップ身分証アップロードページ 画像取得
+// page: /shop-signup/step3/[id]
+export const getShopSignupFileController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const shopSignupId = Number(req.params.shopSignupId);
+        const s3MetadataId = Number(req.params.s3MetadataId);
+
+        const file = await getSHopSignupFileUseCase({
+            shopSignupId,
+            s3MetadataId,
+            userId,
+        });
+
+        if (file.contentType !== null) {
+            res.setHeader("Content-Type", file.contentType);
+        }
+
+        if (file.contentLength) {
+            res.setHeader("Content-Length", file.contentLength);
+        }
+
+        file.body.pipe(res);
     } catch (err) {
         next(err);
     }
