@@ -158,7 +158,7 @@ router.get(
 // summary: ショップ登録確認ページデータ取得
 // page: /shop-signup/step5/[id]
 router.get(
-    "/:id5",
+    "/:id/5",
     getShopSignup5RateLimit,
     authenticateToken,
     validateParams(idParamSchema),

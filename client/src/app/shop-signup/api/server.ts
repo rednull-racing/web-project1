@@ -34,7 +34,7 @@ export const fetchSignup3Page = async (shopSignupId: string): Promise<SignupResp
 };
 
 export const fetchSignup5Page = async (shopId: string): Promise<SignupResponse> => {
-    return apiFetchServer(`/shop-info/${shopId}/signup/5`, {
+    return apiFetchServer(`/shop-signup/${shopId}/5`, {
         cache: "no-store",
     });
 };
