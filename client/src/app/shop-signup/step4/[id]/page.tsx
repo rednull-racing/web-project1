@@ -27,5 +27,5 @@ export default async function Page({ params }: Props) {
 
     if (!accessToken) redirect("/login");
 
-    return <Form shopId={id} />;
+    return <Form shopSignupId={id} />;
 }
