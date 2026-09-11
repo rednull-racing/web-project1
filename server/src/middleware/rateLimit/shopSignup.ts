@@ -111,3 +111,10 @@ export const getShopSignup3RateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+export const getShopSignupFileRateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+});

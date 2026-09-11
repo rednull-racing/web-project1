@@ -3,6 +3,7 @@ import {
     getShopSignup1Controller,
     getShopSignup2Controller,
     getShopSignup3Controller,
+    getShopSignupFileController,
     shopSignupPostRootController,
     updateShopSignup2Controller,
     updateShopSignup3Controller,
@@ -17,6 +18,7 @@ import {
     getShopSignup1RateLimit,
     getShopSignup2RateLimit,
     getShopSignup3RateLimit,
+    getShopSignupFileRateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
     shopSignup5RateLimit,
@@ -33,6 +35,7 @@ import {
     shopSignupOptionBodySchema,
 } from "../validators/body/shopSignup.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { shopSignupFilesIdParamSchema } from "../validators/params/shopSignup.js";
 
 const router = Router();
 
@@ -141,5 +144,12 @@ router.get(
 // GET /shop-signup/:shopSignupId/files/:s3MetadataId
 // summary: ショップ身分証アップロードページ 画像取得
 // page: /shop-signup/step3/[id]
+router.get(
+    "/:shopSignupId/files/:s3MetadataId",
+    getShopSignupFileRateLimit,
+    authenticateToken,
+    validateParams(shopSignupFilesIdParamSchema),
+    getShopSignupFileController,
+);
 
 export default router;
