@@ -11,35 +11,35 @@ import { sleep } from "../../../lib/sleep";
 import { fetchStep5, fetchUpdateField } from "../api/step5";
 import { ButtonDiv } from "../buttonDiv";
 import SSUI from "../ssUI";
-import { ShopInfo } from "../type";
+import { ShopSignup } from "../type";
 
 type Props = {
-    shopId: string;
-    shopInfo: ShopInfo;
+    shopSignupId: string;
+    shopSignup: ShopSignup;
 };
 
-export const Client = ({ shopId, shopInfo }: Props) => {
-    const [comOrFree, setComOrFree] = useState(shopInfo.ComOrFreeOption?.id ?? "");
-    const [companyName, setCompanyName] = useState(shopInfo.company_name ?? "");
-    const [shopName, setShopName] = useState(shopInfo.shop_name ?? "");
-    const [phoneNumber, setPhoneNumber] = useState(shopInfo.phone_number ?? "");
-    const [email, setEmail] = useState(shopInfo.email ?? "");
-    const [openDateTime, setOpenDateTime] = useState(shopInfo.open_date_time ?? "");
-    const [foundedDate, setFoundedDate] = useState(shopInfo.founded_date ?? "");
-    const [memberCount, setMemberCount] = useState(shopInfo.member_count ?? "");
-    const [homepage, setHomepage] = useState(shopInfo.homepage_url ?? "");
+export const Client = ({ shopSignupId, shopSignup }: Props) => {
+    const [comOrFree, setComOrFree] = useState(shopSignup.ComOrFreeOption?.id ?? "");
+    const [companyName, setCompanyName] = useState(shopSignup.company_name ?? "");
+    const [shopName, setShopName] = useState(shopSignup.shop_name ?? "");
+    const [phoneNumber, setPhoneNumber] = useState(shopSignup.phone_number ?? "");
+    const [email, setEmail] = useState(shopSignup.email ?? "");
+    const [openDateTime, setOpenDateTime] = useState(shopSignup.open_date_time ?? "");
+    const [foundedDate, setFoundedDate] = useState(shopSignup.founded_date ?? "");
+    const [memberCount, setMemberCount] = useState(shopSignup.member_count ?? "");
+    const [homepage, setHomepage] = useState(shopSignup.homepage_url ?? "");
 
-    const [companyNumber, setCompanyNumber] = useState(shopInfo.company_number ?? "");
-    const [capital, setCapital] = useState(shopInfo.capital);
+    const [companyNumber, setCompanyNumber] = useState(shopSignup.company_number ?? "");
+    const [capital, setCapital] = useState(shopSignup.capital);
 
-    const [autoTrans, setAutoTrans] = useState(shopInfo.auto_trans ? "true" : "false");
-    const [openInfo, setOpenInfo] = useState(shopInfo.open_info ? "true" : "false");
+    const [autoTrans, setAutoTrans] = useState(shopSignup.auto_trans ? "true" : "false");
+    const [openInfo, setOpenInfo] = useState(shopSignup.open_info ? "true" : "false");
 
     const router = useRouter();
 
     const updateField = async (field: string, value: string | number | Date) => {
         try {
-            await fetchUpdateField(shopId, field, value);
+            await fetchUpdateField(shopSignupId, field, value);
         } catch (err) {
             if (err instanceof ApiError) return;
 
@@ -49,7 +49,7 @@ export const Client = ({ shopId, shopInfo }: Props) => {
 
     const submit = async () => {
         try {
-            await fetchStep5(shopId);
+            await fetchStep5(shopSignupId);
 
             toast.success("ショップデータの登録が完了しました");
             await sleep(1500);
@@ -65,7 +65,7 @@ export const Client = ({ shopId, shopInfo }: Props) => {
         }
     };
 
-    const backSubmit = () => router.push(`/shop-signup/step4/${shopId}`);
+    const backSubmit = () => router.push(`/shop-signup/step4/${shopSignupId}`);
 
     const comNameTitle = comOrFree === 1 ? "会社名" : "屋号";
 
@@ -189,46 +189,46 @@ export const Client = ({ shopId, shopInfo }: Props) => {
 
                 <ConfirmSection
                     title="代表者氏名"
-                    content={`${shopInfo.RepresentativeName?.sei ?? ""} ${shopInfo.RepresentativeName?.mei ?? ""}`}
-                    link={`/edit/name/shop/rep-name/signup/${shopId}`}
+                    content={`${shopSignup.RepresentativeName?.sei ?? ""} ${shopSignup.RepresentativeName?.mei ?? ""}`}
+                    link={`/edit/name/shop/rep-name/signup/${shopSignupId}`}
                 />
 
                 <ConfirmSection
                     title="代表者氏名（カナ）"
-                    content={`${shopInfo.RepresentativeName?.sei_kana ?? ""} ${shopInfo.RepresentativeName?.mei_kana ?? ""}`}
-                    link={`/edit/name/shop/rep-name/signup/${shopId}`}
+                    content={`${shopSignup.RepresentativeName?.sei_kana ?? ""} ${shopSignup.RepresentativeName?.mei_kana ?? ""}`}
+                    link={`/edit/name/shop/rep-name/signup/${shopSignupId}`}
                 />
 
                 <ConfirmSection
                     title="担当者氏名"
-                    content={`${shopInfo.ContactName?.sei ?? ""} ${shopInfo.ContactName?.mei ?? ""}`}
-                    link={`/edit/name/shop/con-name/signup/${shopId}`}
+                    content={`${shopSignup.ContactName?.sei ?? ""} ${shopSignup.ContactName?.mei ?? ""}`}
+                    link={`/edit/name/shop/con-name/signup/${shopSignupId}`}
                 />
 
                 <ConfirmSection
                     title="担当者氏名（カナ）"
-                    content={`${shopInfo.ContactName?.sei_kana ?? ""} ${shopInfo.ContactName?.mei_kana ?? ""}`}
-                    link={`/edit/name/shop/con-name/signup/${shopId}`}
+                    content={`${shopSignup.ContactName?.sei_kana ?? ""} ${shopSignup.ContactName?.mei_kana ?? ""}`}
+                    link={`/edit/name/shop/con-name/signup/${shopSignupId}`}
                 />
 
                 <ConfirmSection
                     title="所在地"
-                    content={`〒${shopInfo.Address?.post_number ?? ""}
-                ${shopInfo.Address?.AddressTodouhuken?.name ?? ""}
-                ${shopInfo.Address?.shikutyouson ?? ""}
-                ${shopInfo.Address?.banchi ?? ""}
-                ${shopInfo.Address?.building ?? ""}`}
-                    link={`/edit/address/shop/signup/${shopId}`}
+                    content={`〒${shopSignup.Address?.post_number ?? ""}
+                ${shopSignup.Address?.AddressTodouhuken?.name ?? ""}
+                ${shopSignup.Address?.shikutyouson ?? ""}
+                ${shopSignup.Address?.banchi ?? ""}
+                ${shopSignup.Address?.building ?? ""}`}
+                    link={`/edit/address/shop/signup/${shopSignupId}`}
                 />
 
                 <ConfirmSection
                     title="振込口座"
-                    content={`銀行名： ${shopInfo.BankAccount?.bank_name ?? ""}
-                支店名： ${shopInfo.BankAccount?.branch_code ?? ""}
-                口座種別： ${getAccountTypeLabel({ accountType: shopInfo.BankAccount?.account_type ?? null })}
-                口座番号： ${shopInfo.BankAccount?.account_number ?? ""}
-                口座名義： ${shopInfo.BankAccount?.meigi ?? ""}`}
-                    link={`/edit/account/shop/signup/${shopId}`}
+                    content={`銀行名： ${shopSignup.BankAccount?.bank_name ?? ""}
+                支店名： ${shopSignup.BankAccount?.branch_code ?? ""}
+                口座種別： ${getAccountTypeLabel({ accountType: shopSignup.BankAccount?.account_type ?? null })}
+                口座番号： ${shopSignup.BankAccount?.account_number ?? ""}
+                口座名義： ${shopSignup.BankAccount?.meigi ?? ""}`}
+                    link={`/edit/account/shop/signup/${shopSignupId}`}
                 />
 
                 <ConfirmSection
