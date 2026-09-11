@@ -47,7 +47,7 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
         permitType: permit.permit_type,
         file: null as File | null,
         preview: permit.S3Metadata
-            ? `/api/shop-signup/${shopSignupId}/files/${permit.S3Metadata.id}`
+            ? `${process.env.API_URL}/shop-signup/${shopSignupId}/files/${permit.S3Metadata.id}`
             : "",
         uploaded: false,
     }));
@@ -96,116 +96,33 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
     };
 
     const submit = async () => {
-        if (!idCardFront || !idCardRear) {
+        if (
+            !idFrontUpload ||
+            !(idCardFront instanceof File) ||
+            !idRearUpload ||
+            !(idCardRear instanceof File)
+        ) {
             toast.error("身分証がアップロードされていません");
             return;
         }
 
-        if (checked && permitImages.length === 0) {
+        const permitFiles = checked
+            ? permitImages.flatMap((image) => (image.file instanceof File ? [image.file] : []))
+            : [];
+
+        if (checked && permitFiles.length === 0) {
             toast.error("許認可証がアップロードされていません");
             return;
         }
 
-        let frontFileName: string | undefined;
-        let frontFileType: string | undefined;
-        let rearFileName: string | undefined;
-        let rearFileType: string | undefined;
-
-        if (idFrontUpload && idCardFront instanceof File) {
-            frontFileName = idCardFront.name;
-            frontFileType = idCardFront.type;
-        }
-
-        if (idRearUpload && idCardRear instanceof File) {
-            rearFileName = idCardRear.name;
-            rearFileType = idCardRear.type;
-        }
-
-        let permitFiles: ({ fileName: string; fileType: string | null; uploaded: boolean } | undefined)[] = [];
-        if (checked) {
-            permitFiles = permitImages.map((img) => {
-                if (img.uploaded && img.file instanceof File) {
-                    return {
-                        fileName: img.file!.name,
-                        fileType: img.file!.type,
-                        uploaded: true,
-                    };
-                }
-
-                const fileName = (img.preview ?? "").split("/").pop() || "unknown";
-
-                return {
-                    fileName,
-                    fileType: null,
-                    uploaded: false,
-                };
-            });
-        }
-
         const body = {
-            frontFileName,
-            frontFileType,
-            rearFileName,
-            rearFileType,
-            idFrontUpload,
-            idRearUpload,
+            frontIdCard: idCardFront,
+            rearIdCard: idCardRear,
             permitFiles,
         };
 
         try {
-            const data = await fetchStep3(shopSignupId, body);
-
-            if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
-                const uploadFrontRes = await fetch(data.frontSignedUrl, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": idCardFront.type,
-                    },
-                    body: idCardFront,
-                });
-
-                if (!uploadFrontRes.ok) {
-                    toast.error("身分証（表面）のアップロードに失敗しました");
-                    return;
-                }
-            }
-
-            if (idRearUpload && data.rearSignedUrl && idCardRear instanceof File) {
-                const uploadFrontRes = await fetch(data.rearSignedUrl, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": idCardRear.type,
-                    },
-                    body: idCardRear,
-                });
-
-                if (!uploadFrontRes.ok) {
-                    toast.error("身分証（裏面）のアップロードに失敗しました");
-                    return;
-                }
-            }
-
-            if (checked) {
-                const uploadImages = permitImages.filter((img) => img.uploaded && img.file instanceof File);
-
-                for (let i = 0; i < data.permitSignedUrls.length; i++) {
-                    const file = uploadImages[i].file!;
-                    const signedUrl = data.permitSignedUrls[i];
-
-                    const upload = await fetch(signedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": file.type,
-                        },
-                        body: file,
-                    });
-
-                    if (!upload.ok) {
-                        toast.error("許認可証のアップロードに失敗しました");
-                        return;
-                    }
-                }
-            }
+            await fetchStep3(shopSignupId, body);
 
             toast.success("身分証・各種証明書をアップロードしました");
             await sleep(1500);

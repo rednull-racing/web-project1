@@ -37,3 +37,29 @@
 - ファイルフィールド名は`frontIdCard`、`rearIdCard`、`permitFiles`を使用する。
 - 許認可証は最大10件というサーバー側の制約を維持する。
 - 新しいライブラリは追加しない。
+
+---
+
+## 報告
+
+submit() と fetchStep3() を完成させました。
+
+- FormDataで表面・裏面・許認可証を送信
+- Bearer認証を付与
+- API仕様どおり PATCH /shop-signup/:id/id-card を使用
+- 必須ファイルと許認可証のチェックを実装
+- 旧Presigned URLアップロード処理を削除
+
+変更ファイル：
+
+- client/src/app/shop-signup/step3/form.tsx:98
+- client/src/app/shop-signup/api/step3.ts:10
+
+確認結果：
+
+- 対象ファイルのESLint：成功
+- TypeScript：別箇所の既存エラーにより失敗
+    - form.tsx の既存プロパティ参照
+    - step5関連の型エラー
+
+指示どおり、それらのエラー箇所は編集していません。
