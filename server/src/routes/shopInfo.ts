@@ -8,7 +8,6 @@ import {
     shopInfoGetByIdOptionController,
     shopInfoGetByIdPhoneNumberController,
     shopInfoGetByIdRepNameController,
-    shopInfoGetByIdSignup5Controller,
     shopInfoGetMyController,
     shopInfoPatchByIdOptionController,
     shopInfoPatchByIdPhoneNumberController,
@@ -25,7 +24,6 @@ import {
     getShopOptionRateLimit,
     getShopPhoneNumberRateLimit,
     getShopRepNameRateLimit,
-    getShopSignup5RateLimit,
     shopOptionEditRateLimit,
     shopPhoneNumberEditRateLimit,
     shopRepNameEditRateLimit,
@@ -165,17 +163,6 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoGetByIdComFreeController,
-);
-
-// GET /shop-info/:id/signup/5
-// summary: ショップ登録確認ページデータ取得
-// page: /shop-signup/step5/[id]
-router.get(
-    "/:id/signup/5",
-    getShopSignup5RateLimit,
-    authenticateToken,
-    validateParams(idParamSchema),
-    shopInfoGetByIdSignup5Controller,
 );
 
 export default router;
