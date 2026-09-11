@@ -1,4 +1,5 @@
 import { Op } from "sequelize";
+import type IdCardModel from "../models/id_card.js";
 import {
     Address,
     BankAccount,
@@ -11,6 +12,9 @@ import {
     TodouhukenOption,
     User,
 } from "../models/index.js";
+import type PermitModel from "../models/permit.js";
+import type S3MetadataModel from "../models/s3_metadata.js";
+import type ShopSignupModel from "../models/shop_signup.js";
 import {
     CreateShopSignupParams,
     UpdateBankAccountParams,
@@ -21,6 +25,11 @@ import {
     UserIdParams,
     UserShopSignupIdParams,
 } from "../types/serviceType/shopSignup.js";
+
+type ShopSignupWithS3Data = ShopSignupModel & {
+    IdCard?: (IdCardModel & { FrontIdCard?: S3MetadataModel | null; RearIdCard?: S3MetadataModel | null }) | null;
+    Permit?: (PermitModel & { S3Metadata?: S3MetadataModel | null })[];
+};
 
 export const getShopSignup1One = ({ userId }: UserIdParams) => {
     return ShopSignup.findOne({
@@ -174,7 +183,10 @@ export const getShopSignup3 = ({ shopSignupId, userId }: UserShopSignupIdParams)
     });
 };
 
-export const getMyShopSignupHasS3Data = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+export const getMyShopSignupHasS3Data = ({
+    shopSignupId,
+    userId,
+}: UserShopSignupIdParams): Promise<ShopSignupWithS3Data | null> => {
     return ShopSignup.findOne({
         where: {
             id: shopSignupId,

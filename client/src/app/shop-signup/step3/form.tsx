@@ -22,6 +22,7 @@ type Props = {
 };
 
 type PermitImage = {
+    s3MetadataId?: number;
     uploaded: boolean;
     file: File | null;
     preview: string;
@@ -41,13 +42,11 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
 
     const [idCardFront, setIdCardFront] = useState<File | null>(null);
     const [idFrontPreview, setIdFrontPreview] = useState(frontImageUrl);
-    const [idFrontUpload, setIdFrontUpload] = useState(false);
 
     const [idCardRear, setIdCardRear] = useState<File | null>(null);
     const [idRearPreview, setIdRearPreview] = useState(rearImageUrl);
-    const [idRearUpload, setIdRearUpload] = useState(false);
 
-    const [checked, setChecked] = useState(false);
+    const [checked, setChecked] = useState((shopSignup.Permit?.length ?? 0) > 0);
 
     const initialPermit = (shopSignup.Permit ?? []).map((permit) => ({
         permitId: permit.id,
@@ -75,7 +74,6 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
             const selectedFile = e.target.files[0];
             setIdCardFront(selectedFile);
             setIdFrontPreview(URL.createObjectURL(selectedFile));
-            setIdFrontUpload(true);
         }
     };
 
@@ -84,7 +82,6 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
             const selectedFile = e.target.files[0];
             setIdCardRear(selectedFile);
             setIdRearPreview(URL.createObjectURL(selectedFile));
-            setIdRearUpload(true);
         }
     };
 
@@ -107,24 +104,28 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
     };
 
     const submit = async () => {
-        if (!idFrontUpload || !(idCardFront instanceof File) || !idRearUpload || !(idCardRear instanceof File)) {
+        const hasFrontIdCard = Boolean(frontS3Metadata || idCardFront);
+        const hasRearIdCard = Boolean(rearS3Metadata || idCardRear);
+
+        if (!hasFrontIdCard || !hasRearIdCard) {
             toast.error("身分証がアップロードされていません");
             return;
         }
 
-        const permitFiles = checked
-            ? permitImages.flatMap((image) => (image.file instanceof File ? [image.file] : []))
-            : [];
+        const permits = checked ? permitImages : [];
 
-        if (checked && permitFiles.length === 0) {
+        if (checked && (permits.length === 0 || permits.some((image) => !image.file && !image.s3MetadataId))) {
             toast.error("許認可証がアップロードされていません");
             return;
         }
 
         const body = {
             frontIdCard: idCardFront,
+            frontS3MetadataId: frontS3Metadata?.id,
             rearIdCard: idCardRear,
-            permitFiles,
+            rearS3MetadataId: rearS3Metadata?.id,
+            requiresPermit: checked,
+            permits,
         };
 
         try {

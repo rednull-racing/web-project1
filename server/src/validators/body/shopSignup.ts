@@ -51,11 +51,64 @@ export const filesSchema = z.object({
     buffer: z.instanceof(Buffer),
 });
 
-export const shopSignup3BodySchema = z.object({
-    frontIdCard: filesSchema,
-    rearIdCard: filesSchema,
-    permitFiles: z.array(filesSchema).max(10),
-});
+export const shopSignup3BodySchema = z
+    .object({
+        frontIdCard: filesSchema.optional(),
+        frontS3MetadataId: z.coerce.number().int().positive().optional(),
+        rearIdCard: filesSchema.optional(),
+        rearS3MetadataId: z.coerce.number().int().positive().optional(),
+        permitFiles: z.array(filesSchema).max(10).default([]),
+        requiresPermit: z
+            .enum(["true", "false"])
+            .default("false")
+            .transform((value) => value === "true"),
+        permits: z
+            .array(
+                z.object({
+                    fileIndex: z.coerce.number().int().min(0).max(9).optional(),
+                    s3MetadataId: z.coerce.number().int().positive().optional(),
+                }),
+            )
+            .max(10)
+            .optional(),
+    })
+    .transform((body) => ({
+        ...body,
+        // 新規ファイルだけを送る従来のリクエストも受け付ける。
+        permits: body.permits ?? body.permitFiles.map((_, fileIndex) => ({ fileIndex, s3MetadataId: undefined })),
+    }))
+    .superRefine((body, ctx) => {
+        if (!body.frontIdCard && !body.frontS3MetadataId) {
+            ctx.addIssue({ code: "custom", path: ["frontIdCard"], message: "身分証の表面を選択してください。" });
+        }
+        if (!body.rearIdCard && !body.rearS3MetadataId) {
+            ctx.addIssue({ code: "custom", path: ["rearIdCard"], message: "身分証の裏面を選択してください。" });
+        }
+        if (body.requiresPermit && body.permits.length === 0) {
+            ctx.addIssue({ code: "custom", path: ["permits"], message: "許認可証を選択してください。" });
+        }
+        const fileIndexes = new Set<number>();
+        const metadataIds = new Set<number>();
+        body.permits.forEach((permit, index) => {
+            if (permit.fileIndex !== undefined) {
+                if (!body.permitFiles[permit.fileIndex] || fileIndexes.has(permit.fileIndex)) {
+                    ctx.addIssue({
+                        code: "custom",
+                        path: ["permits", index],
+                        message: "許認可証を選び直してください。",
+                    });
+                }
+                fileIndexes.add(permit.fileIndex);
+            } else if (!permit.s3MetadataId || metadataIds.has(permit.s3MetadataId)) {
+                ctx.addIssue({ code: "custom", path: ["permits", index], message: "許認可証を選び直してください。" });
+            } else {
+                metadataIds.add(permit.s3MetadataId);
+            }
+        });
+        if (fileIndexes.size !== body.permitFiles.length) {
+            ctx.addIssue({ code: "custom", path: ["permitFiles"], message: "許認可証を選び直してください。" });
+        }
+    });
 
 export const shopSignupOptionBodySchema = z.object({
     autoTrans: z.boolean().default(false),
