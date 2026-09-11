@@ -28,13 +28,24 @@ type PermitImage = {
 };
 
 export const Form = ({ shopSignupId, shopSignup }: Props) => {
-    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(shopSignup.id_card_front ?? "");
-    const [idFrontPreview, setIdFrontPreview] = useState(shopSignup.id_card_front ?? "");
-    const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
+    const frontS3Metadata = shopSignup.IdCard?.FrontIdCard;
+    const rearS3Metadata = shopSignup.IdCard?.RearIdCard;
 
-    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(shopSignup.id_card_rear ?? "");
-    const [idRearPreview, setIdRearPreview] = useState(shopSignup.id_card_rear ?? "");
-    const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
+    const frontImageUrl = frontS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${frontS3Metadata.id}`
+        : "";
+
+    const rearImageUrl = rearS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${rearS3Metadata.id}`
+        : "";
+
+    const [idCardFront, setIdCardFront] = useState<File | null>(null);
+    const [idFrontPreview, setIdFrontPreview] = useState(frontImageUrl);
+    const [idFrontUpload, setIdFrontUpload] = useState(false);
+
+    const [idCardRear, setIdCardRear] = useState<File | null>(null);
+    const [idRearPreview, setIdRearPreview] = useState(rearImageUrl);
+    const [idRearUpload, setIdRearUpload] = useState(false);
 
     const [checked, setChecked] = useState(false);
 
@@ -47,7 +58,7 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
         permitType: permit.permit_type,
         file: null as File | null,
         preview: permit.S3Metadata
-            ? `${process.env.API_URL}/shop-signup/${shopSignupId}/files/${permit.S3Metadata.id}`
+            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${permit.S3Metadata.id}`
             : "",
         uploaded: false,
     }));
@@ -96,12 +107,7 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
     };
 
     const submit = async () => {
-        if (
-            !idFrontUpload ||
-            !(idCardFront instanceof File) ||
-            !idRearUpload ||
-            !(idCardRear instanceof File)
-        ) {
+        if (!idFrontUpload || !(idCardFront instanceof File) || !idRearUpload || !(idCardRear instanceof File)) {
             toast.error("身分証がアップロードされていません");
             return;
         }
