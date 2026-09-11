@@ -7,8 +7,8 @@ export const fetchUpdateField = async (shopSignupId: string, field: string, valu
     });
 };
 
-export const fetchStep5 = async (shopId: string) => {
-    return apiFetch(`/shop-info/${shopId}/signup/5`, {
+export const fetchStep5 = async (shopSignupId: string) => {
+    return apiFetch(`/shop-signup/${shopSignupId}/signup5`, {
         method: "PATCH",
     });
 };
