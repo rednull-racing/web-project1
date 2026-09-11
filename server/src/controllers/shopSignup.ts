@@ -162,7 +162,7 @@ export const getShopSignup2Controller = async (
 };
 
 // GET /shop-signup/:id/3
-// summary: ショップ口座登録ページ インプット表示データ取得
+// summary: ショップ身分証アップロードページ メタデータ取得
 // page: /shop-signup/step3/[id]
 export const getShopSignup3Controller = async (
     req: Request,
