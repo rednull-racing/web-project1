@@ -3,6 +3,7 @@ import {
     getShopSignup1Controller,
     getShopSignup2Controller,
     getShopSignup3Controller,
+    getShopSignup5Controller,
     getShopSignupFileController,
     shopSignupPostRootController,
     updateShopSignup2Controller,
@@ -18,6 +19,7 @@ import {
     getShopSignup1RateLimit,
     getShopSignup2RateLimit,
     getShopSignup3RateLimit,
+    getShopSignup5RateLimit,
     getShopSignupFileRateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
@@ -150,6 +152,17 @@ router.get(
     authenticateToken,
     validateParams(shopSignupFilesIdParamSchema),
     getShopSignupFileController,
+);
+
+// GET /shop-signup/:id/5
+// summary: ショップ登録確認ページデータ取得
+// page: /shop-signup/step5/[id]
+router.get(
+    "/:id5",
+    getShopSignup5RateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignup5Controller,
 );
 
 export default router;
