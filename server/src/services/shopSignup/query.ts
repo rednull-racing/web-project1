@@ -219,7 +219,19 @@ export const getShopSignup5 = ({ shopSignupId, userId }: UserShopSignupIdParams)
     });
 };
 
-export const getShopSignupHasBankAccount
+export const getShopSignupHasBankAccount = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+    return ShopSignup.findOne({
+        where: {
+            id: shopSignupId,
+            user_id: userId,
+        },
+        include: [
+            {
+                model: BankAccount,
+            },
+        ],
+    });
+};
 
 export const getMyShopSignupHasS3Data = ({
     shopSignupId,
