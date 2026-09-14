@@ -118,7 +118,7 @@ export const shopInfoGetByIdAddressController = async (
 
 // GET /shop-info/:id/bank-account
 // summary: ショップ口座情報取得
-// page: /edit/account/shop/[id]・/edit/account/shop/signup/[id]
+// page: /edit/account/shop/[id]
 export const shopInfoGetByIdBankAccountController = async (
     req: Request,
     res: Response,

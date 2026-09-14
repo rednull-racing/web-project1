@@ -90,7 +90,7 @@ router.get(
 
 // GET /shop-info/:id/bank-account
 // summary: ショップ口座情報取得
-// page: /edit/account/shop/[id]・/edit/account/shop/signup/[id]
+// page: /edit/account/shop/[id]
 router.get(
     "/:id/bank-account",
     getShopBankAccountRateLimit,
