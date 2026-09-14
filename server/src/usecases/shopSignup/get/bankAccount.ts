@@ -7,7 +7,7 @@ type Params = {
 };
 
 // GET /shop-signup/:id/bank-account
-// summary: ショップ口座情報作成
+// summary: ショップ登録口座情報取得
 // page: /edit/account/shop/signup/[id]
 export const getShopSignupBankAccountUseCase = async ({ shopSignupId, userId }: Params) => {
     // shopSignup取得
