@@ -2,9 +2,7 @@ import { apiFetch, apiFetchNoToken } from "../../../lib/api/client";
 
 type AccountBody = {
     bankName: string;
-    bankCode: string;
     branch: string;
-    branchCode: string;
     accountType: string;
     accountNumber: string;
     meigi: string;

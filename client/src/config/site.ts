@@ -11,7 +11,7 @@ export const SITE = {
     createDate: "2024年9月2日",
     startDate: "2026年6月66日",
 
-    bank: "FUCK銀行",
+    bank: "○○銀行",
     contactTime: "平日10～18時（お盆、年末年始期間を除く）",
 
     bankHandlingCharge: 200,

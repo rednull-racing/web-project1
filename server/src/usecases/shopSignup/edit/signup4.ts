@@ -1,5 +1,5 @@
-import { AppError } from "../../errors.js";
-import { getMyShopSignup, updateShopSignupOption } from "../../services/shopSignup.js";
+import { AppError } from "../../../errors.js";
+import { getMyShopSignup, updateShopSignupOption } from "../../../services/shopSignup.js";
 
 type Params = {
     shopSignupId: number;

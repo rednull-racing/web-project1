@@ -23,5 +23,5 @@ export default async function Page({ params }: Props) {
 
     const data = await fetchSignup5Page(id);
 
-    return <Client shopId={id} shopInfo={data.shop} />;
+    return <Client shopSignupId={id} shopSignup={data.shopSignup} />;
 }

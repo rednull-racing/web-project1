@@ -1,23 +1,23 @@
 import { AppError } from "../../../errors.js";
-import { getMyShopHasBankAccount } from "../../../services/shopInfo/query.js";
+import { getMyShopSignupHasBankAccount } from "../../../services/shopSignup.js";
 import { getUserHasBankAccount } from "../../../services/users/query.js";
 
 type Params = {
     userId: number;
-    shopId: number;
+    shopSignupId: number;
 };
 
-// GET /shop-info/:id/signup/2
+// GET /shop-signup/:id/2
 // summary: ショップ口座登録ページ インプット表示データ取得
 // page: /shop-signup/step2/[id]
-export const getShopSignup2UseCase = async ({ userId, shopId }: Params) => {
-    // shop取得（確認用）
-    const shop = await getMyShopHasBankAccount({ shopId, userId });
+export const getShopSignup2UseCase = async ({ userId, shopSignupId }: Params) => {
+    // shopSignup取得（確認用）
+    const shopSignup = await getMyShopSignupHasBankAccount({ shopSignupId, userId });
 
-    if (!shop) throw new AppError("SHOP_NOT_FOUND", 404);
+    if (!shopSignup) throw new AppError("SHOP_SIGNUP_NOT_FOUND", 404);
 
-    // shopのbankAccount取得
-    let account = shop.BankAccount ?? undefined;
+    // shopSignupのbankAccount取得
+    let account = shopSignup.BankAccount ?? undefined;
 
     if (!account) {
         const user = await getUserHasBankAccount({ userId });

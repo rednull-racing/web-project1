@@ -1,6 +1,10 @@
 import { Transaction } from "sequelize";
 import { ShopSignup } from "../../models/index.js";
 
+export type UserIdParams = {
+    userId: number;
+};
+
 export type UserShopSignupIdParams = {
     userId: number;
     shopSignupId: number;
@@ -39,7 +43,6 @@ export type UpdateSignup3Params = {
     shopSignup: InstanceType<typeof ShopSignup>;
     data: {
         idcard_id: number;
-        permit_id: number | null;
     };
     transaction?: Transaction;
 };

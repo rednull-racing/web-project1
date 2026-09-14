@@ -48,8 +48,6 @@ export const Form = ({ shopSignupId, account }: Props) => {
     const [showBranchSuggest, setShowBranchSuggest] = useState(false);
     const [isSelectingBranch, setIsSelectingBranch] = useState(false);
 
-    const [branchCode, setBranchCode] = useState(account.branch_code || "");
-
     const [accountType, setAccountType] = useState(account.account_type || "");
     const [accountNumber, setAccountNumber] = useState(account.account_number || "");
     const [meigi, setMeigi] = useState(account.meigi || "");
@@ -144,9 +142,7 @@ export const Form = ({ shopSignupId, account }: Props) => {
 
         const body = {
             bankName: bankQuery.trim(),
-            bankCode: bankCode,
             branch: branchQuery.trim(),
-            branchCode: branchCode,
             accountType: accountType,
             accountNumber: accountNumber.padStart(7, "0"),
             meigi: meigi.trim(),
@@ -238,7 +234,6 @@ export const Form = ({ shopSignupId, account }: Props) => {
                                 onMouseDown={() => {
                                     setIsSelectingBranch(true);
                                     setBranchQuery(branch.name);
-                                    setBranchCode(branch.code);
                                     setShowBranchSuggest(false);
                                     account.branch = branch.name;
 
@@ -258,7 +253,12 @@ export const Form = ({ shopSignupId, account }: Props) => {
                 <select
                     aria-label="口座種別"
                     value={accountType}
-                    onChange={(e) => setAccountType(e.target.value)}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "ordinary" || value === "checking" || value === "savings") {
+                            setAccountType(value);
+                        }
+                    }}
                     className={styles.select}
                 >
                     <option value="" disabled className={styles.option}>

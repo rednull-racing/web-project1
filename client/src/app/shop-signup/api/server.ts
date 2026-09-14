@@ -1,9 +1,9 @@
 import { apiFetchServer } from "../../../lib/api/server";
-import { BankAccount, ComOrFreeOption, ShopInfo, User } from "../type";
+import { BankAccount, ComOrFreeOption, ShopSignup, User } from "../type";
 
 type Signup1Response = {
     user: User;
-    shop?: ShopInfo;
+    shopSignup?: ShopSignup;
     comFree: ComOrFreeOption[];
 };
 
@@ -12,29 +12,29 @@ type Signup2Response = {
 };
 
 type SignupResponse = {
-    shop: ShopInfo;
+    shopSignup: ShopSignup;
 };
 
 export const fetchSignup1Page = async (): Promise<Signup1Response> => {
-    return apiFetchServer("/shop-info/signup/1", {
+    return apiFetchServer("/shop-signup/1", {
         cache: "no-store",
     });
 };
 
-export const fetchSignup2Page = async (shopId: string): Promise<Signup2Response> => {
-    return apiFetchServer(`/shop-info/${shopId}/signup/2`, {
+export const fetchSignup2Page = async (shopSignupId: string): Promise<Signup2Response> => {
+    return apiFetchServer(`/shop-signup/${shopSignupId}/2`, {
         cache: "no-store",
     });
 };
 
-export const fetchSignup3Page = async (shopId: string): Promise<SignupResponse> => {
-    return apiFetchServer(`/shop-info/${shopId}/signup/3`, {
+export const fetchSignup3Page = async (shopSignupId: string): Promise<SignupResponse> => {
+    return apiFetchServer(`/shop-signup/${shopSignupId}/3`, {
         cache: "no-store",
     });
 };
 
 export const fetchSignup5Page = async (shopId: string): Promise<SignupResponse> => {
-    return apiFetchServer(`/shop-info/${shopId}/signup/5`, {
+    return apiFetchServer(`/shop-signup/${shopId}/5`, {
         cache: "no-store",
     });
 };

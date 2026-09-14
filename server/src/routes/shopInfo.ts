@@ -8,11 +8,7 @@ import {
     shopInfoGetByIdOptionController,
     shopInfoGetByIdPhoneNumberController,
     shopInfoGetByIdRepNameController,
-    shopInfoGetByIdSignup2Controller,
-    shopInfoGetByIdSignup3Controller,
-    shopInfoGetByIdSignup5Controller,
     shopInfoGetMyController,
-    shopInfoGetSignup1Controller,
     shopInfoPatchByIdOptionController,
     shopInfoPatchByIdPhoneNumberController,
     shopInfoPatchByIdRepNameController,
@@ -28,10 +24,6 @@ import {
     getShopOptionRateLimit,
     getShopPhoneNumberRateLimit,
     getShopRepNameRateLimit,
-    getShopSignup1RateLimit,
-    getShopSignup2RateLimit,
-    getShopSignup3RateLimit,
-    getShopSignup5RateLimit,
     shopOptionEditRateLimit,
     shopPhoneNumberEditRateLimit,
     shopRepNameEditRateLimit,
@@ -171,44 +163,6 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoGetByIdComFreeController,
-);
-
-// GET /shop-info/signup/1
-// summary: 事業者情報登録ページ インプット表示データ取得
-// page: /shop-signup/step1
-router.get("/signup/1", getShopSignup1RateLimit, authenticateToken, shopInfoGetSignup1Controller);
-
-// GET /shop-info/:id/signup/2
-// summary: ショップ口座登録ページ インプット表示データ取得
-// page: /shop-signup/step2/[id]
-router.get(
-    "/:id/signup/2",
-    getShopSignup2RateLimit,
-    authenticateToken,
-    validateParams(idParamSchema),
-    shopInfoGetByIdSignup2Controller,
-);
-
-// GET /shop-info/:id/signup/3
-// summary: ショップ身分証登録ページ インプット表示データ取得
-// page: /shop-signup/step3/[id]
-router.get(
-    "/:id/signup/3",
-    getShopSignup3RateLimit,
-    authenticateToken,
-    validateParams(idParamSchema),
-    shopInfoGetByIdSignup3Controller,
-);
-
-// GET /shop-info/:id/signup/5
-// summary: ショップ登録確認ページデータ取得
-// page: /shop-signup/step5/[id]
-router.get(
-    "/:id/signup/5",
-    getShopSignup5RateLimit,
-    authenticateToken,
-    validateParams(idParamSchema),
-    shopInfoGetByIdSignup5Controller,
 );
 
 export default router;

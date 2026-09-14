@@ -1,0 +1,26 @@
+export type Signup1Body = {
+    selectOption: number;
+    companyName: string;
+    shopName: string;
+    phoneNumber: string;
+    email: string;
+    openDateTime: string;
+    foundedDate: Date;
+    memberCount: number;
+    homepage?: string;
+    repSei: string;
+    repMei: string;
+    repSeiKana: string;
+    repMeiKana: string;
+    conSei: string;
+    conMei: string;
+    conSeiKana: string;
+    conMeiKana: string;
+    postNumber: string;
+    todouhuken: string;
+    shikutyouson: string;
+    banchi: string;
+    building?: string;
+    companyNumber?: string;
+    capital?: number;
+};

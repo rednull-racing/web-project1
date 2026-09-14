@@ -7,8 +7,8 @@ import ComOrFreeOption from "./com_or_free_option.js";
 import CouponShop from "./coupon_shop.js";
 import IdCard from "./id_card.js";
 import Name from "./name.js";
-import Permit from "./permit.js";
 import User from "./user.js";
+import Permit from "./permit.js";
 
 export class ShopInfo extends Model {
     declare id: number;
@@ -34,7 +34,6 @@ export class ShopInfo extends Model {
     declare name_contact_id: number | null;
     declare address_id: number | null;
     declare account_id: number | null;
-    declare permit_id: number | null;
     declare idcard_id: number | null;
 
     static associate() {
@@ -58,14 +57,14 @@ export class ShopInfo extends Model {
         ShopInfo.belongsTo(BankAccount, {
             foreignKey: "account_id",
         });
-        ShopInfo.belongsTo(Permit, {
-            foreignKey: "permit_id",
-        });
         ShopInfo.belongsTo(IdCard, {
             foreignKey: "idcard_id",
         });
         ShopInfo.hasMany(CouponShop, {
             foreignKey: "shop_info_id",
+        });
+        ShopInfo.hasMany(Permit, {
+            foreignKey: "permit_id",
         });
     }
 
@@ -209,17 +208,6 @@ ShopInfo.init(
             unique: true,
             references: {
                 model: "bank_account",
-                key: "id",
-            },
-            onUpdate: "CASCADE",
-            onDelete: "SET NULL",
-        },
-        permit_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            unique: true,
-            references: {
-                model: "permit",
                 key: "id",
             },
             onUpdate: "CASCADE",

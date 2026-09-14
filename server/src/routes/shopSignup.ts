@@ -1,5 +1,10 @@
 import { Router } from "express";
 import {
+    getShopSignup1Controller,
+    getShopSignup2Controller,
+    getShopSignup3Controller,
+    getShopSignup5Controller,
+    getShopSignupFileController,
     shopSignupPostRootController,
     updateShopSignup2Controller,
     updateShopSignup3Controller,
@@ -11,6 +16,11 @@ import { authenticateToken } from "../middleware/authMiddleware.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import {
     createShopSignupRateLimit,
+    getShopSignup1RateLimit,
+    getShopSignup2RateLimit,
+    getShopSignup3RateLimit,
+    getShopSignup5RateLimit,
+    getShopSignupFileRateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
     shopSignup5RateLimit,
@@ -27,6 +37,7 @@ import {
     shopSignupOptionBodySchema,
 } from "../validators/body/shopSignup.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { shopSignupFilesIdParamSchema } from "../validators/params/shopSignup.js";
 
 const router = Router();
 
@@ -86,7 +97,7 @@ router.patch(
 // summary: ショップ登録確認ページ インプット編集
 // page: /shop-signup/step5/[id]
 router.patch(
-    "/:id/signup/edit",
+    "/:id/edit",
     authenticateToken,
     shopSignup5EditRateLimit,
     validateParams(idParamSchema),
@@ -103,6 +114,55 @@ router.patch(
     shopSignup5RateLimit,
     validateParams(idParamSchema),
     updateShopSignup5Controller,
+);
+
+// GET /shop-signup/1
+// summary: 事業者情報登録ページ インプット表示データ取得
+// page: /shop-signup/step1
+router.get("/1", getShopSignup1RateLimit, authenticateToken, getShopSignup1Controller);
+
+// GET /shop-signup/:id/2
+// summary: ショップ口座登録ページ インプット表示データ取得
+// page: /shop-signup/step2/[id]
+router.get(
+    "/:id/2",
+    getShopSignup2RateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignup2Controller,
+);
+
+// GET /shop-signup/:id/3
+// summary: ショップ身分証アップロードページ メタデータ取得
+// page: /shop-signup/step3/[id]
+router.get(
+    "/:id/3",
+    getShopSignup3RateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignup3Controller,
+);
+
+// GET /shop-signup/:shopSignupId/files/:s3MetadataId
+// summary: ショップ身分証アップロードページ 画像取得
+// page: /shop-signup/step3/[id]
+router.get(
+    "/:shopSignupId/files/:s3MetadataId",
+    getShopSignupFileRateLimit,
+    authenticateToken,
+    validateParams(shopSignupFilesIdParamSchema),
+    getShopSignupFileController,
+);
+
+// GET /shop-signup/:id/5
+// summary: ショップ登録確認ページデータ取得
+// page: /shop-signup/step5/[id]
+router.get(
+    "/:id/5",
+    getShopSignup5RateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignup5Controller,
 );
 
 export default router;

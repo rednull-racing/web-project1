@@ -5,7 +5,6 @@ import {
     IdCard,
     Name,
     Permit,
-    PermitFile,
     S3Metadata,
     ShopInfo,
     ShopInfoEdit,
@@ -61,14 +60,8 @@ export const getMyShopEditHasShop = ({ shopEditId, userId }: ShopEditUserIdParam
                 required: false,
                 include: [
                     {
-                        model: PermitFile,
+                        model: S3Metadata,
                         required: false,
-                        include: [
-                            {
-                                model: S3Metadata,
-                                required: false,
-                            },
-                        ],
                     },
                 ],
             },

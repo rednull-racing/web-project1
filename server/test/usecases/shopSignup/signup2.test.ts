@@ -32,7 +32,7 @@ vi.mock("../../../src/services/shopSignup.js", () => ({
     updateShopSignupBankAccount: mocks.updateShopSignupBankAccount,
 }));
 
-import { updateShopSignup2UseCase } from "../../../src/usecases/shopSignup/signup2.js";
+import { updateShopSignup2UseCase } from "../../../src/usecases/shopSignup/edit/signup2.js";
 
 const transaction = { id: "transaction" };
 const shopSignup = { id: 11 };

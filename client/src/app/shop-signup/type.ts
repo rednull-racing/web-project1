@@ -10,13 +10,40 @@ export type TodouhukenOption = {
     name: string;
 };
 
+export type S3Metadata = {
+    id: number;
+    bucket_name: string | null;
+    object_key: string | null;
+    version_id: string | null;
+    original_file_name: string | null;
+    content_type: string | null;
+    file_size: number | null;
+};
+
+export type Permit = {
+    id: number;
+    document_name: string | null;
+    memo: string | null;
+    permit_number: string | null;
+    permit_type: string | null;
+    issued_at: Date | null;
+    expired_at: Date | null;
+    S3Metadata?: S3Metadata;
+};
+
+export type IdCard = {
+    id: number;
+    FrontIdCard?: S3Metadata;
+    RearIdCard?: S3Metadata;
+};
+
 export type BankAccount = {
     id: string;
     bank_name: string;
     bank_code: string;
     branch: string;
     branch_code: string;
-    account_type: AccountType | null;
+    account_type: AccountType;
     account_number: string;
     meigi: string;
 };
@@ -27,7 +54,7 @@ export type Address = {
     shikutyouson: string;
     banchi: string;
     building?: string;
-    AddressTodouhuken?: TodouhukenOption | null;
+    AddressTodouhuken?: TodouhukenOption;
 };
 
 export type Name = {
@@ -38,7 +65,7 @@ export type Name = {
     mei_kana: string;
 };
 
-export type ShopInfo = {
+export type ShopSignup = {
     id: string;
     company_name?: string;
     shop_name?: string;
@@ -50,16 +77,15 @@ export type ShopInfo = {
     capital?: number;
     member_count?: number;
     founded_date?: Date;
-    id_card_front?: string;
-    id_card_rear?: string;
-    permit_url: string[];
     auto_trans: boolean;
     open_info: boolean;
-    ComOrFreeOption?: ComOrFreeOption | null;
-    Address?: Address | null;
-    RepresentativeName?: Name | null;
-    ContactName?: Name | null;
-    BankAccount?: BankAccount | null;
+    ComOrFreeOption?: ComOrFreeOption;
+    Address?: Address;
+    RepresentativeName?: Name;
+    ContactName?: Name;
+    BankAccount?: BankAccount;
+    IdCard?: IdCard;
+    Permit?: Permit[];
 };
 
 export type User = {
@@ -67,7 +93,8 @@ export type User = {
     user_name: string;
     email: string;
     phone_number: string;
-    Address?: Address | null;
-    Name?: Name | null;
-    BankAccount?: BankAccount | null;
+    Address?: Address;
+    Name?: Name;
+    BankAccount?: BankAccount;
+    IdCard?: IdCard;
 };

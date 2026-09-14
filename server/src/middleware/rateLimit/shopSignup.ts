@@ -90,3 +90,38 @@ export const shopSignup5RateLimit = rateLimit({
         return `admin:${authReq.user.id}`;
     },
 });
+
+export const getShopSignup1RateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+export const getShopSignup2RateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+export const getShopSignup3RateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+export const getShopSignupFileRateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+export const getShopSignup5RateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+});

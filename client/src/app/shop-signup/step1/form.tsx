@@ -18,45 +18,45 @@ import { ButtonDiv } from "../buttonDiv";
 import styles from "../ss.module.css";
 import SSUIBack from "../ssUiBack";
 import { StepBar } from "../stepBar";
-import { ComOrFreeOption, ShopInfo, User } from "../type";
+import { ComOrFreeOption, ShopSignup, User } from "../type";
 
 type Props = {
     user: User;
-    shopInfo: ShopInfo | null;
+    shopSignup: ShopSignup | null;
     ComOrFreeOption: ComOrFreeOption[];
 };
 
-export const Form = ({ user, shopInfo, ComOrFreeOption }: Props) => {
+export const Form = ({ user, shopSignup, ComOrFreeOption }: Props) => {
     const [selectOption, setSelectOption] = useState<number | null>(null);
-    const [companyName, setCompanyName] = useState(shopInfo?.company_name);
-    const [shopName, setShopName] = useState(shopInfo?.shop_name ?? user.user_name ?? "");
-    const [phoneNumber, setPhoneNumber] = useState(shopInfo?.phone_number ?? user.phone_number ?? "");
-    const [email, setEmail] = useState(shopInfo?.email ?? user.email ?? "");
-    const [openDateTime, setOpenDateTime] = useState(shopInfo?.open_date_time);
-    const [foundedDate, setFoundedDate] = useState(shopInfo?.founded_date);
-    const [memberCount, setMemberCount] = useState(shopInfo?.member_count ?? 0);
-    const [homepage, setHomepage] = useState(shopInfo?.homepage_url);
+    const [companyName, setCompanyName] = useState(shopSignup?.company_name);
+    const [shopName, setShopName] = useState(shopSignup?.shop_name ?? user.user_name ?? "");
+    const [phoneNumber, setPhoneNumber] = useState(shopSignup?.phone_number ?? user.phone_number ?? "");
+    const [email, setEmail] = useState(shopSignup?.email ?? user.email ?? "");
+    const [openDateTime, setOpenDateTime] = useState(shopSignup?.open_date_time);
+    const [foundedDate, setFoundedDate] = useState(shopSignup?.founded_date);
+    const [memberCount, setMemberCount] = useState(shopSignup?.member_count ?? 0);
+    const [homepage, setHomepage] = useState(shopSignup?.homepage_url);
 
-    const [companyNumber, setCompanyNumber] = useState(shopInfo?.company_number);
-    const [capital, setCapital] = useState(shopInfo?.capital);
+    const [companyNumber, setCompanyNumber] = useState(shopSignup?.company_number);
+    const [capital, setCapital] = useState(shopSignup?.capital);
 
-    const [repSei, setRepSei] = useState(shopInfo?.RepresentativeName?.sei ?? user.Name?.sei);
-    const [repMei, setRepMei] = useState(shopInfo?.RepresentativeName?.mei ?? user.Name?.mei);
-    const [repSeiKana, setRepSeiKana] = useState(shopInfo?.RepresentativeName?.sei_kana ?? user.Name?.sei_kana);
-    const [repMeiKana, setRepMeiKana] = useState(shopInfo?.RepresentativeName?.mei_kana ?? user.Name?.mei_kana);
+    const [repSei, setRepSei] = useState(shopSignup?.RepresentativeName?.sei ?? user.Name?.sei);
+    const [repMei, setRepMei] = useState(shopSignup?.RepresentativeName?.mei ?? user.Name?.mei);
+    const [repSeiKana, setRepSeiKana] = useState(shopSignup?.RepresentativeName?.sei_kana ?? user.Name?.sei_kana);
+    const [repMeiKana, setRepMeiKana] = useState(shopSignup?.RepresentativeName?.mei_kana ?? user.Name?.mei_kana);
 
-    const [conSei, setConSei] = useState(shopInfo?.ContactName?.sei ?? user.Name?.sei);
-    const [conMei, setConMei] = useState(shopInfo?.ContactName?.mei ?? user.Name?.mei);
-    const [conSeiKana, setConSeiKana] = useState(shopInfo?.ContactName?.sei_kana ?? user.Name?.sei_kana);
-    const [conMeiKana, setConMeiKana] = useState(shopInfo?.ContactName?.mei_kana ?? user.Name?.mei_kana);
+    const [conSei, setConSei] = useState(shopSignup?.ContactName?.sei ?? user.Name?.sei);
+    const [conMei, setConMei] = useState(shopSignup?.ContactName?.mei ?? user.Name?.mei);
+    const [conSeiKana, setConSeiKana] = useState(shopSignup?.ContactName?.sei_kana ?? user.Name?.sei_kana);
+    const [conMeiKana, setConMeiKana] = useState(shopSignup?.ContactName?.mei_kana ?? user.Name?.mei_kana);
 
-    const [postNumber, setPostNumber] = useState(shopInfo?.Address?.post_number ?? user.Address?.post_number);
+    const [postNumber, setPostNumber] = useState(shopSignup?.Address?.post_number ?? user.Address?.post_number);
     const [todouhuken, setTodouhuken] = useState(
-        shopInfo?.Address?.AddressTodouhuken?.name ?? user.Address?.AddressTodouhuken?.name,
+        shopSignup?.Address?.AddressTodouhuken?.name ?? user.Address?.AddressTodouhuken?.name,
     );
-    const [shikutyouson, setShikutyouson] = useState(shopInfo?.Address?.shikutyouson ?? user.Address?.shikutyouson);
-    const [banchi, setBanchi] = useState(shopInfo?.Address?.banchi ?? user.Address?.banchi);
-    const [building, setBuilding] = useState(shopInfo?.Address?.building ?? user.Address?.building);
+    const [shikutyouson, setShikutyouson] = useState(shopSignup?.Address?.shikutyouson ?? user.Address?.shikutyouson);
+    const [banchi, setBanchi] = useState(shopSignup?.Address?.banchi ?? user.Address?.banchi);
+    const [building, setBuilding] = useState(shopSignup?.Address?.building ?? user.Address?.building);
 
     const [check, setCheck] = useState(false);
 

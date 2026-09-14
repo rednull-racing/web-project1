@@ -1,13 +1,13 @@
 import { Transaction } from "sequelize";
 
-import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
-import { S3Metadata, ShopSignup } from "../../../models/index.js";
-import { deleteAddress } from "../../../services/address.js";
-import { deleteBankAccount } from "../../../services/bankAccount.js";
-import { deleteIdCard } from "../../../services/idCard.js";
-import { deleteName } from "../../../services/name.js";
-import { deletePermit } from "../../../services/permit.js";
-import { deleteS3Metadata } from "../../../services/s3Metadata.js";
+import { deleteS3Object } from "../../../../infra/aws/deleteS3Object.js";
+import { S3Metadata, ShopSignup } from "../../../../models/index.js";
+import { deleteAddress } from "../../../../services/address.js";
+import { deleteBankAccount } from "../../../../services/bankAccount.js";
+import { deleteIdCard } from "../../../../services/idCard.js";
+import { deleteName } from "../../../../services/name.js";
+import { deletePermit } from "../../../../services/permit.js";
+import { deleteS3Metadata } from "../../../../services/s3Metadata.js";
 
 type Params = {
     oldShopSignup: InstanceType<typeof ShopSignup>[];
@@ -68,7 +68,7 @@ export const deleteOldShopSignup = async ({ oldShopSignup, transaction }: Params
 
             if (oldData.Permit) {
                 const permit = oldData.Permit;
-                const s3MetadataList = permit.PermitFile.S3Metadata;
+                const s3MetadataList = permit.S3Metadata;
 
                 if (s3MetadataList.length > 0) {
                     await Promise.all(

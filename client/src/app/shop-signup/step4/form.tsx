@@ -12,10 +12,10 @@ import SSUI from "../ssUI";
 import { StepBar } from "../stepBar";
 
 type Props = {
-    shopId: string;
+    shopSignupId: string;
 };
 
-export const Form = ({ shopId }: Props) => {
+export const Form = ({ shopSignupId }: Props) => {
     const [autoTrans, setAutoTrans] = useState("いいえ");
     const [openInfo, setOpenInfo] = useState("いいえ");
 
@@ -31,12 +31,12 @@ export const Form = ({ shopId }: Props) => {
         };
 
         try {
-            await fetchStep4(shopId, body);
+            await fetchStep4(shopSignupId, body);
 
             toast.success("オプションを設定しました");
             await sleep(1500);
 
-            router.push(`/shop-signup/step5/${shopId}`);
+            router.push(`/shop-signup/step5/${shopSignupId}`);
         } catch (err) {
             if (err instanceof ApiError) {
                 toast.error("オプション設定に失敗しました");
@@ -47,7 +47,7 @@ export const Form = ({ shopId }: Props) => {
         }
     };
 
-    const backSubmit = () => router.push(`/shop-signup/step3/${shopId}`);
+    const backSubmit = () => router.push(`/shop-signup/step3/${shopSignupId}`);
 
     return (
         <SSUI title="オプション選択">

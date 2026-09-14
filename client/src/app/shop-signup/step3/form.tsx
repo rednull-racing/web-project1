@@ -14,33 +14,51 @@ import { ButtonDiv } from "../buttonDiv";
 import styles from "../ss.module.css";
 import SSUI from "../ssUI";
 import { StepBar } from "../stepBar";
-import { ShopInfo } from "../type";
+import { ShopSignup } from "../type";
 
 type Props = {
-    shopId: string;
-    shopInfo: ShopInfo;
+    shopSignupId: string;
+    shopSignup: ShopSignup;
 };
 
 type PermitImage = {
+    s3MetadataId?: number;
     uploaded: boolean;
     file: File | null;
     preview: string;
 };
 
-export const Form = ({ shopId, shopInfo }: Props) => {
-    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(shopInfo.id_card_front ?? "");
-    const [idFrontPreview, setIdFrontPreview] = useState(shopInfo.id_card_front ?? "");
-    const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
+export const Form = ({ shopSignupId, shopSignup }: Props) => {
+    const frontS3Metadata = shopSignup.IdCard?.FrontIdCard;
+    const rearS3Metadata = shopSignup.IdCard?.RearIdCard;
 
-    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(shopInfo.id_card_rear ?? "");
-    const [idRearPreview, setIdRearPreview] = useState(shopInfo.id_card_rear ?? "");
-    const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
+    const frontImageUrl = frontS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${frontS3Metadata.id}`
+        : "";
 
-    const [checked, setChecked] = useState(false);
+    const rearImageUrl = rearS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${rearS3Metadata.id}`
+        : "";
 
-    const initialPermit = (shopInfo.permit_url ?? []).map((url) => ({
-        file: null,
-        preview: url,
+    const [idCardFront, setIdCardFront] = useState<File | null>(null);
+    const [idFrontPreview, setIdFrontPreview] = useState(frontImageUrl);
+
+    const [idCardRear, setIdCardRear] = useState<File | null>(null);
+    const [idRearPreview, setIdRearPreview] = useState(rearImageUrl);
+
+    const [checked, setChecked] = useState((shopSignup.Permit?.length ?? 0) > 0);
+
+    const initialPermit = (shopSignup.Permit ?? []).map((permit) => ({
+        permitId: permit.id,
+        s3MetadataId: permit.S3Metadata?.id,
+        documentName: permit.document_name,
+        memo: permit.memo,
+        permitNumber: permit.permit_number,
+        permitType: permit.permit_type,
+        file: null as File | null,
+        preview: permit.S3Metadata
+            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${permit.S3Metadata.id}`
+            : "",
         uploaded: false,
     }));
 
@@ -56,7 +74,6 @@ export const Form = ({ shopId, shopInfo }: Props) => {
             const selectedFile = e.target.files[0];
             setIdCardFront(selectedFile);
             setIdFrontPreview(URL.createObjectURL(selectedFile));
-            setIdFrontUpload(true);
         }
     };
 
@@ -65,7 +82,6 @@ export const Form = ({ shopId, shopInfo }: Props) => {
             const selectedFile = e.target.files[0];
             setIdCardRear(selectedFile);
             setIdRearPreview(URL.createObjectURL(selectedFile));
-            setIdRearUpload(true);
         }
     };
 
@@ -88,121 +104,37 @@ export const Form = ({ shopId, shopInfo }: Props) => {
     };
 
     const submit = async () => {
-        if (!idCardFront || !idCardRear) {
+        const hasFrontIdCard = Boolean(frontS3Metadata || idCardFront);
+        const hasRearIdCard = Boolean(rearS3Metadata || idCardRear);
+
+        if (!hasFrontIdCard || !hasRearIdCard) {
             toast.error("身分証がアップロードされていません");
             return;
         }
 
-        if (checked && permitImages.length === 0) {
+        const permits = checked ? permitImages : [];
+
+        if (checked && (permits.length === 0 || permits.some((image) => !image.file && !image.s3MetadataId))) {
             toast.error("許認可証がアップロードされていません");
             return;
         }
 
-        let frontFileName: string | undefined;
-        let frontFileType: string | undefined;
-        let rearFileName: string | undefined;
-        let rearFileType: string | undefined;
-
-        if (idFrontUpload && idCardFront instanceof File) {
-            frontFileName = idCardFront.name;
-            frontFileType = idCardFront.type;
-        }
-
-        if (idRearUpload && idCardRear instanceof File) {
-            rearFileName = idCardRear.name;
-            rearFileType = idCardRear.type;
-        }
-
-        let permitFiles: ({ fileName: string; fileType: string | null; uploaded: boolean } | undefined)[] = [];
-        if (checked) {
-            permitFiles = permitImages.map((img) => {
-                if (img.uploaded && img.file instanceof File) {
-                    return {
-                        fileName: img.file!.name,
-                        fileType: img.file!.type,
-                        uploaded: true,
-                    };
-                }
-
-                const fileName = (img.preview ?? "").split("/").pop() || "unknown";
-
-                return {
-                    fileName,
-                    fileType: null,
-                    uploaded: false,
-                };
-            });
-        }
-
         const body = {
-            frontFileName,
-            frontFileType,
-            rearFileName,
-            rearFileType,
-            idFrontUpload,
-            idRearUpload,
-            permitFiles,
+            frontIdCard: idCardFront,
+            frontS3MetadataId: frontS3Metadata?.id,
+            rearIdCard: idCardRear,
+            rearS3MetadataId: rearS3Metadata?.id,
+            requiresPermit: checked,
+            permits,
         };
 
         try {
-            const data = await fetchStep3(shopId, body);
-
-            if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
-                const uploadFrontRes = await fetch(data.frontSignedUrl, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": idCardFront.type,
-                    },
-                    body: idCardFront,
-                });
-
-                if (!uploadFrontRes.ok) {
-                    toast.error("身分証（表面）のアップロードに失敗しました");
-                    return;
-                }
-            }
-
-            if (idRearUpload && data.rearSignedUrl && idCardRear instanceof File) {
-                const uploadFrontRes = await fetch(data.rearSignedUrl, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": idCardRear.type,
-                    },
-                    body: idCardRear,
-                });
-
-                if (!uploadFrontRes.ok) {
-                    toast.error("身分証（裏面）のアップロードに失敗しました");
-                    return;
-                }
-            }
-
-            if (checked) {
-                const uploadImages = permitImages.filter((img) => img.uploaded && img.file instanceof File);
-
-                for (let i = 0; i < data.permitSignedUrls.length; i++) {
-                    const file = uploadImages[i].file!;
-                    const signedUrl = data.permitSignedUrls[i];
-
-                    const upload = await fetch(signedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": file.type,
-                        },
-                        body: file,
-                    });
-
-                    if (!upload.ok) {
-                        toast.error("許認可証のアップロードに失敗しました");
-                        return;
-                    }
-                }
-            }
+            await fetchStep3(shopSignupId, body);
 
             toast.success("身分証・各種証明書をアップロードしました");
             await sleep(1500);
 
-            router.push(`/shop-signup/step4/${shopId}`);
+            router.push(`/shop-signup/step4/${shopSignupId}`);
         } catch (err) {
             if (err instanceof ApiError) {
                 toast.error("画像データの送信に失敗しました");
@@ -213,7 +145,7 @@ export const Form = ({ shopId, shopInfo }: Props) => {
         }
     };
 
-    const backSubmit = () => router.push(`/shop-signup/step2/${shopId}`);
+    const backSubmit = () => router.push(`/shop-signup/step2/${shopSignupId}`);
 
     return (
         <SSUI title="代表者身分証・許認可証登録">
