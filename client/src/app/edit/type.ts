@@ -1,5 +1,32 @@
 import { AccountType } from "../../types/bankSnapshot";
 
+export type S3Metadata = {
+    id: number;
+    bucket_name: string | null;
+    object_key: string | null;
+    version_id: string | null;
+    original_file_name: string | null;
+    content_type: string | null;
+    file_size: number | null;
+};
+
+export type Permit = {
+    id: number;
+    document_name: string | null;
+    memo: string | null;
+    permit_number: string | null;
+    permit_type: string | null;
+    issued_at: Date | null;
+    expired_at: Date | null;
+    S3Metadata?: S3Metadata;
+};
+
+export type IdCard = {
+    id: number;
+    FrontIdCard?: S3Metadata;
+    RearIdCard?: S3Metadata;
+};
+
 export type BankAccount = {
     id: string;
     bank_name: string;
@@ -24,12 +51,6 @@ export type Address = {
     banchi: string;
     building: string;
     AddressTodouhuken?: TodouhukenOption | null;
-};
-
-export type IdCard = {
-    id: string;
-    id_card_front: string;
-    id_card_rear: string;
 };
 
 export type Name = {

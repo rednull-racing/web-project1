@@ -1,6 +1,6 @@
 import { AppError } from "../../../errors.js";
 import { getComFreeOptionAll } from "../../../services/comOrFreeOption.js";
-import { getShopSignup1One, getUserShopSignup1 } from "../../../services/shopSignup.js";
+import { getShopSignup1One, getUserShopSignup1 } from "../../../services/shopSignup/query.js";
 
 type Props = {
     userId: number;

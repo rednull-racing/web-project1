@@ -1,5 +1,5 @@
 import { AppError } from "../../../errors.js";
-import { getShopSignup3 } from "../../../services/shopSignup.js";
+import { getShopSignup3 } from "../../../services/shopSignup/query.js";
 
 type Params = {
     userId: number;

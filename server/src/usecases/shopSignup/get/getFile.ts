@@ -1,7 +1,7 @@
 import { AppError } from "../../../errors.js";
 import { getS3Object } from "../../../infra/aws/getS3Object.js";
 import { Permit, S3Metadata } from "../../../models/index.js";
-import { getMyShopSignupHasS3Data } from "../../../services/shopSignup.js";
+import { getMyShopSignupHasS3Data } from "../../../services/shopSignup/query.js";
 
 type Params = {
     shopSignupId: number;

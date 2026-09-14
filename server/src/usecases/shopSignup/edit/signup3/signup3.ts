@@ -6,7 +6,8 @@ import { uploadS3Object } from "../../../../infra/aws/uploadS3Object.js";
 import { createIdCard, updateIdCardS3Metadata } from "../../../../services/idCard.js";
 import { createPermit, deletePermit, updatePermit } from "../../../../services/permit.js";
 import { createS3Metadata, deleteS3Metadata } from "../../../../services/s3Metadata.js";
-import { getMyShopSignupHasS3Data, updateSignup3 } from "../../../../services/shopSignup.js";
+import { updateSignup3 } from "../../../../services/shopSignup/command.js";
+import { getMyShopSignupHasS3Data } from "../../../../services/shopSignup/query.js";
 import type { ShopSignup3Body } from "../../../../validators/body/shopSignup.js";
 import type { UploadedObject } from "./type.js";
 

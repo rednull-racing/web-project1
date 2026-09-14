@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import type IdCardModel from "../models/id_card.js";
+import type IdCardModel from "../../models/id_card.js";
 import {
     Address,
     BankAccount,
@@ -11,20 +11,11 @@ import {
     ShopSignup,
     TodouhukenOption,
     User,
-} from "../models/index.js";
-import type PermitModel from "../models/permit.js";
-import type S3MetadataModel from "../models/s3_metadata.js";
-import type ShopSignupModel from "../models/shop_signup.js";
-import {
-    CreateShopSignupParams,
-    UpdateBankAccountParams,
-    UpdateOptionParams,
-    UpdateShopSignupAnyParams,
-    UpdateShopSignupRequestAllParams,
-    UpdateSignup3Params,
-    UserIdParams,
-    UserShopSignupIdParams,
-} from "../types/serviceType/shopSignup.js";
+} from "../../models/index.js";
+import type PermitModel from "../../models/permit.js";
+import type S3MetadataModel from "../../models/s3_metadata.js";
+import type ShopSignupModel from "../../models/shop_signup.js";
+import { UserIdParams, UserShopSignupIdParams } from "../../types/serviceType/shopSignup.js";
 
 type ShopSignupWithS3Data = ShopSignupModel & {
     IdCard?: (IdCardModel & { FrontIdCard?: S3MetadataModel | null; RearIdCard?: S3MetadataModel | null }) | null;
@@ -326,32 +317,4 @@ export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdPa
             },
         ],
     });
-};
-
-export const createShopSignup = ({ data, transaction }: CreateShopSignupParams) => {
-    return ShopSignup.create(data, { transaction });
-};
-
-export const updateShopSignupBankAccount = async ({ shopSignup, data, transaction }: UpdateBankAccountParams) => {
-    await shopSignup.update(data, { transaction });
-};
-
-export const updateSignup3 = async ({ shopSignup, data, transaction }: UpdateSignup3Params) => {
-    await shopSignup.update(data, { transaction });
-};
-
-export const updateShopSignupOption = async ({ shopSignup, data, transaction }: UpdateOptionParams) => {
-    await shopSignup.update(data, { transaction });
-};
-
-export const updateShopSignupAny = async ({ shopSignup, data, transaction }: UpdateShopSignupAnyParams) => {
-    await shopSignup.update(data, { transaction });
-};
-
-export const updateShopSignupRequestAll = async ({
-    shopSignup,
-    data,
-    transaction,
-}: UpdateShopSignupRequestAllParams) => {
-    await shopSignup.update(data, { transaction });
 };

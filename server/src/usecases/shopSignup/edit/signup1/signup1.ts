@@ -2,7 +2,7 @@ import sequelize from "../../../../db.js";
 import { AppError } from "../../../../errors.js";
 import { createAddress } from "../../../../services/address.js";
 import { createNameShop } from "../../../../services/name.js";
-import { createShopSignup } from "../../../../services/shopSignup.js";
+import { createShopSignup } from "../../../../services/shopSignup/command.js";
 import { fetchAddressFromZipUseCase } from "../../../address/zipUseCase.js";
 import { Signup1Body } from "./body.js";
 
