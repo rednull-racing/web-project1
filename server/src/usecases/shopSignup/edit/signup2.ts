@@ -17,7 +17,7 @@ type Params = {
 // summary: ショップ口座情報作成
 // page: /shop-signup/step2
 export const updateShopSignup2UseCase = async ({ shopSignupId, userId, body }: Params) => {
-    // ショップ取得
+    // shopSignup取得
     const shopSignup = await getMyShopSignup({ shopSignupId, userId });
 
     if (!shopSignup) throw new AppError("SHOP_SIGNUP_NOT_FOUND", 404);
