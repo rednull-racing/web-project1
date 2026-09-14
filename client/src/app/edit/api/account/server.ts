@@ -17,6 +17,12 @@ export const fetchShopAccountPage = async (shopId: string): Promise<AccountPageR
     });
 };
 
+export const fetchShopSignupAccountPage = async (shopSignupId: string): Promise<AccountPageResponse> => {
+    return apiFetchServer(`/shop-Signup/${shopSignupId}/bank-account`, {
+        cache: "no-store",
+    });
+};
+
 export const fetchShopEditAccountPage = async (shopEditId: string): Promise<AccountPageResponse> => {
     return apiFetchServer(`/shop-info-edit/${shopEditId}/bank-account`, {
         cache: "no-store",
