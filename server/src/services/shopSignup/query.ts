@@ -219,6 +219,8 @@ export const getShopSignup5 = ({ shopSignupId, userId }: UserShopSignupIdParams)
     });
 };
 
+export const getShopSignupHasBankAccount
+
 export const getMyShopSignupHasS3Data = ({
     shopSignupId,
     userId,
