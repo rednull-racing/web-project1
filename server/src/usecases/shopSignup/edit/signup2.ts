@@ -3,7 +3,8 @@ import { AppError } from "../../../errors.js";
 import { createBankAccount } from "../../../services/bankAccount.js";
 import { getBankOne } from "../../../services/banks.js";
 import { getBranchOne } from "../../../services/branches.js";
-import { getMyShopSignup, updateShopSignupBankAccount } from "../../../services/shopSignup.js";
+import { updateShopSignupBankAccount } from "../../../services/shopSignup/command.js";
+import { getMyShopSignup } from "../../../services/shopSignup/query.js";
 import { BankBody } from "../../../validators/body/bankAccount.js";
 
 type Params = {
@@ -16,7 +17,7 @@ type Params = {
 // summary: ショップ口座情報作成
 // page: /shop-signup/step2
 export const updateShopSignup2UseCase = async ({ shopSignupId, userId, body }: Params) => {
-    // ショップ取得
+    // shopSignup取得
     const shopSignup = await getMyShopSignup({ shopSignupId, userId });
 
     if (!shopSignup) throw new AppError("SHOP_SIGNUP_NOT_FOUND", 404);

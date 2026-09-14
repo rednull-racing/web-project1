@@ -1,5 +1,6 @@
 import { AppError } from "../../../../errors.js";
-import { getMyShopSignup, updateShopSignupAny } from "../../../../services/shopSignup.js";
+import { updateShopSignupAny } from "../../../../services/shopSignup/command.js";
+import { getMyShopSignup } from "../../../../services/shopSignup/query.js";
 import { ShopSignupEditBody } from "../../../../validators/body/shopSignup.js";
 import { buildUpdateData } from "./utils/buildUpdateData.js";
 

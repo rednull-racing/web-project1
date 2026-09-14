@@ -1,5 +1,5 @@
 import { AppError } from "../../../errors.js";
-import { getMyShopSignupHasBankAccount } from "../../../services/shopSignup.js";
+import { getMyShopSignupHasBankAccount } from "../../../services/shopSignup/query.js";
 import { getUserHasBankAccount } from "../../../services/users/query.js";
 
 type Params = {

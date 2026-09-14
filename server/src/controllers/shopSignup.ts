@@ -17,6 +17,7 @@ import {
     ShopSignupOptionBody,
 } from "../validators/body/shopSignup.js";
 import { getShopSignup5UseCase } from "../usecases/shopSignup/get/signup5.js";
+import { getShopSignupBankAccountUseCase } from "../usecases/shopSignup/get/bankAccount.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -215,6 +216,26 @@ export const getShopSignup5Controller = async (req: Request, res: Response, next
         const shopSignup = await getShopSignup5UseCase({ shopSignupId, userId });
 
         res.status(200).json({ shopSignup });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:id/bank-account
+// summary: ショップ登録口座情報取得
+// page: /edit/account/shop/signup/[id]
+export const getShopSignupBankAccountController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const data = await getShopSignupBankAccountUseCase({ shopSignupId, userId });
+
+        res.status(200).json({ data });
     } catch (err) {
         next(err);
     }

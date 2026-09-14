@@ -4,6 +4,7 @@ import {
     getShopSignup2Controller,
     getShopSignup3Controller,
     getShopSignup5Controller,
+    getShopSignupBankAccountController,
     getShopSignupFileController,
     shopSignupPostRootController,
     updateShopSignup2Controller,
@@ -20,6 +21,7 @@ import {
     getShopSignup2RateLimit,
     getShopSignup3RateLimit,
     getShopSignup5RateLimit,
+    getShopSignupBankAccountRateLimit,
     getShopSignupFileRateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
@@ -163,6 +165,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     getShopSignup5Controller,
+);
+
+// GET /shop-signup/:id/bank-account
+// summary: ショップ登録口座情報取得
+// page: /edit/account/shop/signup/[id]
+router.get(
+    "/:id/bank-account",
+    getShopSignupBankAccountRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignupBankAccountController,
 );
 
 export default router;
