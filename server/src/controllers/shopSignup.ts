@@ -19,6 +19,7 @@ import {
 import { getShopSignup5UseCase } from "../usecases/shopSignup/get/signup5.js";
 import { getShopSignupBankAccountUseCase } from "../usecases/shopSignup/get/bankAccount.js";
 import { getShopSignupAddressUseCase } from "../usecases/shopSignup/get/address.js";
+import { getShopSignupConNameUseCase } from "../usecases/shopSignup/get/conName.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -257,6 +258,26 @@ export const getShopSignupAddressController = async (
         const data = await getShopSignupAddressUseCase({ shopSignupId, userId });
 
         res.status(200).json({ data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:id/con-name
+// summary: 担当者氏名取得
+// page: /edit/name/shop/con-name/signup/[id]
+export const getShopSignupConNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const name = await getShopSignupConNameUseCase({ shopSignupId, userId });
+
+        res.status(200).json({ name });
     } catch (err) {
         next(err);
     }
