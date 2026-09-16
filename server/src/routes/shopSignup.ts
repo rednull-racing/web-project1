@@ -4,6 +4,7 @@ import {
     getShopSignup2Controller,
     getShopSignup3Controller,
     getShopSignup5Controller,
+    getShopSignupAddressController,
     getShopSignupBankAccountController,
     getShopSignupFileController,
     shopSignupPostRootController,
@@ -21,6 +22,7 @@ import {
     getShopSignup2RateLimit,
     getShopSignup3RateLimit,
     getShopSignup5RateLimit,
+    getShopSignupAddressRateLimit,
     getShopSignupBankAccountRateLimit,
     getShopSignupFileRateLimit,
     shopSignup4RateLimit,
@@ -176,6 +178,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     getShopSignupBankAccountController,
+);
+
+// GET /shop-signup/:id/address
+// summary: 会社所在地取得
+// page: /edit/address/shop/signup/[id]
+router.get(
+    "/:id/address",
+    getShopSignupAddressRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignupAddressController,
 );
 
 export default router;
