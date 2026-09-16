@@ -281,6 +281,23 @@ export const getMyShopSignupHasAddress = ({ shopSignupId, userId }: UserShopSign
     });
 };
 
+export const getMyShoSignupHasConName = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+    return ShopSignup.findOne({
+        where: {
+            id: shopSignupId,
+            user_id: userId,
+        },
+        attributes: ["id", "user_id"],
+        include: [
+            {
+                model: Name,
+                as: "ContactName",
+                attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
+            },
+        ],
+    });
+};
+
 export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdParams) => {
     return ShopSignup.findAll({
         where: {
