@@ -281,7 +281,7 @@ export const getMyShopSignupHasAddress = ({ shopSignupId, userId }: UserShopSign
     });
 };
 
-export const getMyShoSignupHasConName = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+export const getMyShopSignupHasConName = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
     return ShopSignup.findOne({
         where: {
             id: shopSignupId,
