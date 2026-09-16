@@ -9,7 +9,7 @@ type Params = {
 // GET /shop-signup/:id/address
 // summary: 会社所在地取得
 // page: /edit/address/shop/signup/[id]
-export const getAddressShopSignupUseCase = async ({ shopSignupId, userId }: Params) => {
+export const getShopSignupAddressUseCase = async ({ shopSignupId, userId }: Params) => {
     // shopSignup取得
     const shopSignup = await getMyShopSignupHasAddress({ shopSignupId, userId });
 

@@ -79,7 +79,7 @@ router.get("/my", getShopMeRateLimit, authenticateToken, shopInfoGetMyController
 
 // GET /shop-info/:id/address
 // summary: 会社所在地取得
-// page: /edit/address/shop/[id]・/edit/address/shop/signup/[id]
+// page: /edit/address/shop/[id]
 router.get(
     "/:id/address",
     getShopAddressRateLimit,

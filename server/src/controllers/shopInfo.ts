@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express-serve-static-core"
 import { editShopOptionUseCase } from "../usecases/shopInfo/edit/option.js";
 import { editShopPhoneNumberUseCase } from "../usecases/shopInfo/edit/phoneNumber.js";
 import { updateRepNameUseCase } from "../usecases/shopInfo/edit/repName.js";
-import { getAddressShopUseCase } from "../usecases/shopInfo/get/getAddress.js";
+import { getShopAddressUseCase } from "../usecases/shopInfo/get/getAddress.js";
 import { getBankAccountUseCase } from "../usecases/shopInfo/get/getBankAccount.js";
 import { getShopComFreeUseCase } from "../usecases/shopInfo/get/getComFree.js";
 import { getCompanyNameUseCase } from "../usecases/shopInfo/get/getCompanyName.js";
@@ -98,7 +98,7 @@ export const shopInfoGetMyController = async (req: Request, res: Response, next:
 
 // GET /shop-info/:id/address
 // summary: 会社所在地取得
-// page: /edit/address/shop/[id]・/edit/address/shop/signup/[id]
+// page: /edit/address/shop/[id]
 export const shopInfoGetByIdAddressController = async (
     req: Request,
     res: Response,
@@ -108,7 +108,7 @@ export const shopInfoGetByIdAddressController = async (
         const shopId = Number(req.params.id);
         const userId = req.user!.id;
 
-        const data = await getAddressShopUseCase({ shopId, userId });
+        const data = await getShopAddressUseCase({ shopId, userId });
 
         res.status(200).json({ data });
     } catch (err) {
