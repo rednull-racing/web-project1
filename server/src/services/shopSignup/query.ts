@@ -259,6 +259,28 @@ export const getMyShopSignupHasS3Data = ({
     });
 };
 
+export const getMyShopSignupHasAddress = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+    return ShopSignup.findOne({
+        where: {
+            id: shopSignupId,
+            user_id: userId,
+        },
+        attributes: ["id", "user_id"],
+        include: [
+            {
+                model: Address,
+                attributes: ["id", "post_number", "todouhuken_id", "shikutyouson", "banchi", "building"],
+                include: [
+                    {
+                        model: TodouhukenOption,
+                        as: "AddressTodouhuken",
+                    },
+                ],
+            },
+        ],
+    });
+};
+
 export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdParams) => {
     return ShopSignup.findAll({
         where: {
