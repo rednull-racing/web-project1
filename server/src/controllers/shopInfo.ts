@@ -158,7 +158,7 @@ export const shopInfoGetByIdRepNameController = async (
 
 // GET /shop-info/:id/con-name
 // summary: 担当者氏名取得
-// page: /edit/name/shop/con-name/[id]・/edit/name/shop/con-name/signup/[id]
+// page: /edit/name/shop/con-name/[id]
 export const shopInfoGetByIdConNameController = async (
     req: Request,
     res: Response,

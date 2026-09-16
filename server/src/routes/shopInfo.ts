@@ -112,7 +112,7 @@ router.get(
 
 // GET /shop-info/:id/con-name
 // summary: 担当者氏名取得
-// page: /edit/name/shop/con-name/[id]・/edit/name/shop/con-name/signup/[id]
+// page: /edit/name/shop/con-name/[id]
 router.get(
     "/:id/con-name",
     getShopConNameRateLimit,
