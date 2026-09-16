@@ -67,6 +67,29 @@ export type ComOrFreeOption = {
     name: string;
 };
 
+export type ShopSignup = {
+    id: string;
+    company_name: string;
+    shop_name: string;
+    email: string;
+    phone_number: string;
+    homepage_url: string;
+    open_date_time: string;
+    company_number: string;
+    capital: number;
+    member_count: number;
+    founded_date: Date;
+    auto_trans: boolean;
+    open_info: boolean;
+    ComOrFreeOption?: ComOrFreeOption | null;
+    Address?: Address | null;
+    RepresentativeName?: Name | null;
+    ContactName?: Name | null;
+    BankAccount?: BankAccount | null;
+    IdCard?: IdCard | null;
+    Permit?: Permit[];
+};
+
 export type ShopInfoEdit = {
     id: string;
     company_name?: string | null;
@@ -78,14 +101,14 @@ export type ShopInfoEdit = {
     capital?: number | null;
     member_count?: number | null;
     founded_date?: Date | null;
-    id_card_front?: string | null;
-    id_card_rear?: string | null;
     ComOrFreeOption?: ComOrFreeOption | null;
     Address?: Address | null;
     Name?: Name | null;
     BankAccount?: BankAccount | null;
     RepresentativeNameEdit?: Name | null;
     ContactNameEdit?: Name | null;
+    IdCard?: IdCard | null;
+    Permit?: Permit[];
     ShopInfo: ShopInfo;
 };
 
@@ -101,9 +124,6 @@ export type ShopInfo = {
     capital: number;
     member_count: number;
     founded_date: Date;
-    id_card_front: string;
-    id_card_rear: string;
-    permit_url: string[];
     auto_trans: boolean;
     open_info: boolean;
     ComOrFreeOption?: ComOrFreeOption | null;
@@ -111,6 +131,8 @@ export type ShopInfo = {
     RepresentativeName?: Name | null;
     ContactName?: Name | null;
     BankAccount?: BankAccount | null;
+    IdCard?: IdCard | null;
+    Permit?: Permit[];
 };
 
 export type GenderOption = {

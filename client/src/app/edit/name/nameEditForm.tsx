@@ -28,22 +28,20 @@ type Props = {
     purchaseSessionId?: string;
     shopId?: string;
     shopEditId?: string;
-    idFrontUrl?: string;
-    idRearUrl?: string;
 };
 
-export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId, idFrontUrl, idRearUrl }: Props) => {
+export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId }: Props) => {
     const [seiValue, setSeiValue] = useState(name?.sei ?? "");
     const [meiValue, setMeiValue] = useState(name?.mei ?? "");
     const [seiKanaValue, setSeiKanaValue] = useState(name?.sei_kana ?? "");
     const [meiKanaValue, setMeiKanaValue] = useState(name?.mei_kana ?? "");
 
-    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(idFrontUrl ?? "");
-    const [idFrontPreview, setIdFrontPreview] = useState(idFrontUrl ?? "");
+    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(idFront);
+    const [idFrontPreview, setIdFrontPreview] = useState(idFront ?? "");
     const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
 
-    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(idRearUrl ?? "");
-    const [idRearPreview, setIdRearPreview] = useState(idRearUrl ?? "");
+    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(idRear);
+    const [idRearPreview, setIdRearPreview] = useState(idRear);
     const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
 
     const idFrontRef = useRef<HTMLInputElement | null>(null);
