@@ -84,7 +84,7 @@ export const AccountEditForm = ({ account, page, shopId, shopEditId }: Props) =>
 
                 setBankSuggestions(suggestions);
                 setShowBankSuggest(suggestions.length > 0);
-            } catch (err) {
+            } catch {
                 setBankSuggestions([]);
                 setShowBankSuggest(false);
             }
@@ -120,7 +120,7 @@ export const AccountEditForm = ({ account, page, shopId, shopEditId }: Props) =>
 
                 setBranchSuggestions(suggestions);
                 setShowBranchSuggest(suggestions.length > 0);
-            } catch (err) {
+            } catch {
                 setBranchSuggestions([]);
                 setShowBranchSuggest(false);
             }

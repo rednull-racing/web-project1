@@ -23,6 +23,12 @@ export const fetchShopAddressPage = async (shopId: string): Promise<AddressPageR
     });
 };
 
+export const fetchShopSignupAddressPage = async (shopSignupId: string): Promise<AddressPageResponse> => {
+    return apiFetchServer(`/shop-signup/${shopSignupId}/address`, {
+        cache: "no-store",
+    });
+};
+
 export const fetchShopEditAddressPage = async (shopEditId: string): Promise<AddressPageResponse> => {
     return apiFetchServer(`/shop-info-edit/${shopEditId}/address`, {
         cache: "no-store",
