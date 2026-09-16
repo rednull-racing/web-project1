@@ -139,3 +139,10 @@ export const getShopSignupAddressRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+export const getShopSignupConNameRateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
