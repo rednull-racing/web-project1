@@ -298,6 +298,39 @@ export const getMyShopSignupHasConName = ({ shopSignupId, userId }: UserShopSign
     });
 };
 
+export const getMyShopSignupHasRepName = ({ shopSignupId, userId }: UserShopSignupIdParams) => {
+    return ShopSignup.findOne({
+        where: {
+            id: shopSignupId,
+            user_id: userId,
+        },
+        attributes: ["id", "user_id"],
+        include: [
+            {
+                model: Name,
+                as: "RepresentativeName",
+                attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
+            },
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+        ],
+    });
+};
+
 export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdParams) => {
     return ShopSignup.findAll({
         where: {
