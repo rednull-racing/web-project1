@@ -148,9 +148,9 @@ export const shopInfoGetByIdRepNameController = async (
         const shopId = Number(req.params.id);
         const userId = req.user!.id;
 
-        const { shop, name } = await getRepNameUseCase({ shopId, userId });
+        const { shop } = await getRepNameUseCase({ shopId, userId });
 
-        res.status(200).json({ shop, name });
+        res.status(200).json({ shop });
     } catch (err) {
         next(err);
     }

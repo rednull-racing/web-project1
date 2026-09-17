@@ -15,5 +15,8 @@ export const getShopSignupRepNameUseCase = async ({ shopSignupId, userId }: Para
 
     if (!shopSignup) throw new AppError("SHOP_SIGNUP_NOT_FOUND", 404);
 
+    const name = shopSignup.RepresentativeName;
+    if (!name) throw new AppError("NAME_NOT_FOUND", 404);
+
     return shopSignup;
 };

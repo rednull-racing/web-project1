@@ -17,5 +17,5 @@ export const getRepNameUseCase = async ({ shopId, userId }: Params) => {
     const name = shop.RepresentativeName;
     if (!name) throw new AppError("NAME_NOT_FOUND", 404);
 
-    return { shop, name };
+    return { shop };
 };

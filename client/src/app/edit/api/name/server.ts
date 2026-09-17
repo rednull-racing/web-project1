@@ -6,7 +6,6 @@ type NamePageResponse = {
 };
 
 type RepNameResponse = {
-    name: Name;
     shop: ShopInfo;
 };
 
