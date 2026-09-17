@@ -6,7 +6,7 @@ type Params = {
     userId: number;
 };
 
-// GET /shop-info/:id/rep-name
+// GET /shop-signup/:id/rep-name
 // summary: 代表者氏名取得
 // page: /edit/name/shop/rep-name/signup/[id]
 export const getShopSignupRepNameUseCase = async ({ shopSignupId, userId }: Params) => {

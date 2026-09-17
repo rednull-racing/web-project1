@@ -5,10 +5,15 @@ import { updateShopSignup3UseCase } from "../usecases/shopSignup/edit/signup3/si
 import { updateShopSignup4UseCase } from "../usecases/shopSignup/edit/signup4.js";
 import { updateShopSignup5UseCase } from "../usecases/shopSignup/edit/signup5/signup5.js";
 import { updateShopSignupEditUseCase } from "../usecases/shopSignup/edit/signup5/signupEdit.js";
+import { getShopSignupAddressUseCase } from "../usecases/shopSignup/get/address.js";
+import { getShopSignupBankAccountUseCase } from "../usecases/shopSignup/get/bankAccount.js";
+import { getShopSignupConNameUseCase } from "../usecases/shopSignup/get/conName.js";
 import { getSHopSignupFileUseCase } from "../usecases/shopSignup/get/getFile.js";
+import { getShopSignupRepNameUseCase } from "../usecases/shopSignup/get/repName.js";
 import { getShopSignup1UseCase } from "../usecases/shopSignup/get/signup1.js";
 import { getShopSignup2UseCase } from "../usecases/shopSignup/get/signup2.js";
 import { getShopSignup3UseCase } from "../usecases/shopSignup/get/signup3.js";
+import { getShopSignup5UseCase } from "../usecases/shopSignup/get/signup5.js";
 import { BankBody } from "../validators/body/bankAccount.js";
 import {
     CreateSignup1Body,
@@ -16,10 +21,6 @@ import {
     ShopSignupEditBody,
     ShopSignupOptionBody,
 } from "../validators/body/shopSignup.js";
-import { getShopSignup5UseCase } from "../usecases/shopSignup/get/signup5.js";
-import { getShopSignupBankAccountUseCase } from "../usecases/shopSignup/get/bankAccount.js";
-import { getShopSignupAddressUseCase } from "../usecases/shopSignup/get/address.js";
-import { getShopSignupConNameUseCase } from "../usecases/shopSignup/get/conName.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -278,6 +279,26 @@ export const getShopSignupConNameController = async (
         const name = await getShopSignupConNameUseCase({ shopSignupId, userId });
 
         res.status(200).json({ name });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:id/rep-name
+// summary: 代表者氏名取得
+// page: /edit/name/shop/rep-name/signup/[id]
+export const getShopSignupRepNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const shopSignup = await getShopSignupRepNameUseCase({ shopSignupId, userId });
+
+        res.status(200).json({ shopSignup });
     } catch (err) {
         next(err);
     }
