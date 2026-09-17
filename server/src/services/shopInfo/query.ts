@@ -1,5 +1,14 @@
 import { Op } from "sequelize";
-import { Address, BankAccount, ComOrFreeOption, Name, ShopInfo, TodouhukenOption } from "../../models/index.js";
+import {
+    Address,
+    BankAccount,
+    ComOrFreeOption,
+    IdCard,
+    Name,
+    S3Metadata,
+    ShopInfo,
+    TodouhukenOption,
+} from "../../models/index.js";
 import { ShopIdParams, UserIdParams, UserShopIdParams } from "../../types/serviceType/shopInfo.js";
 
 export const getShop = ({ shopId }: ShopIdParams) => {
@@ -204,12 +213,28 @@ export const getMyShopHasRepName = ({ shopId, userId }: UserShopIdParams) => {
             id: shopId,
             user_id: userId,
         },
-        attributes: ["id", "id_card_front", "id_card_rear", "user_id"],
+        attributes: ["id", "user_id"],
         include: [
             {
                 model: Name,
                 as: "RepresentativeName",
                 attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
+            },
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
             },
         ],
     });
