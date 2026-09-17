@@ -8,6 +8,7 @@ import {
     getShopSignupBankAccountController,
     getShopSignupConNameController,
     getShopSignupFileController,
+    getShopSignupRepNameController,
     shopSignupPostRootController,
     updateShopSignup2Controller,
     updateShopSignup3Controller,
@@ -27,6 +28,7 @@ import {
     getShopSignupBankAccountRateLimit,
     getShopSignupConNameRateLimit,
     getShopSignupFileRateLimit,
+    getShopSignupRepNameRateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
     shopSignup5RateLimit,
@@ -202,6 +204,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     getShopSignupConNameController,
+);
+
+// GET /shop-signup/:id/rep-name
+// summary: 代表者氏名取得
+// page: /edit/name/shop/rep-name/signup/[id]
+router.get(
+    "/:id/rep-name",
+    getShopSignupRepNameRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignupRepNameController,
 );
 
 export default router;

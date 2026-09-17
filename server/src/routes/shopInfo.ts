@@ -101,7 +101,7 @@ router.get(
 
 // GET /shop-info/:id/rep-name
 // summary: 代表者氏名取得
-// page: /edit/name/shop/rep-name/[id]・/edit/name/shop/rep-name/signup/[id]
+// page: /edit/name/shop/rep-name/[id]
 router.get(
     "/:id/rep-name",
     getShopRepNameRateLimit,
