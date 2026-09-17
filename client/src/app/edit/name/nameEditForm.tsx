@@ -15,7 +15,7 @@ import EditUI from "../editUI";
 import { Name } from "../type";
 
 type Props = {
-    name: Name;
+    name?: Name;
     page:
         | "normal"
         | "purchase"
@@ -81,7 +81,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
         };
 
         try {
-            await fetchNameEdit(name.id, body);
+            await fetchNameEdit(name?.id ?? "", body);
 
             toast.success("氏名を更新しました");
             await sleep(1500);

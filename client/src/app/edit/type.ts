@@ -50,7 +50,7 @@ export type Address = {
     shikutyouson: string;
     banchi: string;
     building: string;
-    AddressTodouhuken?: TodouhukenOption | null;
+    AddressTodouhuken?: TodouhukenOption;
 };
 
 export type Name = {
@@ -81,12 +81,12 @@ export type ShopSignup = {
     founded_date: Date;
     auto_trans: boolean;
     open_info: boolean;
-    ComOrFreeOption?: ComOrFreeOption | null;
-    Address?: Address | null;
-    RepresentativeName?: Name | null;
-    ContactName?: Name | null;
-    BankAccount?: BankAccount | null;
-    IdCard?: IdCard | null;
+    ComOrFreeOption?: ComOrFreeOption;
+    Address?: Address;
+    RepresentativeName?: Name;
+    ContactName?: Name;
+    BankAccount?: BankAccount;
+    IdCard?: IdCard;
     Permit?: Permit[];
 };
 
@@ -101,13 +101,13 @@ export type ShopInfoEdit = {
     capital?: number | null;
     member_count?: number | null;
     founded_date?: Date | null;
-    ComOrFreeOption?: ComOrFreeOption | null;
-    Address?: Address | null;
-    Name?: Name | null;
-    BankAccount?: BankAccount | null;
-    RepresentativeNameEdit?: Name | null;
-    ContactNameEdit?: Name | null;
-    IdCard?: IdCard | null;
+    ComOrFreeOption?: ComOrFreeOption;
+    Address?: Address;
+    Name?: Name;
+    BankAccount?: BankAccount;
+    RepresentativeNameEdit?: Name;
+    ContactNameEdit?: Name;
+    IdCard?: IdCard;
     Permit?: Permit[];
     ShopInfo: ShopInfo;
 };
@@ -126,12 +126,12 @@ export type ShopInfo = {
     founded_date: Date;
     auto_trans: boolean;
     open_info: boolean;
-    ComOrFreeOption?: ComOrFreeOption | null;
-    Address?: Address | null;
-    RepresentativeName?: Name | null;
-    ContactName?: Name | null;
-    BankAccount?: BankAccount | null;
-    IdCard?: IdCard | null;
+    ComOrFreeOption?: ComOrFreeOption;
+    Address?: Address;
+    RepresentativeName?: Name;
+    ContactName?: Name;
+    BankAccount?: BankAccount;
+    IdCard?: IdCard;
     Permit?: Permit[];
 };
 

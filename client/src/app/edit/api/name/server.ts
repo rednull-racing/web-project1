@@ -11,7 +11,6 @@ type RepNameResponse = {
 };
 
 type RepNameShopSignupResponse = {
-    name: Name;
     shopSignup: ShopSignup;
 };
 
