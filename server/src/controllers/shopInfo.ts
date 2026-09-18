@@ -263,7 +263,7 @@ export const shopInfoGetByIdComFreeController = async (
 export const getShopFileController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req.user!.id;
-        const shopId = Number(req.params.shopSignupId);
+        const shopId = Number(req.params.shopInfoId);
         const s3MetadataId = Number(req.params.s3MetadataId);
 
         const file = await getShopFileUseCase({
