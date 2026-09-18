@@ -8,7 +8,7 @@ import { updateShopSignupEditUseCase } from "../usecases/shopSignup/edit/signup5
 import { getShopSignupAddressUseCase } from "../usecases/shopSignup/get/address.js";
 import { getShopSignupBankAccountUseCase } from "../usecases/shopSignup/get/bankAccount.js";
 import { getShopSignupConNameUseCase } from "../usecases/shopSignup/get/conName.js";
-import { getSHopSignupFileUseCase } from "../usecases/shopSignup/get/getFile.js";
+import { getShopSignupFileUseCase } from "../usecases/shopSignup/get/getFile.js";
 import { getShopSignupRepNameUseCase } from "../usecases/shopSignup/get/repName.js";
 import { getShopSignup1UseCase } from "../usecases/shopSignup/get/signup1.js";
 import { getShopSignup2UseCase } from "../usecases/shopSignup/get/signup2.js";
@@ -188,7 +188,7 @@ export const getShopSignupFileController = async (req: Request, res: Response, n
         const shopSignupId = Number(req.params.shopSignupId);
         const s3MetadataId = Number(req.params.s3MetadataId);
 
-        const file = await getSHopSignupFileUseCase({
+        const file = await getShopSignupFileUseCase({
             shopSignupId,
             s3MetadataId,
             userId,

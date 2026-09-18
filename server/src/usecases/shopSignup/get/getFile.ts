@@ -12,7 +12,7 @@ type Params = {
 // GET /shop-signup/:shopSignupId/files/:s3MetadataId
 // summary: ショップ身分証アップロードページ 画像取得
 // page: /shop-signup/step3/[id]
-export const getSHopSignupFileUseCase = async ({ shopSignupId, s3MetadataId, userId }: Params) => {
+export const getShopSignupFileUseCase = async ({ shopSignupId, s3MetadataId, userId }: Params) => {
     // shopSignup&s3Metadata取得
     const shopSignup = await getMyShopSignupHasS3Data({ shopSignupId, userId });
 

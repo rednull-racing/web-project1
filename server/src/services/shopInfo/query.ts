@@ -5,11 +5,12 @@ import {
     ComOrFreeOption,
     IdCard,
     Name,
+    Permit,
     S3Metadata,
     ShopInfo,
     TodouhukenOption,
 } from "../../models/index.js";
-import { ShopIdParams, UserIdParams, UserShopIdParams } from "../../types/serviceType/shopInfo.js";
+import { ShopIdParams, ShopInfoWithS3Data, UserIdParams, UserShopIdParams } from "../../types/serviceType/shopInfo.js";
 
 export const getShop = ({ shopId }: ShopIdParams) => {
     return ShopInfo.findByPk(shopId);
@@ -232,6 +233,43 @@ export const getMyShopHasRepName = ({ shopId, userId }: UserShopIdParams) => {
                     {
                         model: S3Metadata,
                         as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+        ],
+    });
+};
+
+export const getMyShopInfoHasS3Data = ({ shopId, userId }: UserShopIdParams): Promise<ShopInfoWithS3Data | null> => {
+    return ShopInfo.findOne({
+        where: {
+            id: shopId,
+            user_id: userId,
+        },
+        include: [
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+            {
+                model: Permit,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
                         required: false,
                     },
                 ],
