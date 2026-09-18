@@ -44,10 +44,22 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
     const rearS3Metadata = idCard?.RearIdCard;
 
     const frontImageUrl = frontS3Metadata
-        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${frontS3Metadata.id}`
+        ? page === "rep-shop"
+            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info/${shopId}/files/${frontS3Metadata.id}`
+            : page === "rep-com-free"
+              ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${frontS3Metadata.id}`
+              : page === "rep-shop-signup"
+                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${frontS3Metadata.id}`
+                : ""
         : "";
     const rearImageUrl = rearS3Metadata
-        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${rearS3Metadata.id}`
+        ? page === "rep-shop"
+            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info/${shopId}/files/${rearS3Metadata.id}`
+            : page === "rep-com-free"
+              ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${rearS3Metadata.id}`
+              : page === "rep-shop-signup"
+                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${rearS3Metadata.id}`
+                : ""
         : "";
 
     const [seiValue, setSeiValue] = useState(name?.sei ?? "");
