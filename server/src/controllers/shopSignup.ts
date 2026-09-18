@@ -20,8 +20,10 @@ import {
     ShopSignup3Body,
     ShopSignupEditBody,
     ShopSignupOptionBody,
+    UpdateShopSignupRepNameBody,
 } from "../validators/body/shopSignup.js";
 import { getShopEditFileUseCase } from "../usecases/shopInfoEdit/get/getFile.js";
+import { updateShopSignupRepNameUseCase } from "../usecases/shopSignup/edit/repName.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -133,6 +135,26 @@ export const updateShopSignup5Controller = async (req: Request, res: Response, n
     }
 };
 
+// PATCH /shop-signup/:id/rep-name
+// summary 代表者氏名変更
+// page: /edit/name/shop/rep-name/signup/[id]
+export const updateShopSignupRepNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+        const body = req.validatedBody as UpdateShopSignupRepNameBody;
+
+        await updateShopSignupRepNameUseCase({ shopSignupId, userId, body });
+
+        res.status(200).json({ message: "代表者氏名を変更しました。" });
+    } catch (err) {
+        next(err);
+    }
+};
 // GET /shop-signup/1
 // summary: 事業者情報登録ページ インプット表示データ取得
 // page: /shop-signup/step1

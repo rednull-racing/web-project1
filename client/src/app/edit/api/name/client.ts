@@ -51,7 +51,7 @@ export const fetchShopEditRepNameCreate = async (
     });
 };
 
-export const fetchShopRepNamePatch = async (shopId: string, body: ShopRepNameUpdateBody): Promise<void> => {
+export const fetchShopSignupRepNamePatch = async (shopId: string, body: ShopRepNameUpdateBody): Promise<void> => {
     const accessToken = await getAccessToken();
     if (!accessToken) throw new ApiError("UNAUTHORIZED");
 
@@ -65,7 +65,7 @@ export const fetchShopRepNamePatch = async (shopId: string, body: ShopRepNameUpd
     if (body.frontS3MetadataId !== undefined) formData.append("frontS3MetadataId", String(body.frontS3MetadataId));
     if (body.rearS3MetadataId !== undefined) formData.append("rearS3MetadataId", String(body.rearS3MetadataId));
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shop-info/${shopId}/rep-name`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/rep-name`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,

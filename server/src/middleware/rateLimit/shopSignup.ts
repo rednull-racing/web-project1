@@ -91,6 +91,21 @@ export const shopSignup5RateLimit = rateLimit({
     },
 });
 
+export const shopSignupRepNameEditRateLimit = rateLimit({
+    windowMs: 1000 * 60 * 15,
+    limit: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+
+    keyGenerator: (req) => {
+        const authReq = req as unknown as {
+            user: AuthUser;
+        };
+
+        return `admin:${authReq.user.id}`;
+    },
+});
+
 export const getShopSignup1RateLimit = rateLimit({
     windowMs: 1000 * 60,
     limit: 60,

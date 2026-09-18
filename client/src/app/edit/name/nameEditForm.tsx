@@ -11,7 +11,7 @@ import useSWR from "swr";
 import { ApiError } from "../../../lib/api/apiError";
 import { apiFetch } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
-import { fetchNameEdit, fetchShopEditRepNameCreate, fetchShopRepNamePatch } from "../api/name/client";
+import { fetchNameEdit, fetchShopEditRepNameCreate, fetchShopSignupRepNamePatch } from "../api/name/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
 import { Name, ShopInfo, ShopSignup } from "../type";
@@ -29,10 +29,11 @@ type Props = {
         | "con-com-free";
     purchaseSessionId?: string;
     shopId?: string;
+    shopSignupId?: string;
     shopEditId?: string;
 };
 
-export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId }: Props) => {
+export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId, shopSignupId }: Props) => {
     const { data } = useSWR<{ shopSignup?: ShopSignup; shop?: ShopInfo }>(
         shopId && (page === "rep-shop" || page === "rep-shop-signup")
             ? `/${page === "rep-shop-signup" ? "shop-signup" : "shop-info"}/${shopId}/rep-name`
@@ -49,7 +50,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             : page === "rep-com-free"
               ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${frontS3Metadata.id}`
               : page === "rep-shop-signup"
-                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${frontS3Metadata.id}`
+                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${frontS3Metadata.id}`
                 : ""
         : "";
     const rearImageUrl = rearS3Metadata
@@ -58,7 +59,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             : page === "rep-com-free"
               ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${rearS3Metadata.id}`
               : page === "rep-shop-signup"
-                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${rearS3Metadata.id}`
+                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${rearS3Metadata.id}`
                 : ""
         : "";
 
@@ -122,7 +123,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             } else if (page === "con-shop") {
                 router.push(`/shop-info/${shopId}`);
             } else if (page === "con-shop-signup") {
-                router.push(`/shop-signup/step5/${shopId}`);
+                router.push(`/shop-signup/step5/${shopSignupId}`);
             } else if (page === "rep-com-free" || page === "con-com-free") {
                 router.push(`/edit/shop/com-free/confirm/${shopEditId}`);
             } else {
@@ -137,7 +138,8 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
     };
 
     const repSubmit = async () => {
-        if (!shopId) return;
+        const id = shopId ?? shopEditId ?? shopSignupId;
+        if (!id) return;
 
         if (!seiValue || !meiValue || !seiKanaValue || !meiKanaValue) {
             toast.error("空の項目があります");
@@ -186,7 +188,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             }
 
             if (page === "rep-shop") {
-                const data = await fetchShopEditRepNameCreate(shopId, body);
+                const data = await fetchShopEditRepNameCreate(id, body);
 
                 if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
                     const uploadFrontRes = await fetch(data.frontSignedUrl, {
@@ -223,7 +225,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
 
                 router.push(`/shop-info/${shopId}`);
             } else if (page === "rep-shop-signup") {
-                await fetchShopRepNamePatch(shopId, {
+                await fetchShopSignupRepNamePatch(id, {
                     sei: body.sei,
                     mei: body.mei,
                     seiKana: body.seiKana,

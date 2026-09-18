@@ -15,6 +15,7 @@ import {
     updateShopSignup5Controller,
     updateShopSignupEditController,
     updateShopSignupOptionController,
+    updateShopSignupRepNameController,
 } from "../controllers/shopSignup.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
@@ -32,6 +33,7 @@ import {
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
     shopSignup5RateLimit,
+    shopSignupRepNameEditRateLimit,
     signup2RateLimit,
     signup3RateLimit,
 } from "../middleware/rateLimit/shopSignup.js";
@@ -43,6 +45,7 @@ import {
     shopSignup3BodySchema,
     shopSignupEditBodySchema,
     shopSignupOptionBodySchema,
+    updateShopSignupRepNameBodySchema,
 } from "../validators/body/shopSignup.js";
 import { idParamSchema } from "../validators/params/id.js";
 import { shopSignupFilesIdParamSchema } from "../validators/params/shopSignup.js";
@@ -122,6 +125,22 @@ router.patch(
     shopSignup5RateLimit,
     validateParams(idParamSchema),
     updateShopSignup5Controller,
+);
+
+// PATCH /shop-signup/:id/rep-name
+// summary 代表者氏名変更
+// page: /edit/name/shop/rep-name/signup/[id]
+router.patch(
+    "/:id/rep-name",
+    authenticateToken,
+    shopSignupRepNameEditRateLimit,
+    validateParams(idParamSchema),
+    ...parseMultipartBody([
+        { name: "frontIdCard", maxCount: 1 },
+        { name: "rearIdCard", maxCount: 1 },
+    ]),
+    validateBody(updateShopSignupRepNameBodySchema),
+    updateShopSignupRepNameController,
 );
 
 // GET /shop-signup/1
