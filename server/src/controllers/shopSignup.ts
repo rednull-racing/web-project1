@@ -21,6 +21,7 @@ import {
     ShopSignupEditBody,
     ShopSignupOptionBody,
 } from "../validators/body/shopSignup.js";
+import { getShopEditFileUseCase } from "../usecases/shopInfoEdit/get/getFile.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -299,6 +300,35 @@ export const getShopSignupRepNameController = async (
         const shopSignup = await getShopSignupRepNameUseCase({ shopSignupId, userId });
 
         res.status(200).json({ shopSignup });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info-edit/:shopEditId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+export const getShopEditFileController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const shopEditId = Number(req.params.shopEditId);
+        const s3MetadataId = Number(req.params.s3MetadataId);
+
+        const file = await getShopEditFileUseCase({
+            shopEditId,
+            s3MetadataId,
+            userId,
+        });
+
+        if (file.contentType !== null) {
+            res.setHeader("Content-Type", file.contentType);
+        }
+
+        if (file.contentLength) {
+            res.setHeader("Content-Length", file.contentLength);
+        }
+
+        file.body.pipe(res);
     } catch (err) {
         next(err);
     }

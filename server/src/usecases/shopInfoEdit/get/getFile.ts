@@ -9,10 +9,10 @@ type Params = {
     userId: number;
 };
 
-// GET /shop-info/:shopEditId/files/:s3MetadataId
+// GET /shop-info-edit/:shopEditId/files/:s3MetadataId
 // summary: 代表者氏名更新ページ 画像取得
 // page: /edit/name/shop/rep-name/[id]
-export const getShopFileUseCase = async ({ shopEditId, s3MetadataId, userId }: Params) => {
+export const getShopEditFileUseCase = async ({ shopEditId, s3MetadataId, userId }: Params) => {
     // shopInfo取得
     const shop = await getMyShopEditHasS3Data({ shopEditId, userId });
 

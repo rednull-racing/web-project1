@@ -13,12 +13,14 @@ import {
     shopInfoEditPostByIdRepNameController,
     updateShopInfoEditIdImageController,
 } from "../controllers/shopInfoEdit.js";
+import { getShopEditFileController } from "../controllers/shopSignup.js";
 import { authenticateToken } from "../middleware/index.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import {
     getShopEditAddressRateLimit,
     getShopEditComFreeConfirmRateLimit,
     getShopEditConNameRateLimit,
+    getShopEditFileRateLimit,
     getShopEditRepNameRateLimit,
     patchShopEditRateLimit,
     shopEditAddressEditRateLimit,
@@ -40,6 +42,7 @@ import {
     shopInfoEditUpdateBodySchema,
 } from "../validators/body/shopInfoEdit.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { shopEditFilesIdParamSchema } from "../validators/params/shopInfoEdit.js";
 
 const router = Router();
 
@@ -184,6 +187,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoEditGetByIdComFreeConfirmController,
+);
+
+// GET /shop-info-edit/:shopEditId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+router.get(
+    "/:shopEditId/files/:s3MetadataId",
+    getShopEditFileRateLimit,
+    authenticateToken,
+    validateParams(shopEditFilesIdParamSchema),
+    getShopEditFileController,
 );
 
 export default router;
