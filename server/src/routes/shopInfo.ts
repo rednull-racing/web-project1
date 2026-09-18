@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    getShopFileController,
     shopInfoGetByIdAddressController,
     shopInfoGetByIdBankAccountController,
     shopInfoGetByIdComFreeController,
@@ -21,6 +22,7 @@ import {
     getShopComFreeRateLimit,
     getShopCompanyNameRateLimit,
     getShopConNameRateLimit,
+    getShopFileRateLimit,
     getShopMeRateLimit,
     getShopOptionRateLimit,
     getShopPhoneNumberRateLimit,
@@ -34,6 +36,7 @@ import { validateParams } from "../middleware/validate/validateParams.js";
 import { updateRepNameBodySchema, shopOptionBodySchema } from "../validators/body/shopInfo.js";
 import { phoneNumberBodySchema } from "../validators/body/users.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { shopInfoFilesIdParamSchema } from "../validators/params/shopInfo.js";
 
 const router = Router();
 
@@ -168,6 +171,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoGetByIdComFreeController,
+);
+
+// GET /shop-info/:shopInfoId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+router.get(
+    "/:shopInfoId/files/:s3MetadataId",
+    getShopFileRateLimit,
+    authenticateToken,
+    validateParams(shopInfoFilesIdParamSchema),
+    getShopFileController,
 );
 
 export default router;

@@ -108,3 +108,10 @@ export const getShopComFreeRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+export const getShopFileRateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
