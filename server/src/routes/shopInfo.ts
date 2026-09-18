@@ -12,9 +12,7 @@ import {
     shopInfoGetMyController,
     shopInfoPatchByIdOptionController,
     shopInfoPatchByIdPhoneNumberController,
-    shopInfoPatchByIdRepNameController,
 } from "../controllers/shopInfo.js";
-import { parseMultipartBody } from "../middleware/multipart.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     getShopAddressRateLimit,
@@ -29,32 +27,15 @@ import {
     getShopRepNameRateLimit,
     shopOptionEditRateLimit,
     shopPhoneNumberEditRateLimit,
-    shopRepNameEditRateLimit,
 } from "../middleware/rateLimit/shopInfoRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
-import { updateRepNameBodySchema, shopOptionBodySchema } from "../validators/body/shopInfo.js";
+import { shopOptionBodySchema } from "../validators/body/shopInfo.js";
 import { phoneNumberBodySchema } from "../validators/body/users.js";
 import { idParamSchema } from "../validators/params/id.js";
 import { shopInfoFilesIdParamSchema } from "../validators/params/shopInfo.js";
 
 const router = Router();
-
-// PATCH /shop-info/:id/rep-name
-// summary 代表者氏名変更
-// page: /edit/name/shop/rep-name/signup/[id]
-router.patch(
-    "/:id/rep-name",
-    authenticateToken,
-    shopRepNameEditRateLimit,
-    validateParams(idParamSchema),
-    ...parseMultipartBody([
-        { name: "frontIdCard", maxCount: 1 },
-        { name: "rearIdCard", maxCount: 1 },
-    ]),
-    validateBody(updateRepNameBodySchema),
-    shopInfoPatchByIdRepNameController,
-);
 
 // PATCH /shop-info/:id/phone-number
 // summary: 電話番号変更

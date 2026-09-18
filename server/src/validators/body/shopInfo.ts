@@ -38,4 +38,3 @@ export const shopOptionBodySchema = z.object({
 
 export type RepNameBody = z.infer<typeof repNameBodySchema>;
 export type ShopOptionBody = z.infer<typeof shopOptionBodySchema>;
-export type UpdateRepNameBody = z.infer<typeof updateRepNameBodySchema>;
