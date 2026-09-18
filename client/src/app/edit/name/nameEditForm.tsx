@@ -7,12 +7,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import useSWR from "swr";
 import { ApiError } from "../../../lib/api/apiError";
+import { apiFetch } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
 import { fetchNameEdit, fetchShopEditRepNameCreate, fetchShopRepNamePatch } from "../api/name/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
-import { Name } from "../type";
+import { Name, ShopInfo, ShopSignup } from "../type";
 
 type Props = {
     name?: Name;
@@ -31,6 +33,23 @@ type Props = {
 };
 
 export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId }: Props) => {
+    const { data } = useSWR<{ shopSignup?: ShopSignup; shop?: ShopInfo }>(
+        shopId && (page === "rep-shop" || page === "rep-shop-signup")
+            ? `/${page === "rep-shop-signup" ? "shop-signup" : "shop-info"}/${shopId}/rep-name`
+            : null,
+        apiFetch,
+    );
+    const idCard = (page === "rep-shop-signup" ? data?.shopSignup : data?.shop)?.IdCard;
+    const frontS3Metadata = idCard?.FrontIdCard;
+    const rearS3Metadata = idCard?.RearIdCard;
+
+    const frontImageUrl = frontS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${frontS3Metadata.id}`
+        : "";
+    const rearImageUrl = rearS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/files/${rearS3Metadata.id}`
+        : "";
+
     const [seiValue, setSeiValue] = useState(name?.sei ?? "");
     const [meiValue, setMeiValue] = useState(name?.mei ?? "");
     const [seiKanaValue, setSeiKanaValue] = useState(name?.sei_kana ?? "");
@@ -278,7 +297,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                             ref={idFrontRef}
                         />
                         <Image
-                            src={idFrontPreview || "/no-image(1x1).png"}
+                            src={idFrontPreview || frontImageUrl || "/no-image(1x1).png"}
                             alt="身分証（表面）"
                             width={120}
                             height={120}
@@ -296,7 +315,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                             required
                         />
                         <Image
-                            src={idRearPreview || "/no-image(1x1).png"}
+                            src={idRearPreview || rearImageUrl || "/no-image(1x1).png"}
                             alt="身分証（裏面）"
                             width={120}
                             height={120}
