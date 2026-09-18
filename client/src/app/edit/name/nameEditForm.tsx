@@ -266,7 +266,8 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
         title = "ショップ担当者氏名の設定・変更";
     }
 
-    const submitOption = page === "rep-shop" || page === "rep-shop-signup" ? repSubmit : submit;
+    const submitOption =
+        page === "rep-shop" || page === "rep-shop-signup" || page === "rep-com-free" ? repSubmit : submit;
 
     return (
         <EditUI title={title}>
@@ -294,7 +295,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                 />
             </div>
 
-            {(page === "rep-shop" || page === "rep-shop-signup") && (
+            {(page === "rep-shop" || page === "rep-shop-signup" || page === "rep-com-free") && (
                 <>
                     <h2 className={styles.subtitle}>代表者身分証</h2>
 
