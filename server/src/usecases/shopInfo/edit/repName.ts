@@ -1,108 +1,154 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { publicS3Domain } from "../../../infra/aws/s3.js";
+import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
+import { buckets } from "../../../infra/aws/s3.js";
+import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
+import { createIdCard, updateIdCardS3Metadata } from "../../../services/idCard.js";
 import { updateName } from "../../../services/name.js";
+import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata.js";
 import { updateShopIdCard } from "../../../services/shopInfo/command.js";
 import { getMyShopHasRepName } from "../../../services/shopInfo/query.js";
-import { deleteCmdS3 } from "../../../utils/s3/deleteCmd.js";
-import { generateSignedUrl } from "../../../utils/s3/index.js";
-import { RepNameBody } from "../../../validators/body/shopInfo.js";
+import type { UpdateRepNameBody } from "../../../validators/body/shopInfo.js";
 
 type Params = {
     shopId: number;
-    body: RepNameBody;
+    body: UpdateRepNameBody;
     userId: number;
+};
+
+type UploadedObject = Awaited<ReturnType<typeof uploadS3Object>> & {
+    type: "idCardFront" | "idCardRear";
+    originalFileName: string;
+    contentType: string;
+    fileSize: number;
 };
 
 // PATCH /shop-info/:id/rep-name
 // summary 代表者氏名変更
 // page: /edit/name/shop/rep-name/signup/[id]
-export const updateRepNameUseCase = async ({ shopId, body, userId }: Params) => {
+export const updateRepNameUseCase = async ({ shopId, body, userId }: Params): Promise<void> => {
     const now = Date.now();
-
-    const {
-        sei,
-        mei,
-        seiKana,
-        meiKana,
-        frontFileName,
-        frontFileType,
-        rearFileName,
-        rearFileType,
-        idFrontUpload,
-        idRearUpload,
-    } = body;
-
-    // ショップ取得
+    const { sei, mei, seiKana, meiKana, frontIdCard, rearIdCard } = body;
     const shop = await getMyShopHasRepName({ shopId, userId });
 
     if (!shop) throw new AppError("SHOP_NOT_FOUND", 404);
 
-    // 身分証アップロード
-    let frontSignedUrl: string | null = null;
-    let rearSignedUrl: string | null = null;
-    let frontUrl: string | null = shop.id_card_front ?? null;
-    let rearUrl: string | null = shop.id_card_rear ?? null;
+    const idCard = shop.IdCard;
+    const oldFront = idCard?.FrontIdCard;
+    const oldRear = idCard?.RearIdCard;
 
-    if (frontFileType && idFrontUpload) {
-        const key = `idcard/shop/front/${shopId}/${now}_${frontFileName}`;
-
-        frontSignedUrl = await generateSignedUrl({ key, contentType: frontFileType });
-
-        frontUrl = `${publicS3Domain}/${key}`;
+    if (!frontIdCard && (!oldFront || oldFront.id !== body.frontS3MetadataId)) {
+        throw new AppError("S3_METADATA_NOT_FOUND", 404);
+    }
+    if (!rearIdCard && (!oldRear || oldRear.id !== body.rearS3MetadataId)) {
+        throw new AppError("S3_METADATA_NOT_FOUND", 404);
     }
 
-    if (!frontUrl) throw new AppError("FRONT_URL_EMPTY", 400);
+    const uploadedObjects: UploadedObject[] = [];
+    let committed = false;
 
-    if (rearFileType && idRearUpload) {
-        const key = `idcard/shop/rear/${shopId}/${now}_${rearFileName}`;
+    try {
+        if (frontIdCard) {
+            const uploaded = await uploadS3Object({
+                bucketName: buckets.verificationDocuments,
+                objectKey: `idcard/shop/front/${shopId}/${now}_${frontIdCard.fileName}`,
+                body: frontIdCard.buffer,
+                contentType: frontIdCard.contentType,
+            });
+            uploadedObjects.push({
+                ...uploaded,
+                type: "idCardFront",
+                originalFileName: frontIdCard.fileName,
+                contentType: frontIdCard.contentType,
+                fileSize: frontIdCard.size,
+            });
+        }
 
-        rearSignedUrl = await generateSignedUrl({ key, contentType: rearFileType });
+        if (rearIdCard) {
+            const uploaded = await uploadS3Object({
+                bucketName: buckets.verificationDocuments,
+                objectKey: `idcard/shop/rear/${shopId}/${now}_${rearIdCard.fileName}`,
+                body: rearIdCard.buffer,
+                contentType: rearIdCard.contentType,
+            });
+            uploadedObjects.push({
+                ...uploaded,
+                type: "idCardRear",
+                originalFileName: rearIdCard.fileName,
+                contentType: rearIdCard.contentType,
+                fileSize: rearIdCard.size,
+            });
+        }
 
-        rearUrl = `${publicS3Domain}/${key}`;
+        await sequelize.transaction(async (transaction) => {
+            let frontS3MetadataId = oldFront?.id;
+            let rearS3MetadataId = oldRear?.id;
+
+            for (const uploadedObject of uploadedObjects) {
+                const metadata = await createS3Metadata({
+                    data: {
+                        bucket_name: uploadedObject.bucketName,
+                        object_key: uploadedObject.objectKey,
+                        version_id: uploadedObject.versionId,
+                        original_file_name: uploadedObject.originalFileName,
+                        content_type: uploadedObject.contentType,
+                        file_size: uploadedObject.fileSize,
+                        etag: uploadedObject.etag,
+                    },
+                    transaction,
+                });
+                if (uploadedObject.type === "idCardFront") frontS3MetadataId = metadata.id;
+                else if (uploadedObject.type === "idCardRear") rearS3MetadataId = metadata.id;
+            }
+
+            if (!frontS3MetadataId || !rearS3MetadataId) throw new AppError("S3_METADATA_NOT_FOUND", 404);
+
+            const idCardData = {
+                front_s3_metadata_id: frontS3MetadataId,
+                rear_s3_metadata_id: rearS3MetadataId,
+            };
+            if (idCard) {
+                if (frontIdCard || rearIdCard) {
+                    await updateIdCardS3Metadata({ idCard, data: idCardData, transaction });
+                }
+            } else {
+                const newIdCard = await createIdCard({ data: idCardData, transaction });
+                await updateShopIdCard({ shopInfo: shop, data: { idcard_id: newIdCard.id }, transaction });
+            }
+
+            if (frontIdCard && oldFront) await deleteS3Metadata({ s3Metadata: oldFront, transaction });
+            if (rearIdCard && oldRear) await deleteS3Metadata({ s3Metadata: oldRear, transaction });
+
+            await updateName({
+                name: shop.RepresentativeName,
+                data: {
+                    sei,
+                    mei,
+                    sei_kana: seiKana,
+                    mei_kana: meiKana,
+                },
+                transaction,
+            });
+        });
+
+        committed = true;
+    } catch (err) {
+        if (!committed) {
+            const cleanupResults = await Promise.allSettled(
+                uploadedObjects.map((object) =>
+                    deleteS3Object({
+                        bucketName: object.bucketName,
+                        objectKey: object.objectKey,
+                        versionId: object.versionId,
+                    }),
+                ),
+            );
+            for (const result of cleanupResults) {
+                if (result.status === "rejected") {
+                    console.error("S3補償削除失敗:", result.reason);
+                }
+            }
+        }
+        throw err;
     }
-
-    if (!rearUrl) throw new AppError("REAR_URL_EMPTY", 400);
-
-    // 旧身分証削除
-    if (shop.id_card_front && idFrontUpload) {
-        const oldFrontKey = shop.id_card_front.split(".com/")[1];
-
-        deleteCmdS3({ key: oldFrontKey }).catch((err) => {
-            console.error("s3 deleteCmdS3 error:", err);
-        });
-    }
-
-    if (shop.id_card_rear && idRearUpload) {
-        const oldRearKey = shop.id_card_rear.split(".com/")[1];
-
-        deleteCmdS3({ key: oldRearKey }).catch((err) => {
-            console.error("s3 deleteCmdS3 error:", err);
-        });
-    }
-
-    // データ更新
-    await sequelize.transaction(async (t) => {
-        await updateShopIdCard({
-            shopInfo: shop,
-            data: {
-                id_card_front: frontUrl,
-                id_card_rear: rearUrl,
-            },
-            transaction: t,
-        });
-
-        await updateName({
-            name: shop.RepresentativeName,
-            data: {
-                sei,
-                mei,
-                sei_kana: seiKana,
-                mei_kana: meiKana,
-            },
-            transaction: t,
-        });
-    });
-
-    return { frontSignedUrl, rearSignedUrl };
 };

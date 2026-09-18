@@ -36,12 +36,12 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
     const [seiKanaValue, setSeiKanaValue] = useState(name?.sei_kana ?? "");
     const [meiKanaValue, setMeiKanaValue] = useState(name?.mei_kana ?? "");
 
-    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(idFront);
-    const [idFrontPreview, setIdFrontPreview] = useState(idFront ?? "");
+    const [idCardFront, setIdCardFront] = useState<File>();
+    const [idFrontPreview, setIdFrontPreview] = useState("");
     const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
 
-    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(idRear);
-    const [idRearPreview, setIdRearPreview] = useState(idRear);
+    const [idCardRear, setIdCardRear] = useState<File>();
+    const [idRearPreview, setIdRearPreview] = useState("");
     const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
 
     const idFrontRef = useRef<HTMLInputElement | null>(null);
@@ -192,37 +192,14 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
 
                 router.push(`/shop-info/${shopId}`);
             } else if (page === "rep-shop-signup") {
-                const data = await fetchShopRepNamePatch(shopId, body);
-
-                if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
-                    const uploadFrontRes = await fetch(data.frontSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardFront.type,
-                        },
-                        body: idCardFront,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（表面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
-
-                if (idRearUpload && data.rearSignedUrl && idCardRear instanceof File) {
-                    const uploadFrontRes = await fetch(data.rearSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardRear.type,
-                        },
-                        body: idCardRear,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（裏面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
+                await fetchShopRepNamePatch(shopId, {
+                    sei: body.sei,
+                    mei: body.mei,
+                    seiKana: body.seiKana,
+                    meiKana: body.meiKana,
+                    frontIdCard: idCardFront,
+                    rearIdCard: idCardRear,
+                });
 
                 toast.success("代表者氏名を変更しました");
                 await sleep(1500);
@@ -232,6 +209,9 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
         } catch (err) {
             if (err instanceof ApiError) {
                 switch (err.code) {
+                    case "S3_METADATA_NOT_FOUND":
+                        toast.error("身分証を選び直して、もう一度お試しください。");
+                        break;
                     case "FRONT_URL_EMPTY":
                         toast.error("身分証表面がありません");
                         break;

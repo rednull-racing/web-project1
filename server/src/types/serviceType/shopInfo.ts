@@ -25,8 +25,7 @@ export type UpdateShopEmailParams = {
 export type UpdateShopIdCardParams = {
     shopInfo: InstanceType<typeof ShopInfo>;
     data: {
-        id_card_front: string | null;
-        id_card_rear: string | null;
+        idcard_id: number;
     };
     transaction?: Transaction;
 };

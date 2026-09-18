@@ -1,5 +1,6 @@
 import z from "zod";
 import { isValidCompanyNumber } from "../../utils/isValidCompanyNumber.js";
+import { filesSchema } from "./utils/fileSchema.js";
 
 export const createSignup1BodySchema = z.object({
     selectOption: z.number().int().positive().min(1).max(2),
@@ -42,13 +43,6 @@ export const createSignup1BodySchema = z.object({
         .optional()
         .refine((val) => val === undefined || val === "" || isValidCompanyNumber(val)),
     capital: z.number().int().optional(),
-});
-
-export const filesSchema = z.object({
-    fileName: z.string(),
-    contentType: z.string().min(1),
-    size: z.number().int().positive(),
-    buffer: z.instanceof(Buffer),
 });
 
 export const shopSignup3BodySchema = z

@@ -13,6 +13,7 @@ import {
     shopInfoPatchByIdPhoneNumberController,
     shopInfoPatchByIdRepNameController,
 } from "../controllers/shopInfo.js";
+import { parseMultipartBody } from "../middleware/multipart.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     getShopAddressRateLimit,
@@ -30,7 +31,7 @@ import {
 } from "../middleware/rateLimit/shopInfoRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
-import { repNameBodySchema, shopOptionBodySchema } from "../validators/body/shopInfo.js";
+import { updateRepNameBodySchema, shopOptionBodySchema } from "../validators/body/shopInfo.js";
 import { phoneNumberBodySchema } from "../validators/body/users.js";
 import { idParamSchema } from "../validators/params/id.js";
 
@@ -44,7 +45,11 @@ router.patch(
     authenticateToken,
     shopRepNameEditRateLimit,
     validateParams(idParamSchema),
-    validateBody(repNameBodySchema),
+    ...parseMultipartBody([
+        { name: "frontIdCard", maxCount: 1 },
+        { name: "rearIdCard", maxCount: 1 },
+    ]),
+    validateBody(updateRepNameBodySchema),
     shopInfoPatchByIdRepNameController,
 );
 

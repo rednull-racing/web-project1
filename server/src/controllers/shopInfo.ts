@@ -11,7 +11,7 @@ import { getMyShopIdUseCase } from "../usecases/shopInfo/get/getMyShop.js";
 import { getShopOptionUseCase } from "../usecases/shopInfo/get/getOption.js";
 import { getShopPhoneNumberUseCase } from "../usecases/shopInfo/get/getPhoneNumber.js";
 import { getRepNameUseCase } from "../usecases/shopInfo/get/getRepName.js";
-import type { RepNameBody, ShopOptionBody } from "../validators/body/shopInfo.js";
+import type { UpdateRepNameBody, ShopOptionBody } from "../validators/body/shopInfo.js";
 import type { PhoneNumberBody } from "../validators/body/users.js";
 
 // PATCH /shop-info/:id/rep-name
@@ -25,11 +25,11 @@ export const shopInfoPatchByIdRepNameController = async (
     try {
         const shopId = Number(req.params.id);
         const userId = req.user!.id;
-        const body = req.validatedBody as RepNameBody;
+        const body = req.validatedBody as UpdateRepNameBody;
 
-        const { frontSignedUrl, rearSignedUrl } = await updateRepNameUseCase({ shopId, userId, body });
+        await updateRepNameUseCase({ shopId, userId, body });
 
-        res.status(200).json({ frontSignedUrl, rearSignedUrl });
+        res.status(200).json({ message: "代表者氏名を変更しました。" });
     } catch (err) {
         next(err);
     }

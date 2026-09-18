@@ -1,6 +1,6 @@
 import z from "zod";
 import { shopConfirmUpdateFieldSchemas } from "./shopSignup.js";
-import { filesSchema } from "./shopSignup.js";
+import { filesSchema } from "./utils/fileSchema.js";
 
 export const shopInfoEditIdImageBodySchema = z.object({
     frontIdCard: filesSchema,

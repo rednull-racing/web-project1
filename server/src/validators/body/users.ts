@@ -1,5 +1,5 @@
 import z from "zod";
-import { filesSchema } from "./shopSignup.js";
+import { filesSchema } from "./utils/fileSchema.js";
 
 export const phoneNumberBodySchema = z.object({
     phoneNumber: z
