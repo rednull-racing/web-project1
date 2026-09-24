@@ -357,7 +357,10 @@ export const getMyShopEditComFreeConfirm = ({ shopEditId, userId }: ShopEditUser
     });
 };
 
-export const getMyShopEditHasS3Data = ({ shopEditId, userId }: ShopEditUserIdParams): Promise<ShopEditWithS3Data | null> => {
+export const getMyShopEditHasS3Data = ({
+    shopEditId,
+    userId,
+}: ShopEditUserIdParams): Promise<ShopEditWithS3Data | null> => {
     return ShopInfo.findOne({
         where: {
             id: shopEditId,

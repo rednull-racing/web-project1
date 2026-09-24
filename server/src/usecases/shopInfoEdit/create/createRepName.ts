@@ -162,7 +162,7 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
         for (const result of cleanupResults) {
             if (result.status === "rejected") console.error("S3補償削除失敗:", result.reason);
         }
-        
+
         throw err;
     }
 
