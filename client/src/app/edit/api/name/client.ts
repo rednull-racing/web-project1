@@ -48,7 +48,7 @@ export const fetchShopEditRepNameCreate = async (shopId: string, body: ShopRepNa
     }
 };
 
-export const fetchShopSignupRepNamePatch = async (shopId: string, body: ShopRepNameUpdateBody): Promise<void> => {
+export const fetchShopSignupRepNamePatch = async (shopSignupId: string, body: ShopRepNameUpdateBody): Promise<void> => {
     const accessToken = await getAccessToken();
     if (!accessToken) throw new ApiError("UNAUTHORIZED");
 
@@ -62,7 +62,32 @@ export const fetchShopSignupRepNamePatch = async (shopId: string, body: ShopRepN
     if (body.frontS3MetadataId !== undefined) formData.append("frontS3MetadataId", String(body.frontS3MetadataId));
     if (body.rearS3MetadataId !== undefined) formData.append("rearS3MetadataId", String(body.rearS3MetadataId));
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopId}/rep-name`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/rep-name`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: formData,
+    });
+    if (!res.ok) {
+        const data = await res.json();
+        throw new ApiError(data.code ?? "API Error");
+    }
+};
+
+export const fetchComFreeRepNamePatch = async (shopEditId: string, body: ShopRepNameUpdateBody): Promise<void> => {
+    const accessToken = await getAccessToken();
+    if (!accessToken) throw new ApiError("UNAUTHORIZED");
+
+    const formData = new FormData();
+    formData.append("sei", body.sei);
+    formData.append("mei", body.mei);
+    formData.append("seiKana", body.seiKana);
+    formData.append("meiKana", body.meiKana);
+    if (body.frontIdCard) formData.append("frontIdCard", body.frontIdCard);
+    if (body.rearIdCard) formData.append("rearIdCard", body.rearIdCard);
+    if (body.frontS3MetadataId !== undefined) formData.append("frontS3MetadataId", String(body.frontS3MetadataId));
+    if (body.rearS3MetadataId !== undefined) formData.append("rearS3MetadataId", String(body.rearS3MetadataId));
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/rep-name`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,

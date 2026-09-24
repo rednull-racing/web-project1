@@ -11,7 +11,12 @@ import useSWR from "swr";
 import { ApiError } from "../../../lib/api/apiError";
 import { apiFetch } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
-import { fetchNameEdit, fetchShopEditRepNameCreate, fetchShopSignupRepNamePatch } from "../api/name/client";
+import {
+    fetchComFreeRepNamePatch,
+    fetchNameEdit,
+    fetchShopEditRepNameCreate,
+    fetchShopSignupRepNamePatch,
+} from "../api/name/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
 import { Name, ShopInfo, ShopSignup } from "../type";
@@ -120,7 +125,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                 router.push(`/shop-info/${shopId}`);
             } else if (page === "con-shop-signup") {
                 router.push(`/shop-signup/step5/${shopSignupId}`);
-            } else if (page === "rep-com-free" || page === "con-com-free") {
+            } else if (page === "con-com-free") {
                 router.push(`/edit/shop/com-free/confirm/${shopEditId}`);
             } else {
                 router.push("/my-page");
@@ -193,18 +198,32 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                 await sleep(1500);
 
                 router.push(`/shop-signup/step5/${shopId}`);
+            } else if (page === "rep-com-free") {
+                await fetchComFreeRepNamePatch(id, {
+                    sei: body.sei,
+                    mei: body.mei,
+                    seiKana: body.seiKana,
+                    meiKana: body.meiKana,
+                    frontIdCard: idCardFront,
+                    rearIdCard: idCardRear,
+                });
+
+                toast.success("代表者氏名を変更しました");
+                await sleep(1500);
+
+                router.push(`/edit/shop/com-free/confirm/${shopEditId}`);
             }
         } catch (err) {
             if (err instanceof ApiError) {
                 switch (err.code) {
                     case "S3_METADATA_NOT_FOUND":
-                        toast.error("身分証を選び直して、もう一度お試しください。");
+                        toast.error("画像を選び直して、もう一度お試しください。");
                         break;
                     case "FRONT_URL_EMPTY":
-                        toast.error("身分証表面がありません");
+                        toast.error("身分証（表面）がありません");
                         break;
                     case "REAR_URL_EMPTY":
-                        toast.error("身分証裏面がありません");
+                        toast.error("身分証（裏面）がありません");
                         break;
                     default:
                         toast.error("氏名の変更に失敗しました");
