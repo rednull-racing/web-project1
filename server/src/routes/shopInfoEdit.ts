@@ -11,12 +11,14 @@ import {
     shopInfoEditPostByIdComFreeController,
     shopInfoEditPostByIdCompanyNameController,
     shopInfoEditPostByIdRepNameController,
+    updateShopEditRepNameController,
     updateShopInfoEditIdImageController,
 } from "../controllers/shopInfoEdit.js";
 import { getShopEditFileController } from "../controllers/shopSignup.js";
 import { authenticateToken } from "../middleware/index.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import {
+    createShopEditRepNameRateLimit,
     getShopEditAddressRateLimit,
     getShopEditComFreeConfirmRateLimit,
     getShopEditConNameRateLimit,
@@ -36,10 +38,11 @@ import { addressBodySchema } from "../validators/body/address.js";
 import { bankBodySchema } from "../validators/body/bankAccount.js";
 import {
     comFreeIdBodySchema,
-    createShopEditRepNameBodySchema,
     createCompanyNameBodySchema,
+    createShopEditRepNameBodySchema,
     shopInfoEditIdImageBodySchema,
     shopInfoEditUpdateBodySchema,
+    updateShopEditRepNameBodySchema,
 } from "../validators/body/shopInfoEdit.js";
 import { idParamSchema } from "../validators/params/id.js";
 import { shopEditFilesIdParamSchema } from "../validators/params/shopInfoEdit.js";
@@ -76,7 +79,7 @@ router.post(
 router.post(
     "/:id/rep-name",
     authenticateToken,
-    shopEditRepNameEditRateLimit,
+    createShopEditRepNameRateLimit,
     validateParams(idParamSchema),
     ...parseMultipartBody([
         { name: "frontIdCard", maxCount: 1 },
@@ -137,6 +140,22 @@ router.patch(
     ]),
     validateBody(shopInfoEditIdImageBodySchema),
     updateShopInfoEditIdImageController,
+);
+
+// PATCH /shop-info-edit/:id/rep-name
+// summary: 代表者氏名データ修正
+// page: /edit/name/shop/rep-name/[id]
+router.post(
+    "/:id/rep-name",
+    authenticateToken,
+    shopEditRepNameEditRateLimit,
+    validateParams(idParamSchema),
+    ...parseMultipartBody([
+        { name: "frontIdCard", maxCount: 1 },
+        { name: "rearIdCard", maxCount: 1 },
+    ]),
+    validateBody(updateShopEditRepNameBodySchema),
+    updateShopEditRepNameController,
 );
 
 // GET /shop-info-edit/:id/address
