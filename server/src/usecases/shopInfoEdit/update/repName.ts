@@ -27,7 +27,7 @@ type UploadedObject = Awaited<ReturnType<typeof uploadS3Object>> & {
 };
 
 // PATCH /shop-info-edit/:id/rep-name
-// summary: 代表者氏名データ作成
+// summary: 代表者氏名データ修正
 // page: /edit/name/shop/rep-name/[id]
 export const updateShopEditRepNameUseCase = async ({ shopEditId, userId, body }: Params): Promise<void> => {
     const now = Date.now();
