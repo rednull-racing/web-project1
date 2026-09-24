@@ -57,6 +57,18 @@ export type UpdateNameParams = {
     transaction?: Transaction;
 };
 
+export type UpdateNameShopParams = {
+    name: InstanceType<typeof Name>;
+    data: {
+        sei: string;
+        mei: string;
+        sei_kana: string;
+        mei_kana: string;
+        shop_type: "representative" | "contact" | null;
+    };
+    transaction?: Transaction;
+};
+
 export type NameTransactionParams = {
     name: InstanceType<typeof Name>;
     transaction?: Transaction;

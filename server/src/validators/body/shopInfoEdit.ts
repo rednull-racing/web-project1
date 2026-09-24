@@ -30,9 +30,11 @@ export const shopInfoEditUpdateBodySchema = z.union([
 ]);
 
 export const createShopEditRepNameBodySchema = updateRepNameBodySchema;
+export const updateShopEditRepNameBodySchema = updateRepNameBodySchema;
 
 export type CreateCompanyNameBody = z.infer<typeof createCompanyNameBodySchema>;
 export type ComFreeIdBody = z.infer<typeof comFreeIdBodySchema>;
 export type ShopInfoEditIdImageBody = z.infer<typeof shopInfoEditIdImageBodySchema>;
 export type ShopInfoEditUpdateBody = z.infer<typeof shopInfoEditUpdateBodySchema>;
 export type CreateShopEditRepNameBody = z.infer<typeof createShopEditRepNameBodySchema>;
+export type UpdateShopEditRepNameBody = z.infer<typeof updateShopEditRepNameBodySchema>;

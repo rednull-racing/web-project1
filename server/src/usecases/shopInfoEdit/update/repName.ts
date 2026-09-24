@@ -7,17 +7,16 @@ import { getS3Object } from "../../../infra/aws/getS3Object.js";
 import { buckets } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
 import { createIdCard } from "../../../services/idCard.js";
-import { createNameShop } from "../../../services/name.js";
-import { createNotification } from "../../../services/notification.js";
+import { updateShopName } from "../../../services/name.js";
 import { createS3Metadata } from "../../../services/s3Metadata.js";
-import { getMyShopHasRepName } from "../../../services/shopInfo/query.js";
-import { createShopEditWithIdCard } from "../../../services/shopInfoEdit/command.js";
-import type { CreateShopEditRepNameBody } from "../../../validators/body/shopInfoEdit.js";
+import { updateShopEditIdCard } from "../../../services/shopInfoEdit/command.js";
+import { getMyShopEditHasRepName } from "../../../services/shopInfoEdit/query.js";
+import { UpdateShopEditRepNameBody } from "../../../validators/body/shopInfoEdit.js";
 
 type Params = {
-    shopId: number;
+    shopEditId: number;
     userId: number;
-    body: CreateShopEditRepNameBody;
+    body: UpdateShopEditRepNameBody;
 };
 
 type UploadedObject = Awaited<ReturnType<typeof uploadS3Object>> & {
@@ -27,17 +26,17 @@ type UploadedObject = Awaited<ReturnType<typeof uploadS3Object>> & {
     fileSize: number;
 };
 
-// POST /shop-info-edit/:id/rep-name
+// PATCH /shop-info-edit/:id/rep-name
 // summary: 代表者氏名データ作成
 // page: /edit/name/shop/rep-name/[id]
-export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Params): Promise<void> => {
+export const updateShopEditRepNameUseCase = async ({ shopEditId, userId, body }: Params): Promise<void> => {
     const now = Date.now();
     const { sei, mei, seiKana, meiKana, frontIdCard, rearIdCard } = body;
-    const shop = await getMyShopHasRepName({ shopId, userId });
-    if (!shop) throw new AppError("SHOP_NOT_FOUND", 404);
+    const shopEdit = await getMyShopEditHasRepName({ shopEditId, userId });
+    if (!shopEdit) throw new AppError("SHOP_EDIT_NOT_FOUND", 404);
 
-    const oldFront = shop.IdCard?.FrontIdCard;
-    const oldRear = shop.IdCard?.RearIdCard;
+    const oldFront = shopEdit.IdCard?.FrontIdCard;
+    const oldRear = shopEdit.IdCard?.RearIdCard;
     if (!frontIdCard && (!oldFront || oldFront.id !== body.frontS3MetadataId)) {
         throw new AppError("S3_METADATA_NOT_FOUND", 404);
     }
@@ -79,7 +78,7 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
 
             const uploaded = await uploadS3Object({
                 bucketName: buckets.verificationDocuments,
-                objectKey: `idcard/shop/edit/${shopId}/${type}/${now}_${requestId}`,
+                objectKey: `idcard/shop-edit/${shopEditId}/${type}/${now}_${requestId}`,
                 body: image.buffer,
                 contentType: image.contentType,
             });
@@ -93,7 +92,7 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
             });
         }
 
-        await sequelize.transaction(async (transaction) => {
+        await sequelize.transaction(async (t) => {
             let frontS3MetadataId: number | undefined;
             let rearS3MetadataId: number | undefined;
 
@@ -108,7 +107,7 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
                         file_size: object.fileSize,
                         etag: object.etag,
                     },
-                    transaction,
+                    transaction: t,
                 });
 
                 if (object.type === "front") frontS3MetadataId = metadata.id;
@@ -119,15 +118,24 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
                 throw new AppError("S3_METADATA_NOT_FOUND", 404);
             }
 
-            const idCard = await createIdCard({
+            const newIdCard = await createIdCard({
                 data: {
                     front_s3_metadata_id: frontS3MetadataId,
                     rear_s3_metadata_id: rearS3MetadataId,
                 },
-                transaction,
+                transaction: t,
             });
 
-            const newRepName = await createNameShop({
+            await updateShopEditIdCard({
+                shopEdit,
+                data: {
+                    idcard_id: newIdCard.id,
+                },
+                transaction: t,
+            });
+
+            await updateShopName({
+                name: shopEdit.RepresentativeNameEdit,
                 data: {
                     sei,
                     mei,
@@ -135,17 +143,7 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
                     mei_kana: meiKana,
                     shop_type: "representative",
                 },
-                transaction,
-            });
-
-            await createShopEditWithIdCard({
-                data: {
-                    idcard_id: idCard.id,
-                    user_id: userId,
-                    shop_info_id: shopId,
-                    name_representative_id: newRepName.id,
-                },
-                transaction,
+                transaction: t,
             });
         });
     } catch (err) {
@@ -162,19 +160,7 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
         for (const result of cleanupResults) {
             if (result.status === "rejected") console.error("S3補償削除失敗:", result.reason);
         }
-        
+
         throw err;
     }
-
-    // お知らせ作成
-    createNotification({
-        data: {
-            read_user_id: userId,
-            message:
-                "代表者氏名の変更を受け付けました。審査には1~2週間程度お時間を要する場合がございます。審査完了までしばらくお待ちください。",
-            type: "SHOP_EDIT",
-        },
-    }).catch((err) => {
-        console.error("service createNotification error:", err);
-    });
 };

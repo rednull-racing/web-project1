@@ -87,7 +87,7 @@ export type UpdateShopEditAnyParams = {
     transaction?: Transaction;
 };
 
-export type UpdateShopEditIdPermitParams = {
+export type UpdateShopEditIdCardParams = {
     shopEdit: InstanceType<typeof ShopInfoEdit>;
     data: {
         idcard_id: number;

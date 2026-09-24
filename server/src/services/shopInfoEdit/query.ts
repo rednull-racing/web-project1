@@ -255,6 +255,22 @@ export const getMyShopEditHasRepName = ({ shopEditId, userId }: ShopEditUserIdPa
                 as: "RepresentativeNameEdit",
                 attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
             },
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
         ],
     });
 };
