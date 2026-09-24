@@ -70,11 +70,9 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
 
     const [idCardFront, setIdCardFront] = useState<File>();
     const [idFrontPreview, setIdFrontPreview] = useState("");
-    const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
 
     const [idCardRear, setIdCardRear] = useState<File>();
     const [idRearPreview, setIdRearPreview] = useState("");
-    const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
 
     const idFrontRef = useRef<HTMLInputElement | null>(null);
     const idRearRef = useRef<HTMLInputElement | null>(null);
@@ -86,7 +84,6 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             const selectedFile = e.target.files[0];
             setIdCardFront(selectedFile);
             setIdFrontPreview(URL.createObjectURL(selectedFile));
-            setIdFrontUpload(true);
         }
     };
 
@@ -95,7 +92,6 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             const selectedFile = e.target.files[0];
             setIdCardRear(selectedFile);
             setIdRearPreview(URL.createObjectURL(selectedFile));
-            setIdRearUpload(true);
         }
     };
 
@@ -146,24 +142,13 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             return;
         }
 
-        if (!idCardFront || !idCardRear) {
+        if (
+            page === "rep-shop"
+                ? (!idCardFront && !frontS3Metadata) || (!idCardRear && !rearS3Metadata)
+                : !idCardFront || !idCardRear
+        ) {
             toast.error("身分証がアップロードされていません");
             return;
-        }
-
-        let frontFileName: string | undefined;
-        let frontFileType: string | undefined;
-        let rearFileName: string | undefined;
-        let rearFileType: string | undefined;
-
-        if (idFrontUpload && idCardFront instanceof File) {
-            frontFileName = idCardFront.name;
-            frontFileType = idCardFront.type;
-        }
-
-        if (idRearUpload && idCardRear instanceof File) {
-            rearFileName = idCardRear.name;
-            rearFileType = idCardRear.type;
         }
 
         const body = {
@@ -171,12 +156,6 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             mei: meiValue.trim(),
             seiKana: seiKanaValue.trim(),
             meiKana: meiKanaValue.trim(),
-            frontFileName,
-            frontFileType,
-            rearFileName,
-            rearFileType,
-            idFrontUpload,
-            idRearUpload,
         };
 
         try {
@@ -188,37 +167,13 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             }
 
             if (page === "rep-shop") {
-                const data = await fetchShopEditRepNameCreate(id, body);
-
-                if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
-                    const uploadFrontRes = await fetch(data.frontSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardFront.type,
-                        },
-                        body: idCardFront,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（表面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
-
-                if (idRearUpload && data.rearSignedUrl && idCardRear instanceof File) {
-                    const uploadFrontRes = await fetch(data.rearSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardRear.type,
-                        },
-                        body: idCardRear,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（裏面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
+                await fetchShopEditRepNameCreate(id, {
+                    ...body,
+                    frontIdCard: idCardFront,
+                    rearIdCard: idCardRear,
+                    frontS3MetadataId: frontS3Metadata?.id,
+                    rearS3MetadataId: rearS3Metadata?.id,
+                });
 
                 toast.success("代表者氏名の変更を受け付けました。審査完了までしばらくお待ちください");
                 await sleep(1500);

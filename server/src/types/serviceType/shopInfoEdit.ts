@@ -33,8 +33,7 @@ export type CreateShopEditWithIdCardParams = {
     data: {
         user_id: number;
         shop_info_id: number;
-        id_card_front: string | null;
-        id_card_rear: string | null;
+        idcard_id: number;
         name_representative_id: number;
     };
     transaction?: Transaction;

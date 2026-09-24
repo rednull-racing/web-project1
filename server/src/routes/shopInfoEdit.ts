@@ -34,9 +34,9 @@ import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { addressBodySchema } from "../validators/body/address.js";
 import { bankBodySchema } from "../validators/body/bankAccount.js";
-import { repNameBodySchema } from "../validators/body/shopInfo.js";
 import {
     comFreeIdBodySchema,
+    createShopEditRepNameBodySchema,
     createCompanyNameBodySchema,
     shopInfoEditIdImageBodySchema,
     shopInfoEditUpdateBodySchema,
@@ -78,7 +78,11 @@ router.post(
     authenticateToken,
     shopEditRepNameEditRateLimit,
     validateParams(idParamSchema),
-    validateBody(repNameBodySchema),
+    ...parseMultipartBody([
+        { name: "frontIdCard", maxCount: 1 },
+        { name: "rearIdCard", maxCount: 1 },
+    ]),
+    validateBody(createShopEditRepNameBodySchema),
     shopInfoEditPostByIdRepNameController,
 );
 
