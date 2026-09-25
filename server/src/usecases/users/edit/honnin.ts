@@ -10,7 +10,7 @@ import { createNotification } from "../../../services/notification.js";
 import { createS3Metadata, deleteS3Metadata, getS3Metadata } from "../../../services/s3Metadata.js";
 import { getTodouhukenOne } from "../../../services/todouhuken.js";
 import { updateHonninUser, updateIdCardIdUser } from "../../../services/users/command.js";
-import { getUserWithAddressNameId } from "../../../services/users/query.js";
+import { getUserHasAddressNameId } from "../../../services/users/query.js";
 import { HonninBody } from "../../../validators/body/users.js";
 
 type Params = {
@@ -67,7 +67,7 @@ export const editHonninUserUseCase = async ({ userId, body }: Params) => {
     const formattedBirthday = new Date(birthday);
 
     // user取得
-    const user = await getUserWithAddressNameId({ userId });
+    const user = await getUserHasAddressNameId({ userId });
 
     if (!user) throw new AppError("USER_NOT_FOUND", 404);
 

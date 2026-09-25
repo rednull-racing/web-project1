@@ -6,14 +6,15 @@ import {
     IdCard,
     Name,
     PointLots,
+    S3Metadata,
     ShopInfo,
     TodouhukenOption,
     UriagekinLots,
     User,
 } from "../../models/index.js";
 import {
-    GetCronUserTrustScoreParams,
     EmailParams,
+    GetCronUserTrustScoreParams,
     GetMyPageParams,
     GetUserAllParams,
     UserIdParams,
@@ -101,7 +102,7 @@ export const getUserHasName = async ({ userId }: UserIdParams) => {
     });
 };
 
-export const getUserWithAddressNameId = async ({ userId }: UserIdParams) => {
+export const getUserHasAddressNameId = async ({ userId }: UserIdParams) => {
     return User.findByPk(userId, {
         include: [
             {
@@ -346,6 +347,29 @@ export const getUserTransferRequest = ({ userId }: UserIdParams) => {
 export const getUserPenaltyUriage = ({ userId }: UserIdParams) => {
     return User.findByPk(userId, {
         attributes: ["penalty_points", "uriagekin"],
+    });
+};
+
+export const getUserIdS3Metadata = ({ userId }: UserIdParams) => {
+    return User.findByPk(userId, {
+        include: [
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+        ],
     });
 };
 
