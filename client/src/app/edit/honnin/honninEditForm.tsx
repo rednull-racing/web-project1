@@ -32,13 +32,9 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
     const frontS3Metadata = data?.user.IdCard?.FrontIdCard;
     const rearS3Metadata = data?.user.IdCard?.RearIdCard;
 
-    const frontImageUrl = frontS3Metadata
-        ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${frontS3Metadata.id}`
-        : "";
+    const frontImageUrl = frontS3Metadata ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${frontS3Metadata.id}` : "";
 
-    const rearImageUrl = rearS3Metadata
-        ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${rearS3Metadata.id}`
-        : "";
+    const rearImageUrl = rearS3Metadata ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${rearS3Metadata.id}` : "";
 
     const [sei, setSei] = useState(user.Name?.sei);
     const [mei, setMei] = useState(user.Name?.mei);
