@@ -7,15 +7,22 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import useSWR from "swr";
 import { ApiError } from "../../../lib/api/apiError";
+import { apiFetch } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
-import { fetchNameEdit, fetchShopEditRepNameCreate, fetchShopRepNamePatch } from "../api/name/client";
+import {
+    fetchComFreeRepNamePatch,
+    fetchNameEdit,
+    fetchShopEditRepNameCreate,
+    fetchShopSignupRepNamePatch,
+} from "../api/name/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
-import { Name } from "../type";
+import { Name, ShopInfo, ShopSignup } from "../type";
 
 type Props = {
-    name: Name;
+    name?: Name;
     page:
         | "normal"
         | "purchase"
@@ -27,24 +34,50 @@ type Props = {
         | "con-com-free";
     purchaseSessionId?: string;
     shopId?: string;
+    shopSignupId?: string;
     shopEditId?: string;
-    idFrontUrl?: string;
-    idRearUrl?: string;
 };
 
-export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId, idFrontUrl, idRearUrl }: Props) => {
+export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId, shopSignupId }: Props) => {
+    const { data } = useSWR<{ shopSignup?: ShopSignup; shop?: ShopInfo }>(
+        shopId && (page === "rep-shop" || page === "rep-shop-signup")
+            ? `/${page === "rep-shop-signup" ? "shop-signup" : "shop-info"}/${shopId}/rep-name`
+            : null,
+        apiFetch,
+    );
+    const idCard = (page === "rep-shop-signup" ? data?.shopSignup : data?.shop)?.IdCard;
+    const frontS3Metadata = idCard?.FrontIdCard;
+    const rearS3Metadata = idCard?.RearIdCard;
+
+    const frontImageUrl = frontS3Metadata
+        ? page === "rep-shop"
+            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info/${shopId}/files/${frontS3Metadata.id}`
+            : page === "rep-com-free"
+              ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${frontS3Metadata.id}`
+              : page === "rep-shop-signup"
+                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${frontS3Metadata.id}`
+                : ""
+        : "";
+    const rearImageUrl = rearS3Metadata
+        ? page === "rep-shop"
+            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info/${shopId}/files/${rearS3Metadata.id}`
+            : page === "rep-com-free"
+              ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${rearS3Metadata.id}`
+              : page === "rep-shop-signup"
+                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${rearS3Metadata.id}`
+                : ""
+        : "";
+
     const [seiValue, setSeiValue] = useState(name?.sei ?? "");
     const [meiValue, setMeiValue] = useState(name?.mei ?? "");
     const [seiKanaValue, setSeiKanaValue] = useState(name?.sei_kana ?? "");
     const [meiKanaValue, setMeiKanaValue] = useState(name?.mei_kana ?? "");
 
-    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(idFrontUrl ?? "");
-    const [idFrontPreview, setIdFrontPreview] = useState(idFrontUrl ?? "");
-    const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
+    const [idCardFront, setIdCardFront] = useState<File>();
+    const [idFrontPreview, setIdFrontPreview] = useState("");
 
-    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(idRearUrl ?? "");
-    const [idRearPreview, setIdRearPreview] = useState(idRearUrl ?? "");
-    const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
+    const [idCardRear, setIdCardRear] = useState<File>();
+    const [idRearPreview, setIdRearPreview] = useState("");
 
     const idFrontRef = useRef<HTMLInputElement | null>(null);
     const idRearRef = useRef<HTMLInputElement | null>(null);
@@ -56,7 +89,6 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             const selectedFile = e.target.files[0];
             setIdCardFront(selectedFile);
             setIdFrontPreview(URL.createObjectURL(selectedFile));
-            setIdFrontUpload(true);
         }
     };
 
@@ -65,7 +97,6 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             const selectedFile = e.target.files[0];
             setIdCardRear(selectedFile);
             setIdRearPreview(URL.createObjectURL(selectedFile));
-            setIdRearUpload(true);
         }
     };
 
@@ -83,7 +114,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
         };
 
         try {
-            await fetchNameEdit(name.id, body);
+            await fetchNameEdit(name?.id ?? "", body);
 
             toast.success("氏名を更新しました");
             await sleep(1500);
@@ -93,8 +124,8 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             } else if (page === "con-shop") {
                 router.push(`/shop-info/${shopId}`);
             } else if (page === "con-shop-signup") {
-                router.push(`/shop-signup/step5/${shopId}`);
-            } else if (page === "rep-com-free" || page === "con-com-free") {
+                router.push(`/shop-signup/step5/${shopSignupId}`);
+            } else if (page === "con-com-free") {
                 router.push(`/edit/shop/com-free/confirm/${shopEditId}`);
             } else {
                 router.push("/my-page");
@@ -108,31 +139,21 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
     };
 
     const repSubmit = async () => {
-        if (!shopId) return;
+        const id = shopId ?? shopEditId ?? shopSignupId;
+        if (!id) return;
 
         if (!seiValue || !meiValue || !seiKanaValue || !meiKanaValue) {
             toast.error("空の項目があります");
             return;
         }
 
-        if (!idCardFront || !idCardRear) {
+        if (
+            page === "rep-shop"
+                ? (!idCardFront && !frontS3Metadata) || (!idCardRear && !rearS3Metadata)
+                : !idCardFront || !idCardRear
+        ) {
             toast.error("身分証がアップロードされていません");
             return;
-        }
-
-        let frontFileName: string | undefined;
-        let frontFileType: string | undefined;
-        let rearFileName: string | undefined;
-        let rearFileType: string | undefined;
-
-        if (idFrontUpload && idCardFront instanceof File) {
-            frontFileName = idCardFront.name;
-            frontFileType = idCardFront.type;
-        }
-
-        if (idRearUpload && idCardRear instanceof File) {
-            rearFileName = idCardRear.name;
-            rearFileType = idCardRear.type;
         }
 
         const body = {
@@ -140,12 +161,6 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             mei: meiValue.trim(),
             seiKana: seiKanaValue.trim(),
             meiKana: meiKanaValue.trim(),
-            frontFileName,
-            frontFileType,
-            rearFileName,
-            rearFileType,
-            idFrontUpload,
-            idRearUpload,
         };
 
         try {
@@ -157,88 +172,58 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
             }
 
             if (page === "rep-shop") {
-                const data = await fetchShopEditRepNameCreate(shopId, body);
-
-                if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
-                    const uploadFrontRes = await fetch(data.frontSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardFront.type,
-                        },
-                        body: idCardFront,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（表面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
-
-                if (idRearUpload && data.rearSignedUrl && idCardRear instanceof File) {
-                    const uploadFrontRes = await fetch(data.rearSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardRear.type,
-                        },
-                        body: idCardRear,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（裏面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
+                await fetchShopEditRepNameCreate(id, {
+                    ...body,
+                    frontIdCard: idCardFront,
+                    rearIdCard: idCardRear,
+                    frontS3MetadataId: frontS3Metadata?.id,
+                    rearS3MetadataId: rearS3Metadata?.id,
+                });
 
                 toast.success("代表者氏名の変更を受け付けました。審査完了までしばらくお待ちください");
                 await sleep(1500);
 
                 router.push(`/shop-info/${shopId}`);
             } else if (page === "rep-shop-signup") {
-                const data = await fetchShopRepNamePatch(shopId, body);
-
-                if (idFrontUpload && data.frontSignedUrl && idCardFront instanceof File) {
-                    const uploadFrontRes = await fetch(data.frontSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardFront.type,
-                        },
-                        body: idCardFront,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（表面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
-
-                if (idRearUpload && data.rearSignedUrl && idCardRear instanceof File) {
-                    const uploadFrontRes = await fetch(data.rearSignedUrl, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": idCardRear.type,
-                        },
-                        body: idCardRear,
-                    });
-
-                    if (!uploadFrontRes.ok) {
-                        toast.error("身分証（裏面）のアップロードに失敗しました");
-                        return;
-                    }
-                }
+                await fetchShopSignupRepNamePatch(id, {
+                    sei: body.sei,
+                    mei: body.mei,
+                    seiKana: body.seiKana,
+                    meiKana: body.meiKana,
+                    frontIdCard: idCardFront,
+                    rearIdCard: idCardRear,
+                });
 
                 toast.success("代表者氏名を変更しました");
                 await sleep(1500);
 
                 router.push(`/shop-signup/step5/${shopId}`);
+            } else if (page === "rep-com-free") {
+                await fetchComFreeRepNamePatch(id, {
+                    sei: body.sei,
+                    mei: body.mei,
+                    seiKana: body.seiKana,
+                    meiKana: body.meiKana,
+                    frontIdCard: idCardFront,
+                    rearIdCard: idCardRear,
+                });
+
+                toast.success("代表者氏名を変更しました");
+                await sleep(1500);
+
+                router.push(`/edit/shop/com-free/confirm/${shopEditId}`);
             }
         } catch (err) {
             if (err instanceof ApiError) {
                 switch (err.code) {
+                    case "S3_METADATA_NOT_FOUND":
+                        toast.error("画像を選び直して、もう一度お試しください。");
+                        break;
                     case "FRONT_URL_EMPTY":
-                        toast.error("身分証表面がありません");
+                        toast.error("身分証（表面）がありません");
                         break;
                     case "REAR_URL_EMPTY":
-                        toast.error("身分証裏面がありません");
+                        toast.error("身分証（裏面）がありません");
                         break;
                     default:
                         toast.error("氏名の変更に失敗しました");
@@ -257,7 +242,8 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
         title = "ショップ担当者氏名の設定・変更";
     }
 
-    const submitOption = page === "rep-shop" || page === "rep-shop-signup" ? repSubmit : submit;
+    const submitOption =
+        page === "rep-shop" || page === "rep-shop-signup" || page === "rep-com-free" ? repSubmit : submit;
 
     return (
         <EditUI title={title}>
@@ -285,7 +271,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                 />
             </div>
 
-            {(page === "rep-shop" || page === "rep-shop-signup") && (
+            {(page === "rep-shop" || page === "rep-shop-signup" || page === "rep-com-free") && (
                 <>
                     <h2 className={styles.subtitle}>代表者身分証</h2>
 
@@ -300,7 +286,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                             ref={idFrontRef}
                         />
                         <Image
-                            src={idFrontPreview || "/no-image(1x1).png"}
+                            src={idFrontPreview || frontImageUrl || "/no-image(1x1).png"}
                             alt="身分証（表面）"
                             width={120}
                             height={120}
@@ -318,7 +304,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                             required
                         />
                         <Image
-                            src={idRearPreview || "/no-image(1x1).png"}
+                            src={idRearPreview || rearImageUrl || "/no-image(1x1).png"}
                             alt="身分証（裏面）"
                             width={120}
                             height={120}

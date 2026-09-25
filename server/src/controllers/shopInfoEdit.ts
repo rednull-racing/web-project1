@@ -3,22 +3,24 @@ import { createAddressShopEditUseCase } from "../usecases/shopInfoEdit/create/cr
 import { createBankAccountUseCase } from "../usecases/shopInfoEdit/create/createBankAccount.js";
 import { createShopEditComFreeUseCase } from "../usecases/shopInfoEdit/create/createComFree.js";
 import { createCompanyNameUseCase } from "../usecases/shopInfoEdit/create/createCompanyName.js";
-import { createRepNameUseCase } from "../usecases/shopInfoEdit/create/createRepName.js";
+import { createShopEditRepNameUseCase } from "../usecases/shopInfoEdit/create/createRepName.js";
 import { getAddressShopEditUseCase } from "../usecases/shopInfoEdit/get/getAddress.js";
 import { getBankAccountShopEditUseCase } from "../usecases/shopInfoEdit/get/getBankAccount.js";
 import { getShopComFreeConfirmUseCase } from "../usecases/shopInfoEdit/get/getComFreeConfirm.js";
 import { getConNameEditUseCase } from "../usecases/shopInfoEdit/get/getConName.js";
 import { getRepNameEditUseCase } from "../usecases/shopInfoEdit/get/getRepName.js";
+import { updateShopEditRepNameUseCase } from "../usecases/shopInfoEdit/update/repName.js";
 import { updateShopEditAnyUseCase } from "../usecases/shopInfoEdit/update/updateAny.js";
 import { updateShopEditIdImageUseCase } from "../usecases/shopInfoEdit/update/updateIdImage.js";
 import type { AddressBody } from "../validators/body/address.js";
 import type { BankBody } from "../validators/body/bankAccount.js";
-import type { RepNameBody } from "../validators/body/shopInfo.js";
 import type {
     ComFreeIdBody,
     CreateCompanyNameBody,
+    CreateShopEditRepNameBody,
     ShopInfoEditIdImageBody,
     ShopInfoEditUpdateBody,
+    UpdateShopEditRepNameBody,
 } from "../validators/body/shopInfoEdit.js";
 
 // POST /shop-info-edit/:id/address
@@ -84,11 +86,11 @@ export const shopInfoEditPostByIdRepNameController = async (
     try {
         const shopId = Number(req.params.id);
         const userId = req.user!.id;
-        const body = req.validatedBody as RepNameBody;
+        const body = req.validatedBody as CreateShopEditRepNameBody;
 
-        const { frontSignedUrl, rearSignedUrl } = await createRepNameUseCase({ shopId, userId, body });
+        await createShopEditRepNameUseCase({ shopId, userId, body });
 
-        res.status(200).json({ frontSignedUrl, rearSignedUrl });
+        res.status(200).json({ message: "代表者氏名の変更を受け付けました。" });
     } catch (err) {
         next(err);
     }
@@ -183,6 +185,27 @@ export const updateShopInfoEditIdImageController = async (
         res.status(200).json({
             message: "身分証・許認可証を登録しました。",
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// PATCH /shop-info-edit/:id/rep-name
+// summary: 代表者氏名データ修正
+// page: /edit/name/shop/rep-name/[id]
+export const updateShopEditRepNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopEditId = Number(req.params.id);
+        const userId = req.user!.id;
+        const body = req.validatedBody as UpdateShopEditRepNameBody;
+
+        await updateShopEditRepNameUseCase({ shopEditId, userId, body });
+
+        res.status(200).json({ message: "代表者氏名の変更を受け付けました。" });
     } catch (err) {
         next(err);
     }

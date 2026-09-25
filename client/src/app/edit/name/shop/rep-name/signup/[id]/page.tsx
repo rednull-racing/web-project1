@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { fetchShopRepNamePage } from "../../../../../api/name/server";
+import { fetchShopSignupRepNamePage } from "../../../../../api/name/server";
 import { NameEditForm } from "../../../../nameEditForm";
 
 type Props = {
@@ -20,15 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page({ params }: Props) {
     const { id } = await params;
 
-    const data = await fetchShopRepNamePage(id);
+    const data = await fetchShopSignupRepNamePage(id);
 
-    return (
-        <NameEditForm
-            name={data.name}
-            page="rep-shop-signup"
-            shopId={id}
-            idFrontUrl={data.shop.id_card_front}
-            idRearUrl={data.shop.id_card_rear}
-        />
-    );
+    return <NameEditForm name={data.shopSignup.RepresentativeName} page="rep-shop-signup" shopId={id} />;
 }

@@ -4,14 +4,18 @@ import {
     getShopSignup2Controller,
     getShopSignup3Controller,
     getShopSignup5Controller,
+    getShopSignupAddressController,
     getShopSignupBankAccountController,
+    getShopSignupConNameController,
     getShopSignupFileController,
+    getShopSignupRepNameController,
     shopSignupPostRootController,
     updateShopSignup2Controller,
     updateShopSignup3Controller,
     updateShopSignup5Controller,
     updateShopSignupEditController,
     updateShopSignupOptionController,
+    updateShopSignupRepNameController,
 } from "../controllers/shopSignup.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
@@ -21,11 +25,15 @@ import {
     getShopSignup2RateLimit,
     getShopSignup3RateLimit,
     getShopSignup5RateLimit,
+    getShopSignupAddressRateLimit,
     getShopSignupBankAccountRateLimit,
+    getShopSignupConNameRateLimit,
     getShopSignupFileRateLimit,
+    getShopSignupRepNameRateLimit,
     shopSignup4RateLimit,
     shopSignup5EditRateLimit,
     shopSignup5RateLimit,
+    shopSignupRepNameEditRateLimit,
     signup2RateLimit,
     signup3RateLimit,
 } from "../middleware/rateLimit/shopSignup.js";
@@ -37,6 +45,7 @@ import {
     shopSignup3BodySchema,
     shopSignupEditBodySchema,
     shopSignupOptionBodySchema,
+    updateShopSignupRepNameBodySchema,
 } from "../validators/body/shopSignup.js";
 import { idParamSchema } from "../validators/params/id.js";
 import { shopSignupFilesIdParamSchema } from "../validators/params/shopSignup.js";
@@ -118,6 +127,22 @@ router.patch(
     updateShopSignup5Controller,
 );
 
+// PATCH /shop-signup/:id/rep-name
+// summary 代表者氏名変更
+// page: /edit/name/shop/rep-name/signup/[id]
+router.patch(
+    "/:id/rep-name",
+    authenticateToken,
+    shopSignupRepNameEditRateLimit,
+    validateParams(idParamSchema),
+    ...parseMultipartBody([
+        { name: "frontIdCard", maxCount: 1 },
+        { name: "rearIdCard", maxCount: 1 },
+    ]),
+    validateBody(updateShopSignupRepNameBodySchema),
+    updateShopSignupRepNameController,
+);
+
 // GET /shop-signup/1
 // summary: 事業者情報登録ページ インプット表示データ取得
 // page: /shop-signup/step1
@@ -176,6 +201,39 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     getShopSignupBankAccountController,
+);
+
+// GET /shop-signup/:id/address
+// summary: 会社所在地取得
+// page: /edit/address/shop/signup/[id]
+router.get(
+    "/:id/address",
+    getShopSignupAddressRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignupAddressController,
+);
+
+// GET /shop-signup/:id/con-name
+// summary: 担当者氏名取得
+// page: /edit/name/shop/con-name/signup/[id]
+router.get(
+    "/:id/con-name",
+    getShopSignupConNameRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignupConNameController,
+);
+
+// GET /shop-signup/:id/rep-name
+// summary: 代表者氏名取得
+// page: /edit/name/shop/rep-name/signup/[id]
+router.get(
+    "/:id/rep-name",
+    getShopSignupRepNameRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopSignupRepNameController,
 );
 
 export default router;

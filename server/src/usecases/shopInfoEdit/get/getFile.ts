@@ -1,30 +1,30 @@
 import { AppError } from "../../../errors.js";
 import { getS3Object } from "../../../infra/aws/getS3Object.js";
 import { Permit, S3Metadata } from "../../../models/index.js";
-import { getMyShopSignupHasS3Data } from "../../../services/shopSignup/query.js";
+import { getMyShopEditHasS3Data } from "../../../services/shopInfoEdit/query.js";
 
 type Params = {
-    shopSignupId: number;
+    shopEditId: number;
     s3MetadataId: number;
     userId: number;
 };
 
-// GET /shop-signup/:shopSignupId/files/:s3MetadataId
-// summary: ショップ身分証アップロードページ 画像取得
-// page: /shop-signup/step3/[id]
-export const getShopSignupFileUseCase = async ({ shopSignupId, s3MetadataId, userId }: Params) => {
-    // shopSignup&s3Metadata取得
-    const shopSignup = await getMyShopSignupHasS3Data({ shopSignupId, userId });
+// GET /shop-info-edit/:shopEditId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+export const getShopEditFileUseCase = async ({ shopEditId, s3MetadataId, userId }: Params) => {
+    // shopInfo取得
+    const shop = await getMyShopEditHasS3Data({ shopEditId, userId });
 
-    if (!shopSignup) {
-        throw new AppError("SHOP_SIGNUP_NOT_FOUND", 404);
+    if (!shop) {
+        throw new AppError("SHOP_NOT_FOUND", 404);
     }
 
-    const frontS3Metadata = shopSignup.IdCard?.FrontIdCard;
-    const rearS3Metadata = shopSignup.IdCard?.RearIdCard;
+    const frontS3Metadata = shop.IdCard?.FrontIdCard;
+    const rearS3Metadata = shop.IdCard?.RearIdCard;
 
     const permitS3Metadata =
-        shopSignup.Permit?.map((permit: InstanceType<typeof Permit>) => permit.S3Metadata).filter(
+        shop.Permit?.map((permit: InstanceType<typeof Permit>) => permit.S3Metadata).filter(
             (metadata: InstanceType<typeof S3Metadata>) => metadata != null,
         ) ?? [];
 

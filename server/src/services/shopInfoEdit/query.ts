@@ -10,7 +10,7 @@ import {
     ShopInfoEdit,
     TodouhukenOption,
 } from "../../models/index.js";
-import { ShopEditIdParams, ShopEditUserIdParams } from "../../types/serviceType/shopInfoEdit.js";
+import { ShopEditIdParams, ShopEditUserIdParams, ShopEditWithS3Data } from "../../types/serviceType/shopInfoEdit.js";
 
 export const getShopEdit = ({ shopEditId }: ShopEditIdParams) => {
     return ShopInfoEdit.findByPk(shopEditId);
@@ -255,6 +255,22 @@ export const getMyShopEditHasRepName = ({ shopEditId, userId }: ShopEditUserIdPa
                 as: "RepresentativeNameEdit",
                 attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
             },
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
         ],
     });
 };
@@ -335,6 +351,46 @@ export const getMyShopEditComFreeConfirm = ({ shopEditId, userId }: ShopEditUser
                     },
                     { model: BankAccount },
                     { model: ComOrFreeOption },
+                ],
+            },
+        ],
+    });
+};
+
+export const getMyShopEditHasS3Data = ({
+    shopEditId,
+    userId,
+}: ShopEditUserIdParams): Promise<ShopEditWithS3Data | null> => {
+    return ShopInfo.findOne({
+        where: {
+            id: shopEditId,
+            user_id: userId,
+        },
+        include: [
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+            {
+                model: Permit,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        required: false,
+                    },
                 ],
             },
         ],

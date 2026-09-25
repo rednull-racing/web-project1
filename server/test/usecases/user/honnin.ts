@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
     getTodouhukenOne: vi.fn(),
     updateHonninUser: vi.fn(),
     updateIdCardIdUser: vi.fn(),
-    getUserWithAddressNameId: vi.fn(),
+    getUserHasAddressNameId: vi.fn(),
 }));
 
 vi.mock("../../../src/db.js", () => ({
@@ -67,7 +67,7 @@ vi.mock("../../../src/services/users/command.js", () => ({
 }));
 
 vi.mock("../../../src/services/users/query.js", () => ({
-    getUserWithAddressNameId: mocks.getUserWithAddressNameId,
+    getUserHasAddressNameId: mocks.getUserHasAddressNameId,
 }));
 
 import { editHonninUserUseCase } from "../../../src/usecases/users/edit/honnin.js";
@@ -133,7 +133,7 @@ describe("editHonninUserUseCase", () => {
         mocks.transaction.mockImplementation(async (callback: (t: typeof transaction) => Promise<void>) =>
             callback(transaction),
         );
-        mocks.getUserWithAddressNameId.mockResolvedValue(user);
+        mocks.getUserHasAddressNameId.mockResolvedValue(user);
         mocks.getTodouhukenOne.mockResolvedValue({ id: 13 });
         mocks.getS3Metadata.mockResolvedValue(null);
         mocks.uploadS3Object.mockImplementation(async ({ objectKey }: { objectKey: string }) =>
@@ -159,20 +159,20 @@ describe("editHonninUserUseCase", () => {
             statusCode: 400,
         });
 
-        expect(mocks.getUserWithAddressNameId).not.toHaveBeenCalled();
+        expect(mocks.getUserHasAddressNameId).not.toHaveBeenCalled();
         expect(mocks.uploadS3Object).not.toHaveBeenCalled();
         expect(mocks.transaction).not.toHaveBeenCalled();
     });
 
     it("ユーザーが存在しない場合はUSER_NOT_FOUNDになる", async () => {
-        mocks.getUserWithAddressNameId.mockResolvedValueOnce(null);
+        mocks.getUserHasAddressNameId.mockResolvedValueOnce(null);
 
         await expect(editHonninUserUseCase({ userId: 7, body })).rejects.toMatchObject({
             code: "USER_NOT_FOUND",
             statusCode: 404,
         });
 
-        expect(mocks.getUserWithAddressNameId).toHaveBeenCalledWith({ userId: 7 });
+        expect(mocks.getUserHasAddressNameId).toHaveBeenCalledWith({ userId: 7 });
         expect(mocks.getTodouhukenOne).not.toHaveBeenCalled();
         expect(mocks.uploadS3Object).not.toHaveBeenCalled();
     });
@@ -305,7 +305,7 @@ describe("editHonninUserUseCase", () => {
             version_id: "old-rear-version",
         };
         const userWithOldIdCard = { ...user, IdCard: oldIdCard };
-        mocks.getUserWithAddressNameId.mockResolvedValueOnce(userWithOldIdCard);
+        mocks.getUserHasAddressNameId.mockResolvedValueOnce(userWithOldIdCard);
         mocks.getS3Metadata.mockResolvedValueOnce(oldFrontS3Metadata).mockResolvedValueOnce(oldRearS3Metadata);
 
         await editHonninUserUseCase({ userId: 7, body });

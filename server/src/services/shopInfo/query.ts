@@ -1,6 +1,16 @@
 import { Op } from "sequelize";
-import { Address, BankAccount, ComOrFreeOption, Name, ShopInfo, TodouhukenOption } from "../../models/index.js";
-import { ShopIdParams, UserIdParams, UserShopIdParams } from "../../types/serviceType/shopInfo.js";
+import {
+    Address,
+    BankAccount,
+    ComOrFreeOption,
+    IdCard,
+    Name,
+    Permit,
+    S3Metadata,
+    ShopInfo,
+    TodouhukenOption,
+} from "../../models/index.js";
+import { ShopIdParams, ShopInfoWithS3Data, UserIdParams, UserShopIdParams } from "../../types/serviceType/shopInfo.js";
 
 export const getShop = ({ shopId }: ShopIdParams) => {
     return ShopInfo.findByPk(shopId);
@@ -204,12 +214,65 @@ export const getMyShopHasRepName = ({ shopId, userId }: UserShopIdParams) => {
             id: shopId,
             user_id: userId,
         },
-        attributes: ["id", "id_card_front", "id_card_rear", "user_id"],
+        attributes: ["id", "user_id"],
         include: [
             {
                 model: Name,
                 as: "RepresentativeName",
                 attributes: ["id", "sei", "mei", "sei_kana", "mei_kana"],
+            },
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+        ],
+    });
+};
+
+export const getMyShopInfoHasS3Data = ({ shopId, userId }: UserShopIdParams): Promise<ShopInfoWithS3Data | null> => {
+    return ShopInfo.findOne({
+        where: {
+            id: shopId,
+            user_id: userId,
+        },
+        include: [
+            {
+                model: IdCard,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        as: "FrontIdCard",
+                        required: false,
+                    },
+                    {
+                        model: S3Metadata,
+                        as: "RearIdCard",
+                        required: false,
+                    },
+                ],
+            },
+            {
+                model: Permit,
+                required: false,
+                include: [
+                    {
+                        model: S3Metadata,
+                        required: false,
+                    },
+                ],
             },
         ],
     });

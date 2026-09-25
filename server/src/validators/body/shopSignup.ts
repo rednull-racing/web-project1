@@ -1,5 +1,6 @@
 import z from "zod";
 import { isValidCompanyNumber } from "../../utils/isValidCompanyNumber.js";
+import { filesSchema } from "./utils/fileSchema.js";
 
 export const createSignup1BodySchema = z.object({
     selectOption: z.number().int().positive().min(1).max(2),
@@ -42,13 +43,6 @@ export const createSignup1BodySchema = z.object({
         .optional()
         .refine((val) => val === undefined || val === "" || isValidCompanyNumber(val)),
     capital: z.number().int().optional(),
-});
-
-export const filesSchema = z.object({
-    fileName: z.string(),
-    contentType: z.string().min(1),
-    size: z.number().int().positive(),
-    buffer: z.instanceof(Buffer),
 });
 
 export const shopSignup3BodySchema = z
@@ -143,7 +137,38 @@ export const shopSignupEditBodySchema = z.union([
     z.object({ open_info: z.enum(["true", "false"]) }).strict(),
 ]);
 
+export const repNameBodySchema = z.object({
+    sei: z.string().trim().min(1),
+    mei: z.string().trim().min(1),
+    seiKana: z.string().trim().min(1),
+    meiKana: z.string().trim().min(1),
+    frontFileName: z.string().optional(),
+    frontFileType: z.string().optional(),
+    rearFileName: z.string().optional(),
+    rearFileType: z.string().optional(),
+    idFrontUpload: z.boolean().optional(),
+    idRearUpload: z.boolean().optional(),
+});
+
+export const updateShopSignupRepNameBodySchema = repNameBodySchema
+    .pick({ sei: true, mei: true, seiKana: true, meiKana: true })
+    .extend({
+        frontIdCard: filesSchema.optional(),
+        rearIdCard: filesSchema.optional(),
+        frontS3MetadataId: z.coerce.number().int().positive().optional(),
+        rearS3MetadataId: z.coerce.number().int().positive().optional(),
+    })
+    .superRefine((body, ctx) => {
+        if (!body.frontIdCard && !body.frontS3MetadataId) {
+            ctx.addIssue({ code: "custom", path: ["frontIdCard"], message: "身分証の表面を選択してください。" });
+        }
+        if (!body.rearIdCard && !body.rearS3MetadataId) {
+            ctx.addIssue({ code: "custom", path: ["rearIdCard"], message: "身分証の裏面を選択してください。" });
+        }
+    });
+
 export type CreateSignup1Body = z.infer<typeof createSignup1BodySchema>;
 export type ShopSignup3Body = z.infer<typeof shopSignup3BodySchema>;
 export type ShopSignupOptionBody = z.infer<typeof shopSignupOptionBodySchema>;
 export type ShopSignupEditBody = z.infer<typeof shopSignupEditBodySchema>;
+export type UpdateShopSignupRepNameBody = z.infer<typeof updateShopSignupRepNameBodySchema>;

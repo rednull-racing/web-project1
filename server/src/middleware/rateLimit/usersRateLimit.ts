@@ -150,3 +150,10 @@ export const getNameRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+export const getUserIdFileRateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+});

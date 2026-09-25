@@ -4,6 +4,7 @@ import {
     UpdateBankAccountParams,
     UpdateOptionParams,
     UpdateShopSignupAnyParams,
+    UpdateShopSignupIdCardParams,
     UpdateShopSignupRequestAllParams,
     UpdateSignup3Params,
 } from "../../types/serviceType/shopSignup.js";
@@ -33,5 +34,9 @@ export const updateShopSignupRequestAll = async ({
     data,
     transaction,
 }: UpdateShopSignupRequestAllParams) => {
+    await shopSignup.update(data, { transaction });
+};
+
+export const updateShopSignupIdCard = async ({ shopSignup, data, transaction }: UpdateShopSignupIdCardParams) => {
     await shopSignup.update(data, { transaction });
 };

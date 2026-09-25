@@ -1,6 +1,7 @@
 import z from "zod";
+import { updateRepNameBodySchema } from "./shopInfo.js";
 import { shopConfirmUpdateFieldSchemas } from "./shopSignup.js";
-import { filesSchema } from "./shopSignup.js";
+import { filesSchema } from "./utils/fileSchema.js";
 
 export const shopInfoEditIdImageBodySchema = z.object({
     frontIdCard: filesSchema,
@@ -28,7 +29,12 @@ export const shopInfoEditUpdateBodySchema = z.union([
     z.object({ capital: shopConfirmUpdateFieldSchemas.capital }).strict(),
 ]);
 
+export const createShopEditRepNameBodySchema = updateRepNameBodySchema;
+export const updateShopEditRepNameBodySchema = updateRepNameBodySchema;
+
 export type CreateCompanyNameBody = z.infer<typeof createCompanyNameBodySchema>;
 export type ComFreeIdBody = z.infer<typeof comFreeIdBodySchema>;
 export type ShopInfoEditIdImageBody = z.infer<typeof shopInfoEditIdImageBodySchema>;
 export type ShopInfoEditUpdateBody = z.infer<typeof shopInfoEditUpdateBodySchema>;
+export type CreateShopEditRepNameBody = z.infer<typeof createShopEditRepNameBodySchema>;
+export type UpdateShopEditRepNameBody = z.infer<typeof updateShopEditRepNameBodySchema>;

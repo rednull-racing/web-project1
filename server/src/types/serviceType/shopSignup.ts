@@ -93,3 +93,11 @@ export type UpdateShopSignupRequestAllParams = {
     };
     transaction?: Transaction;
 };
+
+export type UpdateShopSignupIdCardParams = {
+    shopSignup: InstanceType<typeof ShopSignup>;
+    data: {
+        idcard_id: number;
+    };
+    transaction?: Transaction;
+};

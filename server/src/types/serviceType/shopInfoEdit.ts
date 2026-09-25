@@ -1,5 +1,14 @@
 import { Transaction } from "sequelize";
+import type IdCardModel from "../../models/id_card.js";
 import { ShopInfoEdit } from "../../models/index.js";
+import type PermitModel from "../../models/permit.js";
+import type S3MetadataModel from "../../models/s3_metadata.js";
+import type ShopEditModel from "../../models/shop_info_edit.js";
+
+export type ShopEditWithS3Data = ShopEditModel & {
+    IdCard?: (IdCardModel & { FrontIdCard?: S3MetadataModel | null; RearIdCard?: S3MetadataModel | null }) | null;
+    Permit?: (PermitModel & { S3Metadata?: S3MetadataModel | null })[];
+};
 
 export type ShopEditIdParams = {
     shopEditId: number;
@@ -24,8 +33,7 @@ export type CreateShopEditWithIdCardParams = {
     data: {
         user_id: number;
         shop_info_id: number;
-        id_card_front: string | null;
-        id_card_rear: string | null;
+        idcard_id: number;
         name_representative_id: number;
     };
     transaction?: Transaction;
@@ -79,7 +87,7 @@ export type UpdateShopEditAnyParams = {
     transaction?: Transaction;
 };
 
-export type UpdateShopEditIdPermitParams = {
+export type UpdateShopEditIdCardParams = {
     shopEdit: InstanceType<typeof ShopInfoEdit>;
     data: {
         idcard_id: number;

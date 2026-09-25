@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express-serve-static-core"
 import { editHonninUserUseCase } from "../usecases/users/edit/honnin.js";
 import { editPhoneNumber } from "../usecases/users/edit/phoneNumber.js";
 import { editProfileUseCase } from "../usecases/users/edit/profile.js";
+import { getUserIdCardFileUseCase } from "../usecases/users/get/getFile.js";
 import { getHonninEditUseCase } from "../usecases/users/get/getHonnin.js";
 import { getInquiryUserUseCase } from "../usecases/users/get/getInquiryUser.js";
 import { getMyAccountUseCase } from "../usecases/users/get/getMyAccount.js";
@@ -9,10 +10,10 @@ import { getMyAddressUseCase } from "../usecases/users/get/getMyAddress.js";
 import { getMyNameUseCase } from "../usecases/users/get/getMyName.js";
 import { getMyPageUseCase } from "../usecases/users/get/getMyPage.js";
 import { getPhoneNumberUseCase } from "../usecases/users/get/getPhoneNumber.js";
-import { getUserProfileMetadataUseCase } from "../usecases/users/get/getProfileMetadata.js";
 import { getMePointsUseCase } from "../usecases/users/get/getPoints.js";
 import { getProfileUseCase } from "../usecases/users/get/getProfile.js";
 import { getProfileEditDataUseCase } from "../usecases/users/get/getProfileEditData.js";
+import { getUserProfileMetadataUseCase } from "../usecases/users/get/getProfileMetadata.js";
 import { getUserStarUseCase } from "../usecases/users/get/getStar.js";
 import { getUserTransferPointsUseCase } from "../usecases/users/get/getTransferPoints.js";
 import { getUserTransferRequestUseCase } from "../usecases/users/get/getTransferRequest.js";
@@ -347,6 +348,33 @@ export const usersGetMynameController = async (req: Request, res: Response, next
         const name = await getMyNameUseCase({ userId });
 
         res.status(200).json({ name });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /user/files/:s3MetadataId
+// summary: 本人確認入力ページ 身分証画像取得
+// page: /edit/honnin
+export const getUserIdFileController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const s3MetadataId = Number(req.params.s3MetadataId);
+
+        const file = await getUserIdCardFileUseCase({
+            s3MetadataId,
+            userId,
+        });
+
+        if (file.contentType !== null) {
+            res.setHeader("Content-Type", file.contentType);
+        }
+
+        if (file.contentLength) {
+            res.setHeader("Content-Length", file.contentLength);
+        }
+
+        file.body.pipe(res);
     } catch (err) {
         next(err);
     }

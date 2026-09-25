@@ -5,19 +5,25 @@ import { updateShopSignup3UseCase } from "../usecases/shopSignup/edit/signup3/si
 import { updateShopSignup4UseCase } from "../usecases/shopSignup/edit/signup4.js";
 import { updateShopSignup5UseCase } from "../usecases/shopSignup/edit/signup5/signup5.js";
 import { updateShopSignupEditUseCase } from "../usecases/shopSignup/edit/signup5/signupEdit.js";
-import { getSHopSignupFileUseCase } from "../usecases/shopSignup/get/getFile.js";
+import { getShopSignupAddressUseCase } from "../usecases/shopSignup/get/address.js";
+import { getShopSignupBankAccountUseCase } from "../usecases/shopSignup/get/bankAccount.js";
+import { getShopSignupConNameUseCase } from "../usecases/shopSignup/get/conName.js";
+import { getShopSignupFileUseCase } from "../usecases/shopSignup/get/getFile.js";
+import { getShopSignupRepNameUseCase } from "../usecases/shopSignup/get/repName.js";
 import { getShopSignup1UseCase } from "../usecases/shopSignup/get/signup1.js";
 import { getShopSignup2UseCase } from "../usecases/shopSignup/get/signup2.js";
 import { getShopSignup3UseCase } from "../usecases/shopSignup/get/signup3.js";
+import { getShopSignup5UseCase } from "../usecases/shopSignup/get/signup5.js";
 import { BankBody } from "../validators/body/bankAccount.js";
 import {
     CreateSignup1Body,
     ShopSignup3Body,
     ShopSignupEditBody,
     ShopSignupOptionBody,
+    UpdateShopSignupRepNameBody,
 } from "../validators/body/shopSignup.js";
-import { getShopSignup5UseCase } from "../usecases/shopSignup/get/signup5.js";
-import { getShopSignupBankAccountUseCase } from "../usecases/shopSignup/get/bankAccount.js";
+import { getShopEditFileUseCase } from "../usecases/shopInfoEdit/get/getFile.js";
+import { updateShopSignupRepNameUseCase } from "../usecases/shopSignup/edit/repName.js";
 
 // POST /shop-signup
 // summary: ShopSignup作成 事業者登録
@@ -129,6 +135,26 @@ export const updateShopSignup5Controller = async (req: Request, res: Response, n
     }
 };
 
+// PATCH /shop-signup/:id/rep-name
+// summary 代表者氏名変更
+// page: /edit/name/shop/rep-name/signup/[id]
+export const updateShopSignupRepNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+        const body = req.validatedBody as UpdateShopSignupRepNameBody;
+
+        await updateShopSignupRepNameUseCase({ shopSignupId, userId, body });
+
+        res.status(200).json({ message: "代表者氏名を変更しました。" });
+    } catch (err) {
+        next(err);
+    }
+};
 // GET /shop-signup/1
 // summary: 事業者情報登録ページ インプット表示データ取得
 // page: /shop-signup/step1
@@ -185,7 +211,7 @@ export const getShopSignupFileController = async (req: Request, res: Response, n
         const shopSignupId = Number(req.params.shopSignupId);
         const s3MetadataId = Number(req.params.s3MetadataId);
 
-        const file = await getSHopSignupFileUseCase({
+        const file = await getShopSignupFileUseCase({
             shopSignupId,
             s3MetadataId,
             userId,
@@ -236,6 +262,95 @@ export const getShopSignupBankAccountController = async (
         const data = await getShopSignupBankAccountUseCase({ shopSignupId, userId });
 
         res.status(200).json({ data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:id/address
+// summary: 会社所在地取得
+// page: /edit/address/shop/signup/[id]
+export const getShopSignupAddressController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const data = await getShopSignupAddressUseCase({ shopSignupId, userId });
+
+        res.status(200).json({ data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:id/con-name
+// summary: 担当者氏名取得
+// page: /edit/name/shop/con-name/signup/[id]
+export const getShopSignupConNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const name = await getShopSignupConNameUseCase({ shopSignupId, userId });
+
+        res.status(200).json({ name });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-signup/:id/rep-name
+// summary: 代表者氏名取得
+// page: /edit/name/shop/rep-name/signup/[id]
+export const getShopSignupRepNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopSignupId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const shopSignup = await getShopSignupRepNameUseCase({ shopSignupId, userId });
+
+        res.status(200).json({ shopSignup });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info-edit/:shopEditId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+export const getShopEditFileController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const shopEditId = Number(req.params.shopEditId);
+        const s3MetadataId = Number(req.params.s3MetadataId);
+
+        const file = await getShopEditFileUseCase({
+            shopEditId,
+            s3MetadataId,
+            userId,
+        });
+
+        if (file.contentType !== null) {
+            res.setHeader("Content-Type", file.contentType);
+        }
+
+        if (file.contentLength) {
+            res.setHeader("Content-Length", file.contentLength);
+        }
+
+        file.body.pipe(res);
     } catch (err) {
         next(err);
     }

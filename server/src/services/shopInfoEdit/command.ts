@@ -5,7 +5,7 @@ import {
     CreateShopEditParams,
     CreateShopEditWithIdCardParams,
     UpdateShopEditAnyParams,
-    UpdateShopEditIdPermitParams,
+    UpdateShopEditIdCardParams,
 } from "../../types/serviceType/shopInfoEdit.js";
 
 export const createShopEdit = async ({ data, transaction }: CreateShopEditParams) => {
@@ -28,6 +28,6 @@ export const updateShopEditAny = async ({ shopEdit, data, transaction }: UpdateS
     await shopEdit.update(data, { transaction });
 };
 
-export const UpdateShopEditIdPermit = async ({ shopEdit, data, transaction }: UpdateShopEditIdPermitParams) => {
+export const updateShopEditIdCard = async ({ shopEdit, data, transaction }: UpdateShopEditIdCardParams) => {
     await shopEdit.update(data, { transaction });
 };

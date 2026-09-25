@@ -31,6 +31,21 @@ export const shopEditBankEditRateLimit = rateLimit({
     },
 });
 
+export const createShopEditRepNameRateLimit = rateLimit({
+    windowMs: 1000 * 60 * 10,
+    limit: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+
+    keyGenerator: (req) => {
+        const authReq = req as unknown as {
+            user: AuthUser;
+        };
+
+        return `admin:${authReq.user.id}`;
+    },
+});
+
 export const shopEditRepNameEditRateLimit = rateLimit({
     windowMs: 1000 * 60 * 10,
     limit: 5,
@@ -137,6 +152,13 @@ export const getShopEditConNameRateLimit = rateLimit({
 export const getShopEditComFreeConfirmRateLimit = rateLimit({
     windowMs: 1000 * 60,
     limit: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+export const getShopEditFileRateLimit = rateLimit({
+    windowMs: 1000 * 60,
+    limit: 60,
     standardHeaders: true,
     legacyHeaders: false,
 });

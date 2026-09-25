@@ -7,7 +7,7 @@ import { createIdCard } from "../../../services/idCard.js";
 import { createNotification } from "../../../services/notification.js";
 import { createPermit } from "../../../services/permit.js";
 import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata.js";
-import { UpdateShopEditIdPermit } from "../../../services/shopInfoEdit/command.js";
+import { updateShopEditIdCard } from "../../../services/shopInfoEdit/command.js";
 import { getMyShopEditHasShop } from "../../../services/shopInfoEdit/query.js";
 import type { ShopInfoEditIdImageBody } from "../../../validators/body/shopInfoEdit.js";
 import { UploadedObject } from "./idImageType.js";
@@ -160,7 +160,7 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
                 );
             }
 
-            await UpdateShopEditIdPermit({
+            await updateShopEditIdCard({
                 shopEdit,
                 data: {
                     idcard_id: newIdCard.id,

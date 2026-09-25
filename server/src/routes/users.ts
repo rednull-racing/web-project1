@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    getUserIdFileController,
     usersGetByIdProfileController,
     usersGetByIdProfileMetadataController,
     usersGetByIdStarController,
@@ -40,6 +41,7 @@ import {
     getTransferPointsRateLimit,
     getTransferRequestRateLimit,
     getUriagekinRateLimit,
+    getUserIdFileRateLimit,
     profileEditRateLimit,
     requestHonninRateLimit,
 } from "../middleware/rateLimit/usersRateLimit.js";
@@ -48,6 +50,7 @@ import { validateParams } from "../middleware/validate/validateParams.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";
 import { honninBodySchema, phoneNumberBodySchema, profileEditBodySchema } from "../validators/body/users.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { userFilesIdParamSchema } from "../validators/params/user.js";
 import { getProfileQuerySchema, profileEditQuerySchema } from "../validators/query/users.js";
 
 const router = Router();
@@ -175,6 +178,17 @@ router.get("/myaccount", getAccountRateLimit, authenticateToken, usersGetMyaccou
 // summary: 自分の氏名取得
 // page: /edit/nameなど
 router.get("/myname", getNameRateLimit, authenticateToken, usersGetMynameController);
+
+// GET /user/files/:s3MetadataId
+// summary: 本人確認入力ページ 身分証画像取得
+// page: /edit/honnin
+router.get(
+    "/file/:s3MetadataId",
+    getUserIdFileRateLimit,
+    authenticateToken,
+    validateParams(userFilesIdParamSchema),
+    getUserIdFileController,
+);
 
 // GET /user/me
 router.get("/me", authenticateOptional, usersGetMeController);

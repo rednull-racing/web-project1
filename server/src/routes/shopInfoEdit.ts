@@ -11,14 +11,18 @@ import {
     shopInfoEditPostByIdComFreeController,
     shopInfoEditPostByIdCompanyNameController,
     shopInfoEditPostByIdRepNameController,
+    updateShopEditRepNameController,
     updateShopInfoEditIdImageController,
 } from "../controllers/shopInfoEdit.js";
+import { getShopEditFileController } from "../controllers/shopSignup.js";
 import { authenticateToken } from "../middleware/index.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import {
+    createShopEditRepNameRateLimit,
     getShopEditAddressRateLimit,
     getShopEditComFreeConfirmRateLimit,
     getShopEditConNameRateLimit,
+    getShopEditFileRateLimit,
     getShopEditRepNameRateLimit,
     patchShopEditRateLimit,
     shopEditAddressEditRateLimit,
@@ -32,14 +36,16 @@ import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { addressBodySchema } from "../validators/body/address.js";
 import { bankBodySchema } from "../validators/body/bankAccount.js";
-import { repNameBodySchema } from "../validators/body/shopInfo.js";
 import {
     comFreeIdBodySchema,
     createCompanyNameBodySchema,
+    createShopEditRepNameBodySchema,
     shopInfoEditIdImageBodySchema,
     shopInfoEditUpdateBodySchema,
+    updateShopEditRepNameBodySchema,
 } from "../validators/body/shopInfoEdit.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { shopEditFilesIdParamSchema } from "../validators/params/shopInfoEdit.js";
 
 const router = Router();
 
@@ -73,9 +79,13 @@ router.post(
 router.post(
     "/:id/rep-name",
     authenticateToken,
-    shopEditRepNameEditRateLimit,
+    createShopEditRepNameRateLimit,
     validateParams(idParamSchema),
-    validateBody(repNameBodySchema),
+    ...parseMultipartBody([
+        { name: "frontIdCard", maxCount: 1 },
+        { name: "rearIdCard", maxCount: 1 },
+    ]),
+    validateBody(createShopEditRepNameBodySchema),
     shopInfoEditPostByIdRepNameController,
 );
 
@@ -132,6 +142,22 @@ router.patch(
     updateShopInfoEditIdImageController,
 );
 
+// PATCH /shop-info-edit/:id/rep-name
+// summary: 代表者氏名データ修正
+// page: /edit/name/shop/rep-name/[id]
+router.post(
+    "/:id/rep-name",
+    authenticateToken,
+    shopEditRepNameEditRateLimit,
+    validateParams(idParamSchema),
+    ...parseMultipartBody([
+        { name: "frontIdCard", maxCount: 1 },
+        { name: "rearIdCard", maxCount: 1 },
+    ]),
+    validateBody(updateShopEditRepNameBodySchema),
+    updateShopEditRepNameController,
+);
+
 // GET /shop-info-edit/:id/address
 // summary: shopEdit住所取得
 // page: /edit/address/shop/com-free/[id]
@@ -184,6 +210,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoEditGetByIdComFreeConfirmController,
+);
+
+// GET /shop-info-edit/:shopEditId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+router.get(
+    "/:shopEditId/files/:s3MetadataId",
+    getShopEditFileRateLimit,
+    authenticateToken,
+    validateParams(shopEditFilesIdParamSchema),
+    getShopEditFileController,
 );
 
 export default router;

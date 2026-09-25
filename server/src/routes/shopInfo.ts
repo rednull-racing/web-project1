@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    getShopFileController,
     shopInfoGetByIdAddressController,
     shopInfoGetByIdBankAccountController,
     shopInfoGetByIdComFreeController,
@@ -11,7 +12,6 @@ import {
     shopInfoGetMyController,
     shopInfoPatchByIdOptionController,
     shopInfoPatchByIdPhoneNumberController,
-    shopInfoPatchByIdRepNameController,
 } from "../controllers/shopInfo.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
@@ -20,33 +20,22 @@ import {
     getShopComFreeRateLimit,
     getShopCompanyNameRateLimit,
     getShopConNameRateLimit,
+    getShopFileRateLimit,
     getShopMeRateLimit,
     getShopOptionRateLimit,
     getShopPhoneNumberRateLimit,
     getShopRepNameRateLimit,
     shopOptionEditRateLimit,
     shopPhoneNumberEditRateLimit,
-    shopRepNameEditRateLimit,
 } from "../middleware/rateLimit/shopInfoRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
-import { repNameBodySchema, shopOptionBodySchema } from "../validators/body/shopInfo.js";
+import { shopOptionBodySchema } from "../validators/body/shopInfo.js";
 import { phoneNumberBodySchema } from "../validators/body/users.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { shopInfoFilesIdParamSchema } from "../validators/params/shopInfo.js";
 
 const router = Router();
-
-// PATCH /shop-info/:id/rep-name
-// summary 代表者氏名変更
-// page: /edit/name/shop/rep-name/signup/[id]
-router.patch(
-    "/:id/rep-name",
-    authenticateToken,
-    shopRepNameEditRateLimit,
-    validateParams(idParamSchema),
-    validateBody(repNameBodySchema),
-    shopInfoPatchByIdRepNameController,
-);
 
 // PATCH /shop-info/:id/phone-number
 // summary: 電話番号変更
@@ -79,7 +68,7 @@ router.get("/my", getShopMeRateLimit, authenticateToken, shopInfoGetMyController
 
 // GET /shop-info/:id/address
 // summary: 会社所在地取得
-// page: /edit/address/shop/[id]・/edit/address/shop/signup/[id]
+// page: /edit/address/shop/[id]
 router.get(
     "/:id/address",
     getShopAddressRateLimit,
@@ -101,7 +90,7 @@ router.get(
 
 // GET /shop-info/:id/rep-name
 // summary: 代表者氏名取得
-// page: /edit/name/shop/rep-name/[id]・/edit/name/shop/rep-name/signup/[id]
+// page: /edit/name/shop/rep-name/[id]
 router.get(
     "/:id/rep-name",
     getShopRepNameRateLimit,
@@ -112,7 +101,7 @@ router.get(
 
 // GET /shop-info/:id/con-name
 // summary: 担当者氏名取得
-// page: /edit/name/shop/con-name/[id]・/edit/name/shop/con-name/signup/[id]
+// page: /edit/name/shop/con-name/[id]
 router.get(
     "/:id/con-name",
     getShopConNameRateLimit,
@@ -163,6 +152,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoGetByIdComFreeController,
+);
+
+// GET /shop-info/:shopInfoId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+router.get(
+    "/:shopInfoId/files/:s3MetadataId",
+    getShopFileRateLimit,
+    authenticateToken,
+    validateParams(shopInfoFilesIdParamSchema),
+    getShopFileController,
 );
 
 export default router;

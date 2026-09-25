@@ -1,39 +1,18 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { editShopOptionUseCase } from "../usecases/shopInfo/edit/option.js";
 import { editShopPhoneNumberUseCase } from "../usecases/shopInfo/edit/phoneNumber.js";
-import { updateRepNameUseCase } from "../usecases/shopInfo/edit/repName.js";
-import { getAddressShopUseCase } from "../usecases/shopInfo/get/getAddress.js";
+import { getShopAddressUseCase } from "../usecases/shopInfo/get/getAddress.js";
 import { getBankAccountUseCase } from "../usecases/shopInfo/get/getBankAccount.js";
 import { getShopComFreeUseCase } from "../usecases/shopInfo/get/getComFree.js";
 import { getCompanyNameUseCase } from "../usecases/shopInfo/get/getCompanyName.js";
 import { getConNameUseCase } from "../usecases/shopInfo/get/getConName.js";
+import { getShopFileUseCase } from "../usecases/shopInfo/get/getFile.js";
 import { getMyShopIdUseCase } from "../usecases/shopInfo/get/getMyShop.js";
 import { getShopOptionUseCase } from "../usecases/shopInfo/get/getOption.js";
 import { getShopPhoneNumberUseCase } from "../usecases/shopInfo/get/getPhoneNumber.js";
 import { getRepNameUseCase } from "../usecases/shopInfo/get/getRepName.js";
-import type { RepNameBody, ShopOptionBody } from "../validators/body/shopInfo.js";
+import type { ShopOptionBody } from "../validators/body/shopInfo.js";
 import type { PhoneNumberBody } from "../validators/body/users.js";
-
-// PATCH /shop-info/:id/rep-name
-// summary 代表者氏名変更
-// page: /edit/name/shop/rep-name/signup/[id]
-export const shopInfoPatchByIdRepNameController = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
-    try {
-        const shopId = Number(req.params.id);
-        const userId = req.user!.id;
-        const body = req.validatedBody as RepNameBody;
-
-        const { frontSignedUrl, rearSignedUrl } = await updateRepNameUseCase({ shopId, userId, body });
-
-        res.status(200).json({ frontSignedUrl, rearSignedUrl });
-    } catch (err) {
-        next(err);
-    }
-};
 
 // PATCH /shop-info/:id/phone-number
 // summary: 電話番号変更
@@ -98,7 +77,7 @@ export const shopInfoGetMyController = async (req: Request, res: Response, next:
 
 // GET /shop-info/:id/address
 // summary: 会社所在地取得
-// page: /edit/address/shop/[id]・/edit/address/shop/signup/[id]
+// page: /edit/address/shop/[id]
 export const shopInfoGetByIdAddressController = async (
     req: Request,
     res: Response,
@@ -108,7 +87,7 @@ export const shopInfoGetByIdAddressController = async (
         const shopId = Number(req.params.id);
         const userId = req.user!.id;
 
-        const data = await getAddressShopUseCase({ shopId, userId });
+        const data = await getShopAddressUseCase({ shopId, userId });
 
         res.status(200).json({ data });
     } catch (err) {
@@ -138,7 +117,7 @@ export const shopInfoGetByIdBankAccountController = async (
 
 // GET /shop-info/:id/rep-name
 // summary: 代表者氏名取得
-// page: /edit/name/shop/rep-name/[id]・/edit/name/shop/rep-name/signup/[id]
+// page: /edit/name/shop/rep-name/[id]
 export const shopInfoGetByIdRepNameController = async (
     req: Request,
     res: Response,
@@ -148,9 +127,9 @@ export const shopInfoGetByIdRepNameController = async (
         const shopId = Number(req.params.id);
         const userId = req.user!.id;
 
-        const { shop, name } = await getRepNameUseCase({ shopId, userId });
+        const { shop } = await getRepNameUseCase({ shopId, userId });
 
-        res.status(200).json({ shop, name });
+        res.status(200).json({ shop });
     } catch (err) {
         next(err);
     }
@@ -158,7 +137,7 @@ export const shopInfoGetByIdRepNameController = async (
 
 // GET /shop-info/:id/con-name
 // summary: 担当者氏名取得
-// page: /edit/name/shop/con-name/[id]・/edit/name/shop/con-name/signup/[id]
+// page: /edit/name/shop/con-name/[id]
 export const shopInfoGetByIdConNameController = async (
     req: Request,
     res: Response,
@@ -251,6 +230,35 @@ export const shopInfoGetByIdComFreeController = async (
         const { shop, comFree } = await getShopComFreeUseCase({ shopId, userId });
 
         res.status(200).json({ shop, comFree });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:shopInfoId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+export const getShopFileController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const shopId = Number(req.params.shopInfoId);
+        const s3MetadataId = Number(req.params.s3MetadataId);
+
+        const file = await getShopFileUseCase({
+            shopId,
+            s3MetadataId,
+            userId,
+        });
+
+        if (file.contentType !== null) {
+            res.setHeader("Content-Type", file.contentType);
+        }
+
+        if (file.contentLength) {
+            res.setHeader("Content-Length", file.contentLength);
+        }
+
+        file.body.pipe(res);
     } catch (err) {
         next(err);
     }
