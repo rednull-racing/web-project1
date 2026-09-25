@@ -8,8 +8,10 @@ import React, { useEffect, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import toast from "react-hot-toast";
+import useSWR from "swr";
 import { SITE } from "../../../config/site";
 import { ApiError } from "../../../lib/api/apiError";
+import { apiFetch } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
 import { showAddressErrorToast } from "../address/addressErrorMessage";
 import { fetchGetAddress } from "../api/address/client";
@@ -26,6 +28,18 @@ type Props = {
 };
 
 export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
+    const { data } = useSWR<{ user: User }>("/user/honnin", apiFetch);
+    const frontS3Metadata = data?.user.IdCard?.FrontIdCard;
+    const rearS3Metadata = data?.user.IdCard?.RearIdCard;
+
+    const frontImageUrl = frontS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${frontS3Metadata.id}`
+        : "";
+
+    const rearImageUrl = rearS3Metadata
+        ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${rearS3Metadata.id}`
+        : "";
+
     const [sei, setSei] = useState(user.Name?.sei);
     const [mei, setMei] = useState(user.Name?.mei);
     const [seiKana, setSeiKana] = useState(user.Name?.sei_kana);
@@ -33,11 +47,11 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
 
     const [birthday, setBirthday] = useState<Date | null>(user.birthday);
 
-    const [idCardFront, setIdCardFront] = useState<File | string | undefined>(user.IdCard?.id_card_front);
-    const [idFrontPreview, setIdFrontPreview] = useState(user.IdCard?.id_card_front);
+    const [idCardFront, setIdCardFront] = useState<File>();
+    const [idFrontPreview, setIdFrontPreview] = useState("");
     const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
-    const [idCardRear, setIdCardRear] = useState<File | string | undefined>(user.IdCard?.id_card_rear);
-    const [idRearPreview, setIdRearPreview] = useState(user.IdCard?.id_card_rear);
+    const [idCardRear, setIdCardRear] = useState<File>();
+    const [idRearPreview, setIdRearPreview] = useState("");
     const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
 
     const [postNumber, setPostNumber] = useState(user.Address?.post_number);
@@ -219,7 +233,7 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
                     ref={idFrontRef}
                 />
                 <Image
-                    src={idFrontPreview || "/no-image(1x1).png"}
+                    src={idFrontPreview || frontImageUrl || "/no-image(1x1).png"}
                     alt="身分証（表面）"
                     width={120}
                     height={120}
@@ -237,7 +251,7 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
                     required
                 />
                 <Image
-                    src={idRearPreview || "/no-image(1x1).png"}
+                    src={idRearPreview || rearImageUrl || "/no-image(1x1).png"}
                     alt="身分証（裏面）"
                     width={120}
                     height={120}
