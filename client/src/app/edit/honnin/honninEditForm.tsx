@@ -66,32 +66,32 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
     const idRearRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
+        const handleZipSearch = async () => {
+            if (!postNumber || postNumber.length < 7) {
+                toast.error("7桁の郵便番号を入力してください");
+                return;
+            }
+
+            try {
+                const address = await fetchGetAddress(postNumber);
+
+                setTodouhuken(address.todouhuken_name);
+                setShikutyouson(address.shikutyouson);
+                setBanchi(address.banchi);
+            } catch (err) {
+                if (err instanceof ApiError) {
+                    showAddressErrorToast(err.code);
+                    return;
+                }
+
+                alert("システムエラーが発生しました。時間をおいて再試行してください");
+            }
+        };
+
         if (postNumber && postNumber.length === 7) {
             handleZipSearch();
         }
     }, [postNumber]);
-
-    const handleZipSearch = async () => {
-        if (!postNumber || postNumber.length < 7) {
-            toast.error("7桁の郵便番号を入力してください");
-            return;
-        }
-
-        try {
-            const address = await fetchGetAddress(postNumber);
-
-            setTodouhuken(address.todouhuken_name);
-            setShikutyouson(address.shikutyouson);
-            setBanchi(address.banchi);
-        } catch (err) {
-            if (err instanceof ApiError) {
-                showAddressErrorToast(err.code);
-                return;
-            }
-
-            alert("システムエラーが発生しました。時間をおいて再試行してください");
-        }
-    };
 
     const handleChangeFront = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
