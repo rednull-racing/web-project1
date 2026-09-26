@@ -1,13 +1,37 @@
-import { IdCard } from "../models/index.js";
+import { IdCard, S3Metadata, User } from "../models/index.js";
 import {
     CreateIdFirstParams,
     CreateIdParams,
     IdCardTransactionParams,
+    IdCardUserIdParams,
     UpdateIdParams,
 } from "../types/serviceType/idCard.js";
 
 type UpdateIdCardS3MetadataParams = IdCardTransactionParams & {
     data: CreateIdParams["data"];
+};
+
+export const getMyIdCard = async ({ idCardId, userId }: IdCardUserIdParams) => {
+    return IdCard.findByPk(idCardId, {
+        include: [
+            {
+                model: S3Metadata,
+                as: "FrontIdCard",
+                required: false,
+            },
+            {
+                model: S3Metadata,
+                as: "RearIdCard",
+                required: false,
+            },
+            {
+                model: User,
+                where: { id: userId },
+                attributes: [],
+                required: true,
+            },
+        ],
+    });
 };
 
 export const updateIdCardS3Metadata = async ({

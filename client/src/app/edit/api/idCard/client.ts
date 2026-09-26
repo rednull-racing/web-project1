@@ -4,6 +4,8 @@ import { getAccessToken } from "../../../../lib/getAccessToken";
 type IdCardUpdateBody = {
     frontIdCard?: File;
     rearIdCard?: File;
+    frontS3MetadataId?: number;
+    rearS3MetadataId?: number;
 };
 
 export const fetchIdCardSubmit = async (idCardId: number, body: IdCardUpdateBody) => {
@@ -13,6 +15,8 @@ export const fetchIdCardSubmit = async (idCardId: number, body: IdCardUpdateBody
     const formData = new FormData();
     if (body.frontIdCard) formData.append("frontIdCard", body.frontIdCard);
     if (body.rearIdCard) formData.append("rearIdCard", body.rearIdCard);
+    if (body.frontS3MetadataId !== undefined) formData.append("frontS3MetadataId", String(body.frontS3MetadataId));
+    if (body.rearS3MetadataId !== undefined) formData.append("rearS3MetadataId", String(body.rearS3MetadataId));
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/id-card/${idCardId}`, {
         method: "PATCH",

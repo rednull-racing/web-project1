@@ -62,6 +62,8 @@ export const IdCardEditForm = () => {
         const body = {
             frontIdCard: hasFrontFile ? idCardFront : undefined,
             rearIdCard: hasRearFile ? idCardRear : undefined,
+            frontS3MetadataId: frontS3Metadata?.id,
+            rearS3MetadataId: rearS3Metadata?.id,
         };
 
         if (!body.frontIdCard || !body.rearIdCard) {
