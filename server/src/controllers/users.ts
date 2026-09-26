@@ -7,6 +7,7 @@ import { getHonninEditUseCase } from "../usecases/users/get/getHonnin.js";
 import { getInquiryUserUseCase } from "../usecases/users/get/getInquiryUser.js";
 import { getMyAccountUseCase } from "../usecases/users/get/getMyAccount.js";
 import { getMyAddressUseCase } from "../usecases/users/get/getMyAddress.js";
+import { getMyIdCardUseCase } from "../usecases/users/get/getMyIdCard.js";
 import { getMyNameUseCase } from "../usecases/users/get/getMyName.js";
 import { getMyPageUseCase } from "../usecases/users/get/getMyPage.js";
 import { getPhoneNumberUseCase } from "../usecases/users/get/getPhoneNumber.js";
@@ -348,6 +349,21 @@ export const usersGetMynameController = async (req: Request, res: Response, next
         const name = await getMyNameUseCase({ userId });
 
         res.status(200).json({ name });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /user/id-card
+// summary: 身分証データ取得
+// page: /edit/id-card
+export const getMyIdCardController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+
+        const user = await getMyIdCardUseCase({ userId });
+
+        res.status(200).json({ user });
     } catch (err) {
         next(err);
     }
