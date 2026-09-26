@@ -6,7 +6,7 @@ type IdCardUpdateBody = {
     rearIdCard?: File;
 };
 
-export const fetchIdCardSubmit = async (body: IdCardUpdateBody) => {
+export const fetchIdCardSubmit = async (idCardId: number, body: IdCardUpdateBody) => {
     const accessToken = await getAccessToken();
     if (!accessToken) throw new ApiError("UNAUTHORIZED");
 
@@ -14,7 +14,7 @@ export const fetchIdCardSubmit = async (body: IdCardUpdateBody) => {
     if (body.frontIdCard) formData.append("frontIdCard", body.frontIdCard);
     if (body.rearIdCard) formData.append("rearIdCard", body.rearIdCard);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/id-card`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/id-card/${idCardId}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,

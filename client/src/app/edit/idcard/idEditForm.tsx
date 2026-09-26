@@ -7,10 +7,10 @@ import { Button, InputTitle } from "../../../components/inputForm";
 import { ApiError } from "../../../lib/api/apiError";
 import { apiFetch } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
+import { fetchIdCardSubmit } from "../api/idCard/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
 import { User } from "../type";
-import { fetchIdCardSubmit } from "../api/idCard/client";
 
 export const IdCardEditForm = () => {
     const { data } = useSWR<{ user: User }>("/user/id-card", apiFetch);
@@ -52,6 +52,10 @@ export const IdCardEditForm = () => {
     };
 
     const submit = async () => {
+        const idCardId = data?.user.IdCard?.id;
+
+        if (!idCardId) return;
+
         const hasFrontFile = idFrontUpload && idCardFront instanceof File;
         const hasRearFile = idRearUpload && idCardRear instanceof File;
 
@@ -66,8 +70,8 @@ export const IdCardEditForm = () => {
         }
 
         try {
-            await fetchIdCardSubmit(body);
-            
+            await fetchIdCardSubmit(idCardId, body);
+
             toast.success("身分証画像を更新しました");
             await sleep(1500);
 
