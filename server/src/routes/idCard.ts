@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateIdCardController } from "../controllers/idcard.js";
+import { updateIdCardController } from "../controllers/idCard.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import { updateIdCardRateLimit } from "../middleware/rateLimit/idCardRateLimit.js";
