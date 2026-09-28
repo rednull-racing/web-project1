@@ -7,6 +7,12 @@ const nextConfig = {
                 hostname: "flexoutdoor.s3.ap-northeast-1.amazonaws.com",
                 pathname: "/**",
             },
+            {
+                protocol: "http",
+                hostname: "localhost",
+                port: "5000",
+                pathname: "/api/**",
+            },
         ],
     },
 
