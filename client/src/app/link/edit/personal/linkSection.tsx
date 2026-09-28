@@ -9,6 +9,7 @@ export const LinkSection = () => {
             <NormalLink url="/edit/email" text="メールアドレス" />
             <NormalLink url="/edit/password" text="パスワード" />
             <NormalLink url="/edit/account" text="振込口座" />
+            <NormalLink url="/edit/id-card" text="身分証" />
         </NormalLinkContainer>
     );
 };
