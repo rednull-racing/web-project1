@@ -1,6 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "./s3.js";
 import { AppError } from "../../errors.js";
+import { s3 } from "./s3.js";
 
 type Params = {
     bucketName?: string;
