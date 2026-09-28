@@ -4,7 +4,7 @@ import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
 import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
 import { getS3Object } from "../../../infra/aws/getS3Object.js";
-import { buckets } from "../../../infra/aws/s3.js";
+import { verificationDocumentsBucket } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
 import { createIdCard } from "../../../services/idCard.js";
 import { createNameShop } from "../../../services/name.js";
@@ -78,7 +78,7 @@ export const createShopEditRepNameUseCase = async ({ shopId, userId, body }: Par
             }
 
             const uploaded = await uploadS3Object({
-                bucketName: buckets.verificationDocuments,
+                bucketName: verificationDocumentsBucket,
                 objectKey: `idcard/shop/edit/${shopId}/${type}/${now}_${requestId}`,
                 body: image.buffer,
                 contentType: image.contentType,

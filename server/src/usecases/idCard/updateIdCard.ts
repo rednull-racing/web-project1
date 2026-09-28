@@ -4,7 +4,7 @@ import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
 import { deleteS3Object } from "../../infra/aws/deleteS3Object.js";
 import { getS3Object } from "../../infra/aws/getS3Object.js";
-import { buckets } from "../../infra/aws/s3.js";
+import { verificationDocumentsBucket } from "../../infra/aws/s3.js";
 import { uploadS3Object } from "../../infra/aws/uploadS3Object.js";
 import { getMyIdCard, updateIdCard } from "../../services/idCard.js";
 import { createS3Metadata } from "../../services/s3Metadata.js";
@@ -80,7 +80,7 @@ export const updateIdCardUseCase = async ({ idCardId, userId, body }: Params) =>
             }
 
             const uploaded = await uploadS3Object({
-                bucketName: buckets.verificationDocuments,
+                bucketName: verificationDocumentsBucket,
                 objectKey: `idcard/user/${userId}/${type}/${now}_${requestId}`,
                 body: image.buffer,
                 contentType: image.contentType,

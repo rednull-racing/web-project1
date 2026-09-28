@@ -1,7 +1,7 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
 import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
-import { buckets } from "../../../infra/aws/s3.js";
+import { verificationDocumentsBucket } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
 import { updateAddress } from "../../../services/address.js";
 import { createIdCard, deleteIdCard } from "../../../services/idCard.js";
@@ -106,7 +106,7 @@ export const editHonninUserUseCase = async ({ userId, body }: Params) => {
 
     try {
         const uploadedFront = await uploadS3Object({
-            bucketName: buckets.verificationDocuments,
+            bucketName: verificationDocumentsBucket,
             objectKey: `idcard/front/${userId}/${now}_${frontIdCard.fileName}`,
             body: frontIdCard.buffer,
             contentType: frontIdCard.contentType,
@@ -114,7 +114,7 @@ export const editHonninUserUseCase = async ({ userId, body }: Params) => {
         uploadedObjects.push({ ...uploadedFront, ...frontIdCard, type: "front" });
 
         const uploadedRear = await uploadS3Object({
-            bucketName: buckets.verificationDocuments,
+            bucketName: verificationDocumentsBucket,
             objectKey: `idcard/rear/${userId}/${now}_${rearIdCard.fileName}`,
             body: rearIdCard.buffer,
             contentType: rearIdCard.contentType,
