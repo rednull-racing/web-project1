@@ -190,7 +190,7 @@ router.get("/id-card", getMyIdcardRateLimit, authenticateToken, getMyIdCardContr
 // summary: 本人確認入力ページ 身分証画像取得
 // page: /edit/honnin
 router.get(
-    "/file/:s3MetadataId",
+    "/files/:s3MetadataId",
     getUserIdFileRateLimit,
     authenticateToken,
     validateParams(userFilesIdParamSchema),

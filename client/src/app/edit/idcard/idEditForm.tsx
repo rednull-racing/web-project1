@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Button, InputTitle } from "../../../components/inputForm";
 import { ApiError } from "../../../lib/api/apiError";
@@ -11,6 +11,7 @@ import { fetchIdCardSubmit } from "../api/idCard/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
 import { User } from "../type";
+import { apiFetchFile } from "../../../lib/api/client";
 
 type Props = {
     user: User;
@@ -20,10 +21,8 @@ export const IdCardEditForm = ({ user }: Props) => {
     const frontS3Metadata = user.IdCard?.FrontIdCard;
     const rearS3Metadata = user.IdCard?.RearIdCard;
 
-    const frontImageUrl = frontS3Metadata ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${frontS3Metadata.id}` : "";
-
-    const rearImageUrl = rearS3Metadata ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${rearS3Metadata.id}` : "";
-
+    const [frontImageUrl, setFrontImageUrl] = useState("");
+    const [rearImageUrl, setRearImageUrl] = useState("");
     const [idCardFront, setIdCardFront] = useState<File>();
     const [idFrontPreview, setIdFrontPreview] = useState("");
     const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
@@ -35,6 +34,34 @@ export const IdCardEditForm = ({ user }: Props) => {
 
     const idFrontRef = useRef<HTMLInputElement | null>(null);
     const idRearRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        let frontObjectUrl: string | undefined;
+        let rearObjectUrl: string | undefined;
+
+        const fetchImages = async () => {
+            if (frontS3Metadata) {
+                const blob = await apiFetchFile(`/user/files/${frontS3Metadata.id}`);
+
+                frontObjectUrl = URL.createObjectURL(blob);
+                setFrontImageUrl(frontObjectUrl);
+            }
+
+            if (rearS3Metadata) {
+                const blob = await apiFetchFile(`/user/files/${rearS3Metadata.id}`);
+
+                rearObjectUrl = URL.createObjectURL(blob);
+                setRearImageUrl(rearObjectUrl);
+            }
+        };
+
+        fetchImages();
+
+        return () => {
+            if (frontObjectUrl) URL.revokeObjectURL(frontObjectUrl);
+            if (rearObjectUrl) URL.revokeObjectURL(rearObjectUrl);
+        };
+    }, [frontS3Metadata, rearS3Metadata]);
 
     const handleChangeFront = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -121,6 +148,7 @@ export const IdCardEditForm = ({ user }: Props) => {
                     width={120}
                     height={120}
                     className={styles.preview}
+                    unoptimized
                 />
 
                 <InputTitle title="身分証（裏面）" hissu />
@@ -139,6 +167,7 @@ export const IdCardEditForm = ({ user }: Props) => {
                     width={120}
                     height={120}
                     className={styles.preview}
+                    unoptimized
                 />
 
                 <p className={styles.centerSmall}>
