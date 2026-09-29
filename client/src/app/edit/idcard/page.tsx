@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { fetchIdPage } from "../api/idCard/server";
 import { IdCardEditForm } from "./idEditForm";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,5 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-    return <IdCardEditForm />;
+    const data = await fetchIdPage();
+
+    return <IdCardEditForm user={data.user} />;
 }

@@ -14,8 +14,21 @@ import styles from "../edit.module.css";
 import EditUI from "../editUI";
 import { User } from "../type";
 
-export const IdCardEditForm = () => {
-    const { data } = useSWR<{ user: User }>("/user/id-card", apiFetch);
+type Props = {
+    user: User;
+};
+
+export const IdCardEditForm = ({ user }: Props) => {
+    console.log("IdCardEditForm render");
+    const { data, error, isLoading, isValidating } = useSWR<{ user: User }>("/user/id-card", apiFetch);
+
+    console.log({
+        data,
+        error,
+        isLoading,
+        isValidating,
+    });
+
     const frontS3Metadata = data?.user.IdCard?.FrontIdCard;
     const rearS3Metadata = data?.user.IdCard?.RearIdCard;
 

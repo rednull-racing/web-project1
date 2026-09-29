@@ -6,7 +6,10 @@ type FetchOptions = RequestInit & {
 };
 
 export const apiFetch = async <T>(path: string, options: FetchOptions = {}): Promise<T> => {
+    console.log("① apiFetch start", path);
     const accessToken = await getAccessToken();
+
+    console.log("② token取得完了", accessToken);
 
     if (!accessToken) {
         throw new ApiError("UNAUTHORIZED");
@@ -20,6 +23,8 @@ export const apiFetch = async <T>(path: string, options: FetchOptions = {}): Pro
             ...options.headers,
         },
     });
+
+    console.log("③ fetch完了", res.status);
 
     const data = await res.json();
 
