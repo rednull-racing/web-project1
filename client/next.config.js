@@ -14,6 +14,7 @@ const nextConfig = {
                 pathname: "/api/**",
             },
         ],
+        dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
     },
 
     typescript: {
