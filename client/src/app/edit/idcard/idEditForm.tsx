@@ -4,10 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
-import useSWR from "swr";
 import { Button, InputTitle } from "../../../components/inputForm";
 import { ApiError } from "../../../lib/api/apiError";
-import { apiFetch } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
 import { fetchIdCardSubmit } from "../api/idCard/client";
 import styles from "../edit.module.css";
@@ -19,18 +17,8 @@ type Props = {
 };
 
 export const IdCardEditForm = ({ user }: Props) => {
-    console.log("IdCardEditForm render");
-    const { data, error, isLoading, isValidating } = useSWR<{ user: User }>("/user/id-card", apiFetch);
-
-    console.log({
-        data,
-        error,
-        isLoading,
-        isValidating,
-    });
-
-    const frontS3Metadata = data?.user.IdCard?.FrontIdCard;
-    const rearS3Metadata = data?.user.IdCard?.RearIdCard;
+    const frontS3Metadata = user.IdCard?.FrontIdCard;
+    const rearS3Metadata = user.IdCard?.RearIdCard;
 
     const frontImageUrl = frontS3Metadata ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${frontS3Metadata.id}` : "";
 
@@ -67,7 +55,7 @@ export const IdCardEditForm = ({ user }: Props) => {
     };
 
     const submit = async () => {
-        const idCardId = data?.user.IdCard?.id;
+        const idCardId = user.IdCard?.id;
 
         if (!idCardId) return;
 
