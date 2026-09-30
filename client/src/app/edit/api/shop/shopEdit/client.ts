@@ -15,7 +15,7 @@ type ShopOtherBody = {
     memberCount: number;
     homepage: string;
     companyNumber: string;
-    capital: string;
+    capital: number;
 };
 
 type ComFreeResponse = {

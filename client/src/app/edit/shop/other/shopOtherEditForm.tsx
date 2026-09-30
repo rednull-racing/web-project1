@@ -4,7 +4,11 @@ import { ja } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
+import toast from "react-hot-toast";
 import { Button, InputStr, InputStrAndSmall, InputTitle } from "../../../../components/inputForm";
+import { ApiError } from "../../../../lib/api/apiError";
+import { sleep } from "../../../../lib/sleep";
+import { fetchShopOther } from "../../api/shop/shopEdit/client";
 import styles from "../../edit.module.css";
 import EditUI from "../../editUI";
 import { ShopInfo } from "../../type";
@@ -36,6 +40,22 @@ export const ShopOtherEditForm = ({ shopId, shop }: Props) => {
             companyNumber,
             capital,
         };
+
+        try {
+            await fetchShopOther(shopId, body);
+
+            toast.success("ショップ情報を更新しました");
+            await sleep(1500);
+
+            router.push(`/shop-info/${shopId}`);
+        } catch (err) {
+            if (err instanceof ApiError) {
+                toast.error("更新に失敗しました");
+                return;
+            }
+
+            alert("システムエラーが発生しました。時間をおいて再試行してください");
+        }
     };
 
     const comFree = shop.ComOrFreeOption?.id === 1;
