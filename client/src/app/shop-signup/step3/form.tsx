@@ -102,9 +102,7 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
                 objectUrls.push(objectUrl);
                 setPermitImages((prev) =>
                     prev.map((image) =>
-                        image.s3MetadataId === metadataId && !image.uploaded
-                            ? { ...image, preview: objectUrl }
-                            : image,
+                        image.s3MetadataId === metadataId && !image.uploaded ? { ...image, preview: objectUrl } : image,
                     ),
                 );
             } catch {

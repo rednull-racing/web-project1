@@ -5,11 +5,7 @@ import { updateIdCardUseCase } from "../usecases/idCard/updateIdCard.js";
 // PATCH /id-card/:id
 // summary: 身分証データ更新
 // page: /edit/id-card
-export const updateIdCardController = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
+export const updateIdCardController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const idCardId = Number(req.params.id);
         const userId = req.user!.id;
