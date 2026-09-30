@@ -318,6 +318,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                             width={120}
                             height={120}
                             className={styles.preview}
+                            unoptimized
                         />
 
                         <InputTitle title="身分証（裏面）" hissu />
@@ -336,6 +337,7 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
                             width={120}
                             height={120}
                             className={styles.preview}
+                            unoptimized
                         />
 
                         <p className={styles.centerSmall}>
