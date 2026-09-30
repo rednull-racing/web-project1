@@ -5,11 +5,10 @@ import { getAccessToken } from "@/lib/getAccessToken";
 import clsx from "clsx";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import useSWR from "swr";
 import { ApiError } from "../../../lib/api/apiError";
-import { apiFetch } from "../../../lib/api/client";
+import { apiFetchFile } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
 import {
     fetchComFreeRepNamePatch,
@@ -19,7 +18,7 @@ import {
 } from "../api/name/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
-import { Name, ShopInfo, ShopSignup } from "../type";
+import { IdCard, Name } from "../type";
 
 type Props = {
     name?: Name;
@@ -36,38 +35,16 @@ type Props = {
     shopId?: string;
     shopSignupId?: string;
     shopEditId?: string;
+    idCard?: IdCard;
 };
 
-export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId, shopSignupId }: Props) => {
-    const { data } = useSWR<{ shopSignup?: ShopSignup; shop?: ShopInfo }>(
-        shopId && (page === "rep-shop" || page === "rep-shop-signup")
-            ? `/${page === "rep-shop-signup" ? "shop-signup" : "shop-info"}/${shopId}/rep-name`
-            : null,
-        apiFetch,
-    );
-    const idCard = (page === "rep-shop-signup" ? data?.shopSignup : data?.shop)?.IdCard;
-    const frontS3Metadata = idCard?.FrontIdCard;
-    const rearS3Metadata = idCard?.RearIdCard;
+export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId, shopSignupId, idCard }: Props) => {
+    if (page === "rep-shop" || page === "rep-shop-signup" || page === "rep-com-free") {
+        if (!idCard) throw new Error();
+    }
 
-    const frontImageUrl = frontS3Metadata
-        ? page === "rep-shop"
-            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info/${shopId}/files/${frontS3Metadata.id}`
-            : page === "rep-com-free"
-              ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${frontS3Metadata.id}`
-              : page === "rep-shop-signup"
-                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${frontS3Metadata.id}`
-                : ""
-        : "";
-    const rearImageUrl = rearS3Metadata
-        ? page === "rep-shop"
-            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info/${shopId}/files/${rearS3Metadata.id}`
-            : page === "rep-com-free"
-              ? `${process.env.NEXT_PUBLIC_API_URL}/shop-info-edit/${shopEditId}/files/${rearS3Metadata.id}`
-              : page === "rep-shop-signup"
-                ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${rearS3Metadata.id}`
-                : ""
-        : "";
-
+    const [frontImageUrl, setFrontImageUrl] = useState("");
+    const [rearImageUrl, setRearImageUrl] = useState("");
     const [seiValue, setSeiValue] = useState(name?.sei ?? "");
     const [meiValue, setMeiValue] = useState(name?.mei ?? "");
     const [seiKanaValue, setSeiKanaValue] = useState(name?.sei_kana ?? "");
@@ -83,6 +60,56 @@ export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId
     const idRearRef = useRef<HTMLInputElement | null>(null);
 
     const router = useRouter();
+
+    const frontS3Metadata = idCard?.FrontIdCard;
+    const rearS3Metadata = idCard?.RearIdCard;
+
+    const frontPath = frontS3Metadata
+        ? page === "rep-shop"
+            ? `/shop-info/${shopId}/files/${frontS3Metadata.id}`
+            : page === "rep-com-free"
+              ? `/shop-info-edit/${shopEditId}/files/${frontS3Metadata.id}`
+              : page === "rep-shop-signup"
+                ? `/shop-signup/${shopSignupId}/files/${frontS3Metadata.id}`
+                : ""
+        : "";
+    const rearPath = rearS3Metadata
+        ? page === "rep-shop"
+            ? `/shop-info/${shopId}/files/${rearS3Metadata.id}`
+            : page === "rep-com-free"
+              ? `/shop-info-edit/${shopEditId}/files/${rearS3Metadata.id}`
+              : page === "rep-shop-signup"
+                ? `/shop-signup/${shopSignupId}/files/${rearS3Metadata.id}`
+                : ""
+        : "";
+
+    useEffect(() => {
+        let frontObjectUrl: string | undefined;
+        let rearObjectUrl: string | undefined;
+
+        const fetchImages = async () => {
+            if (frontPath) {
+                const blob = await apiFetchFile(frontPath);
+
+                frontObjectUrl = URL.createObjectURL(blob);
+                setFrontImageUrl(frontObjectUrl);
+            }
+
+            if (rearPath) {
+                const blob = await apiFetchFile(rearPath);
+
+                rearObjectUrl = URL.createObjectURL(blob);
+                setRearImageUrl(rearObjectUrl);
+            }
+        };
+
+        fetchImages();
+
+        return () => {
+            if (frontObjectUrl) URL.revokeObjectURL(frontObjectUrl);
+            if (rearObjectUrl) URL.revokeObjectURL(rearObjectUrl);
+        };
+    }, [frontPath, rearPath]);
 
     const handleChangeFront = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
