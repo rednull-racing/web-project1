@@ -1,11 +1,21 @@
-import { apiFetch } from "../../../../../lib/api/client";
 import { ApiError } from "../../../../../lib/api/apiError";
+import { apiFetch } from "../../../../../lib/api/client";
 import { getAccessToken } from "../../../../../lib/getAccessToken";
 
 type IdUploadBody = {
     frontIdCard: File;
     rearIdCard: File;
     permitFiles: File[];
+};
+
+type ShopOtherBody = {
+    shopName: string;
+    openDateTime: string;
+    foundedDate?: Date;
+    memberCount: number;
+    homepage: string;
+    companyNumber: string;
+    capital: string;
 };
 
 type ComFreeResponse = {
@@ -54,5 +64,12 @@ export const fetchUpdateField = async (shopEditId: string, field: string, value:
     return apiFetch(`/shop-info-edit/${shopEditId}`, {
         method: "PATCH",
         body: JSON.stringify({ [field]: value }),
+    });
+};
+
+export const fetchShopOther = async (shopId: string, body: ShopOtherBody) => {
+    return apiFetch(`/shop-info-edit/${shopId}/other`, {
+        method: "POST",
+        body: JSON.stringify(body),
     });
 };

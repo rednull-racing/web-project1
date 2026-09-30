@@ -30,7 +30,7 @@ export const ShopOtherEditForm = ({ shopId, shop }: Props) => {
         const body = {
             shopName,
             openDateTime,
-            foundDateTitle,
+            foundedDate,
             memberCount,
             homepage,
             companyNumber,
