@@ -22,5 +22,5 @@ export default async function Page({ params }: Props) {
 
     const data = await fetchOtherPage(id);
 
-    <ShopOtherEditForm shop={data.shop} shopId={id} />
+    return <ShopOtherEditForm shop={data.shop} shopId={id} />
 }
