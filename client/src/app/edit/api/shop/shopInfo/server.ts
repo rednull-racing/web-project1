@@ -27,3 +27,9 @@ export const fetchOptionPage = async (shopId: string): Promise<ShopInfoResponse>
         cache: "no-store",
     });
 };
+
+export const fetchOtherPage = async (shopId: string): Promise<ShopInfoResponse> => {
+    return apiFetchServer(`/shop-info/${shopId}/other`, {
+        cache: "no-store",
+    });
+};
