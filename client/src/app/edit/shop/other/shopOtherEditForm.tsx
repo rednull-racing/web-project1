@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { Button, InputStr, InputStrAndSmall, InputTitle } from "../../../../components/inputForm";
 import { ApiError } from "../../../../lib/api/apiError";
 import { sleep } from "../../../../lib/sleep";
-import { fetchShopOther } from "../../api/shop/shopEdit/client";
+import { fetchShopOther } from "../../api/shop/shopInfo/client";
 import styles from "../../edit.module.css";
 import EditUI from "../../editUI";
 import { ShopInfo } from "../../type";
