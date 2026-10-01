@@ -9,6 +9,7 @@ import { getConNameUseCase } from "../usecases/shopInfo/get/getConName.js";
 import { getShopFileUseCase } from "../usecases/shopInfo/get/getFile.js";
 import { getMyShopIdUseCase } from "../usecases/shopInfo/get/getMyShop.js";
 import { getShopOptionUseCase } from "../usecases/shopInfo/get/getOption.js";
+import { getShopOtherUseCase } from "../usecases/shopInfo/get/getOther.js";
 import { getShopPhoneNumberUseCase } from "../usecases/shopInfo/get/getPhoneNumber.js";
 import { getRepNameUseCase } from "../usecases/shopInfo/get/getRepName.js";
 import type { ShopOptionBody } from "../validators/body/shopInfo.js";
@@ -208,6 +209,22 @@ export const shopInfoGetByIdOptionController = async (
         const userId = req.user!.id;
 
         const shop = await getShopOptionUseCase({ shopId, userId });
+
+        res.status(200).json({ shop });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/other
+// summary: その他ショップ情報取得
+// page: /edit/shop/other/[id]
+export const getShopOtherController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const shop = await getShopOtherUseCase({ shopId, userId });
 
         res.status(200).json({ shop });
     } catch (err) {
