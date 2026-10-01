@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     getShopFileController,
+    getShopOtherController,
     shopInfoGetByIdAddressController,
     shopInfoGetByIdBankAccountController,
     shopInfoGetByIdComFreeController,
@@ -23,6 +24,7 @@ import {
     getShopFileRateLimit,
     getShopMeRateLimit,
     getShopOptionRateLimit,
+    getShopOtherRateLimit,
     getShopPhoneNumberRateLimit,
     getShopRepNameRateLimit,
     shopOptionEditRateLimit,
@@ -141,6 +143,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoGetByIdOptionController,
+);
+
+// GET /shop-info/:id/other
+// summary: その他ショップ情報取得
+// page: /edit/shop/other/[id]
+router.get(
+    "/:id/other",
+    getShopOtherRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopOtherController,
 );
 
 // GET /shop-info/:id/com-free
