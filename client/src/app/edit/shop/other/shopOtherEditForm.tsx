@@ -20,7 +20,7 @@ type Props = {
 
 export const ShopOtherEditForm = ({ shopId, shop }: Props) => {
     const [shopName, setShopName] = useState(shop.shop_name ?? "");
-    const [openDateTime, setOpenDateTime] = useState(shop.open_date_time ?? "");
+    const [openDateTime, setOpenDateTime] = useState(shop.open_date_time ?? null);
     const [foundedDate, setFoundedDate] = useState<Date | undefined>(shop.founded_date ?? "");
     const [memberCount, setMemberCount] = useState(shop.member_count ?? "");
     const [homepage, setHomepage] = useState(shop.homepage_url ?? null);

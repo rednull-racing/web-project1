@@ -40,15 +40,16 @@ export const shopOptionBodySchema = z.object({
 export const shopOtherBodySchema = z.object({
     shopName: z.string().trim(),
     openDateTime: z.string().trim().optional(),
-    foundedDate: z.date().max(new Date()),
+    foundedDate: z.coerce.date().max(new Date()),
     memberCount: z.number().int().positive().min(1).max(1000000),
     homepage: z.string().optional(),
     companyNumber: z
         .string()
         .trim()
         .optional()
-        .refine((val) => val === undefined || val === "" || isValidCompanyNumber(val)),
-    capital: z.number().int().optional(),
+        .nullable()
+        .refine((val) => val === undefined || val === null || val === "" || isValidCompanyNumber(val)),
+    capital: z.number().int().nullable().optional(),
 });
 
 export type RepNameBody = z.infer<typeof repNameBodySchema>;
