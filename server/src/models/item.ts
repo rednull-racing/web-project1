@@ -7,6 +7,7 @@ import Brands from "./brands.js";
 import Cart from "./cart.js";
 import Categories from "./categories.js";
 import Comment from "./comment.js";
+import CouponItem from "./coupon_item.js";
 import ItemConditionOption from "./item_condition_option.js";
 import ItemLike from "./item_like.js";
 import ItemReport from "./item_report.js";
@@ -16,7 +17,6 @@ import Sale from "./sale.js";
 import User from "./user.js";
 import Video from "./video.js";
 import WatchHistory from "./watch_history.js";
-import CouponItem from "./coupon_item.js";
 
 export class Item extends Model {
     declare id: number;
