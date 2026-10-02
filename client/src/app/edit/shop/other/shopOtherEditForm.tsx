@@ -23,10 +23,10 @@ export const ShopOtherEditForm = ({ shopId, shop }: Props) => {
     const [openDateTime, setOpenDateTime] = useState(shop.open_date_time ?? "");
     const [foundedDate, setFoundedDate] = useState<Date | undefined>(shop.founded_date ?? "");
     const [memberCount, setMemberCount] = useState(shop.member_count ?? "");
-    const [homepage, setHomepage] = useState(shop.homepage_url ?? "");
+    const [homepage, setHomepage] = useState(shop.homepage_url ?? null);
 
-    const [companyNumber, setCompanyNumber] = useState(shop.company_number ?? "");
-    const [capital, setCapital] = useState(shop.capital);
+    const [companyNumber, setCompanyNumber] = useState(shop.company_number ?? null);
+    const [capital, setCapital] = useState(shop.capital ?? null);
 
     const router = useRouter();
 

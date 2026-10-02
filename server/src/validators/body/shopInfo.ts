@@ -1,4 +1,5 @@
 import z from "zod";
+import { isValidCompanyNumber } from "../../utils/isValidCompanyNumber.js";
 import { filesSchema } from "./utils/fileSchema.js";
 
 export const repNameBodySchema = z.object({
@@ -36,5 +37,20 @@ export const shopOptionBodySchema = z.object({
     openInfo: z.boolean().default(false),
 });
 
+export const shopOtherBodySchema = z.object({
+    shopName: z.string().trim(),
+    openDateTime: z.string().trim().optional(),
+    foundedDate: z.date().max(new Date()),
+    memberCount: z.number().int().positive().min(1).max(1000000),
+    homepage: z.string().optional(),
+    companyNumber: z
+        .string()
+        .trim()
+        .optional()
+        .refine((val) => val === undefined || val === "" || isValidCompanyNumber(val)),
+    capital: z.number().int().optional(),
+});
+
 export type RepNameBody = z.infer<typeof repNameBodySchema>;
 export type ShopOptionBody = z.infer<typeof shopOptionBodySchema>;
+export type ShopOtherBody = z.infer<typeof shopOtherBodySchema>;

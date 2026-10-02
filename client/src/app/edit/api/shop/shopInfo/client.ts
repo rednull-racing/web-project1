@@ -7,12 +7,12 @@ type OptionBody = {
 
 type ShopOtherBody = {
     shopName: string;
-    openDateTime: string;
+    openDateTime: string | null;
     foundedDate?: Date;
     memberCount: number;
-    homepage: string;
-    companyNumber: string;
-    capital: number;
+    homepage: string | null;
+    companyNumber: string | null;
+    capital: number | null;
 };
 
 export const fetchOptionEdit = async (shopId: string, body: OptionBody) => {
@@ -24,7 +24,7 @@ export const fetchOptionEdit = async (shopId: string, body: OptionBody) => {
 
 export const fetchShopOther = async (shopId: string, body: ShopOtherBody) => {
     return apiFetch(`/shop-info/${shopId}/other`, {
-        method: "POST",
+        method: "PATCH",
         body: JSON.stringify(body),
     });
 };
