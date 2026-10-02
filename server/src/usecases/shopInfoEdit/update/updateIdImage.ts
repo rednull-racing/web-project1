@@ -1,7 +1,7 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
 import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
-import { buckets } from "../../../infra/aws/s3.js";
+import { verificationDocumentsBucket } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
 import { createIdCard } from "../../../services/idCard.js";
 import { createNotification } from "../../../services/notification.js";
@@ -39,7 +39,7 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
 
     try {
         const uploadedFront = await uploadS3Object({
-            bucketName: buckets.verificationDocuments,
+            bucketName: verificationDocumentsBucket,
             objectKey: `idcard/shop/front/${shopId}/${now}_${frontIdCard.fileName}`,
             body: frontIdCard.buffer,
             contentType: frontIdCard.contentType,
@@ -53,7 +53,7 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
         });
 
         const uploadedRear = await uploadS3Object({
-            bucketName: buckets.verificationDocuments,
+            bucketName: verificationDocumentsBucket,
             objectKey: `idcard/shop/rear/${shopId}/${now}_${rearIdCard.fileName}`,
             body: rearIdCard.buffer,
             contentType: rearIdCard.contentType,
@@ -69,7 +69,7 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
         const permitUploadResults = await Promise.allSettled(
             permitFiles.map(async (file, index) => {
                 const uploaded = await uploadS3Object({
-                    bucketName: buckets.verificationDocuments,
+                    bucketName: verificationDocumentsBucket,
                     objectKey: `permit/${shopId}/${now}_${file.fileName}`,
                     body: file.buffer,
                     contentType: file.contentType,

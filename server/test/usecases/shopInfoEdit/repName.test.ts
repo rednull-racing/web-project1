@@ -33,7 +33,7 @@ vi.mock("../../../src/services/shopInfo/query.js", () => ({ getMyShopHasRepName:
 vi.mock("../../../src/services/shopInfo/command.js", () => ({ updateShopIdCard: mocks.updateShopIdCard }));
 vi.mock("../../../src/services/name.js", () => ({ updateName: mocks.updateName }));
 
-import { updateRepNameUseCase } from "../../../src/usecases/shopInfo/edit/repName.js";
+import { updateShopEditRepNameUseCase } from "../../../src/usecases/shopInfoEdit/update/repName.js";
 
 const name = { sei: "山田", mei: "太郎", seiKana: "ヤマダ", meiKana: "タロウ" };
 const file = { fileName: "id.jpg", contentType: "image/jpeg", size: 5, buffer: Buffer.from("image") };
@@ -44,8 +44,8 @@ const shop = {
 };
 const existingBody = { ...name, frontS3MetadataId: "30", rearS3MetadataId: "40" };
 const run = (body: unknown) =>
-    updateRepNameUseCase({
-        shopId: 1,
+    updateShopEditRepNameUseCase({
+        shopEditId: 1,
         userId: 2,
         body: updateRepNameBodySchema.parse(body),
     });

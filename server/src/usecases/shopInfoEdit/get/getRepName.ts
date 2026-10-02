@@ -14,8 +14,5 @@ export const getRepNameEditUseCase = async ({ shopEditId, userId }: Params) => {
 
     if (!shopEdit) throw new AppError("SHOP_EDIT_NOT_FOUND", 404);
 
-    const name = shopEdit.RepresentativeNameEdit;
-    if (!name) throw new AppError("NAME_NOT_FOUND", 404);
-
-    return name;
+    return shopEdit;
 };

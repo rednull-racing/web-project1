@@ -309,6 +309,25 @@ export const getMyShopOption = ({ shopId, userId }: UserShopIdParams) => {
     });
 };
 
+export const getMyShopOther = ({ shopId, userId }: UserShopIdParams) => {
+    return ShopInfo.findOne({
+        where: {
+            id: shopId,
+            user_id: userId,
+        },
+        attributes: [
+            "id",
+            "shop_name",
+            "open_date_time",
+            "founded_date",
+            "member_count",
+            "homepage_url",
+            "company_number",
+            "capital",
+        ],
+    });
+};
+
 export const getMyShopHasAddressNameBank = ({ shopId, userId }: UserShopIdParams) => {
     return ShopInfo.findOne({
         where: {

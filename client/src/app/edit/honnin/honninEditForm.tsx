@@ -8,10 +8,9 @@ import React, { useEffect, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import toast from "react-hot-toast";
-import useSWR from "swr";
 import { SITE } from "../../../config/site";
 import { ApiError } from "../../../lib/api/apiError";
-import { apiFetch } from "../../../lib/api/client";
+import { apiFetchFile } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
 import { showAddressErrorToast } from "../address/addressErrorMessage";
 import { fetchGetAddress } from "../api/address/client";
@@ -28,13 +27,8 @@ type Props = {
 };
 
 export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
-    const { data } = useSWR<{ user: User }>("/user/honnin", apiFetch);
-    const frontS3Metadata = data?.user.IdCard?.FrontIdCard;
-    const rearS3Metadata = data?.user.IdCard?.RearIdCard;
-
-    const frontImageUrl = frontS3Metadata ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${frontS3Metadata.id}` : "";
-
-    const rearImageUrl = rearS3Metadata ? `${process.env.NEXT_PUBLIC_API_URL}/user/files/${rearS3Metadata.id}` : "";
+    const frontS3Metadata = user.IdCard?.FrontIdCard;
+    const rearS3Metadata = user.IdCard?.RearIdCard;
 
     const [sei, setSei] = useState(user.Name?.sei);
     const [mei, setMei] = useState(user.Name?.mei);
@@ -43,6 +37,8 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
 
     const [birthday, setBirthday] = useState<Date | null>(user.birthday);
 
+    const [frontImageUrl, setFrontImageUrl] = useState("");
+    const [rearImageUrl, setRearImageUrl] = useState("");
     const [idCardFront, setIdCardFront] = useState<File>();
     const [idFrontPreview, setIdFrontPreview] = useState("");
     const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
@@ -66,32 +62,60 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
     const idRearRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
+        let frontObjectUrl: string | undefined;
+        let rearObjectUrl: string | undefined;
+
+        const fetchImages = async () => {
+            if (frontS3Metadata) {
+                const blob = await apiFetchFile(`/user/files/${frontS3Metadata.id}`);
+
+                frontObjectUrl = URL.createObjectURL(blob);
+                setFrontImageUrl(frontObjectUrl);
+            }
+
+            if (rearS3Metadata) {
+                const blob = await apiFetchFile(`/user/files/${rearS3Metadata.id}`);
+
+                rearObjectUrl = URL.createObjectURL(blob);
+                setRearImageUrl(rearObjectUrl);
+            }
+        };
+
+        fetchImages();
+
+        return () => {
+            if (frontObjectUrl) URL.revokeObjectURL(frontObjectUrl);
+            if (rearObjectUrl) URL.revokeObjectURL(rearObjectUrl);
+        };
+    }, [frontS3Metadata, rearS3Metadata]);
+
+    useEffect(() => {
+        const handleZipSearch = async () => {
+            if (!postNumber || postNumber.length < 7) {
+                toast.error("7桁の郵便番号を入力してください");
+                return;
+            }
+
+            try {
+                const address = await fetchGetAddress(postNumber);
+
+                setTodouhuken(address.todouhuken_name);
+                setShikutyouson(address.shikutyouson);
+                setBanchi(address.banchi);
+            } catch (err) {
+                if (err instanceof ApiError) {
+                    showAddressErrorToast(err.code);
+                    return;
+                }
+
+                alert("システムエラーが発生しました。時間をおいて再試行してください");
+            }
+        };
+
         if (postNumber && postNumber.length === 7) {
             handleZipSearch();
         }
     }, [postNumber]);
-
-    const handleZipSearch = async () => {
-        if (!postNumber || postNumber.length < 7) {
-            toast.error("7桁の郵便番号を入力してください");
-            return;
-        }
-
-        try {
-            const address = await fetchGetAddress(postNumber);
-
-            setTodouhuken(address.todouhuken_name);
-            setShikutyouson(address.shikutyouson);
-            setBanchi(address.banchi);
-        } catch (err) {
-            if (err instanceof ApiError) {
-                showAddressErrorToast(err.code);
-                return;
-            }
-
-            alert("システムエラーが発生しました。時間をおいて再試行してください");
-        }
-    };
 
     const handleChangeFront = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -234,6 +258,7 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
                     width={120}
                     height={120}
                     className={styles.preview}
+                    unoptimized
                 />
 
                 <InputTitle title="身分証（裏面）" hissu />
@@ -252,6 +277,7 @@ export const HonninEditForm = ({ user, genderOptions, campaign }: Props) => {
                     width={120}
                     height={120}
                     className={styles.preview}
+                    unoptimized
                 />
 
                 <p className={styles.centerSmall}>

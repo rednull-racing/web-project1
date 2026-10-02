@@ -13,6 +13,7 @@ export function validateQuery<T extends z.ZodType>(schema: T) {
         const result = schema.safeParse(req.query);
 
         if (!result.success) {
+            console.error(result.error.issues);
             throw new AppError("INVALID_QUERY", 400);
         }
 

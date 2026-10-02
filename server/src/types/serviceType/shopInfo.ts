@@ -72,6 +72,20 @@ export type UpdateOptionParams = {
     transaction?: Transaction;
 };
 
+export type UpdateOtherParams = {
+    shopInfo: InstanceType<typeof ShopInfo>;
+    data: {
+        shop_name: string;
+        open_date_time: string | null;
+        founded_date?: Date;
+        member_count: number;
+        homepage_url: string | null;
+        company_number: string | null;
+        capital: number | null;
+    };
+    transaction?: Transaction;
+};
+
 export type UpdateBankAccountParams = {
     shopInfo: InstanceType<typeof ShopInfo>;
     data: {

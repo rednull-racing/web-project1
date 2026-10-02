@@ -263,9 +263,9 @@ export const shopInfoEditGetByIdRepNameController = async (
         const shopEditId = Number(req.params.id);
         const userId = req.user!.id;
 
-        const name = await getRepNameEditUseCase({ shopEditId, userId });
+        const shopEdit = await getRepNameEditUseCase({ shopEditId, userId });
 
-        res.status(200).json({ name });
+        res.status(200).json({ shopEdit });
     } catch (err) {
         next(err);
     }

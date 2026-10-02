@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { Name, ShopInfo, ShopSignup } from "../../type";
+import { Name, ShopInfo, ShopInfoEdit, ShopSignup } from "../../type";
 
 type NamePageResponse = {
     name: Name;
@@ -11,6 +11,10 @@ type RepNameResponse = {
 
 type RepNameShopSignupResponse = {
     shopSignup: ShopSignup;
+};
+
+type RepNameShopEditResponse = {
+    shopEdit: ShopInfoEdit;
 };
 
 export const fetchNamePage = async (): Promise<NamePageResponse> => {
@@ -55,7 +59,7 @@ export const fetchShopSignupRepNamePage = async (shopSignupId: string): Promise<
     });
 };
 
-export const fetchShopEditRepNamePage = async (shopEditId: string): Promise<NamePageResponse> => {
+export const fetchShopEditRepNamePage = async (shopEditId: string): Promise<RepNameShopEditResponse> => {
     return apiFetchServer(`/shop-info-edit/${shopEditId}/rep-name`, {
         cache: "no-store",
     });

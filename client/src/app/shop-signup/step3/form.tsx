@@ -5,9 +5,10 @@ import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { ApiError } from "../../../lib/api/apiError";
+import { apiFetchFile } from "../../../lib/api/client";
 import { sleep } from "../../../lib/sleep";
 import { fetchStep3 } from "../api/step3";
 import { ButtonDiv } from "../buttonDiv";
@@ -32,19 +33,14 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
     const frontS3Metadata = shopSignup.IdCard?.FrontIdCard;
     const rearS3Metadata = shopSignup.IdCard?.RearIdCard;
 
-    const frontImageUrl = frontS3Metadata
-        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${frontS3Metadata.id}`
-        : "";
-
-    const rearImageUrl = rearS3Metadata
-        ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${rearS3Metadata.id}`
-        : "";
+    const [frontImageUrl, setFrontImageUrl] = useState("");
+    const [rearImageUrl, setRearImageUrl] = useState("");
 
     const [idCardFront, setIdCardFront] = useState<File | null>(null);
-    const [idFrontPreview, setIdFrontPreview] = useState(frontImageUrl);
+    const [idFrontPreview, setIdFrontPreview] = useState("");
 
     const [idCardRear, setIdCardRear] = useState<File | null>(null);
-    const [idRearPreview, setIdRearPreview] = useState(rearImageUrl);
+    const [idRearPreview, setIdRearPreview] = useState("");
 
     const [checked, setChecked] = useState((shopSignup.Permit?.length ?? 0) > 0);
 
@@ -56,9 +52,7 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
         permitNumber: permit.permit_number,
         permitType: permit.permit_type,
         file: null as File | null,
-        preview: permit.S3Metadata
-            ? `${process.env.NEXT_PUBLIC_API_URL}/shop-signup/${shopSignupId}/files/${permit.S3Metadata.id}`
-            : "",
+        preview: "",
         uploaded: false,
     }));
 
@@ -68,6 +62,63 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
     const idRearRef = useRef<HTMLInputElement | null>(null);
 
     const router = useRouter();
+
+    useEffect(() => {
+        let cancelled = false;
+        const objectUrls: string[] = [];
+
+        const fetchImage = async (metadataId: number, setImageUrl: (url: string) => void) => {
+            try {
+                const blob = await apiFetchFile(`/shop-signup/${shopSignupId}/files/${metadataId}`);
+                if (cancelled) return;
+
+                const objectUrl = URL.createObjectURL(blob);
+                objectUrls.push(objectUrl);
+                setImageUrl(objectUrl);
+            } catch {
+                if (!cancelled) toast.error("身分証画像の取得に失敗しました");
+            }
+        };
+
+        if (frontS3Metadata) void fetchImage(frontS3Metadata.id, setFrontImageUrl);
+        if (rearS3Metadata) void fetchImage(rearS3Metadata.id, setRearImageUrl);
+
+        return () => {
+            cancelled = true;
+            objectUrls.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [shopSignupId, frontS3Metadata, rearS3Metadata]);
+
+    useEffect(() => {
+        let cancelled = false;
+        const objectUrls: string[] = [];
+
+        const fetchPermitImage = async (metadataId: number) => {
+            try {
+                const blob = await apiFetchFile(`/shop-signup/${shopSignupId}/files/${metadataId}`);
+                if (cancelled) return;
+
+                const objectUrl = URL.createObjectURL(blob);
+                objectUrls.push(objectUrl);
+                setPermitImages((prev) =>
+                    prev.map((image) =>
+                        image.s3MetadataId === metadataId && !image.uploaded ? { ...image, preview: objectUrl } : image,
+                    ),
+                );
+            } catch {
+                if (!cancelled) toast.error("許認可証画像の取得に失敗しました");
+            }
+        };
+
+        for (const permit of shopSignup.Permit ?? []) {
+            if (permit.S3Metadata) void fetchPermitImage(permit.S3Metadata.id);
+        }
+
+        return () => {
+            cancelled = true;
+            objectUrls.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [shopSignupId, shopSignup.Permit]);
 
     const handleChangeFront = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -164,11 +215,12 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
                     ref={idFrontRef}
                 />
                 <Image
-                    src={idFrontPreview || "/no-image(1x1).png"}
+                    src={idFrontPreview || frontImageUrl || "/no-image(1x1).png"}
                     alt="身分証（表面）"
                     width={120}
                     height={120}
                     className={styles.preview}
+                    unoptimized
                 />
 
                 <InputTitle title="身分証（裏面）" hissu />
@@ -182,11 +234,12 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
                     required
                 />
                 <Image
-                    src={idRearPreview || "/no-image(1x1).png"}
+                    src={idRearPreview || rearImageUrl || "/no-image(1x1).png"}
                     alt="身分証（裏面）"
                     width={120}
                     height={120}
                     className={styles.preview}
+                    unoptimized
                 />
 
                 <p className={styles.centerSmall}>
@@ -231,7 +284,7 @@ export const Form = ({ shopSignupId, shopSignup }: Props) => {
                         {permitImages.map((img, index) => (
                             <div key={index} className={styles.permitPreviewItem}>
                                 <Image
-                                    src={img.preview}
+                                    src={img.preview || "/no-image(1x1).png"}
                                     alt={`permit-${index}`}
                                     width={100}
                                     height={100}

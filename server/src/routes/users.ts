@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    getMyIdCardController,
     getUserIdFileController,
     usersGetByIdProfileController,
     usersGetByIdProfileMetadataController,
@@ -30,6 +31,7 @@ import {
     getAddressRateLimit,
     getHonninRateLimit,
     getInquiryRateLimit,
+    getMyIdcardRateLimit,
     getMyPageRateLimit,
     getNameRateLimit,
     getPhoneNumberRateLimit,
@@ -179,11 +181,16 @@ router.get("/myaccount", getAccountRateLimit, authenticateToken, usersGetMyaccou
 // page: /edit/nameなど
 router.get("/myname", getNameRateLimit, authenticateToken, usersGetMynameController);
 
+// GET /user/id-card
+// summary: 身分証データ取得
+// page: /edit/id-card
+router.get("/id-card", getMyIdcardRateLimit, authenticateToken, getMyIdCardController);
+
 // GET /user/files/:s3MetadataId
 // summary: 本人確認入力ページ 身分証画像取得
 // page: /edit/honnin
 router.get(
-    "/file/:s3MetadataId",
+    "/files/:s3MetadataId",
     getUserIdFileRateLimit,
     authenticateToken,
     validateParams(userFilesIdParamSchema),

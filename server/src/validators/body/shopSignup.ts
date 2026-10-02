@@ -16,7 +16,7 @@ export const createSignup1BodySchema = z.object({
         .trim()
         .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
     openDateTime: z.string().min(1),
-    foundedDate: z.date().max(new Date()),
+    foundedDate: z.coerce.date().max(new Date()),
     memberCount: z.number().int().positive().min(1).max(1000000),
     homepage: z.string().optional(),
     repSei: z.string().trim().min(1),
@@ -41,8 +41,9 @@ export const createSignup1BodySchema = z.object({
         .string()
         .trim()
         .optional()
-        .refine((val) => val === undefined || val === "" || isValidCompanyNumber(val)),
-    capital: z.number().int().optional(),
+        .nullable()
+        .refine((val) => val === undefined || val === null || val === "" || isValidCompanyNumber(val)),
+    capital: z.number().int().nullable().optional(),
 });
 
 export const shopSignup3BodySchema = z

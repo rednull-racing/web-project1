@@ -1,7 +1,7 @@
 import sequelize from "../../../../db.js";
 import { AppError } from "../../../../errors.js";
 import { deleteS3Object } from "../../../../infra/aws/deleteS3Object.js";
-import { buckets } from "../../../../infra/aws/s3.js";
+import { verificationDocumentsBucket } from "../../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../../infra/aws/uploadS3Object.js";
 import { createIdCard, updateIdCardS3Metadata } from "../../../../services/idCard.js";
 import { createPermit, deletePermit, updatePermit } from "../../../../services/permit.js";
@@ -63,7 +63,7 @@ export const updateShopSignup3UseCase = async ({ shopSignupId, userId, body }: P
     try {
         if (frontIdCard) {
             const uploaded = await uploadS3Object({
-                bucketName: buckets.verificationDocuments,
+                bucketName: verificationDocumentsBucket,
                 objectKey: `idcard/front/${shopSignupId}/${now}_${frontIdCard.fileName}`,
                 body: frontIdCard.buffer,
                 contentType: frontIdCard.contentType,
@@ -79,7 +79,7 @@ export const updateShopSignup3UseCase = async ({ shopSignupId, userId, body }: P
 
         if (rearIdCard) {
             const uploaded = await uploadS3Object({
-                bucketName: buckets.verificationDocuments,
+                bucketName: verificationDocumentsBucket,
                 objectKey: `idcard/rear/${shopSignupId}/${now}_${rearIdCard.fileName}`,
                 body: rearIdCard.buffer,
                 contentType: rearIdCard.contentType,
@@ -97,7 +97,7 @@ export const updateShopSignup3UseCase = async ({ shopSignupId, userId, body }: P
             resolvedPermits.map(async ({ file, sortOrder }) => {
                 if (!file) return;
                 const uploaded = await uploadS3Object({
-                    bucketName: buckets.verificationDocuments,
+                    bucketName: verificationDocumentsBucket,
                     objectKey: `permit/${shopSignupId}/${now}_${sortOrder}_${file.fileName}`,
                     body: file.buffer,
                     contentType: file.contentType,

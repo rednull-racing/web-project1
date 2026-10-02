@@ -1,7 +1,7 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
 import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
-import { buckets } from "../../../infra/aws/s3.js";
+import { verificationDocumentsBucket } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
 import { createIdCard, updateIdCardS3Metadata } from "../../../services/idCard.js";
 import { updateName } from "../../../services/name.js";
@@ -50,7 +50,7 @@ export const updateShopSignupRepNameUseCase = async ({ shopSignupId, body, userI
     try {
         if (frontIdCard) {
             const uploaded = await uploadS3Object({
-                bucketName: buckets.verificationDocuments,
+                bucketName: verificationDocumentsBucket,
                 objectKey: `idcard/shop-signup/front/${shopSignupId}/${now}_${frontIdCard.fileName}`,
                 body: frontIdCard.buffer,
                 contentType: frontIdCard.contentType,
@@ -66,7 +66,7 @@ export const updateShopSignupRepNameUseCase = async ({ shopSignupId, body, userI
 
         if (rearIdCard) {
             const uploaded = await uploadS3Object({
-                bucketName: buckets.verificationDocuments,
+                bucketName: verificationDocumentsBucket,
                 objectKey: `idcard/shop-signup/rear/${shopSignupId}/${now}_${rearIdCard.fileName}`,
                 body: rearIdCard.buffer,
                 contentType: rearIdCard.contentType,

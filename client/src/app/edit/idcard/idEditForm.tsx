@@ -1,0 +1,185 @@
+"use client";
+
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { Button, InputTitle } from "../../../components/inputForm";
+import { ApiError } from "../../../lib/api/apiError";
+import { sleep } from "../../../lib/sleep";
+import { fetchIdCardSubmit } from "../api/idCard/client";
+import styles from "../edit.module.css";
+import EditUI from "../editUI";
+import { User } from "../type";
+import { apiFetchFile } from "../../../lib/api/client";
+
+type Props = {
+    user: User;
+};
+
+export const IdCardEditForm = ({ user }: Props) => {
+    const frontS3Metadata = user.IdCard?.FrontIdCard;
+    const rearS3Metadata = user.IdCard?.RearIdCard;
+
+    const [frontImageUrl, setFrontImageUrl] = useState("");
+    const [rearImageUrl, setRearImageUrl] = useState("");
+    const [idCardFront, setIdCardFront] = useState<File>();
+    const [idFrontPreview, setIdFrontPreview] = useState("");
+    const [idFrontUpload, setIdFrontUpload] = useState<boolean>(false);
+    const [idCardRear, setIdCardRear] = useState<File>();
+    const [idRearPreview, setIdRearPreview] = useState("");
+    const [idRearUpload, setIdRearUpload] = useState<boolean>(false);
+
+    const router = useRouter();
+
+    const idFrontRef = useRef<HTMLInputElement | null>(null);
+    const idRearRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        let frontObjectUrl: string | undefined;
+        let rearObjectUrl: string | undefined;
+
+        const fetchImages = async () => {
+            if (frontS3Metadata) {
+                const blob = await apiFetchFile(`/user/files/${frontS3Metadata.id}`);
+
+                frontObjectUrl = URL.createObjectURL(blob);
+                setFrontImageUrl(frontObjectUrl);
+            }
+
+            if (rearS3Metadata) {
+                const blob = await apiFetchFile(`/user/files/${rearS3Metadata.id}`);
+
+                rearObjectUrl = URL.createObjectURL(blob);
+                setRearImageUrl(rearObjectUrl);
+            }
+        };
+
+        fetchImages();
+
+        return () => {
+            if (frontObjectUrl) URL.revokeObjectURL(frontObjectUrl);
+            if (rearObjectUrl) URL.revokeObjectURL(rearObjectUrl);
+        };
+    }, [frontS3Metadata, rearS3Metadata]);
+
+    const handleChangeFront = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const selectedFile = e.target.files[0];
+            setIdCardFront(selectedFile);
+            setIdFrontPreview(URL.createObjectURL(selectedFile));
+            setIdFrontUpload(true);
+        }
+    };
+
+    const handleChangeRear = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const selectedFile = e.target.files[0];
+            setIdCardRear(selectedFile);
+            setIdRearPreview(URL.createObjectURL(selectedFile));
+            setIdRearUpload(true);
+        }
+    };
+
+    const submit = async () => {
+        const idCardId = user.IdCard?.id;
+
+        if (!idCardId) return;
+
+        const hasFrontFile = idFrontUpload && idCardFront instanceof File;
+        const hasRearFile = idRearUpload && idCardRear instanceof File;
+
+        const body = {
+            frontIdCard: hasFrontFile ? idCardFront : undefined,
+            rearIdCard: hasRearFile ? idCardRear : undefined,
+            frontS3MetadataId: frontS3Metadata?.id,
+            rearS3MetadataId: rearS3Metadata?.id,
+        };
+
+        if (!body.frontIdCard || !body.rearIdCard) {
+            toast.error("未入力の必須項目があります");
+            return;
+        }
+
+        try {
+            await fetchIdCardSubmit(idCardId, body);
+
+            toast.success("身分証画像を更新しました");
+            await sleep(1500);
+
+            router.push("/my-page");
+        } catch (err) {
+            if (err instanceof ApiError) {
+                switch (err.code) {
+                    case "S3_METADATA_NOT_FOUND":
+                        toast.error("画像を選び直して、もう一度お試しください。");
+                        break;
+                    case "FRONT_URL_EMPTY":
+                        toast.error("身分証（表面）がありません");
+                        break;
+                    case "REAR_URL_EMPTY":
+                        toast.error("身分証（裏面）がありません");
+                        break;
+                    default:
+                        toast.error("身分証画像の更新に失敗しました");
+                }
+                return;
+            }
+
+            alert("システムエラーが発生しました。時間をおいて再試行してください");
+        }
+    };
+
+    return (
+        <EditUI title="身分証変更">
+            <div className={styles.imageInputDiv}>
+                <InputTitle title="身分証（表面）" hissu />
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleChangeFront}
+                    className={styles.imageInput}
+                    placeholder="画像ファイルをアップロード"
+                    ref={idFrontRef}
+                />
+                <Image
+                    src={idFrontPreview || frontImageUrl || "/no-image(1x1).png"}
+                    alt="身分証（表面）"
+                    width={120}
+                    height={120}
+                    className={styles.preview}
+                    unoptimized
+                />
+
+                <InputTitle title="身分証（裏面）" hissu />
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleChangeRear}
+                    className={styles.imageInput}
+                    placeholder="画像ファイルをアップロード"
+                    ref={idRearRef}
+                    required
+                />
+                <Image
+                    src={idRearPreview || rearImageUrl || "/no-image(1x1).png"}
+                    alt="身分証（裏面）"
+                    width={120}
+                    height={120}
+                    className={styles.preview}
+                    unoptimized
+                />
+
+                <p className={styles.centerSmall}>
+                    ※顔写真付きのもの
+                    <br />
+                    ※顔写真と生年月日がわかる面を表にして撮影
+                    <br />
+                    ※表裏合わせて計2枚撮影
+                </p>
+            </div>
+
+            <Button onClick={submit}>送信する</Button>
+        </EditUI>
+    );
+};

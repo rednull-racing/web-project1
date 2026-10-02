@@ -118,10 +118,10 @@ export type ShopInfo = {
     shop_name: string;
     email: string;
     phone_number: string;
-    homepage_url: string;
-    open_date_time: string;
-    company_number: string;
-    capital: number;
+    homepage_url: string | null;
+    open_date_time: string | null;
+    company_number: string | null;
+    capital: number | null;
     member_count: number;
     founded_date: Date;
     auto_trans: boolean;

@@ -22,5 +22,12 @@ export default async function Page({ params }: Props) {
 
     const data = await fetchShopSignupRepNamePage(id);
 
-    return <NameEditForm name={data.shopSignup.RepresentativeName} page="rep-shop-signup" shopId={id} />;
+    return (
+        <NameEditForm
+            name={data.shopSignup.RepresentativeName}
+            page="rep-shop-signup"
+            shopId={id}
+            idCard={data.shopSignup.IdCard}
+        />
+    );
 }

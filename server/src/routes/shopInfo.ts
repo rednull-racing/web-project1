@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
+    editShopOtherController,
     getShopFileController,
+    getShopOtherController,
     shopInfoGetByIdAddressController,
     shopInfoGetByIdBankAccountController,
     shopInfoGetByIdComFreeController,
@@ -23,14 +25,16 @@ import {
     getShopFileRateLimit,
     getShopMeRateLimit,
     getShopOptionRateLimit,
+    getShopOtherRateLimit,
     getShopPhoneNumberRateLimit,
     getShopRepNameRateLimit,
     shopOptionEditRateLimit,
+    shopOtherEditRateLimit,
     shopPhoneNumberEditRateLimit,
 } from "../middleware/rateLimit/shopInfoRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
-import { shopOptionBodySchema } from "../validators/body/shopInfo.js";
+import { shopOptionBodySchema, shopOtherBodySchema } from "../validators/body/shopInfo.js";
 import { phoneNumberBodySchema } from "../validators/body/users.js";
 import { idParamSchema } from "../validators/params/id.js";
 import { shopInfoFilesIdParamSchema } from "../validators/params/shopInfo.js";
@@ -59,6 +63,18 @@ router.patch(
     validateParams(idParamSchema),
     validateBody(shopOptionBodySchema),
     shopInfoPatchByIdOptionController,
+);
+
+// PATCH /shop-info/:id/other
+// summary: その他ショップ情報更新
+// page: /edit/shop/other/[id]
+router.patch(
+    "/:id/other",
+    authenticateToken,
+    shopOtherEditRateLimit,
+    validateParams(idParamSchema),
+    validateBody(shopOtherBodySchema),
+    editShopOtherController,
 );
 
 // GET /shop-info/my
@@ -141,6 +157,17 @@ router.get(
     authenticateToken,
     validateParams(idParamSchema),
     shopInfoGetByIdOptionController,
+);
+
+// GET /shop-info/:id/other
+// summary: その他ショップ情報取得
+// page: /edit/shop/other/[id]
+router.get(
+    "/:id/other",
+    getShopOtherRateLimit,
+    authenticateToken,
+    validateParams(idParamSchema),
+    getShopOtherController,
 );
 
 // GET /shop-info/:id/com-free
