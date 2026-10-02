@@ -31,6 +31,21 @@ export const shopOptionEditRateLimit = rateLimit({
     },
 });
 
+export const shopOtherEditRateLimit = rateLimit({
+    windowMs: 1000 * 60 * 10,
+    limit: 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+
+    keyGenerator: (req) => {
+        const authReq = req as unknown as {
+            user: AuthUser;
+        };
+
+        return `admin:${authReq.user.id}`;
+    },
+});
+
 export const getShopMeRateLimit = rateLimit({
     windowMs: 1000 * 60,
     limit: 200,
