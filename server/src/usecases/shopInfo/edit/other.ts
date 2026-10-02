@@ -26,7 +26,7 @@ export const editShopOtherUseCase = async ({ shopId, userId, body }: Params) => 
             open_date_time: body.openDateTime ?? null,
             founded_date: body.foundedDate,
             member_count: body.memberCount,
-            homepage: body.homepage ?? null,
+            homepage_url: body.homepage ?? null,
             company_number: body.companyNumber ?? null,
             capital: body.capital ?? null,
         },

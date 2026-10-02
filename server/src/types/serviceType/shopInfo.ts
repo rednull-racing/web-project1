@@ -79,7 +79,7 @@ export type UpdateOtherParams = {
         open_date_time: string | null;
         founded_date?: Date;
         member_count: number;
-        homepage: string | null;
+        homepage_url: string | null;
         company_number: string | null;
         capital: number | null;
     };
