@@ -21,6 +21,6 @@ export type Signup1Body = {
     shikutyouson: string;
     banchi: string;
     building?: string;
-    companyNumber?: string;
-    capital?: number;
+    companyNumber?: string | null;
+    capital?: number | null;
 };
