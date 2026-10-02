@@ -1,7 +1,6 @@
-import { Model, DataTypes, Association } from "sequelize";
+import { Association, DataTypes, Model } from "sequelize";
 import sequelize from "../db.js";
 
-import User from "./user.js";
 import Item from "./item.js";
 
 export class Video extends Model {
@@ -20,16 +19,12 @@ export class Video extends Model {
     declare status: string | null;
 
     static associate() {
-        Video.belongsTo(User, {
-            foreignKey: "user_id",
-        });
-        Video.belongsTo(Item, {
-            foreignKey: "item_id",
+        Video.hasOne(Item, {
+            foreignKey: "video_id",
         });
     }
 
     static associations: {
-        User: Association<Video, User>;
         Item: Association<Video, Item>;
     };
 }

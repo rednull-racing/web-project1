@@ -14,8 +14,8 @@ export class Sale extends Model {
     declare updatedAt: Date;
 
     static associate() {
-        Sale.belongsTo(Item, {
-            foreignKey: "item_id",
+        Sale.hasOne(Item, {
+            foreignKey: "sale_id",
         });
     }
 

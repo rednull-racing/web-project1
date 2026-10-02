@@ -47,6 +47,9 @@ export class Item extends Model {
     declare attributes: ItemAttributes;
     declare recommend: boolean | null;
     declare report_score: number;
+    declare video_id: number | null;
+    declare sale_id: number | null;
+    declare shipping_id: number | null;
 
     static associate() {
         Item.belongsTo(User, {
@@ -66,22 +69,22 @@ export class Item extends Model {
         Item.belongsTo(BrandAliases, {
             foreignKey: "brand_aliases_id",
         });
+        Item.belongsTo(Video, {
+            foreignKey: "video_id",
+        });
+        Item.belongsTo(Sale, {
+            foreignKey: "sale_id",
+        });
+        Item.belongsTo(ItemShippingProfile, {
+            foreignKey: "shipping_id",
+        });
         Item.hasMany(Cart, {
             foreignKey: "item_id",
         });
         Item.hasMany(ItemLike, {
             foreignKey: "item_id",
         });
-        Item.hasOne(Video, {
-            foreignKey: "item_id",
-        });
-        Item.hasOne(Sale, {
-            foreignKey: "item_id",
-        });
         Item.hasMany(ItemReport, {
-            foreignKey: "item_id",
-        });
-        Item.hasOne(ItemShippingProfile, {
             foreignKey: "item_id",
         });
         Item.hasMany(PurchaseSession, {
@@ -278,6 +281,36 @@ Item.init(
             type: DataTypes.DECIMAL,
             defaultValue: 0,
             allowNull: false,
+        },
+        video_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "video",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "SET NULL",
+        },
+        sale_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "sale",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "SET NULL",
+        },
+        shipping_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "item_shipping_profile",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "SET NULL",
         },
         createdAt: {
             type: DataTypes.DATE,

@@ -26,8 +26,8 @@ export class ItemShippingProfile extends Model {
         ItemShippingProfile.belongsTo(TodouhukenOption, {
             foreignKey: "shipping_place_id",
         });
-        ItemShippingProfile.belongsTo(Item, {
-            foreignKey: "item_id",
+        ItemShippingProfile.hasOne(Item, {
+            foreignKey: "shipping_id",
         });
     }
 
