@@ -19,6 +19,7 @@ export class ItemDraft extends Model {
     declare first_image_url: string | null;
     declare gender_type: "men" | "women" | "unisex";
     declare age_type: "adult" | "kids" | "both";
+    declare recommend: boolean | null;
     declare category_id: number | null;
     declare brand_id: number | null;
     declare brand_aliases_id: number | null;
@@ -119,6 +120,11 @@ ItemDraft.init(
             type: DataTypes.ENUM("adult", "kids", "both"),
             allowNull: false,
             defaultValue: "both",
+        },
+        recommend: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false,
         },
         category_id: {
             type: DataTypes.INTEGER,
