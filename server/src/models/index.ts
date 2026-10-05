@@ -41,6 +41,8 @@ import ItemBuyerReportOptionModel from "./item_buyer_report_option.js";
 import ItemConditionOptionModel from "./item_condition_option.js";
 import ItemDeleteLogsModel from "./item_delete_logs.js";
 import ItemDeletedModel from "./item_deleted.js";
+import ItemDraftModel from "./item_draft.js";
+import ItemEditingModel from "./item_editing.js";
 import ItemLikeModel from "./item_like.js";
 import ItemReportModel from "./item_report.js";
 import ItemReportOptionModel from "./item_report_option.js";
@@ -136,6 +138,8 @@ db.ItemBuyerReport = ItemBuyerReportModel;
 db.ItemConditionOption = ItemConditionOptionModel;
 db.ItemDeleted = ItemDeletedModel;
 db.ItemDeleteLogs = ItemDeleteLogsModel;
+db.ItemDraft = ItemDraftModel;
+db.ItemEditing = ItemEditingModel;
 db.ItemLike = ItemLikeModel;
 db.ItemReportOption = ItemReportOptionModel;
 db.ItemReport = ItemReportModel;
@@ -224,6 +228,8 @@ export const {
     ItemBuyerReport,
     ItemConditionOption,
     ItemDeleted,
+    ItemDraft,
+    ItemEditing,
     ItemLike,
     ItemReportOption,
     ItemReport,
