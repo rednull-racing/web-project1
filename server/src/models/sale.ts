@@ -9,7 +9,6 @@ export class Sale extends Model {
     declare discount_rate: number | null;
     declare discount_amount: number | null;
     declare sale_flag: boolean;
-    declare item_id: number | null;
     declare createdAt: Date;
     declare updatedAt: Date;
 
@@ -48,17 +47,6 @@ Sale.init(
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
-        },
-        item_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            unique: true,
-            references: {
-                model: "item",
-                key: "id",
-            },
-            onUpdate: "CASCADE",
-            onDelete: "CASCADE",
         },
         createdAt: {
             type: DataTypes.DATE,

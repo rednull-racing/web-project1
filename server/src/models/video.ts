@@ -10,8 +10,6 @@ export class Video extends Model {
     declare summary: string | null;
     declare duration: number | null;
     declare play_count: number;
-    declare user_id: number | null;
-    declare item_id: number | null;
     declare createdAt: Date;
     declare updatedAt: Date;
     declare original_url: string | null;
@@ -57,27 +55,6 @@ Video.init(
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 0,
-        },
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: {
-                model: "user",
-                key: "id",
-            },
-            onUpdate: "CASCADE",
-            onDelete: "CASCADE",
-        },
-        item_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            unique: true,
-            references: {
-                model: "item",
-                key: "id",
-            },
-            onUpdate: "CASCADE",
-            onDelete: "CASCADE",
         },
         original_url: {
             type: DataTypes.TEXT,
