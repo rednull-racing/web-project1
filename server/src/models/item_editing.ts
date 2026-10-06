@@ -14,7 +14,7 @@ import User from "./user.js";
 
 export class ItemEditing extends Model {
     declare id: number;
-    declare item_id: number;
+    declare item_id: number; // nullable化
     declare name: string | null;
     declare detail: string | null;
     declare image_url: string[] | null;
@@ -84,6 +84,7 @@ export class ItemEditing extends Model {
     }
 
     static associations: {
+        Item: Association<ItemEditing, Item>;
         User: Association<ItemEditing, User>;
         ItemConditionOption: Association<ItemEditing, ItemConditionOption>;
         Categories: Association<ItemEditing, Categories>;
