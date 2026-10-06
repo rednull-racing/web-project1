@@ -14,7 +14,7 @@ import User from "./user.js";
 
 export class ItemEditing extends Model {
     declare id: number;
-    declare item_id: number; // nullable化
+    declare item_id: number | null;
     declare name: string | null;
     declare detail: string | null;
     declare image_url: string[] | null;
@@ -106,7 +106,7 @@ ItemEditing.init(
         },
         item_id: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: "item",
                 key: "id",
