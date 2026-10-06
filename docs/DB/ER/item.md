@@ -64,11 +64,15 @@ item {
 
 item_draft {
     number id PK
+    number item_id FK
     number seller_id FK
     number item_condition_id FK
     number category_id FK
     number brand_id FK
     number brand_aliases_id FK
+    number shipping_day_id FK
+    number shipping_service_id FK
+    number shipping_place_id FK
 }
 
 item_editing {
@@ -151,13 +155,19 @@ brand_aliases o|--o{ item_editing : "1つのbrand_aliasesは0以上のitem_editi
 
 shipping_day_option o|--o{ item_shipping_profile : "1つのshipping_day_optionは0以上のitem_shipping_profileで使用される"
 
+shipping_day_option o|--o{ item_draft : "1つのshipping_day_optionは0以上のitem_draftで使用される"
+
 shipping_day_option o|--o{ item_editing : "1つのshipping_day_optionは0以上のitem_editingで使用される"
 
 shipping_service_option o|--o{ item_shipping_profile : "1つのshipping_service_optionは0以上のitem_shipping_profileで使用される"
 
+shipping_service_option o|--o{ item_draft : "1つのshipping_service_optionは0以上のitem_draftで使用される"
+
 shipping_service_option o|--o{ item_editing : "1つのshipping_service_optionは0以上のitem_editingで使用される"
 
 todouhuken_option o|--o{ item_shipping_profile : "1つのtodouhuken_optionは0以上のitem_shipping_profileで発送元として使用される"
+
+todouhuken_option o|--o{ item_draft : "1つのtodouhuken_optionは0以上のitem_draftで発送元として使用される"
 
 todouhuken_option o|--o{ item_editing : "1つのtodouhuken_optionは0以上のitem_editingで発送元として使用される"
 
@@ -166,6 +176,8 @@ video o|--o| item : "1つのvideoは0または1つのitemで使用される"
 sale o|--o| item : "1つのsaleは0または1つのitemで使用される"
 
 item_shipping_profile o|--o| item : "1つのitem_shipping_profileは0または1つのitemで使用される"
+
+item o|--o{ item_draft : "1つのitemは0以上のitem_draftを持つ"
 
 item ||--o{ item_editing : "1つのitemは0以上のitem_editingを持つ"
 
