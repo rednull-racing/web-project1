@@ -27,11 +27,11 @@
 - route: PUT /item-editing/:id
 - usecase: 入力データ登録
 
-認可:
-- itemEditing.seller_id === userId
+- 認可:
+    - itemEditing.seller_id === userId
 
-事前条件:
-- 入力データがそろってる必要（bodyでチェック）
+- 事前条件:
+    - 入力データがそろってる必要（bodyでチェック）
 
 ### createItem
 
@@ -45,27 +45,27 @@
     - itemShippingProfile作成、コピー
     - その他既存フローは継続
 
-認可:
-- itemEditing.seller_id === userId
+- 認可:
+    - itemEditing.seller_id === userId
 
-事前条件:
-- 公開必須項目がすべて存在する
-- video等の必須関連データが存在する
+- 事前条件:
+    - 公開必須項目がすべて存在する
+    - video等の必須関連データが存在する
 
-transaction:
-- item
-- video
-- sale
-- itemShippingProfile
-- その他関連レコード
-→ 全て同一Transaction
+- transaction:
+    - item
+    - video
+    - sale
+    - itemShippingProfile
+    - その他関連レコード
+      → 全て同一Transaction
 
-成功後:
-- itemEditing削除
+- 成功後:
+    - itemEditing削除
 
-失敗時:
-- DB変更をrollback
-- itemEditingは保持
+- 失敗時:
+    - DB変更をrollback
+    - itemEditingは保持
 
 ### createItemDraft（下書き作成時のみ）
 
@@ -76,14 +76,14 @@ transaction:
     - itemEditingテーブル削除
     - 入力データをitemDraftテーブルに登録
 
-認可:
-- itemEditing.seller_id === userId
+- 認可:
+    - itemEditing.seller_id === userId
 
-成功後:
-- itemEditing削除
+- 成功後:
+    - itemEditing削除
 
-失敗時:
-- itemEditingは保持
+- 失敗時:
+    - itemEditingは保持
 
 ### createItemEditingDraft（下書き商品ページから編集）
 
@@ -92,14 +92,14 @@ transaction:
     - bodyにitemDraftId
 - usecase: itemEditingテーブルを作成し、itemDraftからコピー
 
-認可:
-- itemDraft.seller_id === userId
+- 認可:
+    - itemDraft.seller_id === userId
 
-成功後:
-- itemDraft削除
+- 成功後:
+    - itemDraft削除
 
-失敗時:
-- itemDraftは保持
+- 失敗時:
+    - itemDraftは保持
 
 ### createItemEditingCopy（販売中商品からのコピー出品）
 
@@ -108,8 +108,8 @@ transaction:
     - bodyにitemId
 - usecase: itemEditingテーブルを作成し、itemからコピー
 
-認可:
-- item.seller_id === userId
+- 認可:
+    - item.seller_id === userId
 
 ### deleteItemDraft（下書きitem削除）
 
@@ -117,8 +117,8 @@ transaction:
 - route: DELETE /item-draft/:id
 - usecase: itemDraftを削除
 
-認可:
-- itemDraft.seller_id === userId
+- 認可:
+    - itemDraft.seller_id === userId
 
-失敗時:
-- itemDraftは保持
+- 失敗時:
+    - itemDraftは保持

@@ -212,7 +212,9 @@ export default {
         await queryInterface.sequelize.transaction(async (transaction) => {
             await queryInterface.dropTable("item_editing", { transaction });
             await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_item_editing_age_type";', { transaction });
-            await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_item_editing_gender_type";', { transaction });
+            await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_item_editing_gender_type";', {
+                transaction,
+            });
         });
     },
 };
