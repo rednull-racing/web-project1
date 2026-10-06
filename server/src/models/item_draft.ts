@@ -104,6 +104,16 @@ ItemDraft.init(
             primaryKey: true,
             autoIncrement: true,
         },
+        item_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "item",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "CASCADE",
+        },
         name: {
             type: DataTypes.STRING(255),
             allowNull: true,
@@ -200,6 +210,85 @@ ItemDraft.init(
             type: DataTypes.JSONB,
             allowNull: false,
             defaultValue: {},
+        },
+        thumbnail_url: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        title: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        summary: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        duration: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        original_url: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        converted_url: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        video_status: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+        },
+        before_price: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        discount_rate: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        discount_amount: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        sale_flag: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+        },
+        shipping_day_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "shipping_day_option",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "NO ACTION",
+        },
+        shipping_service_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "shipping_service_option",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "NO ACTION",
+        },
+        shipping_place_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "todouhuken_option",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "NO ACTION",
+        },
+        shipping_service_free_text: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
         },
         createdAt: {
             type: DataTypes.DATE,
