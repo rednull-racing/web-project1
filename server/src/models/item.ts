@@ -41,7 +41,7 @@ export class Item extends Model {
     declare save_at: Date | null;
     declare gender_type: "men" | "women" | "unisex";
     declare age_type: "adult" | "kids" | "both";
-    declare status: "editing" | "draft" | "active" | "hidden" | "soldout" | "deleted";
+    declare status: "active" | "soldout";
     declare category_id: number | null;
     declare brand_id: number | null;
     declare brand_aliases_id: number | null;
@@ -238,9 +238,9 @@ Item.init(
             defaultValue: "both",
         },
         status: {
-            type: DataTypes.ENUM("editing", "draft", "active", "hidden", "soldout", "deleted"),
+            type: DataTypes.ENUM("active", "soldout"),
             allowNull: false,
-            defaultValue: "editing",
+            defaultValue: "active",
         },
         category_id: {
             type: DataTypes.INTEGER,
