@@ -8,9 +8,9 @@ export const createItemEditingController = async (req: Request, res: Response, n
     try {
         const userId = req.user!.id;
 
-        const itemId = await createItemEditingUseCase({ userId});
+        const itemEditingId = await createItemEditingUseCase({ userId });
 
-        res.status(200).json({ itemId });
+        res.status(200).json({ itemEditingId });
     } catch (err) {
         next(err);
     }
