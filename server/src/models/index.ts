@@ -47,6 +47,7 @@ import ItemLikeModel from "./item_like.js";
 import ItemReportModel from "./item_report.js";
 import ItemReportOptionModel from "./item_report_option.js";
 import ItemShippingProfileModel from "./item_shipping_profile.js";
+import ItemTrashModel from "./item_trash.js";
 import JournalModel from "./journal.js";
 import JournalReasonOptionModel from "./journal_reason_option.js";
 import KanjyoOptionModel from "./kanjyo_option.js";
@@ -144,6 +145,7 @@ db.ItemLike = ItemLikeModel;
 db.ItemReportOption = ItemReportOptionModel;
 db.ItemReport = ItemReportModel;
 db.ItemShippingProfile = ItemShippingProfileModel;
+db.ItemTrash = ItemTrashModel;
 db.Item = ItemModel;
 db.JournalReasonOption = JournalReasonOptionModel;
 db.Journal = JournalModel;
@@ -234,6 +236,7 @@ export const {
     ItemReportOption,
     ItemReport,
     ItemShippingProfile,
+    ItemTrash,
     Item,
     ItemDeleteLogs,
     JournalReasonOption,
