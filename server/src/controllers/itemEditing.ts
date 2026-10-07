@@ -4,7 +4,7 @@ import { createItemEditingUseCase } from "../usecases/itemEditing/createItemEdit
 // POST /item-editing
 // summary: 商品データ作成
 // page: /upload/before
-export const creteItemEditingController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createItemEditingController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req.user!.id;
 
