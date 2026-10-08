@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
+import { uploadMainUseCase } from "../usecases/itemEditing/updateConfirm.ts.js";
 import { deleteDraftItemUseCase } from "../usecases/items/delete/draftDelete.js";
 import { deleteItemLogicallyUseCase } from "../usecases/items/delete/logicalDelete.js";
 import { deleteItemPerfectUseCase } from "../usecases/items/delete/perfectDelete.js";
@@ -16,7 +17,6 @@ import { itemCopyUploadUseCase } from "../usecases/items/upload/copyUpload/copyU
 import { createItemsUseCase } from "../usecases/items/upload/createItem.js";
 import { patchPublishUseCase } from "../usecases/items/upload/publish.js";
 import { uploadDraftUseCase } from "../usecases/items/upload/uploadDraft.js";
-import { uploadMainUseCase } from "../usecases/items/upload/uploadMain.js";
 import { runDetachedTask } from "../utils/runDetachedTask.js";
 import type { ItemUploadBody } from "../validators/body/items.js";
 import type {

@@ -1,27 +1,27 @@
-import { publicS3Domain } from "../../../../infra/aws/s3.js";
-import { SignedUrlWithIndex } from "../../../../infra/aws/type.js";
-import { Item } from "../../../../models/index.js";
-import { createVideoPresignedPost, generateSignedUrl } from "../../../../utils/s3/index.js";
-import { ItemUploadBody } from "../../../../validators/body/items.js";
+import { publicS3Domain } from "../../../infra/aws/s3.js";
+import { SignedUrlWithIndex } from "../../../infra/aws/type.js";
+import { ItemEditing } from "../../../models/index.js";
+import { createVideoPresignedPost, generateSignedUrl } from "../../../utils/s3/index.js";
+import { ItemUploadBody } from "../../../validators/body/items.js";
 
 type Params = {
-    itemId: number;
+    itemEditingId: number;
     userId: number;
-    item: InstanceType<typeof Item>;
+    itemEditing: InstanceType<typeof ItemEditing>;
     body: ItemUploadBody;
 };
 
-export const buildSignedUrls = async ({ itemId, userId, item, body }: Params) => {
+export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body }: Params) => {
     const { video, thumbnail, itemImages, attributes } = body;
 
     const now = Date.now();
 
     // 動画署名付きURL生成
     let videoSignedUrl: Awaited<ReturnType<typeof createVideoPresignedPost>> | null = null;
-    let videoUrl: string | null = item.Video?.converted_url ?? item.Video?.original_url ?? null;
+    let videoUrl: string | null = itemEditing.converted_url ?? itemEditing.original_url ?? null;
 
     if (video?.name && !video.uploaded && video.type) {
-        const originalKey = `video/original/${userId}/${itemId}_${now}`;
+        const originalKey = `video/original/${userId}/${itemEditingId}_${now}`;
 
         videoSignedUrl =
             (await createVideoPresignedPost({
@@ -35,10 +35,10 @@ export const buildSignedUrls = async ({ itemId, userId, item, body }: Params) =>
 
     // サムネイル署名付きURL生成
     let thumbnailSignedUrl: string | null = null;
-    let thumbnailUrl: string | null = item.Video?.thumbnail_url ?? null;
+    let thumbnailUrl: string | null = itemEditing.thumbnail_url ?? null;
 
     if (thumbnail?.name && !thumbnail.uploaded && thumbnail.type) {
-        const key = `thumbnail/${userId}/${itemId}_${now}`;
+        const key = `thumbnail/${userId}/${itemEditingId}_${now}`;
 
         thumbnailSignedUrl = await generateSignedUrl({ key, contentType: thumbnail.type });
 
@@ -46,7 +46,7 @@ export const buildSignedUrls = async ({ itemId, userId, item, body }: Params) =>
     }
 
     // 商品画像署名付きURL生成
-    const existingImages = Array.isArray(item.image_url) ? item.image_url : [];
+    const existingImages = Array.isArray(itemEditing.image_url) ? itemEditing.image_url : [];
 
     let itemImageSignedUrls: SignedUrlWithIndex[] = [];
     const newUploadedUrls: string[] = []; // 新規用
@@ -56,7 +56,7 @@ export const buildSignedUrls = async ({ itemId, userId, item, body }: Params) =>
         (itemImages ?? []).map(async (img, index) => {
             if (!img || img.uploaded || !img.type) return;
 
-            const key = `item-image/${userId}/${itemId}_${index}_${now}`;
+            const key = `item-image/${userId}/${itemEditingId}_${index}_${now}`;
 
             const signedUrl = await generateSignedUrl({ key, contentType: img.type });
 
@@ -84,7 +84,7 @@ export const buildSignedUrls = async ({ itemId, userId, item, body }: Params) =>
     });
 
     // attributes.image署名付きURL生成
-    const existingVariants = Array.isArray(item.attributes?.colorVariants) ? item.attributes.colorVariants : [];
+    const existingVariants = Array.isArray(itemEditing.attributes?.colorVariants) ? itemEditing.attributes.colorVariants : [];
 
     const existingVariantMap = new Map<string, string>();
 
@@ -103,7 +103,7 @@ export const buildSignedUrls = async ({ itemId, userId, item, body }: Params) =>
         attributesTargets.map(async (v) => {
             if (!v.image || !v.image.type) return;
 
-            const key = `attributes/${userId}/${itemId}_${v.uiId}_${now}`;
+            const key = `attributes/${userId}/${itemEditingId}_${v.uiId}_${now}`;
 
             const signedUrl = await generateSignedUrl({ key, contentType: v.image?.type });
 

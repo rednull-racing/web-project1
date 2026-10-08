@@ -1,39 +1,31 @@
-import sequelize from "../../../db.js";
-import { AppError } from "../../../errors.js";
-import { updateShipping } from "../../../services/itemShippingProfile.js";
-import { updateImage, updateItem } from "../../../services/items/command/update.js";
-import { getMyItemWithVideoSaleShipping } from "../../../services/items/query/relation.js";
-import { createNotification } from "../../../services/notification.js";
-import { updateSale } from "../../../services/sale.js";
-import { updateVideo } from "../../../services/video.js";
-import { ItemUploadBody } from "../../../validators/body/items.js";
+import sequelize from "../../db.js";
+import { AppError } from "../../errors.js";
+import { updateConfirm, updateItemEditingImage } from "../../services/itemEditing/command.js";
+import { getMyItemEditing } from "../../services/itemEditing/query.js";
+import { ItemUploadBody } from "../../validators/body/items.js";
 import { buildSignedUrls } from "./shared/buildSignedUrls.js";
 import { resolveBrand } from "./shared/resolveBrand.js";
 import { validateMaster } from "./shared/validateMaster.js";
 import { validateNumber } from "./shared/validateNumber.js";
 
 type Params = {
-    itemId: number;
+    itemEditingId: number;
     userId: number;
     body: ItemUploadBody;
 };
 
-// PUT /items/:id?mode="main"
+// PUT /item-editing/:id
 // summary: 商品アップロード
 // page: /upload/[id]
-export const uploadMainUseCase = async ({ itemId, userId, body }: Params) => {
+export const uploadItemEditingConfirmUseCase = async ({ itemEditingId, userId, body }: Params) => {
     const { attributes, shipping, videoMeta, itemMeta, genderAge } = body;
 
-    // Item取得
-    const item = await getMyItemWithVideoSaleShipping({ itemId, userId });
+    // ItemEditing取得
+    const itemEditing = await getMyItemEditing({ itemEditingId, userId });
 
-    if (!item) {
-        throw new AppError("ITEM_NOT_FOUND", 404);
+    if (!itemEditing) {
+        throw new AppError("ITEM_EDITING_NOT_FOUND", 404);
     }
-
-    if (!item.Video) throw new AppError("VIDEO_NOT_FOUND", 404);
-    if (!item.Sale) throw new AppError("SALE_NOT_FOUND", 404);
-    if (!item.ItemShippingProfile) throw new AppError("SHIPPING_NOT_FOUND", 404);
 
     // 署名付きURL生成
     const {
@@ -45,7 +37,7 @@ export const uploadMainUseCase = async ({ itemId, userId, body }: Params) => {
         finalImageUrls,
         attributesImageSignedUrls,
         finalAttributesImageUrls,
-    } = await buildSignedUrls({ itemId, userId, item, body });
+    } = await buildSignedUrls({ itemEditingId, userId, itemEditing, body });
 
     if (!videoUrl) throw new AppError("VIDEO_URL_NULL", 400);
     if (!thumbnailUrl) throw new AppError("THUMBNAIL_URL_NULL", 400);
@@ -68,40 +60,13 @@ export const uploadMainUseCase = async ({ itemId, userId, body }: Params) => {
 
     // データ更新
     await sequelize.transaction(async (t) => {
-        await updateVideo({
-            video: item.Video,
-            data: {
-                title: videoMeta.title,
-                summary: videoMeta.summary ?? "",
-                original_url: videoUrl,
-                thumbnail_url: thumbnailUrl,
-            },
-            transaction: t,
-        });
-
-        await updateSale({
-            sale: item.Sale,
-            data: { before_price: body.price },
-            transaction: t,
-        });
-
-        await updateShipping({
-            shipping: item.ItemShippingProfile,
-            data: {
-                shipping_day_id: dayId,
-                shipping_service_id: serviceId,
-                shipping_place_id: placeId,
-                shipping_service_free_text: shipping.freeText,
-            },
-            transaction: t,
-        });
-
-        await updateItem({
-            item,
+        await updateConfirm({
+            itemEditing,
             data: {
                 name: itemMeta.name,
                 detail: itemMeta.detail ?? "",
-
+                price: body.price,
+                first_image_url: finalImageUrls[0],
                 category_id: categoryId,
                 gender_type: genderAge.gender,
                 age_type: genderAge.age,
@@ -148,27 +113,22 @@ export const uploadMainUseCase = async ({ itemId, userId, body }: Params) => {
                     layer: categoryOption?.layer ?? undefined,
                 },
 
-                price: body.price,
-                first_image_url: finalImageUrls[0],
-                status: "draft",
+                title: videoMeta.title,
+                summary: videoMeta.summary ?? "",
+                original_url: videoUrl,
+                thumbnail_url: thumbnailUrl,
+
+                before_price: body.price,
+
+                shipping_day_id: dayId,
+                shipping_service_id: serviceId,
+                shipping_place_id: placeId,
+                shipping_service_free_text: shipping.freeText,
             },
             transaction: t,
         });
 
-        await updateImage({ item, urls: finalImageUrls, transaction: t });
-    });
-
-    // お知らせ作成
-    createNotification({
-        data: {
-            read_user_id: userId,
-            url: `/item/draft/${itemId}`,
-            message_image: item.first_image_url,
-            message: `${item.name}の下書きを作成しました。下書きの閲覧・編集・出品はこちらから！`,
-            type: "ITEM",
-        },
-    }).catch((err) => {
-        console.error("service createNotification error", err);
+        await updateItemEditingImage({ itemEditing, urls: finalImageUrls, transaction: t });
     });
 
     return {

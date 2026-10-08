@@ -1,5 +1,5 @@
-import { toNullableNumber } from "../../../../utils/toNullableNumber.js";
-import { ItemUploadBody } from "../../../../validators/body/items.js";
+import { toNullableNumber } from "../../../utils/toNullableNumber.js";
+import { ItemUploadBody } from "../../../validators/body/items.js";
 
 type Params = {
     body: ItemUploadBody;
