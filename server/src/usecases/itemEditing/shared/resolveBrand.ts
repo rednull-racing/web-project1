@@ -2,11 +2,11 @@ import { createAliases, getAliasOne } from "../../../services/brandAliases.js";
 import { getBrand, getBrandOne } from "../../../services/brands.js";
 import { BrandResult } from "../../../types/serviceType/brands.js";
 import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
-import { ItemUploadBody } from "../../../validators/body/items.js";
+import { ItemEditingConfirmBody } from "../../../validators/body/itemEditing.js";
 
 type Params = {
     brandId: number | null;
-    body: ItemUploadBody;
+    body: ItemEditingConfirmBody;
 };
 
 // ブランドチェック

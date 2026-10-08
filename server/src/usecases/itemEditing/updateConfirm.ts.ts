@@ -2,7 +2,7 @@ import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
 import { updateConfirm, updateItemEditingImage } from "../../services/itemEditing/command.js";
 import { getMyItemEditing } from "../../services/itemEditing/query.js";
-import { ItemUploadBody } from "../../validators/body/items.js";
+import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
 import { buildSignedUrls } from "./shared/buildSignedUrls.js";
 import { resolveBrand } from "./shared/resolveBrand.js";
 import { validateMaster } from "./shared/validateMaster.js";
@@ -11,7 +11,7 @@ import { validateNumber } from "./shared/validateNumber.js";
 type Params = {
     itemEditingId: number;
     userId: number;
-    body: ItemUploadBody;
+    body: ItemEditingConfirmBody;
 };
 
 // PUT /item-editing/:id
