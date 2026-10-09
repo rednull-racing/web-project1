@@ -17,7 +17,7 @@ type Params = {
 // PUT /item-editing/:id
 // summary: 商品アップロード
 // page: /upload/[id]
-export const uploadItemEditingConfirmUseCase = async ({ itemEditingId, userId, body }: Params) => {
+export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, body }: Params) => {
     const { attributes, shipping, videoMeta, itemMeta, genderAge } = body;
 
     // ItemEditing取得
