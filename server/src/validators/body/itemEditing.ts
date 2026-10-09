@@ -40,7 +40,7 @@ const materialSchema = z.object({
     ratio: z.number().min(0).max(100),
 });
 
-export const itemEditingConfirmBodySchema = z.object({
+export const updateItemEditingConfirmBodySchema = z.object({
     video: fileSchema.optional(),
 
     thumbnail: fileSchema.optional(),
@@ -97,4 +97,4 @@ export const itemEditingConfirmBodySchema = z.object({
     price: z.number().int().positive().min(300).max(1000000),
 });
 
-export type ItemEditingConfirmBody = z.infer<typeof itemEditingConfirmBodySchema>;
+export type ItemEditingConfirmBody = z.infer<typeof updateItemEditingConfirmBodySchema>;
