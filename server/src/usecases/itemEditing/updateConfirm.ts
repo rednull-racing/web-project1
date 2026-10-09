@@ -41,7 +41,7 @@ export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, b
 
     if (!videoUrl) throw new AppError("VIDEO_URL_NULL", 400);
     if (!thumbnailUrl) throw new AppError("THUMBNAIL_URL_NULL", 400);
-    if (!finalImageUrls) throw new AppError("ITEM_IMAGE_NULL", 400);
+    if (!finalImageUrls || finalImageUrls.length === 0) throw new AppError("ITEM_IMAGE_NULL", 400);
 
     // 数値チェック
     const { categoryId, conditionId, dayId, serviceId, placeId, brandId } = await validateNumber({ body });
@@ -55,11 +55,11 @@ export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, b
         placeId,
     });
 
-    // ブランドチェック
-    const brandResult = await resolveBrand({ brandId, body });
-
     // データ更新
     await sequelize.transaction(async (t) => {
+        // ブランドチェック兼brandAliases作成
+        const brandResult = await resolveBrand({ brandId, body });
+
         await updateConfirm({
             itemEditing,
             data: {

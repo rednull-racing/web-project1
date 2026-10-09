@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { publicS3Domain } from "../../../infra/aws/s3.js";
 import { SignedUrlWithIndex } from "../../../infra/aws/type.js";
 import { ItemEditing } from "../../../models/index.js";
@@ -15,13 +16,14 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
     const { video, thumbnail, itemImages, attributes } = body;
 
     const now = Date.now();
+    const requestId = randomUUID();
 
     // 動画署名付きURL生成
     let videoSignedUrl: Awaited<ReturnType<typeof createVideoPresignedPost>> | null = null;
     let videoUrl: string | null = itemEditing.converted_url ?? itemEditing.original_url ?? null;
 
     if (video?.name && !video.uploaded && video.type) {
-        const originalKey = `video/original/${userId}/${itemEditingId}_${now}`;
+        const originalKey = `video/original/${userId}/${itemEditingId}_${now}_${requestId}`;
 
         videoSignedUrl =
             (await createVideoPresignedPost({
@@ -38,7 +40,7 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
     let thumbnailUrl: string | null = itemEditing.thumbnail_url ?? null;
 
     if (thumbnail?.name && !thumbnail.uploaded && thumbnail.type) {
-        const key = `thumbnail/${userId}/${itemEditingId}_${now}`;
+        const key = `thumbnail/${userId}/${itemEditingId}_${now}_${requestId}`;
 
         thumbnailSignedUrl = await generateSignedUrl({ key, contentType: thumbnail.type });
 
@@ -56,7 +58,7 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
         (itemImages ?? []).map(async (img, index) => {
             if (!img || img.uploaded || !img.type) return;
 
-            const key = `item-image/${userId}/${itemEditingId}_${index}_${now}`;
+            const key = `item-image/${userId}/${itemEditingId}_${index}_${now}_${requestId}`;
 
             const signedUrl = await generateSignedUrl({ key, contentType: img.type });
 
@@ -65,11 +67,12 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
                 url: signedUrl,
             };
 
-            itemImageSignedUrls = itemImageSignedUrls.filter((v): v is SignedUrlWithIndex => v != null);
-
             newUploadedUrls[index] = `${publicS3Domain}/${key}`;
         }),
     );
+
+    // 並行処理中に配列を詰めると、後から完了した元indexへの代入で署名が上書きされる。
+    itemImageSignedUrls = itemImageSignedUrls.filter((v): v is SignedUrlWithIndex => v != null);
 
     (itemImages ?? []).forEach((img, i) => {
         if (!img) return;
@@ -105,7 +108,7 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
         attributesTargets.map(async (v) => {
             if (!v.image || !v.image.type) return;
 
-            const key = `attributes/${userId}/${itemEditingId}_${v.uiId}_${now}`;
+            const key = `attributes/${userId}/${itemEditingId}_${v.uiId}_${now}_${requestId}`;
 
             const signedUrl = await generateSignedUrl({ key, contentType: v.image?.type });
 

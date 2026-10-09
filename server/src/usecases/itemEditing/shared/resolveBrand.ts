@@ -1,6 +1,6 @@
 import { createAliases, getAliasOne } from "../../../services/brandAliases.js";
 import { getBrand, getBrandOne } from "../../../services/brands.js";
-import { BrandResult } from "../../../types/serviceType/brands.js";
+import type { BrandResult } from "../../../types/serviceType/brands.js";
 import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
 import { ItemEditingConfirmBody } from "../../../validators/body/itemEditing.js";
 
@@ -10,32 +10,31 @@ type Params = {
 };
 
 // ブランドチェック
-export const resolveBrand = async ({ brandId, body }: Params) => {
+export const resolveBrand = async ({ brandId, body }: Params): Promise<BrandResult> => {
     const brand = body.brand;
-
-    let brandResult: BrandResult = { brand: null, alias: null };
 
     if (brandId !== null) {
         const selectedBrand = await getBrand({ brandId });
-        brandResult = { brand: selectedBrand, alias: null };
+        if (selectedBrand) return { brand: selectedBrand, alias: null };
     }
 
-    if (!brandResult.brand && brand.name) {
-        const inputName = brand.name;
-        const normalized = normalizeJapanese(inputName);
+    if (!brand.name) return { brand: null, alias: null };
 
-        let alias = await getAliasOne({ normalized });
+    const inputName = brand.name;
+    const normalized = normalizeJapanese(inputName);
+    const alias = await getAliasOne({ normalized });
 
-        if (alias?.brand) {
-            brandResult = { brand: alias.brand, alias };
-        }
+    if (alias?.brand) return { brand: alias.brand, alias };
 
-        const brandsData = await getBrandOne({ normalized });
+    const selectedBrand = await getBrandOne({ normalized });
+    if (selectedBrand) return { brand: selectedBrand, alias: null };
 
-        if (!brandsData && inputName.length >= 2) {
-            alias = await createAliases({ inputName, normalized });
-        }
+    if (alias) return { brand: null, alias };
+
+    if (inputName.length >= 2) {
+        const createdAlias = await createAliases({ inputName, normalized });
+        return { brand: null, alias: createdAlias };
     }
 
-    return brandResult;
+    return { brand: null, alias: null };
 };

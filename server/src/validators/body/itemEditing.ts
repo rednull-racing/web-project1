@@ -77,7 +77,21 @@ export const updateItemEditingConfirmBodySchema = z.object({
     attributes: z.object({
         allInventory: z.number().int().min(0),
 
-        colorVariants: z.array(colorVariantSchema),
+        colorVariants: z.array(colorVariantSchema).superRefine((variants, ctx) => {
+            const seenUiIds = new Set<string>();
+
+            variants.forEach((variant, index) => {
+                if (seenUiIds.has(variant.uiId)) {
+                    ctx.addIssue({
+                        code: "custom",
+                        path: [index, "uiId"],
+                        message: "色の情報が重複しています。色の設定を確認してください。",
+                    });
+                }
+
+                seenUiIds.add(variant.uiId);
+            });
+        }),
 
         materials: z.array(materialSchema),
     }),
