@@ -1,16 +1,18 @@
-import { createAliases, getAliasOne } from "../../../services/brandAliases.js";
-import { getBrand, getBrandOne } from "../../../services/brands.js";
-import type { BrandResult } from "../../../types/serviceType/brands.js";
-import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
-import { ItemEditingConfirmBody } from "../../../validators/body/itemEditing.js";
+import { Transaction } from "sequelize";
+import { createAliases, getAliasOne } from "../../services/brandAliases.js";
+import { getBrand, getBrandOne } from "../../services/brands.js";
+import type { BrandResult } from "../../types/serviceType/brands.js";
+import { normalizeJapanese } from "../../utils/normalizeJapanese.js";
+import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
 
 type Params = {
     brandId: number | null;
     body: ItemEditingConfirmBody;
+    transaction?: Transaction;
 };
 
 // ブランドチェック
-export const resolveBrand = async ({ brandId, body }: Params): Promise<BrandResult> => {
+export const resolveBrand = async ({ brandId, body, transaction }: Params): Promise<BrandResult> => {
     const brand = body.brand;
 
     if (brandId !== null) {
@@ -32,7 +34,7 @@ export const resolveBrand = async ({ brandId, body }: Params): Promise<BrandResu
     if (alias) return { brand: null, alias };
 
     if (inputName.length >= 2) {
-        const createdAlias = await createAliases({ inputName, normalized });
+        const createdAlias = await createAliases({ inputName, normalized, transaction });
         return { brand: null, alias: createdAlias };
     }
 

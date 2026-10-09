@@ -1,24 +1,23 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
-import { updateConfirm, updateItemEditingImage } from "../../services/itemEditing/command.js";
+import { CreateItemDraft, updateItemDraftImage } from "../../services/itemDraft/command.js";
 import { getMyItemEditing } from "../../services/itemEditing/query.js";
-import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
+import { CreateItemDraftBody } from "../../validators/body/itemDraft.js";
 import { buildSignedUrls } from "../shared/buildSignedUrls.js";
 import { resolveBrand } from "../shared/resolveBrand.js";
 import { validateMaster } from "../shared/validateMaster.js";
 import { validateNumber } from "../shared/validateNumber.js";
 
 type Params = {
-    itemEditingId: number;
     userId: number;
-    body: ItemEditingConfirmBody;
+    body: CreateItemDraftBody;
 };
 
-// PUT /item-editing/:id
-// summary: 商品アップロード
+// POST /item-draft
+// summary: 下書き商品作成
 // page: /upload/[id]
-export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, body }: Params) => {
-    const { attributes, shipping, videoMeta, itemMeta, genderAge } = body;
+export const createItemDraftUseCase = async ({ userId, body }: Params) => {
+    const { itemEditingId, attributes, shipping, videoMeta, itemMeta, genderAge } = body;
 
     // ItemEditing取得
     const itemEditing = await getMyItemEditing({ itemEditingId, userId });
@@ -60,8 +59,7 @@ export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, b
         // ブランドチェック兼brandAliases作成
         const brandResult = await resolveBrand({ brandId, body, transaction: t });
 
-        await updateConfirm({
-            itemEditing,
+        const itemDraft = await CreateItemDraft({
             data: {
                 name: itemMeta.name,
                 detail: itemMeta.detail ?? "",
@@ -128,7 +126,7 @@ export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, b
             transaction: t,
         });
 
-        await updateItemEditingImage({ itemEditing, urls: finalImageUrls, transaction: t });
+        await updateItemDraftImage({ itemDraft, urls: finalImageUrls, transaction: t });
     });
 
     return {

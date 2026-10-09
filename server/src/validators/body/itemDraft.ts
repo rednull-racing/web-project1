@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { colorVariantSchema, fileSchema, itemImageSchema, materialSchema } from "./utils/putItem.js";
 
-export const updateItemEditingConfirmBodySchema = z.object({
+export const createItemDraftBodySchema = z.object({
+    itemEditingId: z.number().int().min(1),
+
     video: fileSchema.optional(),
 
     thumbnail: fileSchema.optional(),
@@ -72,4 +74,4 @@ export const updateItemEditingConfirmBodySchema = z.object({
     price: z.number().int().positive().min(300).max(1000000),
 });
 
-export type ItemEditingConfirmBody = z.infer<typeof updateItemEditingConfirmBodySchema>;
+export type CreateItemDraftBody = z.infer<typeof createItemDraftBodySchema>;

@@ -1,3 +1,5 @@
+import { Transaction } from "sequelize";
+
 export type GetAllAliasesParams = {
     keyword: string;
     directLength: number;
@@ -10,4 +12,5 @@ export type NormalizedParams = {
 export type NameNormalizedParams = {
     inputName: string;
     normalized: string;
+    transaction?: Transaction;
 };

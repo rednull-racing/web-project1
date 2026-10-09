@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { publicS3Domain } from "../../../infra/aws/s3.js";
-import { SignedUrlWithIndex } from "../../../infra/aws/type.js";
-import { ItemEditing } from "../../../models/index.js";
-import { createVideoPresignedPost, generateSignedUrl } from "../../../utils/s3/index.js";
-import { ItemEditingConfirmBody } from "../../../validators/body/itemEditing.js";
+import { publicS3Domain } from "../../infra/aws/s3.js";
+import { SignedUrlWithIndex } from "../../infra/aws/type.js";
+import { ItemEditing } from "../../models/index.js";
+import { createVideoPresignedPost, generateSignedUrl } from "../../utils/s3/index.js";
+import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
 
 type Params = {
     itemEditingId: number;
