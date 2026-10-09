@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deferred, expectAppError, makeBody, makeItem } from "./fixtures.js";
 
 const mocks = vi.hoisted(() => ({
+    randomUUID: vi.fn(),
     transaction: vi.fn(),
     getMyItemEditing: vi.fn(),
     updateConfirm: vi.fn(),
@@ -18,6 +19,7 @@ const mocks = vi.hoisted(() => ({
     generateSignedUrl: vi.fn(),
     createVideoPresignedPost: vi.fn(),
 }));
+vi.mock("node:crypto", () => ({ randomUUID: mocks.randomUUID }));
 vi.mock("../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
 vi.mock("../../../../src/services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
 vi.mock("../../../../src/services/itemEditing/command.js", () => ({
@@ -39,12 +41,15 @@ vi.mock("../../../../src/utils/s3/index.js", () => ({
     generateSignedUrl: mocks.generateSignedUrl,
     createVideoPresignedPost: mocks.createVideoPresignedPost,
 }));
+import { updateItemEditingConfirmBodySchema as schema } from "../../../../src/validators/body/itemEditing.js";
+import { buildSignedUrls } from "../../../../src/usecases/itemEditing/shared/buildSignedUrls.js";
 import { validateNumber } from "../../../../src/usecases/itemEditing/shared/validateNumber.js";
 import { validateMaster } from "../../../../src/usecases/itemEditing/shared/validateMaster.js";
 import { resolveBrand } from "../../../../src/usecases/itemEditing/shared/resolveBrand.js";
 import { updateItemEditingConfirmUseCase } from "../../../../src/usecases/itemEditing/updateConfirm.js";
 
 let body: ReturnType<typeof makeBody>;
+let item: ReturnType<typeof makeItem>;
 const transaction = { id: "transaction" };
 const brand = { id: 61 };
 const category = { id: 21, body_category: "upper", lifestyle_category: "casual", layer: "outer" };
@@ -64,7 +69,9 @@ const byName = (name: string | null = "新ブランド") => {
 beforeEach(() => {
     vi.resetAllMocks();
     body = makeBody();
-    mocks.getMyItemEditing.mockResolvedValue(makeItem());
+    item = makeItem();
+    mocks.getMyItemEditing.mockResolvedValue(item);
+    mocks.randomUUID.mockReturnValue("request-a");
     mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<void>) => cb(transaction));
     for (const key of masters) mocks[key].mockResolvedValue({ id: 1 });
     mocks.getCategories.mockResolvedValue(category);
@@ -199,7 +206,7 @@ describe("P1: マスター検証と実helperの接続", () => {
 });
 
 describe("P1/P2: ブランド解決と副作用の境界", () => {
-    it("B01: IDが有効なら名前検索を行わない", async () => {
+    it("AF-B01 B01: IDが有効なら名前検索を行わない", async () => {
         expect(await resolveBrand({ brandId: 61, body })).toEqual({ brand, alias: null });
         expect(mocks.getBrand).toHaveBeenCalledExactlyOnceWith({ brandId: 61 });
         expect(mocks.getAliasOne).not.toHaveBeenCalled();
@@ -210,7 +217,7 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         await resolveBrand({ brandId: 0, body });
         expect(mocks.getBrand).toHaveBeenCalledWith({ brandId: 0 });
     });
-    describe.each([null, 999])("B02: brandId=%s", (brandId) => {
+    describe.each([null, 999])("AF-B01 B02: brandId=%s", (brandId) => {
         it.each([null, ""])("名前%sなら未選択のまま返す", async (name) => {
             byName(name);
             expect(await resolveBrand({ brandId, body })).toEqual({ brand: null, alias: null });
@@ -219,76 +226,86 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
             expect(mocks.createAliases).not.toHaveBeenCalled();
         });
     });
-    it("B03: brand付きaliasを採用しその後もブランド名検索を行う", async () => {
+    it("AF-B02 B03 B08: brand付きaliasを採用して後続検索・作成を止める", async () => {
         byName();
         const alias = { id: 71, brand };
         mocks.getAliasOne.mockResolvedValue(alias);
         mocks.getBrandOne.mockResolvedValue(brand);
         expect(await resolveBrand({ brandId: null, body })).toEqual({ brand, alias });
-        expect(mocks.getBrandOne).toHaveBeenCalledOnce();
+        expect(mocks.getBrandOne).not.toHaveBeenCalled();
         expect(mocks.createAliases).not.toHaveBeenCalled();
-        expect(mocks.getAliasOne.mock.invocationCallOrder[0]).toBeLessThan(
-            mocks.getBrandOne.mock.invocationCallOrder[0],
-        );
     });
     it.each([
         [" ＡＢc カタカナ ", "abcかたかな"],
         [" ﾃｽﾄ　Brand ", "てすとbrand"],
-    ])("B04: %sを%sに正規化して検索・作成する", async (name, normalized) => {
+    ])("AF-B07 B04: %sを%sに正規化して検索・作成する", async (name, normalized) => {
         byName(name);
-        await resolveBrand({ brandId: null, body });
+        expect(await resolveBrand({ brandId: null, body })).toEqual({ brand: null, alias: { id: 71, brand_id: null } });
         expect(mocks.getAliasOne).toHaveBeenCalledExactlyOnceWith({ normalized });
         expect(mocks.getBrandOne).toHaveBeenCalledExactlyOnceWith({ normalized });
         expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: name, normalized });
     });
-    it("B05 O02: 名前でブランドが見つかっても戻り値へ採用されない現状を確認する", async () => {
+    it("AF-B03 B05 O02: 名前で見つかったブランドを商品更新のIDへ採用する", async () => {
         byName();
         mocks.getBrandOne.mockResolvedValue(brand);
         await run();
-        expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({ brand_id: null, brand_aliases_id: null });
+        expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({ brand_id: 61, brand_aliases_id: null });
         expect(mocks.createAliases).not.toHaveBeenCalled();
     });
     it.each([
         ["", 0, 0],
         ["名", 1, 0],
         ["名前", 1, 1],
-    ] as const)("B06 O02: 名前%sは検索%s回・別名作成%s回", async (name, search, create) => {
+    ] as const)("AF-B06 AF-B07 B06: 名前%sは検索%s回・別名作成%s回で作成結果を返す", async (name, search, create) => {
         byName(name);
-        expect(await resolveBrand({ brandId: null, body })).toEqual({ brand: null, alias: null });
+        expect(await resolveBrand({ brandId: null, body })).toEqual({
+            brand: null,
+            alias: create ? { id: 71, brand_id: null } : null,
+        });
         expect(mocks.getAliasOne).toHaveBeenCalledTimes(search);
         expect(mocks.getBrandOne).toHaveBeenCalledTimes(search);
         expect(mocks.createAliases).toHaveBeenCalledTimes(create);
     });
-    it.each([false, true])("B07 B08 O02: 既存aliasのbrand有無=%sでも名前未登録なら追加作成する", async (linked) => {
-        byName();
-        const alias = { id: 70, brand: linked ? brand : null };
-        mocks.getAliasOne.mockResolvedValue(alias);
-        expect(await resolveBrand({ brandId: null, body })).toEqual(
-            linked ? { brand, alias } : { brand: null, alias: null },
-        );
-        expect(mocks.createAliases).toHaveBeenCalledOnce();
-    });
+    it.each([false, true])(
+        "AF-B02 AF-B04 B07 B08: 既存aliasのbrand有無=%sに応じて再利用し追加作成しない",
+        async (linked) => {
+            byName();
+            const alias = { id: 70, brand: linked ? brand : null };
+            mocks.getAliasOne.mockResolvedValue(alias);
+            expect(await resolveBrand({ brandId: null, body })).toEqual(
+                linked ? { brand, alias } : { brand: null, alias },
+            );
+            expect(mocks.createAliases).not.toHaveBeenCalled();
+            expect(mocks.getBrandOne).toHaveBeenCalledTimes(linked ? 0 : 1);
+        },
+    );
     it.each([
         ["  ", ""],
         ["😀", "😀"],
-    ])("B09: %sの元文字列lengthで作成を判断する", async (name, normalized) => {
+    ])("AF-B07 B09: %sの元文字列lengthで作成を判断する", async (name, normalized) => {
         byName(name);
-        await resolveBrand({ brandId: null, body });
+        expect(await resolveBrand({ brandId: null, body })).toEqual({ brand: null, alias: { id: 71, brand_id: null } });
         expect(mocks.createAliases).toHaveBeenCalledWith({ inputName: name, normalized });
     });
     it.each(["getBrand", "getAliasOne", "getBrandOne", "createAliases"] as const)(
-        "B10 E11: %sの失敗を伝播しtransactionを開始しない",
+        "AF-B09 B10 E11: transaction内の%sの失敗を伝播し商品更新へ進まない",
         async (name) => {
             if (name !== "getBrand") byName();
             const error = new Error(name);
             mocks[name].mockRejectedValue(error);
             await expect(run()).rejects.toBe(error);
-            noWrites();
             const steps = ["getBrand", "getAliasOne", "getBrandOne", "createAliases"] as const;
             for (const later of steps.slice(steps.indexOf(name) + 1)) expect(mocks[later]).not.toHaveBeenCalled();
+            expect(mocks.updateConfirm).not.toHaveBeenCalled();
+            expect(mocks.updateItemEditingImage).not.toHaveBeenCalled();
+            expect(mocks.transaction).toHaveBeenCalledOnce();
+            expect(mocks.transaction.mock.invocationCallOrder[0]).toBeLessThan(
+                mocks[name].mock.invocationCallOrder[0],
+            );
+            await expect(mocks.transaction.mock.results[0].value).rejects.toBe(error);
         },
     );
-    it("T05: 別名作成は商品transaction開始前で更新失敗から切り離されている（永続化未検証）", async () => {
+    it("AF-B10 T05: transaction内で別名作成後に本体更新が失敗すると画像更新へ進まない（永続化未検証）", async () => {
         byName();
         const error = new Error("update failed");
         mocks.updateConfirm.mockRejectedValue(error);
@@ -297,19 +314,29 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
             inputName: "新ブランド",
             normalized: "新ぶらんど",
         });
-        expect(mocks.createAliases.mock.invocationCallOrder[0]).toBeLessThan(
-            mocks.transaction.mock.invocationCallOrder[0],
+        expect(mocks.transaction).toHaveBeenCalledOnce();
+        const calls = [mocks.transaction, mocks.createAliases, mocks.updateConfirm].map(
+            (fn) => fn.mock.invocationCallOrder[0],
         );
+        expect(calls).toEqual([...calls].sort((a, b) => a - b));
+        await expect(mocks.transaction.mock.results[0].value).rejects.toBe(error);
         expect(mocks.updateItemEditingImage).not.toHaveBeenCalled();
     });
-    it("Q03 O02: 同じ未登録名の逐次実行で別名作成が2回呼ばれる", async () => {
+    it("AF-B08 Q03 O02: 初回に作成したaliasが再検索で返れば2回目は再利用する", async () => {
         byName();
-        mocks.getAliasOne.mockResolvedValue({ id: 70, brand: null });
+        const alias = { id: 71, brand_id: null, brand: null };
+        mocks.createAliases.mockResolvedValue(alias);
+        mocks.getAliasOne.mockResolvedValueOnce(null).mockResolvedValueOnce(alias);
         await run();
         await run();
-        expect(mocks.createAliases).toHaveBeenCalledTimes(2);
+        expect(mocks.getAliasOne).toHaveBeenCalledTimes(2);
+        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({
+            inputName: "新ブランド",
+            normalized: "新ぶらんど",
+        });
+        expect(mocks.updateConfirm).toHaveBeenCalledTimes(2);
         for (const [args] of mocks.updateConfirm.mock.calls)
-            expect(args.data).toMatchObject({ brand_id: null, brand_aliases_id: null });
+            expect(args.data).toMatchObject({ brand_id: null, brand_aliases_id: 71 });
     });
     it("P05: 両検索が未登録を返す順序で並行実行すると双方が別名作成へ進む", async () => {
         byName();
@@ -328,4 +355,208 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(mocks.createAliases).toHaveBeenCalledTimes(2);
         expect(mocks.transaction).toHaveBeenCalledTimes(2);
     });
+});
+
+describe("F2: ブランド解決から商品更新への接続", () => {
+    it("AF-B01: 指定IDが見つからなければ名前でブランドを解決する", async () => {
+        body.brand.id = "999";
+        mocks.getBrand.mockResolvedValue(null);
+        mocks.getBrandOne.mockResolvedValue(brand);
+        await run();
+        expect(mocks.getBrand).toHaveBeenCalledExactlyOnceWith({ brandId: 999 });
+        expect(mocks.getAliasOne).toHaveBeenCalledExactlyOnceWith({ normalized: "ぶらんど" });
+        expect(mocks.getBrandOne).toHaveBeenCalledExactlyOnceWith({ normalized: "ぶらんど" });
+        expect(mocks.createAliases).not.toHaveBeenCalled();
+        expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({ brand_id: 61, brand_aliases_id: null });
+    });
+    it.each([
+        ["AF-B02", true, false, 61, 70, 0],
+        ["AF-B04", false, false, null, 70, 1],
+        ["AF-B05", false, true, 61, null, 1],
+    ] as const)(
+        "%s: aliasのbrand=%s・名前検索のbrand=%sを優先順どおり更新引数へ渡す",
+        async (_id, linked, canonical, brandId, aliasId, searches) => {
+            byName();
+            const alias = { id: 70, brand: linked ? brand : null };
+            mocks.getAliasOne.mockResolvedValue(alias);
+            mocks.getBrandOne.mockResolvedValue(canonical ? brand : null);
+            const before = structuredClone(alias);
+            await run();
+            expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({
+                brand_id: brandId,
+                brand_aliases_id: aliasId,
+            });
+            expect(mocks.createAliases).not.toHaveBeenCalled();
+            expect(mocks.getBrandOne).toHaveBeenCalledTimes(searches);
+            expect(alias).toEqual(before);
+        },
+    );
+    it("AF-B06: 新規aliasのIDを商品更新引数に採用する", async () => {
+        byName();
+        await run();
+        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({
+            inputName: "新ブランド",
+            normalized: "新ぶらんど",
+        });
+        expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({ brand_id: null, brand_aliases_id: 71 });
+    });
+    it("AF-B10: transaction内で実ブランド解決の完了を待って商品更新へ進む", async () => {
+        byName();
+        const alias = deferred<{ id: number }>(),
+            started = deferred<void>();
+        mocks.createAliases.mockImplementation(() => {
+            started.resolve();
+            return alias.promise;
+        });
+        let callbackCompleted = false;
+        mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<void>) => {
+            await cb(transaction);
+            callbackCompleted = true;
+        });
+        const pending = run();
+        await started.promise;
+        const transactionCallsBeforeResolution = mocks.transaction.mock.calls.length;
+        try {
+            expect(callbackCompleted).toBe(false);
+            expect(mocks.updateConfirm).not.toHaveBeenCalled();
+            expect(mocks.updateItemEditingImage).not.toHaveBeenCalled();
+        } finally {
+            alias.resolve({ id: 71 });
+            await pending;
+        }
+        const calls = [mocks.transaction, mocks.createAliases, mocks.updateConfirm, mocks.updateItemEditingImage].map(
+            (fn) => fn.mock.invocationCallOrder[0],
+        );
+        expect(mocks.transaction).toHaveBeenCalledOnce();
+        expect(mocks.updateConfirm.mock.calls[0][0].transaction).toBe(transaction);
+        expect(mocks.updateItemEditingImage.mock.calls[0][0].transaction).toBe(transaction);
+        expect(transactionCallsBeforeResolution).toBe(1);
+        expect(callbackCompleted).toBe(true);
+        expect(calls).toEqual([...calls].sort((a, b) => a - b));
+    });
+});
+
+const noMasterOrWrites = () => {
+    for (const name of [...masters, "getBrand", "getAliasOne", "getBrandOne", "createAliases"] as const)
+        expect(mocks[name]).not.toHaveBeenCalled();
+    noWrites();
+};
+
+describe("F1/F3/F4: 実helperとusecaseを接続した更新前チェック", () => {
+    it("AF-I02 V10: 空画像はschemaを通過するが実helper・usecase経由では400になる", async () => {
+        body.itemImages = [];
+        body = schema.parse(body);
+        const urls = await buildSignedUrls({
+            body,
+            userId: 7,
+            itemEditingId: 11,
+            itemEditing: item as unknown as Parameters<typeof buildSignedUrls>[0]["itemEditing"],
+        });
+        expect(urls.finalImageUrls).toEqual([]);
+        await expectAppError(run(), "ITEM_IMAGE_NULL");
+        noMasterOrWrites();
+    });
+    it.each(["既存URLなし", "type=null", "type空文字", "混在"])(
+        "AF-I03: %sで確定画像が全件なくなると400で停止する",
+        async (mode) => {
+            item.image_url = [];
+            const missingType = { name: "新画像", type: mode === "type空文字" ? "" : null, uploaded: false };
+            if (mode === "混在") body.itemImages.push(missingType);
+            else if (mode !== "既存URLなし") body.itemImages = [missingType];
+            body = schema.parse(body);
+            await expectAppError(run(), "ITEM_IMAGE_NULL");
+            noMasterOrWrites();
+        },
+    );
+    it.each([1, 10])("AF-I04: 確定画像%s件で先頭と全画像を更新serviceへ渡す", async (count) => {
+        item.image_url = Array.from({ length: count }, (_, i) => `https://media.test/old-${i}`);
+        body.itemImages = item.image_url.map((name) => ({ name, type: "image/png", uploaded: true }));
+        await run();
+        expect(mocks.updateConfirm.mock.calls[0][0].data.first_image_url).toBe(item.image_url[0]);
+        expect(mocks.updateItemEditingImage).toHaveBeenCalledExactlyOnceWith({
+            itemEditing: item,
+            urls: item.image_url,
+            transaction,
+        });
+    });
+    it("AF-S06: 飛び飛びの新規indexを返し既存を含む確定画像を全件更新へ渡す", async () => {
+        body.itemImages = Array.from({ length: 4 }, (_, index) => ({
+            name: "画像",
+            type: "image/png",
+            uploaded: index % 2 === 0,
+        }));
+        mocks.generateSignedUrl.mockImplementation(async ({ key }: { key: string }) => `signed:${key}`);
+        const result = await run();
+        const keys = mocks.generateSignedUrl.mock.calls.map(([args]) => args.key as string);
+        expect(keys).toHaveLength(2);
+        expect(keys[0]).toMatch(/^item-image\/7\/11_1_\d+_request-a$/);
+        expect(keys[1]).toBe(keys[0].replace("11_1_", "11_3_"));
+        expect(result).toEqual({
+            videoSignedUrl: null,
+            thumbnailSignedUrl: null,
+            itemImageSignedUrls: [
+                { index: 1, url: `signed:${keys[0]}` },
+                { index: 3, url: `signed:${keys[1]}` },
+            ],
+            attributesImageSignedUrls: {},
+        });
+        expect(mocks.updateConfirm.mock.calls[0][0].data.first_image_url).toBe(item.image_url[0]);
+        expect(mocks.updateItemEditingImage).toHaveBeenCalledExactlyOnceWith({
+            itemEditing: item,
+            urls: [
+                item.image_url[0],
+                `https://media.test/${keys[0]}`,
+                item.image_url[2],
+                `https://media.test/${keys[1]}`,
+            ],
+            transaction,
+        });
+    });
+    it("AF-S05: 並行署名の1件がrejectすれば実helperから同じ例外を伝播して更新しない", async () => {
+        body.itemImages = Array.from({ length: 2 }, () => ({ name: "新画像", type: "image/png", uploaded: false }));
+        const first = deferred<string>(),
+            second = deferred<string>(),
+            started = deferred<void>();
+        mocks.generateSignedUrl
+            .mockImplementationOnce(() => first.promise)
+            .mockImplementationOnce(() => {
+                started.resolve();
+                return second.promise;
+            });
+        const error = new Error("署名失敗");
+        const result = expect(run()).rejects.toBe(error);
+        await started.promise;
+        expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(2);
+        second.reject(error);
+        await result;
+        noMasterOrWrites();
+        first.resolve("signed-first");
+        await first.promise;
+    });
+    it.each(["requestId", "video", "thumbnail", "item", "attribute"])(
+        "AF-K05: %sの失敗を伝播して商品更新を止める",
+        async (target) => {
+            const error = new Error(target);
+            if (target === "requestId")
+                mocks.randomUUID.mockImplementation(() => {
+                    throw error;
+                });
+            else if (target === "video") {
+                body.video = { name: "動画", type: "video/mp4", uploaded: false };
+                mocks.createVideoPresignedPost.mockRejectedValue(error);
+            } else {
+                const image = { name: "画像", type: "image/png", uploaded: false };
+                if (target === "thumbnail") body.thumbnail = image;
+                if (target === "item") body.itemImages = [image];
+                if (target === "attribute") body.attributes.colorVariants[0].image = image;
+                mocks.generateSignedUrl.mockRejectedValue(error);
+            }
+            await expect(run()).rejects.toBe(error);
+            noMasterOrWrites();
+            if (target === "requestId") {
+                expect(mocks.generateSignedUrl).not.toHaveBeenCalled();
+                expect(mocks.createVideoPresignedPost).not.toHaveBeenCalled();
+            }
+        },
+    );
 });

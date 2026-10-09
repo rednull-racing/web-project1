@@ -55,3 +55,17 @@ export const deferred = <T>() => {
     });
     return { promise, resolve, reject };
 };
+
+export const variantImageStates = ["なし", "新規", "既存"] as const;
+type VariantImageState = (typeof variantImageStates)[number];
+
+export const makeDuplicateUiIdBody = (first: VariantImageState = "なし", second: VariantImageState = "なし") => {
+    const body = makeBody();
+    body.attributes.colorVariants = [first, second].map((state) => ({
+        uiId: "red",
+        inventory: 1,
+        sizes: [],
+        ...(state === "なし" ? {} : { image: { name: "色画像", type: "image/png", uploaded: state === "既存" } }),
+    }));
+    return body;
+};

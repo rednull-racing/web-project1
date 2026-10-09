@@ -5,7 +5,7 @@ import { validateBody } from "../../../../src/middleware/validate/validateBody.j
 import { validateParams } from "../../../../src/middleware/validate/validateParams.js";
 import { updateItemEditingConfirmBodySchema as schema } from "../../../../src/validators/body/itemEditing.js";
 import { idParamSchema } from "../../../../src/validators/params/id.js";
-import { makeBody } from "./fixtures.js";
+import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "./fixtures.js";
 
 // 型不正・欠落をschemaへ渡すためのfixture操作。実装の変換処理は再現しない。
 const change = (path: string, value: unknown, omit = false) => {
@@ -164,11 +164,10 @@ describe("P1: optional・nullableとschemaが制限しない入力", () => {
             expect(parse(path, []).success).toBe(true);
         },
     );
-    it("V12: 素材合計100以外・空uiId・重複uiIdを受理する", () => {
+    it("V12: 素材合計100以外と単独の空uiIdを受理する", () => {
         const body = makeBody();
         body.attributes.materials = [{ name: "綿", ratio: 0.1 }];
         body.attributes.colorVariants[0].uiId = "";
-        body.attributes.colorVariants.push(structuredClone(body.attributes.colorVariants[0]));
         expect(schema.safeParse(body).success).toBe(true);
     });
     it.each([null, "", "application/unknown"])("V13: 商品画像type=%sを受理する", (value) => {
@@ -234,5 +233,51 @@ describe("V15 V16: middlewareの引渡しと失敗", () => {
             expect(run).toThrow(expect.objectContaining({ code: "INVALID_PARAMS", statusCode: 400 }));
             expect(next).not.toHaveBeenCalled();
         }
+    });
+});
+
+describe("F4: colorVariantsのuiId一意性", () => {
+    describe.each(variantImageStates)("AF-V01 P07 O04: 先頭画像=%s", (first) => {
+        it.each(variantImageStates)("後続画像=%sでも重複uiIdを拒否し該当位置へエラーを付ける", (second) => {
+            const body = makeDuplicateUiIdBody(first, second);
+            const parsed = schema.safeParse(body);
+            expect(parsed.success).toBe(false);
+            if (parsed.success) throw new Error("重複uiIdが受理された");
+            expect(parsed.error.issues).toMatchObject([
+                { code: "custom", path: ["attributes", "colorVariants", 1, "uiId"] },
+            ]);
+            const req = { body } as Request;
+            const next = vi.fn();
+            const run = () => validateBody(schema)(req, {} as Response, next);
+            expect(run).toThrow(AppError);
+            expect(run).toThrow(expect.objectContaining({ code: "INVALID_BODY", statusCode: 400 }));
+            expect(next).not.toHaveBeenCalled();
+            expect(req.validatedBody).toBeUndefined();
+        });
+    });
+    it.each([{ ids: [] }, { ids: ["red"] }, { ids: ["blue", "red"] }, { ids: ["red", "blue"] }])(
+        "AF-V02: 一意uiId=$idsを値と順序の変更なく受理する",
+        ({ ids }) => {
+            const body = makeBody();
+            body.attributes.colorVariants = ids.map((uiId) => ({ uiId, inventory: 1, sizes: [] }));
+            expect(schema.parse(body)).toEqual(body);
+        },
+    );
+    it.each([
+        [[""], true, []],
+        [["", ""], false, [1]],
+        [["red", "blue", "red"], false, [2]],
+        [["red", "red", "red"], false, [1, 2]],
+        [["red", " red", "RED"], true, []],
+    ] as const)("AF-V03: uiId=%jの受理=%s、重複位置=%j", (ids, accepted, indices) => {
+        const body = makeBody();
+        body.attributes.colorVariants = ids.map((uiId) => ({ uiId, inventory: 1, sizes: [] }));
+        const result = schema.safeParse(body);
+        expect(result.success).toBe(accepted);
+        if (result.success) expect(result.data).toEqual(body);
+        else
+            expect(result.error.issues.map((issue) => issue.path)).toEqual(
+                indices.map((index) => ["attributes", "colorVariants", index, "uiId"]),
+            );
     });
 });

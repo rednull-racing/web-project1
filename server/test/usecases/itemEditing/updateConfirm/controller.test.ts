@@ -31,10 +31,13 @@ describe("P1: controllerの引渡しとレスポンス", () => {
         {
             videoSignedUrl: { url: "post", fields: { key: "video" } },
             thumbnailSignedUrl: "thumbnail",
-            itemImageSignedUrls: [{ index: 1, url: "image" }],
+            itemImageSignedUrls: [
+                { index: 1, url: "image-1" },
+                { index: 3, url: "image-3" },
+            ],
             attributesImageSignedUrls: { red: "red" },
         },
-    ])("R01 R02 R08: 認証ID・validatedBodyを渡し署名4項目%jだけを200で返す", async (result) => {
+    ])("AF-S06 R01 R02 R08: 認証ID・validatedBodyを渡し署名4項目%jだけを200で返す", async (result) => {
         mocks.update.mockResolvedValue({ ...result, ignored: "返却しない" });
         const req = request();
         const { res, status, json } = response();
@@ -46,8 +49,8 @@ describe("P1: controllerの引渡しとレスポンス", () => {
         expect(json).toHaveBeenCalledExactlyOnceWith(result);
         expect(next).not.toHaveBeenCalled();
     });
-    it.each([new AppError("ITEM_EDITING_NOT_FOUND", 404), new Error("failed")])(
-        "R03: %sを同一オブジェクトでnextに渡し成功応答を送らない",
+    it.each([new AppError("ITEM_EDITING_NOT_FOUND", 404), new Error("failed"), new AppError("ITEM_IMAGE_NULL", 400)])(
+        "AF-I06 R03: %sを同一オブジェクトでnextに渡し成功応答を送らない",
         async (error) => {
             mocks.update.mockRejectedValue(error);
             const { res, status, json } = response();

@@ -3,7 +3,7 @@ import express, { type ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeBody } from "./fixtures.js";
+import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "./fixtures.js";
 const mocks = vi.hoisted(() => ({ update: vi.fn() }));
 vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
@@ -97,6 +97,46 @@ describe("P1: 実Router・認証・validatorの接続（usecaseのみモック�
             expect(res.body.code).toBe("INVALID_BODY");
         }
         expect((await put({})).status).toBe(429);
+        expect(mocks.update).not.toHaveBeenCalled();
+    });
+});
+
+describe("F3/F4: 実Routerのエラー接続", () => {
+    it("AF-I06: usecaseのITEM_IMAGE_NULLを400で引き渡す", async () => {
+        const { AppError } = await import("../../../../src/errors.js");
+        mocks.update.mockRejectedValue(new AppError("ITEM_IMAGE_NULL", 400));
+        const result = await put();
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ code: "ITEM_IMAGE_NULL" });
+        expect(mocks.update).toHaveBeenCalledOnce();
+    });
+    describe.each(variantImageStates)("AF-V01 P07 O04: 先頭画像=%s", (first) => {
+        it.each(variantImageStates)("後続画像=%sの重複uiIdは400でusecaseへ進めない", async (second) => {
+            const result = await put(makeDuplicateUiIdBody(first, second));
+            expect(result.status).toBe(400);
+            expect(result.body).toEqual({ code: "INVALID_BODY" });
+            expect(mocks.update).not.toHaveBeenCalled();
+        });
+    });
+    it("AF-V04: params不正は重複uiIdより先に拒否する", async () => {
+        const result = await put(makeDuplicateUiIdBody(), "abc");
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ code: "INVALID_PARAMS" });
+        expect(mocks.update).not.toHaveBeenCalled();
+    });
+    it("AF-V04: 未認証は重複uiIdの検証より先に401となる", async () => {
+        const result = await request(app).put("/api/item-editing/11").send(makeDuplicateUiIdBody());
+        expect(result.status).toBe(401);
+        expect(result.body).toEqual({ message: "トークンがありません。" });
+        expect(mocks.update).not.toHaveBeenCalled();
+    });
+    it("AF-V04: 重複uiIdの不正bodyも5回で制限に達し6回目は429になる", async () => {
+        for (let index = 0; index < 5; index++) {
+            const result = await put(makeDuplicateUiIdBody());
+            expect(result.status).toBe(400);
+            expect(result.body.code).toBe("INVALID_BODY");
+        }
+        expect((await put(makeDuplicateUiIdBody())).status).toBe(429);
         expect(mocks.update).not.toHaveBeenCalled();
     });
 });

@@ -20,7 +20,7 @@
 以下は今回の修正案・追加テスト設計の対象外とする。未確認のDB挙動から修正の必要性を断定しない。
 
 - 別名が実DBで重複するか、商品更新の失敗後に残存するか。
-- transaction範囲の変更、DB一意制約、マイグレーション、並行作成の排他制御。
+- DB一意制約、マイグレーション、並行作成の排他制御。ブランド解決を商品transactionのcallback内で実行する順序は、追加指示に基づきテスト契約へ反映する。
 - 実DBのrollback・commit後の可視性・外部キーやJSONBの保存結果。
 - staleなモデル、所有者変更、削除、同時更新による競合（O05等）。
 - 既知の型エラー、Router登録、共通エラー処理、今回の観測と無関係な改善。
@@ -36,7 +36,7 @@
 | `usecases/itemEditing/updateConfirm.ts` | F3：確定した商品画像が0件なら既存AppErrorで停止する | 更新前の業務上の前提確認 |
 | `validators/body/itemEditing.ts` | F4：colorVariants内でuiIdが重複していたら拒否する | リクエストの入力検証 |
 
-serviceのDBアクセス実装、モデル制約、transactionの範囲は変更案に含めない。F2では既存の `getBrand`、`getAliasOne`、`getBrandOne`、`createAliases` と `BrandResult` を利用できる。
+serviceのDBアクセス実装、モデル制約は変更案に含めない。ブランド解決は、追加指示で確認した現行実装どおり商品transactionのcallback内で行う。F2では既存の `getBrand`、`getAliasOne`、`getBrandOne`、`createAliases` と `BrandResult` を利用できる。
 
 ControllerとRouteに業務ロジックを追加しない。成功レスポンスは既存の署名4項目を維持する。新しい依存ライブラリは追加しない。
 
@@ -118,7 +118,14 @@ await Promise.all(入力画像ごとの処理)
 
 ### transactionへの影響
 
-ブランド解決は現在どおり商品更新transactionの前に行う。検索・作成serviceへのtransaction引数追加、商品更新失敗時の別名の扱い変更は行わない。したがってT05のtransaction境界を変更する修正案にはしない。
+ブランド解決とcreateAliasesは、追加指示の意図に合わせ、商品更新transactionのcallback内で行う。期待する順序は「数値・マスター検証→transaction開始→ブランド解決・必要な別名作成→本体更新→画像更新」とする。
+
+- ブランド解決が完了するまで本体・画像更新とcallback完了へ進まない。
+- ブランドserviceが失敗した場合、transactionは開始済みであり、同一エラーがcallbackからusecaseへ伝播する。後続のブランドserviceと商品更新は実行しない。
+- transaction開始に失敗してcallbackが呼ばれなければ、ブランド解決も実行しない。
+- 本体更新失敗時はcallbackが同一エラーでrejectし、画像更新へ進まない。T05はこの順序と伝播を検証する。
+
+今回のテスト修正はcallback内の実行順序を対象とする。現行のresolveBrand/createAliasesにはtransaction引数がなく、createAliasesのModel.createにも明示的なtransaction指定はないため、callback内での呼出しだけを根拠にDB操作が同一transactionへ参加しているとは判定しない。引数追加やDBのrollback検証は今回行わない。
 
 ## 5. F3：確定した商品画像が0件なら更新を止める
 
@@ -211,7 +218,7 @@ requestIdを追加しても、同じリクエスト内でuiIdが重複してい�
 | 条件分岐 | ブランドの優先順位、既存/新規画像、情報不足、採用済み結果からの早期return |
 | 状態遷移 | 2回目の検索でaliasが返ったときの再利用、画像再利用から新規署名への切替。永続状態は扱わない |
 | DB整合性 | 対象外。更新引数の整合性だけはU/Hで確認し、DB保証と区別 |
-| トランザクション | 画像0件で未開始、正常時の同一transaction引渡しと完了待ちを回帰確認。境界変更・rollback検証は含めない |
+| トランザクション | 画像0件で未開始、transaction内のブランド解決と例外伝播、更新serviceへの同一transaction引渡しと完了待ちを確認。DBのrollback検証は含めない |
 | 重複実行 | 同じ時刻でも別requestIdでキーが分かれること、既存alias返却時の作成呼出し抑止 |
 | 並行処理 | 署名完了順を変えても欠落・対応ずれがないこと。DB並行更新・別名の同時作成制御は対象外 |
 
@@ -242,8 +249,8 @@ requestIdを追加しても、同じリクエスト内でuiIdが重複してい�
 | AF-B06 | B06 / O02 | H/U | 検索結果なし、2文字以上で新規aliasを作成 | 作成1回、そのaliasを返す。更新引数brand_aliases_idへ新規IDを渡す |
 | AF-B07 | B04 / B06 / B09 | H | 元名0/1/2文字、全半角・カナ・空白・絵文字 | 現行の正規化と作成条件を維持。作成した場合のalias返却だけを変更 |
 | AF-B08 | Q03 / O02 | H/U | 初回は未登録→作成、2回目の検索はその未紐付けaliasを返す | 2回とも同じalias.idを採用し、createAliasesの合計呼出しは1回。DB件数はassertしない |
-| AF-B09 | B10 / E11 | H/U | getBrand、getAliasOne、getBrandOne、createAliasesをそれぞれreject | 呼び出される分岐を用意し、同一エラーの伝播、後続・商品transaction未実行を確認 |
-| AF-B10 | N01 / T01 / T02 / T05 | U/H | ブランド解決成功後に商品更新を実行 | ブランド解決→商品transaction→本体→画像の順序を維持。同一tと完了待ちを確認。別名のDB残存は扱わない |
+| AF-B09 | B10 / E11 | H/U | getBrand、getAliasOne、getBrandOne、createAliasesをそれぞれreject | 呼び出される分岐を用意し、transaction開始後の同一エラーのcallback/usecaseへの伝播、後続ブランドservice・商品更新の未実行を確認 |
+| AF-B10 | N01 / T01 / T02 / T05 | U/H | ブランド解決成功後に商品更新を実行 | 商品transaction→ブランド解決→本体→画像の順序を確認。ブランド解決中の更新・callback完了待ち、更新serviceへの同一t引渡し、開始失敗時のブランド解決未実行、本体更新失敗の伝播を確認。別名のDB残存は扱わない |
 
 ### F3：商品画像0件
 
@@ -285,7 +292,7 @@ requestIdを追加しても、同じリクエスト内でuiIdが重複してい�
 | S01 / S04 / S05 / S09等のキー文字列比較 | requestId込みの期待値へ変更。署名と公開URLの対応assertは維持 |
 | V12：重複uiIdを受理するケース | 重複部分をAF-V01/V03へ置換。空配列・素材比率合計など無関係な受理条件は維持 |
 | P07：helper直接呼出しで辞書上書きを期待するケース | HTTPの入力契約を確認するAF-V01へ移す。helper直接呼出しまで拒否されるとは期待しない |
-| N01、ブランド関連のservice呼出順・回数 | 解決後の早期returnを反映。商品transactionの位置は維持 |
+| N01、ブランド関連のservice呼出順・回数 | 解決後の早期returnを反映。追加指示に合わせ、商品transaction開始後にブランド解決を実行する期待値へ変更。T05もcallback内の別名作成・本体更新失敗の伝播へ移行 |
 | その他の正常系・認証・認可・価格/在庫境界・エラー伝播 | 原則として既存期待値を維持し回帰確認 |
 
 既存436件という件数の維持やカバレッジ100%を完了条件にしない。仕様が変わるケースだけ期待結果を更新し、無関係なassertを弱めない。失敗したテストをskipやtodoにして成功扱いにしない。
@@ -307,6 +314,7 @@ requestIdを追加しても、同じリクエスト内でuiIdが重複してい�
 - 異常系はエラーだけでなく、後続検証・署名・更新の未実行を適切な境界で確認できている。
 - 署名の各完了順で、件数・元indexの一意性・URL対応・確定URL順序が一致する。
 - ブランドの戻り値、必要なserviceだけを呼ぶこと、商品更新へ渡すIDを確認できている。
+- transaction開始後にブランド解決を行い、その完了前には更新へ進まない。ブランド解決失敗時はcallback/usecaseへ同一エラーを伝播し、商品更新へ進まない。
 - 既存の所有権取得、成功レスポンス、transaction引渡し・完了待ち、認証・レート制限の回帰テストが通る。
 - DB未検証の事項について成功・修正完了と記載しない。今回の完了はDB非接続で検証できる修正範囲に限定する。
 
@@ -322,3 +330,142 @@ npm run typecheck
 既存ESLint設定がテストTSを検査しない場合は、前回同様に対象テストへtypescript-eslintの検査を別途適用する。既知のエラーは修正せず、新しい変更に起因するエラーと区別する。
 
 本書作成時点ではコード・テストを変更していないため、これらのコマンドの再実行や、修正後の成功判定は行っていない。
+
+---
+
+## 修正レポート
+
+> 以下は順序の意図が確認される前の実行履歴。現在の設計は上記各節へ反映済みであり、最新の判定は末尾の「再修正レポート」を参照する。
+
+### 実施結果
+
+第8〜10節に基づき、F1〜F4の追加・移行テストを実装した。対象ディレクトリの7テストファイルを実行した結果は、**502件中494件成功、8件失敗、skip/todoなし**だった。追加テストの実装は完了したが、ブランド解決とtransaction開始の順序が本書の契約と一致しないため、全件成功の完了条件は未達である。
+
+今回変更したのは、このディレクトリのテスト6ファイル、共通fixture、本レポートだけである。`services.test.ts`は変更せず回帰確認した。実装コード、`testArchitecture.md`、過去の観測結果を記録した`testReport.md`は変更していない。
+
+### 追加・移行内容とAFケースの結果
+
+モックはVitestを使用した。service・S3署名・transactionをモックし、helper、schema、validateBody、controller、Routerは各テストの責務に応じて実処理を呼び出している。署名の完了順はdeferred Promise、requestIdは`randomUUID`の固定応答で制御した。DBへの接続は行っていない。
+
+以下は31個のAFケースIDの対応表である。同じIDを複数条件やレイヤーで検証しているため、ID数と実行テスト件数は一致しない。
+
+| 対象ID | 主なファイル | 結果・確認内容 |
+| --- | --- | --- |
+| AF-S01〜S04 | `signedUrls.test.ts` | 成功。正順・逆順・混在、疎index、既存と新規の混在、署名対象0/1/10件で、件数・index・URL対応と確定URL順を確認 |
+| AF-S05 | `masterBrand.test.ts` | 成功。実helper内の署名失敗を同一エラーとして伝播し、マスター検索・商品更新へ進まない |
+| AF-S06 | `masterBrand.test.ts`、`controller.test.ts` | 成功。疎indexを含む署名4項目の返却、先頭画像と全画像の更新引数を確認 |
+| AF-B01〜B07 | `masterBrand.test.ts` | 成功。ID指定、紐付け済みalias、正式ブランド、未紐付けalias、新規作成の優先順位、名前の境界・正規化、更新へ渡すIDを確認 |
+| AF-B08 | `masterBrand.test.ts` | 成功。2回目の検索で既存aliasを返すモックにより再利用を確認。作成serviceの合計呼出しは1回 |
+| AF-B09 | `masterBrand.test.ts` | **失敗（4件）**。各ブランドserviceの例外は伝播するが、例外発生前にtransactionが開始されている |
+| AF-B10 | `masterBrand.test.ts`、`usecase.test.ts` | **一部失敗**。ブランド解決完了前のtransaction開始を検出。同一transactionの更新serviceへの引渡し、本体・画像更新とtransaction完了の待機は確認できた |
+| AF-I01 | `usecase.test.ts` | 成功。確定画像が空配列/null/undefinedの場合、既存先頭画像の有無によらず400で後続未実行 |
+| AF-I02〜I04 | `masterBrand.test.ts` | 成功。schemaが受理する画像0件、実helperが全件除外する入力、確定画像1/10件を実usecaseへ接続して確認 |
+| AF-I05 | `usecase.test.ts` | 成功。動画→サムネイル→商品画像のエラー優先順位を維持 |
+| AF-I06 | `controller.test.ts`、`route.test.ts` | 成功。ITEM_IMAGE_NULLの同一AppErrorをnextへ渡し、テスト用エラーmiddlewareを通じてHTTP 400を確認 |
+| AF-K01〜K04 | `signedUrls.test.ts` | 成功。同一時刻の別requestId、1呼出し内のキー対応、既存URL保持、異なる時刻や並行実行での結果の分離を確認 |
+| AF-K05 | `masterBrand.test.ts` | 成功。UUID生成失敗、および動画・サムネイル・商品画像・属性画像の署名失敗で商品更新へ進まない |
+| AF-V01 | `validation.test.ts`、`route.test.ts` | 成功。画像なし・新規・既存の組合せ9通りで重複uiIdを拒否し、INVALID_BODY/400、usecase未実行を確認 |
+| AF-V02 | `validation.test.ts`、`signedUrls.test.ts` | 成功。色0/1/複数件と並べ替えを受理し、uiIdと画像URLの対応を維持 |
+| AF-V03 | `validation.test.ts` | 成功。単独の空文字は受理し、空文字や離れた位置の重複は拒否。trim・大小文字変換を行わない |
+| AF-V04 | `route.test.ts` | 成功。認証・params検証の優先順位を維持し、重複bodyによる400もレート制限回数に加算 |
+
+署名欠落、不要なalias作成、空画像での更新継続、同一時刻のキー一致、重複uiId受理を期待していた観測テストは、修正後の契約へ移行した。画像0件のschema受理、素材比率合計など無関係な入力条件の期待値は維持している。失敗するケースをskip/todoにしたり、現行実装に合わせて順序のassertを弱めたりしていない。
+
+### 失敗8件の原因と完了判定
+
+本書では「ブランド解決→商品transaction開始→本体更新→画像更新」の順序を要求している。一方、現行の`server/src/usecases/itemEditing/updateConfirm.ts`は、`sequelize.transaction`のcallback内で`resolveBrand`を呼び出している。これにより、次の8件が失敗した。
+
+| ファイル・ケース | 件数 | 設計書と異なる観測結果 |
+| --- | --- | --- |
+| `masterBrand.test.ts`：AF-B09 | 4 | getBrand/getAliasOne/getBrandOne/createAliasesの各例外発生時、transactionの呼出し回数が期待値0回に対して1回 |
+| `masterBrand.test.ts`：AF-B10 | 1 | alias作成が未完了の時点でtransactionが開始済み。呼出し順も設計と逆 |
+| `masterBrand.test.ts`：既存T05 | 1 | alias作成の呼出しが商品transaction開始より後 |
+| `usecase.test.ts`：既存N01/N02/N05/T01 | 1 | 正常時のブランド解決とtransaction開始の順序が逆 |
+| `usecase.test.ts`：既存E11/E12/E13/T06のresolveBrand例外 | 1 | resolveBrandが失敗してもtransactionは呼出し済み |
+
+F1・F3・F4の追加テスト、およびF2のブランド採用・再利用は成功した。既存の認証・認可、入力境界、レスポンス、更新引数、transaction引渡しと完了待ちも対象テストで確認した。ただし、F2の処理順序と異常時のtransaction未開始については契約未達であり、修正全体の完了とは判定しない。
+
+今回許可された範囲はテストディレクトリ内に限られるため、実装コードは修正していない。DBの永続化、rollback、aliasの残存や並行更新の整合性については検証も成功判定も行っていない。transaction callback内で呼んでいることだけから、ブランドserviceに同じtransactionが適用されるとは判断しない。
+
+### 実行コマンドと詳細結果
+
+`server/`で次を実行した。テスト結果の集計にはVitestのJSONレポートを使用した。
+
+```bash
+npm run test:run -- test/usecases/itemEditing/updateConfirm/ --reporter=json --outputFile=/tmp/afterfix-tests.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+| テストファイル | 成功 | 失敗 | 合計 |
+| --- | ---: | ---: | ---: |
+| `controller.test.ts` | 5 | 0 | 5 |
+| `masterBrand.test.ts` | 144 | 6 | 150 |
+| `route.test.ts` | 22 | 0 | 22 |
+| `services.test.ts` | 4 | 0 | 4 |
+| `signedUrls.test.ts` | 60 | 0 | 60 |
+| `usecase.test.ts` | 48 | 2 | 50 |
+| `validation.test.ts` | 211 | 0 | 211 |
+| **合計** | **494** | **8** | **502** |
+
+`npm run lint`は成功した。既存設定ではテストTSが検査対象外のため、対象ディレクトリの8個のTSファイルへ、ESLint APIでtypescript-eslintのrecommended設定を別途適用し、エラー・警告ともに0件だった。
+
+型検査は既知の対象外エラーにより失敗した。`npm run typecheck`では`src/controllers/items.ts`のexport不一致1件と`src/usecases/items/upload/uploadDraft.ts`のimport先不在4件、テスト用tsconfigでは`shopSignup/signup1.test.ts`と`signup5.test.ts`のimport先不在2件が報告された。今回変更したテストファイルに型エラーは報告されていない。これらの既知エラーは変更していない。
+
+## 再修正レポート
+
+### 再修正の理由と対象
+
+ブランド解決とcreateAliasesを商品transactionのcallback内で実行する順序は、意図した変更であることが確認された。この指示を設計の前提として、第3・5・7〜10節の関連記述と、`usecase.test.ts`・`masterBrand.test.ts`の期待値を修正した。前回の修正レポートは実行履歴として残しているが、そこでの「順序の不一致による未達」という判定は本レポートで更新する。
+
+今回変更したファイルは、このディレクトリ内の上記テスト2ファイルと`afterFix.md`のみ。実装コード、DB、その他のテストファイルは変更していない。
+
+### 更新したテスト契約
+
+期待する順序を「事前検証→transaction開始→ブランド解決・必要な別名作成→本体更新→画像更新」とした。
+
+| 対象 | 更新・確認内容 | 結果 |
+| --- | --- | --- |
+| AF-B09（4件） | 各ブランドserviceの例外発生時はtransaction開始済みとし、transactionの返却Promiseとusecaseが同じエラーでrejectすること、後続service・商品更新の未実行を確認 | 成功 |
+| AF-B10：ブランド解決待機 | 別名作成を保留している間はtransaction開始済みで、本体・画像更新とcallback完了には進まない。解決後は順序どおり更新し、両更新serviceに同じtを渡す | 成功 |
+| AF-B10 / T05：本体更新失敗 | transaction開始後に別名を作成し、本体更新で失敗した場合は同じエラーを伝播して画像更新へ進まない | 成功 |
+| N01 / N02 / N05 / T01 | 正常時の呼出し順をtransaction開始→ブランド解決へ変更。保存引数・返却項目の検証は維持 | 成功 |
+| E11 / E12 / E13 / T06 | ブランド解決より前の事前処理失敗ではtransaction未開始。ブランド解決以降の失敗では開始済みで、transactionの返却Promiseにも同一エラーが伝播 | 成功 |
+| E14 | transaction開始失敗でcallbackが呼ばれない場合はブランド解決未実行。完了時の失敗ではブランド解決実行済みであることを追加確認 | 成功 |
+
+失敗テストを削除・skip化せず、変更された契約に対応するassertへ移行した。ブランド解決、本体更新、画像更新、transaction完了の待機、および異常時の後続未実行は引き続き検証している。
+
+### 再実行結果
+
+`server/`で実行：
+
+```bash
+npm run test:run -- test/usecases/itemEditing/updateConfirm/ --reporter=json --outputFile=/tmp/afterfix-revised-tests.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+| テストファイル | 成功 | 失敗 | 合計 |
+| --- | ---: | ---: | ---: |
+| `controller.test.ts` | 5 | 0 | 5 |
+| `masterBrand.test.ts` | 150 | 0 | 150 |
+| `route.test.ts` | 22 | 0 | 22 |
+| `services.test.ts` | 4 | 0 | 4 |
+| `signedUrls.test.ts` | 60 | 0 | 60 |
+| `usecase.test.ts` | 50 | 0 | 50 |
+| `validation.test.ts` | 211 | 0 | 211 |
+| **合計** | **502** | **0** | **502** |
+
+**7ファイル・502件がすべて成功し、skip/todoは0件。** 前回失敗した8件はすべて成功した。F1〜F4のAFケースと既存の回帰テストは、更新した呼出し順の契約を満たしている。
+
+`npm run lint`は成功。変更したテストTSの2ファイルへ、ESLint APIでtypescript-eslintのrecommended設定も別途適用し、エラー・警告ともに0件だった。
+
+型検査は前回と同じ既知の対象外エラーのみで失敗した。アプリ側は`src/controllers/items.ts`のexport不一致1件と`uploadDraft.ts`のimport先不在4件、テスト側は`shopSignup/signup1.test.ts`・`signup5.test.ts`のimport先不在2件である。今回変更したファイルの型エラーは報告されておらず、既知エラーは修正していない。
+
+### 完了判定と検証範囲
+
+今回依頼された、意図した実行順序への設計・テストの再修正と、対象テストの全件成功を確認した。DB非接続で検証する呼出し順・待機・例外伝播の範囲では完了とする。
+
+これはcreateAliasesのDB操作が商品更新と同じtransactionへ参加し、更新失敗時にrollbackされることの確認ではない。現行コードはresolveBrand/createAliasesへtを明示的に渡しておらず、Model.createにもtransaction指定がない。DBへの参加・rollback・永続化の整合性は今回の検証対象外であり、成功とは判定していない。

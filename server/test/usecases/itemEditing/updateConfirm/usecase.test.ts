@@ -158,8 +158,8 @@ describe("P0: usecaseの更新と処理順序", () => {
             mocks.buildSignedUrls,
             mocks.validateNumber,
             mocks.validateMaster,
-            mocks.resolveBrand,
             mocks.transaction,
+            mocks.resolveBrand,
             mocks.updateConfirm,
             mocks.updateItemEditingImage,
         ].map((m) => m.mock.invocationCallOrder[0]);
@@ -263,16 +263,22 @@ describe("P0: usecaseの更新と処理順序", () => {
         ])
             expect(data()).not.toHaveProperty(key);
     });
-    it.each([null, "old-first"])(
-        "O01: 先頭画像%sがあっても空配列を拒否せずundefinedを渡す（DB未検証）",
-        async (first) => {
+    describe.each([null, "old-first"])("AF-I01 E04 O01: 既存先頭画像=%s", (first) => {
+        it.each([[], null, undefined])("確定画像%jなら400で数値検証以降を実行しない", async (urls) => {
             Object.assign(item, { first_image_url: first });
-            mocks.buildSignedUrls.mockResolvedValue({ ...makeUrls(), finalImageUrls: [] });
-            await run();
-            expect(data().first_image_url).toBeUndefined();
-            expect(mocks.updateItemEditingImage).toHaveBeenCalledWith({ itemEditing: item, urls: [], transaction });
-        },
-    );
+            mocks.buildSignedUrls.mockResolvedValue({ ...makeUrls(), finalImageUrls: urls });
+            await expectAppError(run(), "ITEM_IMAGE_NULL");
+            for (const fn of [
+                mocks.validateNumber,
+                mocks.validateMaster,
+                mocks.resolveBrand,
+                mocks.transaction,
+                mocks.updateConfirm,
+                mocks.updateItemEditingImage,
+            ])
+                expect(fn).not.toHaveBeenCalled();
+        });
+    });
 });
 
 describe("P0: 失敗伝播と後続未実行", () => {
@@ -296,9 +302,22 @@ describe("P0: 失敗伝播と後続未実行", () => {
         expect(mocks.validateNumber).not.toHaveBeenCalled();
         expect(mocks.transaction).not.toHaveBeenCalled();
     });
-    it("E15: 動画とサムネイルが両方不正なら動画エラーを返す", async () => {
-        mocks.buildSignedUrls.mockResolvedValue({ ...makeUrls(), videoUrl: null, thumbnailUrl: null });
-        await expectAppError(run(), "VIDEO_URL_NULL");
+    it.each([
+        [null, null, "VIDEO_URL_NULL"],
+        ["valid-video", null, "THUMBNAIL_URL_NULL"],
+        ["valid-video", "valid-thumbnail", "ITEM_IMAGE_NULL"],
+    ])("AF-I05 E15: 動画%s・サムネイル%s・画像0件なら%sを優先する", async (videoUrl, thumbnailUrl, code) => {
+        mocks.buildSignedUrls.mockResolvedValue({ ...makeUrls(), videoUrl, thumbnailUrl, finalImageUrls: [] });
+        await expectAppError(run(), String(code));
+        for (const fn of [
+            mocks.validateNumber,
+            mocks.validateMaster,
+            mocks.resolveBrand,
+            mocks.transaction,
+            mocks.updateConfirm,
+            mocks.updateItemEditingImage,
+        ])
+            expect(fn).not.toHaveBeenCalled();
     });
     const stages = [
         "getMyItemEditing",
@@ -314,7 +333,12 @@ describe("P0: 失敗伝播と後続未実行", () => {
         mocks[stage].mockRejectedValueOnce(error);
         await expect(run()).rejects.toBe(error);
         for (const later of stages.slice(stages.indexOf(stage) + 1)) expect(mocks[later]).not.toHaveBeenCalled();
-        if (stages.indexOf(stage) < 5) expect(mocks.transaction).not.toHaveBeenCalled();
+        if (stages.indexOf(stage) < stages.indexOf("resolveBrand")) {
+            expect(mocks.transaction).not.toHaveBeenCalled();
+        } else {
+            expect(mocks.transaction).toHaveBeenCalledOnce();
+            await expect(mocks.transaction.mock.results[0].value).rejects.toBe(error);
+        }
     });
     it.each(["開始", "完了"])("E14: transaction%sの失敗を伝播する", async (phase) => {
         const error = new Error(phase);
@@ -323,10 +347,11 @@ describe("P0: 失敗伝播と後続未実行", () => {
             throw error;
         });
         await expect(run()).rejects.toBe(error);
+        expect(mocks.resolveBrand).toHaveBeenCalledTimes(phase === "開始" ? 0 : 1);
         expect(mocks.updateConfirm).toHaveBeenCalledTimes(phase === "開始" ? 0 : 1);
         expect(mocks.updateItemEditingImage).toHaveBeenCalledTimes(phase === "開始" ? 0 : 1);
     });
-    it("T02: 本体・画像・transactionの完了をそれぞれ待つ", async () => {
+    it("AF-B10 T02: 本体・画像・transactionの完了をそれぞれ待つ", async () => {
         const main = deferred<void>(),
             images = deferred<void>(),
             commit = deferred<void>();
