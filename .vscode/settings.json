@@ -98,7 +98,9 @@
         "mokuji",
         "zenn",
         "techdebt",
-        "fontawesome"
+        "fontawesome",
+        "VARCHAR",
+        "NFKC"
     ],
     "remote.autoForwardPortsFallback": 0
 }
