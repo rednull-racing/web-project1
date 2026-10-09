@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
-import { uploadMainUseCase } from "../usecases/itemEditing/updateConfirm.ts.js";
+import { uploadMainUseCase } from "../usecases/itemEditing/updateConfirm.js";
 import { deleteDraftItemUseCase } from "../usecases/items/delete/draftDelete.js";
 import { deleteItemLogicallyUseCase } from "../usecases/items/delete/logicalDelete.js";
 import { deleteItemPerfectUseCase } from "../usecases/items/delete/perfectDelete.js";
