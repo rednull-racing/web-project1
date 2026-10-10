@@ -1,6 +1,6 @@
 import { InferAttributes, Op, Order, Transaction, WhereOptions } from "sequelize";
 import { Item } from "../../models/index.js";
-import { BodyCategory, ItemAttributes, Layer, LifeStyleCategory } from "../itemAttributes.js";
+import { ItemAttributes } from "../itemAttributes.js";
 
 export type ItemIdParams = {
     itemId: number;

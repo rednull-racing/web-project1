@@ -6,7 +6,6 @@ export {
     updateRestoreItem,
     addViewsCount,
     updateImage,
-    updateItem,
     updatePrice,
     updateReportScore,
 } from "./update.js";
