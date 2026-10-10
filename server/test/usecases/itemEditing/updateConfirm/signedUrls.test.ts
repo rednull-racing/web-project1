@@ -9,7 +9,7 @@ vi.mock("node:crypto", () => ({ randomUUID: mocks.randomUUID }));
 vi.mock("../../../../src/infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
 vi.mock("../../../../src/utils/s3/index.js", () => mocks);
 import { updateItemEditingConfirmBodySchema as schema } from "../../../../src/validators/body/itemEditing.js";
-import { buildSignedUrls } from "../../../../src/usecases/itemEditing/shared/buildSignedUrls.js";
+import { buildSignedUrls } from "../../../../src/usecases/shared/buildSignedUrls.js";
 
 let body: ReturnType<typeof makeBody>;
 let item: ReturnType<typeof makeItem>;

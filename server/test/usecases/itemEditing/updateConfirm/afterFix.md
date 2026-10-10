@@ -1,5 +1,7 @@
 # 商品編集中データの確定更新：修正案と修正後のテスト設計
 
+> 最新のDB結果は末尾の「2026-10-10 DB追加検証レポート」とtestReport.md冒頭を参照。以下の旧報告にある「transaction引数なし」「DB未検証」は当時の記録。
+
 ## 1. 本書の対象
 
 [testReport.md](./testReport.md) の観測結果を根拠として、`server/src` 内の修正案と、修正後に必要なテストの方針をまとめる。テストの責務分離・モック方法・実装順序・完了判定は [testArchitecture.md](./testArchitecture.md) に従う。
@@ -469,3 +471,23 @@ npm run typecheck
 今回依頼された、意図した実行順序への設計・テストの再修正と、対象テストの全件成功を確認した。DB非接続で検証する呼出し順・待機・例外伝播の範囲では完了とする。
 
 これはcreateAliasesのDB操作が商品更新と同じtransactionへ参加し、更新失敗時にrollbackされることの確認ではない。現行コードはresolveBrand/createAliasesへtを明示的に渡しておらず、Model.createにもtransaction指定がない。DBへの参加・rollback・永続化の整合性は今回の検証対象外であり、成功とは判定していない。
+
+## 2026-10-10 DB追加検証レポート
+
+ユーザーからテストDB追加に伴う未実施項目の実装・実行依頼を受け、本ディレクトリだけを変更した。設計はtestArchitecture.md冒頭、詳細の49項目対応と実行結果は[testReport.md](./testReport.md)冒頭が最新である。
+
+現行コードの調査により、helperが`src/usecases/shared/`へ移動し、resolveBrand/createAliasesへtransactionが渡ることを確認した。旧回帰テスト3ファイルの参照先と引数の完全一致assertをこの実装へ合わせた。アプリ側は編集していない。
+
+| 追加検証 | 元ケース | 期待・確認した結果 | ファイル |
+| --- | --- | --- | --- |
+| AF-DB01：保存・状態・JSONB | N02〜N08、ST01〜ST06・ST08、D01・D03〜D06・D08・D10、E01 | 全保存項目、外部キー、非対象行不変、JSONB、画像順序、所有権除外 | database.test.ts |
+| AF-DB02：制約 | V09〜V11、I03〜I04、D09、O01 | NOT NULL/ENUM/VARCHAR/FK/モデル画像上限とrollback、空画像拒否 | database.test.ts |
+| AF-DB03：別名と再実行 | N08、O02、Q01〜Q03 | 現行の名前解決結果を関連付け、逐次alias再利用、メディアURL上書き | database.test.ts |
+| AF-DB04：transaction | E12〜E13、ST07、D07、T03〜T05・T07、Q05 | 商品と新規aliasのrollback、別接続可視性、再試行成功 | databaseTransactions.test.ts |
+| AF-DB05：並行・観測 | P01〜P05・P08、O05 | 順序制御したcommit/rollback、変更列混在、並行別名2行、所有者変更・削除競合 | databaseConcurrency.test.ts |
+
+T05/Q05について、以前の報告ではcallback内での呼出しのみを検証したが、今回はModel.createまで同じtransactionを渡す現行コードとDB rollbackを確認した。別名は残存しなかった。Q03はDB1行の再利用、P05は同時検索後に2行生成された。これらは異なる順序での結果として区別する。
+
+P02ではA名称/B価格の混在、P08では削除後の成功応答と所有者変更後の書込みを観測した。テスト成功はこれらの不具合解消を意味しない。フォルダ外編集禁止に従い、修正やdocs/todoへの追加を行わず本報告へ残した。
+
+最終実行は**DB104件＋回帰502件＝606件、10ファイルすべて成功、失敗/skip/todoは0件**。全接続で`.env.test`由来の`test_db`を確認。作成したIDだけを削除し、残存0件を検証した。全体lint/型検査は対象外の既存エラーで失敗したが、変更TS8ファイルの追加lintは成功し、対象内の型エラーはない。コマンド・エラー箇所・途中経過はtestReport.mdに記録した。

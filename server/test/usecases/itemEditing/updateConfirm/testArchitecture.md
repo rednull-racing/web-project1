@@ -1,5 +1,21 @@
 # 商品編集中データの確定更新：テストコード設計書
 
+## 2026-10-10 DB追加検証の設計（以下の初回設計に優先）
+
+編集は本ディレクトリ内に限定する。実usecase・helper・service・モデルと既存PostgreSQLスキーマを使用し、S3通信のみ置換する。障害注入・並行順序制御のspyも実処理を呼び、任意のsleepは使わない。
+
+- `databaseSetup.ts`：実dotenvで `.env.test` だけを読み、既定dotenv呼出しにもその値を返す。他ファイルの明示指定、NODE_ENV不一致、URL/Sequelize/SELECT current_database()のDB名不一致は停止する。migration、sync、truncateはしない。
+- `databaseFixtures.ts`：固有名のユーザー・マスター・商品を作成。作成したIDだけを外部キーの順で削除し、別接続による再取得でcommit/rollbackを確認する。
+- `database.test.ts`：N02〜N08、E01、V09〜V11、I03〜I04、ST01〜ST06・ST08、D01・D03〜D06・D08〜D10、Q01〜Q03、O01〜O02の永続化・制約・重複実行。
+- `databaseTransactions.test.ts`：E12〜E13、ST07、D07、T03〜T05・T07、Q05。本体/画像更新失敗時の全列rollback、別接続可視性、再試行。
+- `databaseConcurrency.test.ts`：P01〜P05・P08、O05。実SELECT後にdeferredで停止し、指定順commit、別商品並行、片方rollback、別名同時作成、所有者変更・削除を検証。SQLと最終行を併せて確認する。
+
+初回報告から変わった契約：現行の共通helperは `src/usecases/shared/` にある。空画像はITEM_IMAGE_NULLで保存前に拒否。ブランド名検索結果・新規aliasは保存へ採用され、既存aliasを逐次再利用する。resolveBrand→createAliasesへ同じtransactionが渡されるため、T05/Q05はaliasもrollbackすることを期待する。並行作成の一意性は実DBを確認して観測として記録する。分類のnullはDBで許可された列だけに設定し、NOT NULLのlayerはnull fixtureを作らない。
+
+境界はgender/ageの全定義値・null・不正値、画像1〜10/11件、name/title/freeTextの0/255/256文字、各IDの0/空白/負数/小数/Infinityを個別展開する。各失敗で更新前後の全列一致、必要な後続未実行を確認する。正常時は全保存項目と非対象行の不変を確認する。
+
+実行：`server/` で対象ディレクトリのVitest、lint、アプリ/テストの型検査を行う。安全条件に違反した場合はテストを中断し、ユーザーの判断を待つ。結果と旧報告からの差分はtestReport.md/afterFix.mdへ追記する。
+
 ## 1. 目的と対象範囲
 
 対象は `server/src/usecases/itemEditing/updateConfirm.ts` の `updateItemEditingConfirmUseCase()`。正常系、異常系、境界値、条件分岐、状態遷移、DB整合性、トランザクション、重複実行、並行処理を確認するための設計をまとめる。

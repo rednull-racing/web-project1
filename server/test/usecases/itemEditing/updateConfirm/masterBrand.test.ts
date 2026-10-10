@@ -42,10 +42,10 @@ vi.mock("../../../../src/utils/s3/index.js", () => ({
     createVideoPresignedPost: mocks.createVideoPresignedPost,
 }));
 import { updateItemEditingConfirmBodySchema as schema } from "../../../../src/validators/body/itemEditing.js";
-import { buildSignedUrls } from "../../../../src/usecases/itemEditing/shared/buildSignedUrls.js";
-import { validateNumber } from "../../../../src/usecases/itemEditing/shared/validateNumber.js";
-import { validateMaster } from "../../../../src/usecases/itemEditing/shared/validateMaster.js";
-import { resolveBrand } from "../../../../src/usecases/itemEditing/shared/resolveBrand.js";
+import { buildSignedUrls } from "../../../../src/usecases/shared/buildSignedUrls.js";
+import { validateNumber } from "../../../../src/usecases/shared/validateNumber.js";
+import { validateMaster } from "../../../../src/usecases/shared/validateMaster.js";
+import { resolveBrand } from "../../../../src/usecases/shared/resolveBrand.js";
 import { updateItemEditingConfirmUseCase } from "../../../../src/usecases/itemEditing/updateConfirm.js";
 
 let body: ReturnType<typeof makeBody>;
@@ -243,7 +243,7 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(await resolveBrand({ brandId: null, body })).toEqual({ brand: null, alias: { id: 71, brand_id: null } });
         expect(mocks.getAliasOne).toHaveBeenCalledExactlyOnceWith({ normalized });
         expect(mocks.getBrandOne).toHaveBeenCalledExactlyOnceWith({ normalized });
-        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: name, normalized });
+        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: name, normalized, transaction: undefined });
     });
     it("AF-B03 B05 O02: 名前で見つかったブランドを商品更新のIDへ採用する", async () => {
         byName();
@@ -285,7 +285,7 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
     ])("AF-B07 B09: %sの元文字列lengthで作成を判断する", async (name, normalized) => {
         byName(name);
         expect(await resolveBrand({ brandId: null, body })).toEqual({ brand: null, alias: { id: 71, brand_id: null } });
-        expect(mocks.createAliases).toHaveBeenCalledWith({ inputName: name, normalized });
+        expect(mocks.createAliases).toHaveBeenCalledWith({ inputName: name, normalized, transaction: undefined });
     });
     it.each(["getBrand", "getAliasOne", "getBrandOne", "createAliases"] as const)(
         "AF-B09 B10 E11: transaction内の%sの失敗を伝播し商品更新へ進まない",
@@ -313,6 +313,7 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({
             inputName: "新ブランド",
             normalized: "新ぶらんど",
+            transaction,
         });
         expect(mocks.transaction).toHaveBeenCalledOnce();
         const calls = [mocks.transaction, mocks.createAliases, mocks.updateConfirm].map(
@@ -333,6 +334,7 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({
             inputName: "新ブランド",
             normalized: "新ぶらんど",
+            transaction,
         });
         expect(mocks.updateConfirm).toHaveBeenCalledTimes(2);
         for (const [args] of mocks.updateConfirm.mock.calls)
@@ -397,6 +399,7 @@ describe("F2: ブランド解決から商品更新への接続", () => {
         expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({
             inputName: "新ブランド",
             normalized: "新ぶらんど",
+            transaction,
         });
         expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({ brand_id: null, brand_aliases_id: 71 });
     });

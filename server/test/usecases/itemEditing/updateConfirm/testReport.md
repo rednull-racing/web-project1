@@ -1,5 +1,111 @@
 # 商品編集中データの確定更新：テスト実装・結果報告
 
+## 2026-10-10 DB追加検証の結果（最新）
+
+**10ファイル・606件がすべて成功。追加DBテスト104件、既存回帰502件。失敗・skip・todoは0件。** 初回報告の「一部実施」27項目と「対象外（DB）」22項目の計49項目について、未確認だったDB部分を実装・実行した。以下の旧報告は履歴として残すが、最新の判定は本節と[afterFix.mdのDB追加検証](./afterFix.md#2026-10-10-db追加検証レポート)を優先する。
+
+### 安全条件・変更範囲
+
+`server/.env.test` を実dotenvのparseで読み、そのDATABASE_URLのDB名が `test_db` であることを初期化前に確認した。実行時にはアプリ・モデルindex・確認用の3つのSequelize接続について、設定DB名と `SELECT current_database()` がすべて `test_db` であることを確認してからfixtureを作成した。
+
+`databaseSetup.ts` がdotenvの既定呼出しを検証済み `.env.test` の値へ限定するため、モデルindex/configが引数なしでconfig()を呼んでも `.env` は開かない。別ファイルの明示指定、接続URL変更、DB名不一致は `DB_TEST_STOP` で停止する。今回、安全条件違反は発生しなかった。最初の接続はサンドボックスのEPERMで停止し、ローカル接続許可後に実行した。
+
+変更は本ディレクトリ内のみ。追加は `databaseSetup.ts`、`databaseFixtures.ts` と下表のDBテスト3ファイル。既存の `usecase.test.ts`・`masterBrand.test.ts`・`signedUrls.test.ts` は、共通helperの移動後の参照先と、現行のtransaction引数の完全一致期待値を更新した。設計書と本報告書・afterFix.mdも更新した。アプリ、モデル、設定、migration、他機能テスト、docs/todoは編集していない。
+
+実usecase・helper・service・モデル・PostgreSQLを使用。S3公開ドメインと署名通信をモックし、実アップロードは行っていない。障害注入では本体/画像serviceを失敗させ、並行試験では実SELECT結果をdeferredで保留する。スキーマ変更、sync、migration、truncateは行わず、テストごとに作成IDだけを外部キー順に削除し、残存0件もassertした。シーケンス採番値は戻さない。
+
+### 実行件数
+
+Vitest JSONレポートから集計。全ファイルで失敗・skip・todoは0件。
+
+| ファイル | 成功件数 | 対象 |
+| --- | ---: | --- |
+| [database.test.ts](./database.test.ts) | 91 | 永続化、JSONB、制約、状態遷移、ブランド、逐次再実行 |
+| [databaseTransactions.test.ts](./databaseTransactions.test.ts) | 6 | rollback、commit可視性、マスター削除、再試行 |
+| [databaseConcurrency.test.ts](./databaseConcurrency.test.ts) | 7 | 更新競合、別商品並行、片方失敗、別名重複、所有権競合 |
+| controller.test.ts | 5 | 既存回帰 |
+| masterBrand.test.ts | 150 | 既存回帰 |
+| route.test.ts | 22 | 既存回帰 |
+| services.test.ts | 4 | 既存回帰 |
+| signedUrls.test.ts | 60 | 既存回帰 |
+| usecase.test.ts | 50 | 既存回帰 |
+| validation.test.ts | 211 | 既存回帰 |
+| **合計** | **606** | **追加104＋既存502** |
+
+### 未実施DB項目との対応
+
+P＝database.test.ts、T＝databaseTransactions.test.ts、C＝databaseConcurrency.test.ts。観測の成功は不具合修正や安全性の保証を意味しない。
+
+| 元ケースID | 最新判定 | 対応 | DBで確認した内容 |
+| --- | --- | --- | --- |
+| N02 | 成功 | P | 全保存項目の一致、対象外行・公開Item・所有者・item_id・createdAtの不変 |
+| N03 | 成功 | P | detail/summaryのnull・空文字・日本語文字列を再取得 |
+| N04・ST03 | 成功 | P | 全体・色・サイズ在庫0/1/8、initial/current再設定 |
+| N05・D05 | 成功 | P | 複数色・サイズ・素材、uiId画像対応、JSONBの日本語・小数・順序 |
+| N06・ST04 | 成功 | P | 空配列更新で旧色・素材が消え、undefinedキーは省略。sizes=[]を保持 |
+| N07 | 成功 | P | 実カテゴリ分類を採用。nullable分類nullとカテゴリ未選択を検証。現行layerはNOT NULLなので全分類nullのfixtureは作成しない |
+| N08・O02 | 成功 | P・C | ID/名前/紐付alias/未紐付alias/新規alias/なしの関連ID、逐次再利用と並行重複 |
+| E01・D01 | 成功 | P | 他人所有行を実SQLで除外。404、transaction未開始、非対象行不変 |
+| E12・E13・ST07・T03 | 成功 | P・T | 本体失敗・画像失敗・画像11件で全列rollback。画像失敗前の本体更新完了も確認 |
+| V09 | 成功 | P | gender/age全定義値、モデルのnull拒否、直接SQLでDB NOT NULL違反23502、不正ENUMの22P02 |
+| V10・D03・D04 | 成功 | P | 画像1〜10件の順序と先頭一致、11件はモデルvalidatorが拒否して全体rollback |
+| V11・D09 | 成功 | P | name/title/freeTextの日本語0/255/256文字。256文字はDBの22001、後続画像更新なし。ENUMと画像上限も個別検証 |
+| I03・I04 | 成功（観測を含む） | P | 6種ID×0/空白/負数/小数/Infinity。詳細は下記 |
+| ST01・D10 | 成功 | P | item_id=nullの未入力行へメディア・項目を保存し行数不変。item_idありの場合も維持 |
+| ST02・D08 | 成功 | P | 保存済み名称・価格・画像・配送更新、公開Itemと他ユーザー行の不変 |
+| ST05 | 成功 | P | サムネイル差替え、converted動画優先、商品画像の継承 |
+| ST06 | 成功 | P | video_status=null/pending/completedで更新可、status・converted_url・durationは維持 |
+| ST08 | 成功 | P | price/before_priceのみ更新しsale_flag・割引値は維持 |
+| D06 | 成功 | P | 実在外部キーおよびnullable IDのnull保存、入力カテゴリ表示値を分類に採用しない |
+| D07 | 成功 | T | 実マスター検証後に別接続でカテゴリ削除、書込み時FK違反、全列rollback |
+| T04 | 成功 | T | 本体更新後・画像保存前は別接続から旧値、両更新commit後に新値が見える |
+| T05 | 成功（現行契約） | T | 新規aliasも商品transactionに参加。本体/画像失敗・実DB制約違反でaliasも0件へrollback |
+| T07・Q05 | 成功 | T | 初回rollback後の同一body再試行で商品とalias1行をcommit |
+| Q01 | 成功 | P | 同一入力の逐次2回で業務値一致、商品行数不変 |
+| Q02 | 成功 | P | 異なる固定時刻で動画/サムネイル/商品/属性画像を再発行し後のURLで上書き |
+| Q03 | 成功（現行契約） | P | 新規aliasを逐次2回で再利用。DB1行・同じ関連ID |
+| P01・P02・O05 | 成功（観測） | C | 両取得→A commit→B commit。変更列に応じた上書き・混在を実SQLと最終行で確認 |
+| P03 | 成功 | C | 異なるユーザーの商品を別transactionで同時更新、画像・在庫・所有者が混ざらない |
+| P04 | 成功 | C | 同じ旧行のA commit後にB画像更新が失敗しても、Aの全列を維持 |
+| P05 | 成功（観測） | C | 同名aliasの両実検索が未登録→解放→両commitで2行作成、片方を商品へ関連付け |
+| P08 | 成功（観測） | C | 所有権照合後に別接続で削除/所有者変更。再認可・更新件数検証のない現行動作を確認 |
+| O01 | 成功（修正後契約） | P | 旧先頭画像あり/なしの両方で空画像をITEM_IMAGE_NULLで拒否、全列不変 |
+
+### DBで確認した観測・旧報告との差分
+
+- T05/Q05：過去の「別名が残り得る」と異なり、現行実装はresolveBrand→createAliases→Model.createへtransactionを渡す。実DBでも商品と別名のrollbackを確認した。
+- Q03/P05：逐次再実行は既存aliasを再利用し1行。両検索が未登録の並行実行では同名2行がcommitされる。重複防止を保証しない。
+- P02：Aは名称を変更、Bは取得時の旧名称のまま価格を変更。A→Bのcommit後はA名称/B価格が混在。BのUPDATE SET句にnameがないことを確認した。
+- P08：取得後削除ではUPDATE対象0行でもusecaseは成功し、最終行は存在しない。取得後所有者変更では他ユーザー所有となった行に更新が反映された。両UPDATEのWHEREはidだけでseller_idを含まない。これらは修正していない。
+- I03/I04：マスター5種類の0/空白はFK違反。負数・1.5はマスター未検出の404。ブランドの0/空白/負数/1.5は未検出から名前なしへfallbackし関連ID=nullで保存。Infinityは6種類ともDBエラー。INVALID_NUMBERや一律の型エラーとは扱わない。
+- V09/V10：nullは通常経路ではモデルvalidationで拒否される。直接SQLでもNOT NULL制約を確認した。画像11件はモデルvalidatorであり、DB CHECKを確認したものではない。
+
+### 実行・静的検査
+
+`server/` で実行。JSONは集計後に削除した一時生成物であり、以下のコマンドで再生成できる。
+
+```bash
+npm run test:run -- test/usecases/itemEditing/updateConfirm/ --maxWorkers=1 --reporter=default --reporter=json --outputFile=test/usecases/itemEditing/updateConfirm/.test-results.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+| 検査 | 結果 |
+| --- | --- |
+| 対象Vitest | 606/606成功、10ファイル、skip/todoなし |
+| npm run lint | 対象外のsrc/types/serviceType/items.tsの未使用import3件で失敗 |
+| npm run typecheck | 対象外のsrc/services/items/command/index.tsのupdateItem未export1件で失敗 |
+| テストtsconfig | 対象外のshopSignup/signup1.test.ts・signup5.test.tsの参照先不在2件で失敗。対象内の型エラーなし |
+| 変更TS8ファイルのESLint API追加検査 | typescript-eslint recommended、エラー/警告0件 |
+| 対象全TS13ファイルのESLint API追加検査 | 未変更route.test.ts:44の_next未使用1件のみ。修正せず |
+
+追加lintは既存ESLint設定を変更せず、`new ESLint({ overrideConfigFile: true, overrideConfig: tseslint.config(...tseslint.configs.recommended) })` の `lintFiles` に `database*.ts` と `masterBrand.test.ts`・`signedUrls.test.ts`・`usecase.test.ts` を渡した。これらはすべて本ディレクトリ配下。
+
+初回EPERMによるsuite失敗（102件未実行）、fixtureの公開Item必須uploaded_at不足、I04の観測期待値、SQL取得hookの修正を経て再実行した。最終結果に途中の未実行/失敗を混ぜていない。アプリの不具合・対象外lint/型エラーは修正せず、本節へ記録した。DB接続条件違反、実S3、実commit障害、負荷試験、未知の競合順序への保証は検証対象外。今回カバレッジは再計測していない。
+
+## 初回報告（2026-10-09、以下は履歴）
+
 ## 結果
 
 2026-10-09時点で、**7テストファイル・436テストがすべて成功**した。失敗0、skip/todo 0。DB接続が必要なテストは、依頼に従って作成・実行していない。

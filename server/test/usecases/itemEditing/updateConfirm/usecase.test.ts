@@ -18,16 +18,16 @@ vi.mock("../../../../src/services/itemEditing/command.js", () => ({
     updateConfirm: mocks.updateConfirm,
     updateItemEditingImage: mocks.updateItemEditingImage,
 }));
-vi.mock("../../../../src/usecases/itemEditing/shared/buildSignedUrls.js", () => ({
+vi.mock("../../../../src/usecases/shared/buildSignedUrls.js", () => ({
     buildSignedUrls: mocks.buildSignedUrls,
 }));
-vi.mock("../../../../src/usecases/itemEditing/shared/validateNumber.js", () => ({
+vi.mock("../../../../src/usecases/shared/validateNumber.js", () => ({
     validateNumber: mocks.validateNumber,
 }));
-vi.mock("../../../../src/usecases/itemEditing/shared/validateMaster.js", () => ({
+vi.mock("../../../../src/usecases/shared/validateMaster.js", () => ({
     validateMaster: mocks.validateMaster,
 }));
-vi.mock("../../../../src/usecases/itemEditing/shared/resolveBrand.js", () => ({ resolveBrand: mocks.resolveBrand }));
+vi.mock("../../../../src/usecases/shared/resolveBrand.js", () => ({ resolveBrand: mocks.resolveBrand }));
 import { updateItemEditingConfirmUseCase } from "../../../../src/usecases/itemEditing/updateConfirm.js";
 
 const transaction = { id: "test-transaction" };
@@ -92,7 +92,7 @@ describe("P0: usecaseの更新と処理順序", () => {
             serviceId: 51,
             placeId: 13,
         });
-        expect(mocks.resolveBrand).toHaveBeenCalledExactlyOnceWith({ brandId: 61, body });
+        expect(mocks.resolveBrand).toHaveBeenCalledExactlyOnceWith({ brandId: 61, body, transaction });
         expect(mocks.updateConfirm).toHaveBeenCalledExactlyOnceWith({
             itemEditing: item,
             transaction,
