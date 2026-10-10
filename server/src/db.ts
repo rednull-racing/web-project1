@@ -1,9 +1,26 @@
-import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
+import { Sequelize } from "sequelize";
 
-// Dockerと本番は環境変数が直接渡ってくるのでスキップ
-if (!process.env.DOCKER && process.env.NODE_ENV !== "production") {
-    dotenv.config({ path: ".env.local" });
+if (process.env.NODE_ENV === "test") {
+    // テスト環境
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+        throw new Error("DATABASE_URL is not set!");
+    }
+
+    const dbName = new URL(databaseUrl).pathname.slice(1);
+
+    if (dbName !== "test_db") {
+        throw new Error("Test environment must use test_db!");
+    }
+    
+    dotenv.config({
+        path: ".env.test",
+        override: true,
+    });
+} else if (!process.env.DOCKER && process.env.NODE_ENV !== "production") {
+    // ローカル開発環境
+    dotenv.config({ path: ".env" });
 }
 
 if (!process.env.DATABASE_URL) {
