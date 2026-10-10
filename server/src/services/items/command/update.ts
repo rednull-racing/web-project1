@@ -6,7 +6,6 @@ import type {
     UpdateSortBuzzNumberDecayParams,
     UpdateSortNumberDecayParams,
     UpdateItemImageParams,
-    UpdateItemParams,
     UpdatePriceParams,
     UpdateReportScoreParams,
 } from "../../../types/serviceType/items.js";
@@ -47,18 +46,6 @@ export const updatePublishItem = async ({ item, data }: PublishUpdateParams) => 
         early_sell: true,
         ...data,
     });
-};
-
-export const updateItem = async ({ item, data, transaction }: UpdateItemParams) => {
-    const nowDate = new Date();
-
-    await item.update(
-        {
-            save_at: nowDate,
-            ...data,
-        },
-        { transaction },
-    );
 };
 
 export const updateImage = async ({ item, urls, transaction }: UpdateItemImageParams) => {

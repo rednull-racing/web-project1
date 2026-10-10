@@ -1,8 +1,8 @@
 import { toNullableNumber } from "../../utils/toNullableNumber.js";
-import { ItemUploadBody } from "../../validators/body/items.js";
+import { ItemUploadSharedUseCaseBody } from "./bodyType.js";
 
 type Params = {
-    body: ItemUploadBody;
+    body: ItemUploadSharedUseCaseBody;
 };
 
 export const validateNumber = async ({ body }: Params) => {

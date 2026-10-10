@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
-import { uploadMainUseCase } from "../usecases/itemEditing/updateConfirm.js";
 import { deleteDraftItemUseCase } from "../usecases/items/delete/draftDelete.js";
 import { deleteItemLogicallyUseCase } from "../usecases/items/delete/logicalDelete.js";
 import { deleteItemPerfectUseCase } from "../usecases/items/delete/perfectDelete.js";
@@ -16,14 +15,11 @@ import { patchSortNumberAddUseCase, patchSortNumberDecreaseUseCase } from "../us
 import { itemCopyUploadUseCase } from "../usecases/items/upload/copyUpload/copyUpload.js";
 import { createItemsUseCase } from "../usecases/items/upload/createItem.js";
 import { patchPublishUseCase } from "../usecases/items/upload/publish.js";
-import { uploadDraftUseCase } from "../usecases/items/upload/uploadDraft.js";
 import { runDetachedTask } from "../utils/runDetachedTask.js";
-import type { ItemUploadBody } from "../validators/body/items.js";
 import type {
     ItemListQuery,
     ItemPageQuery,
     ItemSortNumberQuery,
-    ItemUploadQuery,
     RecommendItemsQuery,
     SearchItemsQuery,
 } from "../validators/query/items.js";
@@ -54,37 +50,6 @@ export const copyUploadItemController = async (req: Request, res: Response, next
         const newItemId = await itemCopyUploadUseCase({ itemId, userId });
 
         res.status(200).json({ newItemId });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// PUT /items/:id?mode=""
-// summary: 商品アップロード
-// page: /upload/[id]
-export const uploadItemController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const itemId = parseInt(req.params.id);
-        const userId = req.user!.id;
-
-        const query = req.validatedQuery as ItemUploadQuery;
-
-        const body = req.validatedBody as ItemUploadBody;
-
-        const usecase = query.mode === "main" ? uploadMainUseCase : uploadDraftUseCase;
-
-        const { videoSignedUrl, thumbnailSignedUrl, itemImageSignedUrls, attributesImageSignedUrls } = await usecase({
-            itemId,
-            userId,
-            body,
-        });
-
-        res.status(200).json({
-            videoSignedUrl,
-            thumbnailSignedUrl,
-            itemImageSignedUrls,
-            attributesImageSignedUrls,
-        });
     } catch (err) {
         next(err);
     }

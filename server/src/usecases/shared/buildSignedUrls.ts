@@ -3,13 +3,13 @@ import { publicS3Domain } from "../../infra/aws/s3.js";
 import { SignedUrlWithIndex } from "../../infra/aws/type.js";
 import { ItemEditing } from "../../models/index.js";
 import { createVideoPresignedPost, generateSignedUrl } from "../../utils/s3/index.js";
-import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
+import { ItemUploadSharedUseCaseBody } from "./bodyType.js";
 
 type Params = {
     itemEditingId: number;
     userId: number;
     itemEditing: InstanceType<typeof ItemEditing>;
-    body: ItemEditingConfirmBody;
+    body: ItemUploadSharedUseCaseBody;
 };
 
 export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body }: Params) => {

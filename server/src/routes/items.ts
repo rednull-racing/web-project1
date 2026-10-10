@@ -17,7 +17,6 @@ import {
     publishItemController,
     restoreItemController,
     searchItemsController,
-    uploadItemController,
 } from "../controllers/items.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
@@ -34,19 +33,15 @@ import {
     logicalDeleteItemRateLimit,
     perfectDeleteItemRateLimit,
     restoreItemRateLimit,
-    uploadItemRateLimit,
     uploadPublishItemRateLimit,
 } from "../middleware/rateLimit/itemsRateLimit.js";
-import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";
-import { itemUploadBodySchema } from "../validators/body/items.js";
 import { idParamSchema } from "../validators/params/id.js";
 import {
     getItemPageQuerySchema,
     itemListQuerySchema,
     itemSortNumberQuerySchema,
-    putItemUploadQuerySchema,
     recommendItemsQuerySchema,
     searchItemsQuerySchema,
 } from "../validators/query/items.js";
@@ -67,19 +62,6 @@ router.post(
     createItemCopyRateLimit,
     validateParams(idParamSchema),
     copyUploadItemController,
-);
-
-// PUT /items/:id?mode=""
-// summary: 商品アップロード
-// page: /upload/[id]
-router.put(
-    "/:id",
-    authenticateToken,
-    uploadItemRateLimit,
-    validateParams(idParamSchema),
-    validateQuery(putItemUploadQuerySchema),
-    validateBody(itemUploadBodySchema),
-    uploadItemController,
 );
 
 // PATCH /items/:id/publish

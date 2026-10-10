@@ -110,63 +110,6 @@ export type PublishUpdateParams = {
     };
 };
 
-export type UpdateItemParams = {
-    item: InstanceType<typeof Item>;
-    data: {
-        name: string;
-        detail: string;
-
-        category_id: number | null;
-        gender_type: string | null;
-        age_type: string | null;
-        brand_id: number | null;
-        brand_aliases_id: number | null;
-        item_condition_id: number | null;
-
-        attributes: {
-            inventory?: {
-                initial: number;
-                current: number;
-                low_stock_ratio: number;
-            };
-
-            colorVariants?: Array<{
-                uiId?: string;
-                color?: string;
-                image_url?: string;
-                inventory?: {
-                    initial: number;
-                    current: number;
-                    low_stock_ratio: number;
-                };
-
-                sizes?: Array<{
-                    size: string;
-                    inventory: {
-                        initial: number;
-                        current: number;
-                        low_stock_ratio: number;
-                    };
-                }>;
-            }>;
-
-            materials?: Array<{
-                name: string;
-                ratio: number;
-            }>;
-
-            body_category?: BodyCategory;
-            lifestyle_category?: LifeStyleCategory;
-            layer?: Layer;
-        };
-
-        price: number;
-        first_image_url: string;
-        status: "editing" | "draft";
-    };
-    transaction: Transaction;
-};
-
 export type UpdateItemImageParams = {
     item: InstanceType<typeof Item>;
     urls: string[];

@@ -3,11 +3,11 @@ import { createAliases, getAliasOne } from "../../services/brandAliases.js";
 import { getBrand, getBrandOne } from "../../services/brands.js";
 import type { BrandResult } from "../../types/serviceType/brands.js";
 import { normalizeJapanese } from "../../utils/normalizeJapanese.js";
-import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
+import { ItemUploadSharedUseCaseBody } from "./bodyType.js";
 
 type Params = {
     brandId: number | null;
-    body: ItemEditingConfirmBody;
+    body: ItemUploadSharedUseCaseBody;
     transaction?: Transaction;
 };
 
