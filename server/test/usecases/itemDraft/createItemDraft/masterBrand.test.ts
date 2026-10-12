@@ -113,8 +113,15 @@ describe.each(numberTargets)("P0/P1: 数値変換 %s.%s → %s", (group, key, ou
         expect(result[output]).toBe(expected);
     });
     it.each([
-        ["I05", "abc"], ["I05", "NaN"], ["I03", "0"], ["I04", "-1"], ["I04", "1.5"],
-        ["I04", "Infinity"], ["I04", "-Infinity"], ["AF-I01", "2147483648"], ["AF-I01", "1e20"],
+        ["I05", "abc"],
+        ["I05", "NaN"],
+        ["I03", "0"],
+        ["I04", "-1"],
+        ["I04", "1.5"],
+        ["I04", "Infinity"],
+        ["I04", "-Infinity"],
+        ["AF-I01", "2147483648"],
+        ["AF-I01", "1e20"],
     ])("%s AF-I01 E06 T08: %sを拒否し署名発行後でも商品transactionを開始しない", async (_id, value) => {
         Object.assign(body[group], { [key]: value });
         body.thumbnail = { name: "新画像", type: "image/png", uploaded: false };
@@ -159,7 +166,8 @@ describe("P1: マスター検証と実helperの接続", () => {
         });
     });
     it("AF-I02 I03: 空白だけのIDをnullとして保存し対応マスターを検索しない", async () => {
-        body.category.id = "  "; await run();
+        body.category.id = "  ";
+        await run();
         expect(mocks.getCategories).not.toHaveBeenCalled();
         expect(mocks.CreateItemDraft.mock.calls[0][0].data.category_id).toBeNull();
     });
@@ -239,7 +247,11 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(await resolveBrand({ brandId: null, body })).toEqual({ brand: null, alias: { id: 71, brand_id: null } });
         expect(mocks.getAliasOne).toHaveBeenCalledExactlyOnceWith({ normalized });
         expect(mocks.getBrandOne).toHaveBeenCalledExactlyOnceWith({ normalized });
-        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: name, normalized, transaction: undefined });
+        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({
+            inputName: name,
+            normalized,
+            transaction: undefined,
+        });
     });
     it.each([false, true])("B06: 作成時の再検索で再利用したaliasのbrand有無=%sを更新へ渡す", async (linked) => {
         byName();
@@ -248,7 +260,8 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         await run();
         expect(mocks.createAliases).toHaveBeenCalledTimes(1);
         expect(mocks.CreateItemDraft.mock.calls[0][0].data).toMatchObject({
-            brand_id: linked ? brand.id : null, brand_aliases_id: alias.id,
+            brand_id: linked ? brand.id : null,
+            brand_aliases_id: alias.id,
         });
     });
     it("B04 B06: 名前で見つかったブランドを下書き作成のIDへ採用する", async () => {
@@ -272,19 +285,14 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(mocks.getBrandOne).toHaveBeenCalledTimes(search);
         expect(mocks.createAliases).toHaveBeenCalledTimes(create);
     });
-    it.each([false, true])(
-        "B03 B05: 既存aliasのbrand有無=%sに応じて再利用し追加作成しない",
-        async (linked) => {
-            byName();
-            const alias = { id: 70, brand: linked ? brand : null };
-            mocks.getAliasOne.mockResolvedValue(alias);
-            expect(await resolveBrand({ brandId: null, body })).toEqual(
-                linked ? { brand, alias } : { brand: null, alias },
-            );
-            expect(mocks.createAliases).not.toHaveBeenCalled();
-            expect(mocks.getBrandOne).toHaveBeenCalledTimes(linked ? 0 : 1);
-        },
-    );
+    it.each([false, true])("B03 B05: 既存aliasのbrand有無=%sに応じて再利用し追加作成しない", async (linked) => {
+        byName();
+        const alias = { id: 70, brand: linked ? brand : null };
+        mocks.getAliasOne.mockResolvedValue(alias);
+        expect(await resolveBrand({ brandId: null, body })).toEqual(linked ? { brand, alias } : { brand: null, alias });
+        expect(mocks.createAliases).not.toHaveBeenCalled();
+        expect(mocks.getBrandOne).toHaveBeenCalledTimes(linked ? 0 : 1);
+    });
     it.each([
         ["  ", ""],
         ["😀", "😀"],
@@ -305,9 +313,7 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
             expect(mocks.CreateItemDraft).not.toHaveBeenCalled();
             expect(mocks.updateItemDraftImage).not.toHaveBeenCalled();
             expect(mocks.transaction).toHaveBeenCalledOnce();
-            expect(mocks.transaction.mock.invocationCallOrder[0]).toBeLessThan(
-                mocks[name].mock.invocationCallOrder[0],
-            );
+            expect(mocks.transaction.mock.invocationCallOrder[0]).toBeLessThan(mocks[name].mock.invocationCallOrder[0]);
             await expect(mocks.transaction.mock.results[0].value).rejects.toBe(error);
         },
     );
@@ -358,10 +364,19 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         const operations = [run(), run()];
         const pending = Promise.all(operations);
         try {
-            await Promise.race([both.promise, pending.then(() => { throw new Error("両検索待合せ未到達"); })]);
+            await Promise.race([
+                both.promise,
+                pending.then(() => {
+                    throw new Error("両検索待合せ未到達");
+                }),
+            ]);
             expect(mocks.createAliases).not.toHaveBeenCalled();
-            release.resolve(null); await pending;
-        } finally { release.resolve(null); await Promise.allSettled(operations); }
+            release.resolve(null);
+            await pending;
+        } finally {
+            release.resolve(null);
+            await Promise.allSettled(operations);
+        }
         expect(mocks.createAliases).toHaveBeenCalledTimes(2);
         expect(mocks.transaction).toHaveBeenCalledTimes(2);
     });
@@ -543,7 +558,8 @@ describe("P0: 実helperとusecaseを接続した更新前チェック", () => {
             await result;
             noMasterOrWrites();
         } finally {
-            first.resolve("signed-first"); second.resolve("signed-second");
+            first.resolve("signed-first");
+            second.resolve("signed-second");
             await Promise.allSettled([first.promise, second.promise, result]);
         }
     });
@@ -576,19 +592,23 @@ describe("P0: 実helperとusecaseを接続した更新前チェック", () => {
 });
 
 describe("P0/P1: 実helperの待機・優先順位とusecaseへの接続", () => {
-    it.each([null, ""])("E02: 実helperの動画URL%sは数値検証前に拒否", async value => {
+    it.each([null, ""])("E02: 実helperの動画URL%sは数値検証前に拒否", async (value) => {
         Object.assign(item, { original_url: value, converted_url: null });
-        await expectAppError(run(), "VIDEO_URL_NULL"); noMasterOrWrites();
+        await expectAppError(run(), "VIDEO_URL_NULL");
+        noMasterOrWrites();
     });
-    it.each([null, ""])("E03: 実helperのサムネイルURL%sは保存前に拒否", async value => {
+    it.each([null, ""])("E03: 実helperのサムネイルURL%sは保存前に拒否", async (value) => {
         item.thumbnail_url = value;
-        await expectAppError(run(), "THUMBNAIL_URL_NULL"); noMasterOrWrites();
+        await expectAppError(run(), "THUMBNAIL_URL_NULL");
+        noMasterOrWrites();
     });
     it("E14: 動画URLなしでも先に開始した商品画像署名の失敗を伝播", async () => {
         Object.assign(item, { original_url: null, converted_url: null });
         body.itemImages = [{ name: "画像", type: "image/png", uploaded: false }];
-        const error = new Error("画像署名失敗"); mocks.generateSignedUrl.mockRejectedValueOnce(error);
-        await expect(run()).rejects.toBe(error); noMasterOrWrites();
+        const error = new Error("画像署名失敗");
+        mocks.generateSignedUrl.mockRejectedValueOnce(error);
+        await expect(run()).rejects.toBe(error);
+        noMasterOrWrites();
     });
     it("AF-SIGN01 S15 O05: 新規動画の署名undefinedは後続署名・数値・transaction前に500で停止", async () => {
         body.video = { name: "動画", type: "video/mp4", uploaded: false };
@@ -600,140 +620,237 @@ describe("P0/P1: 実helperの待機・優先順位とusecaseへの接続", () =>
         Object.defineProperty(body.category, "id", { get: numberRead });
         await expectAppError(run(), "VIDEO_SIGNED_URL_UNAVAILABLE", 500);
         expect(mocks.createVideoPresignedPost).toHaveBeenCalledOnce();
-        expect(mocks.generateSignedUrl).not.toHaveBeenCalled(); expect(numberRead).not.toHaveBeenCalled();
+        expect(mocks.generateSignedUrl).not.toHaveBeenCalled();
+        expect(numberRead).not.toHaveBeenCalled();
         noMasterOrWrites();
     });
-    it.each(masters)("M03: %sを保留中は後続検索もtransactionも未開始", async stage => {
-        const entered = deferred<void>(), release = deferred<{ id: number }>();
-        mocks[stage].mockImplementationOnce(() => { entered.resolve(); return release.promise; });
+    it.each(masters)("M03: %sを保留中は後続検索もtransactionも未開始", async (stage) => {
+        const entered = deferred<void>(),
+            release = deferred<{ id: number }>();
+        mocks[stage].mockImplementationOnce(() => {
+            entered.resolve();
+            return release.promise;
+        });
         const pending = run();
         try {
-            await Promise.race([entered.promise, pending.then(() => { throw new Error("検索待合せに到達しませんでした"); })]);
+            await Promise.race([
+                entered.promise,
+                pending.then(() => {
+                    throw new Error("検索待合せに到達しませんでした");
+                }),
+            ]);
             for (const later of masters.slice(masters.indexOf(stage) + 1)) expect(mocks[later]).not.toHaveBeenCalled();
             noWrites();
-        } finally { release.resolve({ id: 1 }); await pending; }
+        } finally {
+            release.resolve({ id: 1 });
+            await pending;
+        }
         expect(mocks.CreateItemDraft).toHaveBeenCalledOnce();
     });
-    it.each([0, 1, 2, 3, 4])("M02 E07: %s番目以降がすべて不存在なら先頭のエラーで停止", async index => {
+    it.each([0, 1, 2, 3, 4])("M02 E07: %s番目以降がすべて不存在なら先頭のエラーで停止", async (index) => {
         for (const stage of masters.slice(index)) mocks[stage].mockResolvedValue(null);
-        const codes = ["CATEGORY_NOT_FOUND", "ITEM_CONDITION_NOT_FOUND", "SHIPPING_DAY_NOT_FOUND", "SHIPPING_SERVICE_NOT_FOUND", "PLACE_NOT_FOUND"];
+        const codes = [
+            "CATEGORY_NOT_FOUND",
+            "ITEM_CONDITION_NOT_FOUND",
+            "SHIPPING_DAY_NOT_FOUND",
+            "SHIPPING_SERVICE_NOT_FOUND",
+            "PLACE_NOT_FOUND",
+        ];
         await expectAppError(run(), codes[index], 404);
-        for (const later of masters.slice(index + 1)) expect(mocks[later]).not.toHaveBeenCalled(); noWrites();
+        for (const later of masters.slice(index + 1)) expect(mocks[later]).not.toHaveBeenCalled();
+        noWrites();
     });
     it.each(["getBrand", "getAliasOne", "getBrandOne", "createAliases"] as const)(
-        "B09 E09: %sの完了を待ってから作成へ進む", async stage => {
+        "B09 E09: %sの完了を待ってから作成へ進む",
+        async (stage) => {
             if (stage !== "getBrand") byName();
-            const entered = deferred<void>(), release = deferred<unknown>();
-            mocks[stage].mockImplementationOnce(() => { entered.resolve(); return release.promise; });
+            const entered = deferred<void>(),
+                release = deferred<unknown>();
+            mocks[stage].mockImplementationOnce(() => {
+                entered.resolve();
+                return release.promise;
+            });
             const pending = run();
             const steps = ["getBrand", "getAliasOne", "getBrandOne", "createAliases"] as const;
             try {
-                await Promise.race([entered.promise, pending.then(() => { throw new Error("ブランド待合せに到達しませんでした"); })]);
+                await Promise.race([
+                    entered.promise,
+                    pending.then(() => {
+                        throw new Error("ブランド待合せに到達しませんでした");
+                    }),
+                ]);
                 for (const later of steps.slice(steps.indexOf(stage) + 1)) expect(mocks[later]).not.toHaveBeenCalled();
                 expect(mocks.transaction).toHaveBeenCalledOnce();
-                expect(mocks.CreateItemDraft).not.toHaveBeenCalled(); expect(mocks.updateItemDraftImage).not.toHaveBeenCalled();
-            } finally { release.resolve(stage === "getBrand" ? brand : stage === "createAliases" ? { id: 71 } : null); await pending; }
+                expect(mocks.CreateItemDraft).not.toHaveBeenCalled();
+                expect(mocks.updateItemDraftImage).not.toHaveBeenCalled();
+            } finally {
+                release.resolve(stage === "getBrand" ? brand : stage === "createAliases" ? { id: 71 } : null);
+                await pending;
+            }
             expect(mocks.CreateItemDraft).toHaveBeenCalledOnce();
-        });
+        },
+    );
     it.each(numberTargets)("I01: %s.%sの空文字を実usecaseの保存へnullとして渡す", async (group, key, output) => {
         Object.assign(body[group], { [key]: "" });
         if (output === "brandId") body.brand.name = null;
         await run();
-        const column = { categoryId: "category_id", conditionId: "item_condition_id", dayId: "shipping_day_id", serviceId: "shipping_service_id", placeId: "shipping_place_id", brandId: "brand_id" }[output];
+        const column = {
+            categoryId: "category_id",
+            conditionId: "item_condition_id",
+            dayId: "shipping_day_id",
+            serviceId: "shipping_service_id",
+            placeId: "shipping_place_id",
+            brandId: "brand_id",
+        }[output];
         expect(mocks.CreateItemDraft.mock.calls[0][0].data[column]).toBeNull();
     });
 });
 
 describe("P1: 署名・画像helperの結果を作成データへ接続", () => {
     it.each([
-        ["S01 S03", "新規動画"], ["S04", "新規サムネイル"], ["S09", "新規色画像"],
-        ["S10", "既存色の逆順"], ["S11", "不完全な新規色画像"], ["S06 S08", "一部商品画像欠落"],
+        ["S01 S03", "新規動画"],
+        ["S04", "新規サムネイル"],
+        ["S09", "新規色画像"],
+        ["S10", "既存色の逆順"],
+        ["S11", "不完全な新規色画像"],
+        ["S06 S08", "一部商品画像欠落"],
     ])("%s AF-NAME01: %sの保存値と返却署名を対応させる", async (_id, mode) => {
-            const now = vi.spyOn(Date, "now").mockReturnValue(1000);
-            try {
-                if (mode === "新規動画") { item.converted_url = "converted"; body.video = { name: "動画", type: "video/mp4", uploaded: false }; }
-                if (mode === "新規サムネイル") body.thumbnail = { name: "画像", type: "image/png", uploaded: false };
-                if (mode === "新規色画像") body.attributes.colorVariants[0].image = { name: "赤", type: "image/png", uploaded: false };
-                if (mode === "既存色の逆順") body.attributes.colorVariants = ["blue", "red"].map(uiId => ({ uiId, inventory: 1, sizes: [] }));
-                if (mode === "不完全な新規色画像") body.attributes.colorVariants[0].image = { name: "赤", uploaded: false };
-                if (mode === "一部商品画像欠落") body.itemImages = [
-                    { name: "type欠落", type: null, uploaded: false }, { name: "既存", type: "image/png", uploaded: true },
+        const now = vi.spyOn(Date, "now").mockReturnValue(1000);
+        try {
+            if (mode === "新規動画") {
+                item.converted_url = "converted";
+                body.video = { name: "動画", type: "video/mp4", uploaded: false };
+            }
+            if (mode === "新規サムネイル") body.thumbnail = { name: "画像", type: "image/png", uploaded: false };
+            if (mode === "新規色画像")
+                body.attributes.colorVariants[0].image = { name: "赤", type: "image/png", uploaded: false };
+            if (mode === "既存色の逆順")
+                body.attributes.colorVariants = ["blue", "red"].map((uiId) => ({ uiId, inventory: 1, sizes: [] }));
+            if (mode === "不完全な新規色画像") body.attributes.colorVariants[0].image = { name: "赤", uploaded: false };
+            if (mode === "一部商品画像欠落")
+                body.itemImages = [
+                    { name: "type欠落", type: null, uploaded: false },
+                    { name: "既存", type: "image/png", uploaded: true },
                     { name: "新規", type: "image/png", uploaded: false },
                 ];
-                const result = await run(), saved = mocks.CreateItemDraft.mock.calls[0][0].data;
-                if (mode === "新規動画") {
-                    expect(saved.original_url).toBe("https://media.test/video/original/7/11_1000_request-a");
-                    expect(saved).not.toHaveProperty("converted_url"); expect(result.videoSignedUrl).toEqual({ url: "signed-video", fields: {} });
-                }
-                if (mode === "新規サムネイル") {
-                    expect(saved.thumbnail_url).toBe("https://media.test/thumbnail/7/11_1000_request-a"); expect(result.thumbnailSignedUrl).toBe("signed-image");
-                }
-                if (mode === "新規色画像") {
-                    expect(saved.attributes.colorVariants[0].image_url).toBe("https://media.test/attributes/7/11_red_1000_request-a");
-                    expect(result.attributesImageSignedUrls).toEqual({ red: "signed-image" });
-                }
-                if (mode === "既存色の逆順") {
-                    expect(saved.attributes.colorVariants.map((v: { uiId: string; image_url: string }) => ({ uiId: v.uiId, image_url: v.image_url })))
-                        .toEqual([{ uiId: "blue", image_url: "https://media.test/blue" }, { uiId: "red", image_url: "https://media.test/red" }]);
-                    expect(result.attributesImageSignedUrls).toEqual({});
-                }
-                if (mode === "不完全な新規色画像") { expect(saved.attributes.colorVariants[0].image_url).toBeUndefined(); expect(result.attributesImageSignedUrls).toEqual({}); }
-                if (mode === "一部商品画像欠落") {
-                    expect(saved.first_image_url).toBe(item.image_url[1]);
-                    expect(mocks.updateItemDraftImage.mock.calls[0][0].urls).toEqual([item.image_url[1], "https://media.test/item-image/7/11_2_1000_request-a"]);
-                    expect(result.itemImageSignedUrls).toEqual([{ index: 2, url: "signed-image" }]);
-                }
-            } finally { now.mockRestore(); }
-        });
+            const result = await run(),
+                saved = mocks.CreateItemDraft.mock.calls[0][0].data;
+            if (mode === "新規動画") {
+                expect(saved.original_url).toBe("https://media.test/video/original/7/11_1000_request-a");
+                expect(saved).not.toHaveProperty("converted_url");
+                expect(result.videoSignedUrl).toEqual({ url: "signed-video", fields: {} });
+            }
+            if (mode === "新規サムネイル") {
+                expect(saved.thumbnail_url).toBe("https://media.test/thumbnail/7/11_1000_request-a");
+                expect(result.thumbnailSignedUrl).toBe("signed-image");
+            }
+            if (mode === "新規色画像") {
+                expect(saved.attributes.colorVariants[0].image_url).toBe(
+                    "https://media.test/attributes/7/11_red_1000_request-a",
+                );
+                expect(result.attributesImageSignedUrls).toEqual({ red: "signed-image" });
+            }
+            if (mode === "既存色の逆順") {
+                expect(
+                    saved.attributes.colorVariants.map((v: { uiId: string; image_url: string }) => ({
+                        uiId: v.uiId,
+                        image_url: v.image_url,
+                    })),
+                ).toEqual([
+                    { uiId: "blue", image_url: "https://media.test/blue" },
+                    { uiId: "red", image_url: "https://media.test/red" },
+                ]);
+                expect(result.attributesImageSignedUrls).toEqual({});
+            }
+            if (mode === "不完全な新規色画像") {
+                expect(saved.attributes.colorVariants[0].image_url).toBeUndefined();
+                expect(result.attributesImageSignedUrls).toEqual({});
+            }
+            if (mode === "一部商品画像欠落") {
+                expect(saved.first_image_url).toBe(item.image_url[1]);
+                expect(mocks.updateItemDraftImage.mock.calls[0][0].urls).toEqual([
+                    item.image_url[1],
+                    "https://media.test/item-image/7/11_2_1000_request-a",
+                ]);
+                expect(result.itemImageSignedUrls).toEqual([{ index: 2, url: "signed-image" }]);
+            }
+        } finally {
+            now.mockRestore();
+        }
+    });
 });
 
-
 describe("P0/P1: F4のブランド保存境界と画像上限", () => {
-    it.each([254, 255, 256])("AF-V02: 新規ブランド%s文字は保存前に上限判定", async length => {
+    it.each([254, 255, 256])("AF-V02: 新規ブランド%s文字は保存前に上限判定", async (length) => {
         byName("名".repeat(length));
         if (length <= 255) {
-            await run(); expect(mocks.createAliases).toHaveBeenCalledOnce();
+            await run();
+            expect(mocks.createAliases).toHaveBeenCalledOnce();
             expect(mocks.CreateItemDraft.mock.calls[0][0].data.brand_aliases_id).toBe(71);
         } else {
             await expectAppError(run(), "BRAND_NAME_TOO_LONG");
-            expect(mocks.createAliases).not.toHaveBeenCalled(); expect(mocks.CreateItemDraft).not.toHaveBeenCalled();
+            expect(mocks.createAliases).not.toHaveBeenCalled();
+            expect(mocks.CreateItemDraft).not.toHaveBeenCalled();
             expect(mocks.updateItemDraftImage).not.toHaveBeenCalled();
         }
     });
-    it.each([254, 255, 256])("AF-V02: NFKCで正規化後%s文字になる名前を保存前に検証", async length => {
+    it.each([254, 255, 256])("AF-V02: NFKCで正規化後%s文字になる名前を保存前に検証", async (length) => {
         const input = "㍿".repeat(63) + "名".repeat(length - 252);
         const normalized = "株式会社".repeat(63) + "名".repeat(length - 252);
         byName(input);
         if (length <= 255) {
-            await run(); expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: input, normalized, transaction });
+            await run();
+            expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: input, normalized, transaction });
         } else {
             await expectAppError(run(), "BRAND_NAME_TOO_LONG");
-            expect(mocks.createAliases).not.toHaveBeenCalled(); expect(mocks.CreateItemDraft).not.toHaveBeenCalled();
+            expect(mocks.createAliases).not.toHaveBeenCalled();
+            expect(mocks.CreateItemDraft).not.toHaveBeenCalled();
             expect(mocks.updateItemDraftImage).not.toHaveBeenCalled();
         }
     });
-    it.each(["指定ID", "紐付alias", "名前brand", "未紐付alias"])("AF-V02: %sで既存解決できる表示名は長くても新規保存しない", async mode => {
-        byName("名".repeat(256));
-        if (mode === "指定ID") { body.brand.id = "61"; mocks.getBrand.mockResolvedValue(brand); }
-        if (mode === "紐付alias") mocks.getAliasOne.mockResolvedValue({ id: 71, brand });
-        if (mode === "名前brand") mocks.getBrandOne.mockResolvedValue(brand);
-        if (mode === "未紐付alias") mocks.getAliasOne.mockResolvedValue({ id: 71, brand: null });
-        await run(); expect(mocks.createAliases).not.toHaveBeenCalled(); expect(mocks.CreateItemDraft).toHaveBeenCalledOnce();
-    });
-    it.each([10, 11])("AF-IMG01: 入力11枚・確定%s枚の上限を実helper経由で検証", async count => {
-        body.itemImages = Array.from({ length: 11 }, (_, i) => ({ name: `画像${i}`, type: i < count ? "image/png" : null, uploaded: false }));
+    it.each(["指定ID", "紐付alias", "名前brand", "未紐付alias"])(
+        "AF-V02: %sで既存解決できる表示名は長くても新規保存しない",
+        async (mode) => {
+            byName("名".repeat(256));
+            if (mode === "指定ID") {
+                body.brand.id = "61";
+                mocks.getBrand.mockResolvedValue(brand);
+            }
+            if (mode === "紐付alias") mocks.getAliasOne.mockResolvedValue({ id: 71, brand });
+            if (mode === "名前brand") mocks.getBrandOne.mockResolvedValue(brand);
+            if (mode === "未紐付alias") mocks.getAliasOne.mockResolvedValue({ id: 71, brand: null });
+            await run();
+            expect(mocks.createAliases).not.toHaveBeenCalled();
+            expect(mocks.CreateItemDraft).toHaveBeenCalledOnce();
+        },
+    );
+    it.each([10, 11])("AF-IMG01: 入力11枚・確定%s枚の上限を実helper経由で検証", async (count) => {
+        body.itemImages = Array.from({ length: 11 }, (_, i) => ({
+            name: `画像${i}`,
+            type: i < count ? "image/png" : null,
+            uploaded: false,
+        }));
         if (count === 10) {
-            await run(); expect(mocks.updateItemDraftImage.mock.calls[0][0].urls).toHaveLength(10);
+            await run();
+            expect(mocks.updateItemDraftImage.mock.calls[0][0].urls).toHaveLength(10);
         } else {
-            await expectAppError(run(), "ITEM_IMAGE_LIMIT_EXCEEDED"); noMasterOrWrites();
+            await expectAppError(run(), "ITEM_IMAGE_LIMIT_EXCEEDED");
+            noMasterOrWrites();
         }
     });
     describe.each(numberTargets)("AF-I02: %s.%sの未選択", (group, key, output) => {
-        it.each([null, "", " ", "\t\n"])("値%sを実usecaseの保存へnullとして渡す", async value => {
+        it.each([null, "", " ", "\t\n"])("値%sを実usecaseの保存へnullとして渡す", async (value) => {
             Object.assign(body[group], { [key]: value });
             if (output === "brandId") body.brand.name = null;
             await run();
-            const column = { categoryId: "category_id", conditionId: "item_condition_id", dayId: "shipping_day_id", serviceId: "shipping_service_id", placeId: "shipping_place_id", brandId: "brand_id" }[output];
+            const column = {
+                categoryId: "category_id",
+                conditionId: "item_condition_id",
+                dayId: "shipping_day_id",
+                serviceId: "shipping_service_id",
+                placeId: "shipping_place_id",
+                brandId: "brand_id",
+            }[output];
             expect(mocks.CreateItemDraft.mock.calls[0][0].data[column]).toBeNull();
         });
     });

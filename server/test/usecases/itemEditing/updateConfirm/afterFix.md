@@ -12,12 +12,12 @@
 
 ### 対象と根拠
 
-| 修正ID | 修正対象 | 確認できた事実 | 元のケース |
-| --- | --- | --- | --- |
-| F1 | 商品画像の署名配列 | 署名の完了順によって返却配列から署名が欠落する。保存用URL配列の入力順は保持される | S13 / P06 / O03 |
-| F2 | ブランド解決結果・別名作成の分岐 | 名前で見つかったブランドや新規aliasが返却結果へ採用されない。既存aliasがあっても作成serviceが呼ばれる経路がある | B03、B05〜B08 / Q03 / O02 |
-| F3 | 商品画像0件の判定 | 空配列でも通過し、更新serviceへfirst_image_url=undefinedと空の画像配列が渡る | E04 / V10 / S08 / O01 |
-| F4 | アップロードキーとuiIdの重複 | 同一ミリ秒の再実行でキーが一致する。同じリクエスト内の重複uiIdでは署名辞書が上書きされる | Q04 / P07 / V12 / O04 |
+| 修正ID | 修正対象                         | 確認できた事実                                                                                                  | 元のケース                |
+| ------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| F1     | 商品画像の署名配列               | 署名の完了順によって返却配列から署名が欠落する。保存用URL配列の入力順は保持される                               | S13 / P06 / O03           |
+| F2     | ブランド解決結果・別名作成の分岐 | 名前で見つかったブランドや新規aliasが返却結果へ採用されない。既存aliasがあっても作成serviceが呼ばれる経路がある | B03、B05〜B08 / Q03 / O02 |
+| F3     | 商品画像0件の判定                | 空配列でも通過し、更新serviceへfirst_image_url=undefinedと空の画像配列が渡る                                    | E04 / V10 / S08 / O01     |
+| F4     | アップロードキーとuiIdの重複     | 同一ミリ秒の再実行でキーが一致する。同じリクエスト内の重複uiIdでは署名辞書が上書きされる                        | Q04 / P07 / V12 / O04     |
 
 以下は今回の修正案・追加テスト設計の対象外とする。未確認のDB挙動から修正の必要性を断定しない。
 
@@ -31,12 +31,12 @@
 
 パスは `server/src/` からの相対パス。
 
-| ファイル | 修正案 | 責務 |
-| --- | --- | --- |
-| `usecases/itemEditing/shared/buildSignedUrls.ts` | F1：署名配列の圧縮を並行処理の完了後へ移す。F4：リクエストごとに生成する識別子を新規キーへ加える | URLと署名情報の組立て |
-| `usecases/itemEditing/shared/resolveBrand.ts` | F2：検索結果を明示的に返し、解決済みの場合の追加作成を止める | ブランド解決の業務分岐 |
-| `usecases/itemEditing/updateConfirm.ts` | F3：確定した商品画像が0件なら既存AppErrorで停止する | 更新前の業務上の前提確認 |
-| `validators/body/itemEditing.ts` | F4：colorVariants内でuiIdが重複していたら拒否する | リクエストの入力検証 |
+| ファイル                                         | 修正案                                                                                           | 責務                     |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ------------------------ |
+| `usecases/itemEditing/shared/buildSignedUrls.ts` | F1：署名配列の圧縮を並行処理の完了後へ移す。F4：リクエストごとに生成する識別子を新規キーへ加える | URLと署名情報の組立て    |
+| `usecases/itemEditing/shared/resolveBrand.ts`    | F2：検索結果を明示的に返し、解決済みの場合の追加作成を止める                                     | ブランド解決の業務分岐   |
+| `usecases/itemEditing/updateConfirm.ts`          | F3：確定した商品画像が0件なら既存AppErrorで停止する                                              | 更新前の業務上の前提確認 |
+| `validators/body/itemEditing.ts`                 | F4：colorVariants内でuiIdが重複していたら拒否する                                                | リクエストの入力検証     |
 
 serviceのDBアクセス実装、モデル制約は変更案に含めない。ブランド解決は、追加指示で確認した現行実装どおり商品transactionのcallback内で行う。F2では既存の `getBrand`、`getAliasOne`、`getBrandOne`、`createAliases` と `BrandResult` を利用できる。
 
@@ -93,15 +93,15 @@ await Promise.all(入力画像ごとの処理)
 
 上から順に評価し、結果が決まったらreturnする。
 
-| 順序 | 条件 | 戻り値 `{ brand, alias }` | 後続の検索・作成 |
-| --- | --- | --- | --- |
-| 1 | 指定brandIdに対応するブランドが存在 | `{ 指定ブランド, null }` | 名前検索・作成なし |
-| 2 | 指定IDで解決せず、brand.nameがnullまたは空文字 | `{ null, null }` | 名前検索・作成なし |
-| 3 | 正規化名で取得したaliasにbrandがある | `{ alias.brand, alias }` | ブランド名検索・追加作成なし |
-| 4 | 上記で解決せず、正規化名に対応するブランドが存在 | `{ 名前で取得したブランド, null }` | 作成なし |
-| 5 | ブランドが見つからず、未紐付けaliasが存在 | `{ null, 既存alias }` | 作成なし |
-| 6 | ブランド・aliasとも存在せず、現行の作成条件を満たす | `{ null, 新規作成alias }` | createAliasesを1回 |
-| 7 | いずれにも該当しない | `{ null, null }` | 作成なし |
+| 順序 | 条件                                                | 戻り値 `{ brand, alias }`          | 後続の検索・作成             |
+| ---- | --------------------------------------------------- | ---------------------------------- | ---------------------------- |
+| 1    | 指定brandIdに対応するブランドが存在                 | `{ 指定ブランド, null }`           | 名前検索・作成なし           |
+| 2    | 指定IDで解決せず、brand.nameがnullまたは空文字      | `{ null, null }`                   | 名前検索・作成なし           |
+| 3    | 正規化名で取得したaliasにbrandがある                | `{ alias.brand, alias }`           | ブランド名検索・追加作成なし |
+| 4    | 上記で解決せず、正規化名に対応するブランドが存在    | `{ 名前で取得したブランド, null }` | 作成なし                     |
+| 5    | ブランドが見つからず、未紐付けaliasが存在           | `{ null, 既存alias }`              | 作成なし                     |
+| 6    | ブランド・aliasとも存在せず、現行の作成条件を満たす | `{ null, 新規作成alias }`          | createAliasesを1回           |
+| 7    | いずれにも該当しない                                | `{ null, null }`                   | 作成なし                     |
 
 分岐上の注意点：
 
@@ -162,12 +162,12 @@ if (!finalImageUrls || finalImageUrls.length === 0) {
 
 時刻と既存プレフィックスを残し、新規アップロードキーに識別子を追加する。
 
-| メディア | キーの提案 |
-| --- | --- |
-| 動画 | `video/original/{userId}/{itemEditingId}_{now}_{requestId}` |
-| サムネイル | `thumbnail/{userId}/{itemEditingId}_{now}_{requestId}` |
-| 商品画像 | `item-image/{userId}/{itemEditingId}_{index}_{now}_{requestId}` |
-| 属性画像 | `attributes/{userId}/{itemEditingId}_{uiId}_{now}_{requestId}` |
+| メディア   | キーの提案                                                      |
+| ---------- | --------------------------------------------------------------- |
+| 動画       | `video/original/{userId}/{itemEditingId}_{now}_{requestId}`     |
+| サムネイル | `thumbnail/{userId}/{itemEditingId}_{now}_{requestId}`          |
+| 商品画像   | `item-image/{userId}/{itemEditingId}_{index}_{now}_{requestId}` |
+| 属性画像   | `attributes/{userId}/{itemEditingId}_{uiId}_{now}_{requestId}`  |
 
 - 1回のhelper呼出しでは同じrequestIdを使用する。ファイル間の識別には従来のプレフィックス・index・uiIdを使う。
 - 署名関数へ渡すkeyと、保存用の公開URLへ組み込むkeyは必ず同一にする。
@@ -193,14 +193,14 @@ requestIdを追加しても、同じリクエスト内でuiIdが重複してい�
 
 ### 元の設計方針の引継ぎ
 
-| レベル | 方針 | 既存の主なファイル |
-| --- | --- | --- |
-| U | usecaseを実行し、依存helper/serviceとtransactionはVitestでモック。更新引数・処理順序・例外・後続未実行を検証 | `usecase.test.ts` |
-| H | helper実装を使用。DB service、S3署名、時刻、requestId生成をモック | `signedUrls.test.ts`、`masterBrand.test.ts` |
-| V | 実schemaとvalidateBodyを使用し、入力の受理・拒否を検証 | `validation.test.ts` |
-| C/R | 実controllerまたはテスト用Expressに接続したRouterを使用。usecaseをモック | `controller.test.ts`、`route.test.ts` |
-| service単体 | 今回service実装の変更は提案しない。既存の呼出契約の回帰確認を維持 | `services.test.ts` |
-| DB結合 | 今回の修正方針・追加ケース設計の対象外 | 作成・実行しない |
+| レベル      | 方針                                                                                                         | 既存の主なファイル                          |
+| ----------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| U           | usecaseを実行し、依存helper/serviceとtransactionはVitestでモック。更新引数・処理順序・例外・後続未実行を検証 | `usecase.test.ts`                           |
+| H           | helper実装を使用。DB service、S3署名、時刻、requestId生成をモック                                            | `signedUrls.test.ts`、`masterBrand.test.ts` |
+| V           | 実schemaとvalidateBodyを使用し、入力の受理・拒否を検証                                                       | `validation.test.ts`                        |
+| C/R         | 実controllerまたはテスト用Expressに接続したRouterを使用。usecaseをモック                                     | `controller.test.ts`、`route.test.ts`       |
+| service単体 | 今回service実装の変更は提案しない。既存の呼出契約の回帰確認を維持                                            | `services.test.ts`                          |
+| DB結合      | 今回の修正方針・追加ケース設計の対象外                                                                       | 作成・実行しない                            |
 
 - Vitestを使用し、Router結合には既存のSupertestを用いる。
 - テスト名には本書のAFケースID、元のケースID、条件と期待結果を含める。
@@ -212,17 +212,17 @@ requestIdを追加しても、同じリクエスト内でuiIdが重複してい�
 
 ### 9つの観点への対応
 
-| 観点 | 今回確認する範囲 |
-| --- | --- |
-| 正常系 | 署名の全件返却、ブランド採用、商品画像1件以上、一意uiId |
-| 異常系 | 確定画像0件、重複uiId、署名・ブランドserviceの例外と後続停止 |
-| 境界値 | 画像0/1/10件、uiIdの0/1/2件、同一時刻、飛び飛びのindex |
-| 条件分岐 | ブランドの優先順位、既存/新規画像、情報不足、採用済み結果からの早期return |
-| 状態遷移 | 2回目の検索でaliasが返ったときの再利用、画像再利用から新規署名への切替。永続状態は扱わない |
-| DB整合性 | 対象外。更新引数の整合性だけはU/Hで確認し、DB保証と区別 |
+| 観点             | 今回確認する範囲                                                                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 正常系           | 署名の全件返却、ブランド採用、商品画像1件以上、一意uiId                                                                                  |
+| 異常系           | 確定画像0件、重複uiId、署名・ブランドserviceの例外と後続停止                                                                             |
+| 境界値           | 画像0/1/10件、uiIdの0/1/2件、同一時刻、飛び飛びのindex                                                                                   |
+| 条件分岐         | ブランドの優先順位、既存/新規画像、情報不足、採用済み結果からの早期return                                                                |
+| 状態遷移         | 2回目の検索でaliasが返ったときの再利用、画像再利用から新規署名への切替。永続状態は扱わない                                               |
+| DB整合性         | 対象外。更新引数の整合性だけはU/Hで確認し、DB保証と区別                                                                                  |
 | トランザクション | 画像0件で未開始、transaction内のブランド解決と例外伝播、更新serviceへの同一transaction引渡しと完了待ちを確認。DBのrollback検証は含めない |
-| 重複実行 | 同じ時刻でも別requestIdでキーが分かれること、既存alias返却時の作成呼出し抑止 |
-| 並行処理 | 署名完了順を変えても欠落・対応ずれがないこと。DB並行更新・別名の同時作成制御は対象外 |
+| 重複実行         | 同じ時刻でも別requestIdでキーが分かれること、既存alias返却時の作成呼出し抑止                                                             |
+| 並行処理         | 署名完了順を変えても欠落・対応ずれがないこと。DB並行更新・別名の同時作成制御は対象外                                                     |
 
 ## 8. 追加・変更するテストケース
 
@@ -230,72 +230,72 @@ requestIdを追加しても、同じリクエスト内でuiIdが重複してい�
 
 ### F1：署名配列
 
-| 新ID | 元のケース | レベル | 入力・手順 | 修正後の期待結果 |
-| --- | --- | --- | --- | --- |
-| AF-S01 | S13 / P06 / O03 | H | 新規index=[0,1,2]、完了順を正順・逆順・混在にする | すべて返却index=[0,1,2]、件数3、URL対応一致、重複なし |
-| AF-S02 | S13 / O03 | H | 新規index=[1]、[0,2]、[1,3]。複数件は逆順でも完了させる | 返却indexはそれぞれ[1]、[0,2]、[1,3]。元indexを付け替えない |
-| AF-S03 | S05 / S06 | H | 既存・新規を交互に指定 | 新規の署名だけを全件返し、確定URLは既存分を含め入力順 |
-| AF-S04 | S08 / V10 | H | 署名対象0件・1件・10件 | 件数が対象数と一致。0件でも既存画像があれば確定URLは維持 |
-| AF-S05 | E11 | H/U | 複数署名のうち1件をreject | 同一エラーを伝播し、実helper経由のusecaseでは商品更新へ進まない。開始済みPromiseの取消しはassertしない |
-| AF-S06 | N01 / N02 / R02 | H/U/C | 元indexが飛び飛びの結果をusecaseとcontrollerへ渡す | 署名4項目の型とindexを維持。first_image_urlは確定URLの先頭、画像更新には全確定URLを渡す |
+| 新ID   | 元のケース      | レベル | 入力・手順                                              | 修正後の期待結果                                                                                       |
+| ------ | --------------- | ------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| AF-S01 | S13 / P06 / O03 | H      | 新規index=[0,1,2]、完了順を正順・逆順・混在にする       | すべて返却index=[0,1,2]、件数3、URL対応一致、重複なし                                                  |
+| AF-S02 | S13 / O03       | H      | 新規index=[1]、[0,2]、[1,3]。複数件は逆順でも完了させる | 返却indexはそれぞれ[1]、[0,2]、[1,3]。元indexを付け替えない                                            |
+| AF-S03 | S05 / S06       | H      | 既存・新規を交互に指定                                  | 新規の署名だけを全件返し、確定URLは既存分を含め入力順                                                  |
+| AF-S04 | S08 / V10       | H      | 署名対象0件・1件・10件                                  | 件数が対象数と一致。0件でも既存画像があれば確定URLは維持                                               |
+| AF-S05 | E11             | H/U    | 複数署名のうち1件をreject                               | 同一エラーを伝播し、実helper経由のusecaseでは商品更新へ進まない。開始済みPromiseの取消しはassertしない |
+| AF-S06 | N01 / N02 / R02 | H/U/C  | 元indexが飛び飛びの結果をusecaseとcontrollerへ渡す      | 署名4項目の型とindexを維持。first_image_urlは確定URLの先頭、画像更新には全確定URLを渡す                |
 
 ### F2：ブランド解決
 
-| 新ID | 元のケース | レベル | 入力・手順 | 修正後の期待結果 |
-| --- | --- | --- | --- | --- |
-| AF-B01 | B01 / B02 | H | 有効ID、存在しないID＋名前、IDなし＋名前なし | 有効ID優先。存在しないIDは名前へfallback。名前なしは両方null |
-| AF-B02 | B03 / B08 | H | brand付きaliasが返る | そのbrand・aliasを返す。getBrandOneとcreateAliasesは未実行 |
-| AF-B03 | B05 / O02 | H/U | aliasなし、名前検索でブランドが返る | ブランドを採用。更新引数brand_idにそのID、brand_aliases_idにnull。作成なし |
-| AF-B04 | B07 / O02 | H/U | 未紐付けaliasあり、ブランド名検索の結果がnull | 既存aliasを返し、更新引数brand_id=null・brand_aliases_id=既存ID。作成なし |
-| AF-B05 | B05 / B07 | H/U | 未紐付けaliasと名前検索ブランドが両方ある | ブランドのみ採用。既存aliasの紐付け更新や作成を呼ばない |
-| AF-B06 | B06 / O02 | H/U | 検索結果なし、2文字以上で新規aliasを作成 | 作成1回、そのaliasを返す。更新引数brand_aliases_idへ新規IDを渡す |
-| AF-B07 | B04 / B06 / B09 | H | 元名0/1/2文字、全半角・カナ・空白・絵文字 | 現行の正規化と作成条件を維持。作成した場合のalias返却だけを変更 |
-| AF-B08 | Q03 / O02 | H/U | 初回は未登録→作成、2回目の検索はその未紐付けaliasを返す | 2回とも同じalias.idを採用し、createAliasesの合計呼出しは1回。DB件数はassertしない |
-| AF-B09 | B10 / E11 | H/U | getBrand、getAliasOne、getBrandOne、createAliasesをそれぞれreject | 呼び出される分岐を用意し、transaction開始後の同一エラーのcallback/usecaseへの伝播、後続ブランドservice・商品更新の未実行を確認 |
-| AF-B10 | N01 / T01 / T02 / T05 | U/H | ブランド解決成功後に商品更新を実行 | 商品transaction→ブランド解決→本体→画像の順序を確認。ブランド解決中の更新・callback完了待ち、更新serviceへの同一t引渡し、開始失敗時のブランド解決未実行、本体更新失敗の伝播を確認。別名のDB残存は扱わない |
+| 新ID   | 元のケース            | レベル | 入力・手順                                                        | 修正後の期待結果                                                                                                                                                                                         |
+| ------ | --------------------- | ------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AF-B01 | B01 / B02             | H      | 有効ID、存在しないID＋名前、IDなし＋名前なし                      | 有効ID優先。存在しないIDは名前へfallback。名前なしは両方null                                                                                                                                             |
+| AF-B02 | B03 / B08             | H      | brand付きaliasが返る                                              | そのbrand・aliasを返す。getBrandOneとcreateAliasesは未実行                                                                                                                                               |
+| AF-B03 | B05 / O02             | H/U    | aliasなし、名前検索でブランドが返る                               | ブランドを採用。更新引数brand_idにそのID、brand_aliases_idにnull。作成なし                                                                                                                               |
+| AF-B04 | B07 / O02             | H/U    | 未紐付けaliasあり、ブランド名検索の結果がnull                     | 既存aliasを返し、更新引数brand_id=null・brand_aliases_id=既存ID。作成なし                                                                                                                                |
+| AF-B05 | B05 / B07             | H/U    | 未紐付けaliasと名前検索ブランドが両方ある                         | ブランドのみ採用。既存aliasの紐付け更新や作成を呼ばない                                                                                                                                                  |
+| AF-B06 | B06 / O02             | H/U    | 検索結果なし、2文字以上で新規aliasを作成                          | 作成1回、そのaliasを返す。更新引数brand_aliases_idへ新規IDを渡す                                                                                                                                         |
+| AF-B07 | B04 / B06 / B09       | H      | 元名0/1/2文字、全半角・カナ・空白・絵文字                         | 現行の正規化と作成条件を維持。作成した場合のalias返却だけを変更                                                                                                                                          |
+| AF-B08 | Q03 / O02             | H/U    | 初回は未登録→作成、2回目の検索はその未紐付けaliasを返す           | 2回とも同じalias.idを採用し、createAliasesの合計呼出しは1回。DB件数はassertしない                                                                                                                        |
+| AF-B09 | B10 / E11             | H/U    | getBrand、getAliasOne、getBrandOne、createAliasesをそれぞれreject | 呼び出される分岐を用意し、transaction開始後の同一エラーのcallback/usecaseへの伝播、後続ブランドservice・商品更新の未実行を確認                                                                           |
+| AF-B10 | N01 / T01 / T02 / T05 | U/H    | ブランド解決成功後に商品更新を実行                                | 商品transaction→ブランド解決→本体→画像の順序を確認。ブランド解決中の更新・callback完了待ち、更新serviceへの同一t引渡し、開始失敗時のブランド解決未実行、本体更新失敗の伝播を確認。別名のDB残存は扱わない |
 
 ### F3：商品画像0件
 
-| 新ID | 元のケース | レベル | 入力・手順 | 修正後の期待結果 |
-| --- | --- | --- | --- | --- |
-| AF-I01 | E04 / O01 | U | helper結果を[]、null、undefinedとし、既存先頭画像あり/なしを組み合わせる | ITEM_IMAGE_NULL/400。数値・マスター・ブランド・transaction・更新serviceは未実行 |
-| AF-I02 | V10 / O01 | V/H/U | itemImages=[]を実schemaと実helperへ渡す | schemaは受理、確定配列は[]、usecaseがITEM_IMAGE_NULL/400を返す |
-| AF-I03 | S06 / S08 | H/U | 入力画像はあるが、既存URL不在・新規type不足で全件除外される | 入力件数にかかわらずITEM_IMAGE_NULL/400。商品更新なし |
-| AF-I04 | N02 / D04 | U/H | 確定画像1件・10件 | 更新を実行。first_image_urlと画像配列の先頭が一致し、全件を更新serviceへ渡す。永続化は扱わない |
-| AF-I05 | E15 | U/H | 動画・サムネイル・画像配列の不備を重ねる | 動画→サムネイル→商品画像のエラー優先順位を維持 |
-| AF-I06 | R03 | C/R | usecaseがITEM_IMAGE_NULLをreject | controllerはnextへ同一AppErrorを渡し、200を返さない。Routerはテスト用エラー観測middlewareで400を確認 |
+| 新ID   | 元のケース | レベル | 入力・手順                                                               | 修正後の期待結果                                                                                     |
+| ------ | ---------- | ------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| AF-I01 | E04 / O01  | U      | helper結果を[]、null、undefinedとし、既存先頭画像あり/なしを組み合わせる | ITEM_IMAGE_NULL/400。数値・マスター・ブランド・transaction・更新serviceは未実行                      |
+| AF-I02 | V10 / O01  | V/H/U  | itemImages=[]を実schemaと実helperへ渡す                                  | schemaは受理、確定配列は[]、usecaseがITEM_IMAGE_NULL/400を返す                                       |
+| AF-I03 | S06 / S08  | H/U    | 入力画像はあるが、既存URL不在・新規type不足で全件除外される              | 入力件数にかかわらずITEM_IMAGE_NULL/400。商品更新なし                                                |
+| AF-I04 | N02 / D04  | U/H    | 確定画像1件・10件                                                        | 更新を実行。first_image_urlと画像配列の先頭が一致し、全件を更新serviceへ渡す。永続化は扱わない       |
+| AF-I05 | E15        | U/H    | 動画・サムネイル・画像配列の不備を重ねる                                 | 動画→サムネイル→商品画像のエラー優先順位を維持                                                       |
+| AF-I06 | R03        | C/R    | usecaseがITEM_IMAGE_NULLをreject                                         | controllerはnextへ同一AppErrorを渡し、200を返さない。Routerはテスト用エラー観測middlewareで400を確認 |
 
 ### F4：キー生成・uiIdの一意性
 
-| 新ID | 元のケース | レベル | 入力・手順 | 修正後の期待結果 |
-| --- | --- | --- | --- | --- |
-| AF-K01 | Q04 / O04 | H | 同一時刻・同一商品・同一入力で2回実行し、requestIdモックだけ変える | 動画・サムネイル・商品画像・属性画像の各新規キーが呼出し間で異なる |
-| AF-K02 | S01 / S04 / S05 / S09 | H | 1回で全メディアを新規指定 | 1回生成したrequestIdを使用し、署名keyと公開URLのkeyが一致。元index・uiIdは保持 |
-| AF-K03 | S02 / S10 / Q01 | H | 動画・商品画像・属性画像等を既存利用 | 既存URLを書き換えず、不要なS3署名を呼ばない |
-| AF-K04 | Q02 / P06 | H | 時刻を変えた再実行、同時開始して別requestIdを割当て、署名を逆順完了 | 各呼出し内のURL対応を保持し、別呼出しの署名結果を混ぜない。再送への同一結果は保証しない |
-| AF-K05 | E11 | H/U | requestId生成がthrow、またはキー生成後の署名がreject | エラーを伝播して商品更新へ進めない |
-| AF-V01 | V12 / P07 / O04 | V/R | uiIdが同じ2件。画像あり/なし、uploaded=true/falseを組み合わせる | schema拒否、INVALID_BODY/400。controller/usecase未実行 |
-| AF-V02 | V12 / N05 | V/H | 色0件・1件・一意な複数件、色の並べ替え | schema受理。各uiIdと署名・既存画像の対応を維持 |
-| AF-V03 | V12 | V | 1件だけ空uiId、空uiIdが2件、同一uiIdが離れた位置にある | 1件の空文字は受理、重複は位置によらず拒否。勝手にtrim・再採番しない |
-| AF-V04 | V16 / R05 / R07 | V/R | 重複uiIdのbody、paramsも不正なリクエスト、重複bodyの繰返し | 既存のparams優先・認証・レート制限順序を維持。body不正も制限回数に加算 |
+| 新ID   | 元のケース            | レベル | 入力・手順                                                          | 修正後の期待結果                                                                        |
+| ------ | --------------------- | ------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| AF-K01 | Q04 / O04             | H      | 同一時刻・同一商品・同一入力で2回実行し、requestIdモックだけ変える  | 動画・サムネイル・商品画像・属性画像の各新規キーが呼出し間で異なる                      |
+| AF-K02 | S01 / S04 / S05 / S09 | H      | 1回で全メディアを新規指定                                           | 1回生成したrequestIdを使用し、署名keyと公開URLのkeyが一致。元index・uiIdは保持          |
+| AF-K03 | S02 / S10 / Q01       | H      | 動画・商品画像・属性画像等を既存利用                                | 既存URLを書き換えず、不要なS3署名を呼ばない                                             |
+| AF-K04 | Q02 / P06             | H      | 時刻を変えた再実行、同時開始して別requestIdを割当て、署名を逆順完了 | 各呼出し内のURL対応を保持し、別呼出しの署名結果を混ぜない。再送への同一結果は保証しない |
+| AF-K05 | E11                   | H/U    | requestId生成がthrow、またはキー生成後の署名がreject                | エラーを伝播して商品更新へ進めない                                                      |
+| AF-V01 | V12 / P07 / O04       | V/R    | uiIdが同じ2件。画像あり/なし、uploaded=true/falseを組み合わせる     | schema拒否、INVALID_BODY/400。controller/usecase未実行                                  |
+| AF-V02 | V12 / N05             | V/H    | 色0件・1件・一意な複数件、色の並べ替え                              | schema受理。各uiIdと署名・既存画像の対応を維持                                          |
+| AF-V03 | V12                   | V      | 1件だけ空uiId、空uiIdが2件、同一uiIdが離れた位置にある              | 1件の空文字は受理、重複は位置によらず拒否。勝手にtrim・再採番しない                     |
+| AF-V04 | V16 / R05 / R07       | V/R    | 重複uiIdのbody、paramsも不正なリクエスト、重複bodyの繰返し          | 既存のparams優先・認証・レート制限順序を維持。body不正も制限回数に加算                  |
 
 ## 9. 既存テストの移行方針
 
 既存の観測テストをそのまま残すと、不具合の現行結果を期待するassertが修正後に失敗する。修正時は次の対応を行う。本書作成時点では変更しない。
 
-| 既存テスト | 修正時の扱い |
-| --- | --- |
-| S13 / P06 / O03：署名欠落を期待するケース | AF-S01/S02へ変更し、欠落なし・全index対応を期待する。旧結果はtestReport.mdの履歴に残す |
-| B03 / B05〜B08 / O02：未採用や不要な作成を期待するケース | AF-B02〜B06の分岐表へ置換。brand=null・aliasありの更新引数も追加検証 |
-| Q03：同じ未紐付けaliasが返っても作成2回を期待するケース | AF-B08へ変更。検索結果を指定した逐次再実行の確認に限定 |
-| E04 / O01：空配列が更新へ進むケース | AF-I01へ変更し、空配列も400・後続未実行を期待 |
-| V10：schemaが画像0件を受理するケース | 維持。usecaseの0件拒否とは責務を分ける |
-| Q04：同一時刻のキー一致を期待するケース | AF-K01へ変更。時刻とrequestIdを別々にモック |
-| S01 / S04 / S05 / S09等のキー文字列比較 | requestId込みの期待値へ変更。署名と公開URLの対応assertは維持 |
-| V12：重複uiIdを受理するケース | 重複部分をAF-V01/V03へ置換。空配列・素材比率合計など無関係な受理条件は維持 |
-| P07：helper直接呼出しで辞書上書きを期待するケース | HTTPの入力契約を確認するAF-V01へ移す。helper直接呼出しまで拒否されるとは期待しない |
-| N01、ブランド関連のservice呼出順・回数 | 解決後の早期returnを反映。追加指示に合わせ、商品transaction開始後にブランド解決を実行する期待値へ変更。T05もcallback内の別名作成・本体更新失敗の伝播へ移行 |
-| その他の正常系・認証・認可・価格/在庫境界・エラー伝播 | 原則として既存期待値を維持し回帰確認 |
+| 既存テスト                                               | 修正時の扱い                                                                                                                                               |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S13 / P06 / O03：署名欠落を期待するケース                | AF-S01/S02へ変更し、欠落なし・全index対応を期待する。旧結果はtestReport.mdの履歴に残す                                                                     |
+| B03 / B05〜B08 / O02：未採用や不要な作成を期待するケース | AF-B02〜B06の分岐表へ置換。brand=null・aliasありの更新引数も追加検証                                                                                       |
+| Q03：同じ未紐付けaliasが返っても作成2回を期待するケース  | AF-B08へ変更。検索結果を指定した逐次再実行の確認に限定                                                                                                     |
+| E04 / O01：空配列が更新へ進むケース                      | AF-I01へ変更し、空配列も400・後続未実行を期待                                                                                                              |
+| V10：schemaが画像0件を受理するケース                     | 維持。usecaseの0件拒否とは責務を分ける                                                                                                                     |
+| Q04：同一時刻のキー一致を期待するケース                  | AF-K01へ変更。時刻とrequestIdを別々にモック                                                                                                                |
+| S01 / S04 / S05 / S09等のキー文字列比較                  | requestId込みの期待値へ変更。署名と公開URLの対応assertは維持                                                                                               |
+| V12：重複uiIdを受理するケース                            | 重複部分をAF-V01/V03へ置換。空配列・素材比率合計など無関係な受理条件は維持                                                                                 |
+| P07：helper直接呼出しで辞書上書きを期待するケース        | HTTPの入力契約を確認するAF-V01へ移す。helper直接呼出しまで拒否されるとは期待しない                                                                         |
+| N01、ブランド関連のservice呼出順・回数                   | 解決後の早期returnを反映。追加指示に合わせ、商品transaction開始後にブランド解決を実行する期待値へ変更。T05もcallback内の別名作成・本体更新失敗の伝播へ移行 |
+| その他の正常系・認証・認可・価格/在庫境界・エラー伝播    | 原則として既存期待値を維持し回帰確認                                                                                                                       |
 
 既存436件という件数の維持やカバレッジ100%を完了条件にしない。仕様が変わるケースだけ期待結果を更新し、無関係なassertを弱めない。失敗したテストをskipやtodoにして成功扱いにしない。
 
@@ -351,25 +351,25 @@ npm run typecheck
 
 以下は31個のAFケースIDの対応表である。同じIDを複数条件やレイヤーで検証しているため、ID数と実行テスト件数は一致しない。
 
-| 対象ID | 主なファイル | 結果・確認内容 |
-| --- | --- | --- |
-| AF-S01〜S04 | `signedUrls.test.ts` | 成功。正順・逆順・混在、疎index、既存と新規の混在、署名対象0/1/10件で、件数・index・URL対応と確定URL順を確認 |
-| AF-S05 | `masterBrand.test.ts` | 成功。実helper内の署名失敗を同一エラーとして伝播し、マスター検索・商品更新へ進まない |
-| AF-S06 | `masterBrand.test.ts`、`controller.test.ts` | 成功。疎indexを含む署名4項目の返却、先頭画像と全画像の更新引数を確認 |
-| AF-B01〜B07 | `masterBrand.test.ts` | 成功。ID指定、紐付け済みalias、正式ブランド、未紐付けalias、新規作成の優先順位、名前の境界・正規化、更新へ渡すIDを確認 |
-| AF-B08 | `masterBrand.test.ts` | 成功。2回目の検索で既存aliasを返すモックにより再利用を確認。作成serviceの合計呼出しは1回 |
-| AF-B09 | `masterBrand.test.ts` | **失敗（4件）**。各ブランドserviceの例外は伝播するが、例外発生前にtransactionが開始されている |
-| AF-B10 | `masterBrand.test.ts`、`usecase.test.ts` | **一部失敗**。ブランド解決完了前のtransaction開始を検出。同一transactionの更新serviceへの引渡し、本体・画像更新とtransaction完了の待機は確認できた |
-| AF-I01 | `usecase.test.ts` | 成功。確定画像が空配列/null/undefinedの場合、既存先頭画像の有無によらず400で後続未実行 |
-| AF-I02〜I04 | `masterBrand.test.ts` | 成功。schemaが受理する画像0件、実helperが全件除外する入力、確定画像1/10件を実usecaseへ接続して確認 |
-| AF-I05 | `usecase.test.ts` | 成功。動画→サムネイル→商品画像のエラー優先順位を維持 |
-| AF-I06 | `controller.test.ts`、`route.test.ts` | 成功。ITEM_IMAGE_NULLの同一AppErrorをnextへ渡し、テスト用エラーmiddlewareを通じてHTTP 400を確認 |
-| AF-K01〜K04 | `signedUrls.test.ts` | 成功。同一時刻の別requestId、1呼出し内のキー対応、既存URL保持、異なる時刻や並行実行での結果の分離を確認 |
-| AF-K05 | `masterBrand.test.ts` | 成功。UUID生成失敗、および動画・サムネイル・商品画像・属性画像の署名失敗で商品更新へ進まない |
-| AF-V01 | `validation.test.ts`、`route.test.ts` | 成功。画像なし・新規・既存の組合せ9通りで重複uiIdを拒否し、INVALID_BODY/400、usecase未実行を確認 |
-| AF-V02 | `validation.test.ts`、`signedUrls.test.ts` | 成功。色0/1/複数件と並べ替えを受理し、uiIdと画像URLの対応を維持 |
-| AF-V03 | `validation.test.ts` | 成功。単独の空文字は受理し、空文字や離れた位置の重複は拒否。trim・大小文字変換を行わない |
-| AF-V04 | `route.test.ts` | 成功。認証・params検証の優先順位を維持し、重複bodyによる400もレート制限回数に加算 |
+| 対象ID      | 主なファイル                                | 結果・確認内容                                                                                                                                     |
+| ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AF-S01〜S04 | `signedUrls.test.ts`                        | 成功。正順・逆順・混在、疎index、既存と新規の混在、署名対象0/1/10件で、件数・index・URL対応と確定URL順を確認                                       |
+| AF-S05      | `masterBrand.test.ts`                       | 成功。実helper内の署名失敗を同一エラーとして伝播し、マスター検索・商品更新へ進まない                                                               |
+| AF-S06      | `masterBrand.test.ts`、`controller.test.ts` | 成功。疎indexを含む署名4項目の返却、先頭画像と全画像の更新引数を確認                                                                               |
+| AF-B01〜B07 | `masterBrand.test.ts`                       | 成功。ID指定、紐付け済みalias、正式ブランド、未紐付けalias、新規作成の優先順位、名前の境界・正規化、更新へ渡すIDを確認                             |
+| AF-B08      | `masterBrand.test.ts`                       | 成功。2回目の検索で既存aliasを返すモックにより再利用を確認。作成serviceの合計呼出しは1回                                                           |
+| AF-B09      | `masterBrand.test.ts`                       | **失敗（4件）**。各ブランドserviceの例外は伝播するが、例外発生前にtransactionが開始されている                                                      |
+| AF-B10      | `masterBrand.test.ts`、`usecase.test.ts`    | **一部失敗**。ブランド解決完了前のtransaction開始を検出。同一transactionの更新serviceへの引渡し、本体・画像更新とtransaction完了の待機は確認できた |
+| AF-I01      | `usecase.test.ts`                           | 成功。確定画像が空配列/null/undefinedの場合、既存先頭画像の有無によらず400で後続未実行                                                             |
+| AF-I02〜I04 | `masterBrand.test.ts`                       | 成功。schemaが受理する画像0件、実helperが全件除外する入力、確定画像1/10件を実usecaseへ接続して確認                                                 |
+| AF-I05      | `usecase.test.ts`                           | 成功。動画→サムネイル→商品画像のエラー優先順位を維持                                                                                               |
+| AF-I06      | `controller.test.ts`、`route.test.ts`       | 成功。ITEM_IMAGE_NULLの同一AppErrorをnextへ渡し、テスト用エラーmiddlewareを通じてHTTP 400を確認                                                    |
+| AF-K01〜K04 | `signedUrls.test.ts`                        | 成功。同一時刻の別requestId、1呼出し内のキー対応、既存URL保持、異なる時刻や並行実行での結果の分離を確認                                            |
+| AF-K05      | `masterBrand.test.ts`                       | 成功。UUID生成失敗、および動画・サムネイル・商品画像・属性画像の署名失敗で商品更新へ進まない                                                       |
+| AF-V01      | `validation.test.ts`、`route.test.ts`       | 成功。画像なし・新規・既存の組合せ9通りで重複uiIdを拒否し、INVALID_BODY/400、usecase未実行を確認                                                   |
+| AF-V02      | `validation.test.ts`、`signedUrls.test.ts`  | 成功。色0/1/複数件と並べ替えを受理し、uiIdと画像URLの対応を維持                                                                                    |
+| AF-V03      | `validation.test.ts`                        | 成功。単独の空文字は受理し、空文字や離れた位置の重複は拒否。trim・大小文字変換を行わない                                                           |
+| AF-V04      | `route.test.ts`                             | 成功。認証・params検証の優先順位を維持し、重複bodyによる400もレート制限回数に加算                                                                  |
 
 署名欠落、不要なalias作成、空画像での更新継続、同一時刻のキー一致、重複uiId受理を期待していた観測テストは、修正後の契約へ移行した。画像0件のschema受理、素材比率合計など無関係な入力条件の期待値は維持している。失敗するケースをskip/todoにしたり、現行実装に合わせて順序のassertを弱めたりしていない。
 
@@ -377,13 +377,13 @@ npm run typecheck
 
 本書では「ブランド解決→商品transaction開始→本体更新→画像更新」の順序を要求している。一方、現行の`server/src/usecases/itemEditing/updateConfirm.ts`は、`sequelize.transaction`のcallback内で`resolveBrand`を呼び出している。これにより、次の8件が失敗した。
 
-| ファイル・ケース | 件数 | 設計書と異なる観測結果 |
-| --- | --- | --- |
-| `masterBrand.test.ts`：AF-B09 | 4 | getBrand/getAliasOne/getBrandOne/createAliasesの各例外発生時、transactionの呼出し回数が期待値0回に対して1回 |
-| `masterBrand.test.ts`：AF-B10 | 1 | alias作成が未完了の時点でtransactionが開始済み。呼出し順も設計と逆 |
-| `masterBrand.test.ts`：既存T05 | 1 | alias作成の呼出しが商品transaction開始より後 |
-| `usecase.test.ts`：既存N01/N02/N05/T01 | 1 | 正常時のブランド解決とtransaction開始の順序が逆 |
-| `usecase.test.ts`：既存E11/E12/E13/T06のresolveBrand例外 | 1 | resolveBrandが失敗してもtransactionは呼出し済み |
+| ファイル・ケース                                         | 件数 | 設計書と異なる観測結果                                                                                      |
+| -------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- |
+| `masterBrand.test.ts`：AF-B09                            | 4    | getBrand/getAliasOne/getBrandOne/createAliasesの各例外発生時、transactionの呼出し回数が期待値0回に対して1回 |
+| `masterBrand.test.ts`：AF-B10                            | 1    | alias作成が未完了の時点でtransactionが開始済み。呼出し順も設計と逆                                          |
+| `masterBrand.test.ts`：既存T05                           | 1    | alias作成の呼出しが商品transaction開始より後                                                                |
+| `usecase.test.ts`：既存N01/N02/N05/T01                   | 1    | 正常時のブランド解決とtransaction開始の順序が逆                                                             |
+| `usecase.test.ts`：既存E11/E12/E13/T06のresolveBrand例外 | 1    | resolveBrandが失敗してもtransactionは呼出し済み                                                             |
 
 F1・F3・F4の追加テスト、およびF2のブランド採用・再利用は成功した。既存の認証・認可、入力境界、レスポンス、更新引数、transaction引渡しと完了待ちも対象テストで確認した。ただし、F2の処理順序と異常時のtransaction未開始については契約未達であり、修正全体の完了とは判定しない。
 
@@ -400,16 +400,16 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-| テストファイル | 成功 | 失敗 | 合計 |
-| --- | ---: | ---: | ---: |
-| `controller.test.ts` | 5 | 0 | 5 |
-| `masterBrand.test.ts` | 144 | 6 | 150 |
-| `route.test.ts` | 22 | 0 | 22 |
-| `services.test.ts` | 4 | 0 | 4 |
-| `signedUrls.test.ts` | 60 | 0 | 60 |
-| `usecase.test.ts` | 48 | 2 | 50 |
-| `validation.test.ts` | 211 | 0 | 211 |
-| **合計** | **494** | **8** | **502** |
+| テストファイル        |    成功 |  失敗 |    合計 |
+| --------------------- | ------: | ----: | ------: |
+| `controller.test.ts`  |       5 |     0 |       5 |
+| `masterBrand.test.ts` |     144 |     6 |     150 |
+| `route.test.ts`       |      22 |     0 |      22 |
+| `services.test.ts`    |       4 |     0 |       4 |
+| `signedUrls.test.ts`  |      60 |     0 |      60 |
+| `usecase.test.ts`     |      48 |     2 |      50 |
+| `validation.test.ts`  |     211 |     0 |     211 |
+| **合計**              | **494** | **8** | **502** |
 
 `npm run lint`は成功した。既存設定ではテストTSが検査対象外のため、対象ディレクトリの8個のTSファイルへ、ESLint APIでtypescript-eslintのrecommended設定を別途適用し、エラー・警告ともに0件だった。
 
@@ -427,14 +427,14 @@ npm run typecheck
 
 期待する順序を「事前検証→transaction開始→ブランド解決・必要な別名作成→本体更新→画像更新」とした。
 
-| 対象 | 更新・確認内容 | 結果 |
-| --- | --- | --- |
-| AF-B09（4件） | 各ブランドserviceの例外発生時はtransaction開始済みとし、transactionの返却Promiseとusecaseが同じエラーでrejectすること、後続service・商品更新の未実行を確認 | 成功 |
-| AF-B10：ブランド解決待機 | 別名作成を保留している間はtransaction開始済みで、本体・画像更新とcallback完了には進まない。解決後は順序どおり更新し、両更新serviceに同じtを渡す | 成功 |
-| AF-B10 / T05：本体更新失敗 | transaction開始後に別名を作成し、本体更新で失敗した場合は同じエラーを伝播して画像更新へ進まない | 成功 |
-| N01 / N02 / N05 / T01 | 正常時の呼出し順をtransaction開始→ブランド解決へ変更。保存引数・返却項目の検証は維持 | 成功 |
-| E11 / E12 / E13 / T06 | ブランド解決より前の事前処理失敗ではtransaction未開始。ブランド解決以降の失敗では開始済みで、transactionの返却Promiseにも同一エラーが伝播 | 成功 |
-| E14 | transaction開始失敗でcallbackが呼ばれない場合はブランド解決未実行。完了時の失敗ではブランド解決実行済みであることを追加確認 | 成功 |
+| 対象                       | 更新・確認内容                                                                                                                                             | 結果 |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| AF-B09（4件）              | 各ブランドserviceの例外発生時はtransaction開始済みとし、transactionの返却Promiseとusecaseが同じエラーでrejectすること、後続service・商品更新の未実行を確認 | 成功 |
+| AF-B10：ブランド解決待機   | 別名作成を保留している間はtransaction開始済みで、本体・画像更新とcallback完了には進まない。解決後は順序どおり更新し、両更新serviceに同じtを渡す            | 成功 |
+| AF-B10 / T05：本体更新失敗 | transaction開始後に別名を作成し、本体更新で失敗した場合は同じエラーを伝播して画像更新へ進まない                                                            | 成功 |
+| N01 / N02 / N05 / T01      | 正常時の呼出し順をtransaction開始→ブランド解決へ変更。保存引数・返却項目の検証は維持                                                                       | 成功 |
+| E11 / E12 / E13 / T06      | ブランド解決より前の事前処理失敗ではtransaction未開始。ブランド解決以降の失敗では開始済みで、transactionの返却Promiseにも同一エラーが伝播                  | 成功 |
+| E14                        | transaction開始失敗でcallbackが呼ばれない場合はブランド解決未実行。完了時の失敗ではブランド解決実行済みであることを追加確認                                | 成功 |
 
 失敗テストを削除・skip化せず、変更された契約に対応するassertへ移行した。ブランド解決、本体更新、画像更新、transaction完了の待機、および異常時の後続未実行は引き続き検証している。
 
@@ -449,16 +449,16 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-| テストファイル | 成功 | 失敗 | 合計 |
-| --- | ---: | ---: | ---: |
-| `controller.test.ts` | 5 | 0 | 5 |
-| `masterBrand.test.ts` | 150 | 0 | 150 |
-| `route.test.ts` | 22 | 0 | 22 |
-| `services.test.ts` | 4 | 0 | 4 |
-| `signedUrls.test.ts` | 60 | 0 | 60 |
-| `usecase.test.ts` | 50 | 0 | 50 |
-| `validation.test.ts` | 211 | 0 | 211 |
-| **合計** | **502** | **0** | **502** |
+| テストファイル        |    成功 |  失敗 |    合計 |
+| --------------------- | ------: | ----: | ------: |
+| `controller.test.ts`  |       5 |     0 |       5 |
+| `masterBrand.test.ts` |     150 |     0 |     150 |
+| `route.test.ts`       |      22 |     0 |      22 |
+| `services.test.ts`    |       4 |     0 |       4 |
+| `signedUrls.test.ts`  |      60 |     0 |      60 |
+| `usecase.test.ts`     |      50 |     0 |      50 |
+| `validation.test.ts`  |     211 |     0 |     211 |
+| **合計**              | **502** | **0** | **502** |
 
 **7ファイル・502件がすべて成功し、skip/todoは0件。** 前回失敗した8件はすべて成功した。F1〜F4のAFケースと既存の回帰テストは、更新した呼出し順の契約を満たしている。
 
@@ -478,20 +478,19 @@ npm run typecheck
 
 現行コードの調査により、helperが`src/usecases/shared/`へ移動し、resolveBrand/createAliasesへtransactionが渡ることを確認した。旧回帰テスト3ファイルの参照先と引数の完全一致assertをこの実装へ合わせた。アプリ側は編集していない。
 
-| 追加検証 | 元ケース | 期待・確認した結果 | ファイル |
-| --- | --- | --- | --- |
-| AF-DB01：保存・状態・JSONB | N02〜N08、ST01〜ST06・ST08、D01・D03〜D06・D08・D10、E01 | 全保存項目、外部キー、非対象行不変、JSONB、画像順序、所有権除外 | database.test.ts |
-| AF-DB02：制約 | V09〜V11、I03〜I04、D09、O01 | NOT NULL/ENUM/VARCHAR/FK/モデル画像上限とrollback、空画像拒否 | database.test.ts |
-| AF-DB03：別名と再実行 | N08、O02、Q01〜Q03 | 現行の名前解決結果を関連付け、逐次alias再利用、メディアURL上書き | database.test.ts |
-| AF-DB04：transaction | E12〜E13、ST07、D07、T03〜T05・T07、Q05 | 商品と新規aliasのrollback、別接続可視性、再試行成功 | databaseTransactions.test.ts |
-| AF-DB05：並行・観測 | P01〜P05・P08、O05 | 順序制御したcommit/rollback、変更列混在、並行別名2行、所有者変更・削除競合 | databaseConcurrency.test.ts |
+| 追加検証                   | 元ケース                                                 | 期待・確認した結果                                                         | ファイル                     |
+| -------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------- |
+| AF-DB01：保存・状態・JSONB | N02〜N08、ST01〜ST06・ST08、D01・D03〜D06・D08・D10、E01 | 全保存項目、外部キー、非対象行不変、JSONB、画像順序、所有権除外            | database.test.ts             |
+| AF-DB02：制約              | V09〜V11、I03〜I04、D09、O01                             | NOT NULL/ENUM/VARCHAR/FK/モデル画像上限とrollback、空画像拒否              | database.test.ts             |
+| AF-DB03：別名と再実行      | N08、O02、Q01〜Q03                                       | 現行の名前解決結果を関連付け、逐次alias再利用、メディアURL上書き           | database.test.ts             |
+| AF-DB04：transaction       | E12〜E13、ST07、D07、T03〜T05・T07、Q05                  | 商品と新規aliasのrollback、別接続可視性、再試行成功                        | databaseTransactions.test.ts |
+| AF-DB05：並行・観測        | P01〜P05・P08、O05                                       | 順序制御したcommit/rollback、変更列混在、並行別名2行、所有者変更・削除競合 | databaseConcurrency.test.ts  |
 
 T05/Q05について、以前の報告ではcallback内での呼出しのみを検証したが、今回はModel.createまで同じtransactionを渡す現行コードとDB rollbackを確認した。別名は残存しなかった。Q03はDB1行の再利用、P05は同時検索後に2行生成された。これらは異なる順序での結果として区別する。
 
 P02ではA名称/B価格の混在、P08では削除後の成功応答と所有者変更後の書込みを観測した。テスト成功はこれらの不具合解消を意味しない。フォルダ外編集禁止に従い、修正やdocs/todoへの追加を行わず本報告へ残した。
 
 最終実行は**DB104件＋回帰502件＝606件、10ファイルすべて成功、失敗/skip/todoは0件**。全接続で`.env.test`由来の`test_db`を確認。作成したIDだけを削除し、残存0件を検証した。全体lint/型検査は対象外の既存エラーで失敗したが、変更TS8ファイルの追加lintは成功し、対象内の型エラーはない。コマンド・エラー箇所・途中経過はtestReport.mdに記録した。
-
 
 ## 2026-10-12 P02・P05・P08修正後のテスト結果（最新）
 

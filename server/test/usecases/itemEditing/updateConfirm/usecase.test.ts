@@ -393,7 +393,6 @@ describe("P0: 失敗伝播と後続未実行", () => {
     });
 });
 
-
 describe("P02/P08: transaction内の再取得", () => {
     it("P02: 再取得の完了を待ち最新インスタンスを両更新へ渡す", async () => {
         const current = makeItem();
@@ -410,10 +409,15 @@ describe("P02/P08: transaction内の再取得", () => {
             expect(mocks.resolveBrand).not.toHaveBeenCalled();
             expect(mocks.updateConfirm).not.toHaveBeenCalled();
             expect(mocks.updateItemEditingImage).not.toHaveBeenCalled();
-        } finally { release.resolve(current); await pending; }
+        } finally {
+            release.resolve(current);
+            await pending;
+        }
         expect(mocks.updateConfirm.mock.calls[0][0].itemEditing).toBe(current);
         expect(mocks.updateItemEditingImage.mock.calls[0][0].itemEditing).toBe(current);
-        expect(mocks.getMyItemEditing.mock.invocationCallOrder[1]).toBeGreaterThan(mocks.transaction.mock.invocationCallOrder[0]);
+        expect(mocks.getMyItemEditing.mock.invocationCallOrder[1]).toBeGreaterThan(
+            mocks.transaction.mock.invocationCallOrder[0],
+        );
     });
 
     it.each(["対象なし", "DB例外"])("P08: 再取得が%sなら後続を停止する", async (mode) => {

@@ -9,7 +9,9 @@ import * as command from "../../../../src/services/itemEditing/command.js";
 import * as aliases from "../../../../src/services/brandAliases.js";
 
 let f: DbFixture;
-beforeEach(async () => { f = await seed(); });
+beforeEach(async () => {
+    f = await seed();
+});
 
 // 各呼出しの実SELECT完了を通知してから解放する。spyは実DB結果を変更しない。
 const gateReads = () => {
@@ -33,20 +35,34 @@ describe("P2 実DB並行処理・観測", () => {
         const gate = gateReads();
         const a = structuredClone(f.body);
         const b = structuredClone(f.body);
-        a.itemMeta.name = "更新A"; a.price = 1000; newMedia(a);
-        b.itemMeta.name = "更新B"; b.price = 2000; newMedia(b);
+        a.itemMeta.name = "更新A";
+        a.price = 1000;
+        newMedia(a);
+        b.itemMeta.name = "更新B";
+        b.price = 2000;
+        newMedia(b);
         const pa = run(f, a);
         const pb = run(f, b);
         const settled = Promise.allSettled([pa, pb]);
         try {
-            await Promise.race([Promise.all(gate.entered.map((g) => g.promise)), ...[pa, pb].map((pending) => pending.then(() => { throw new Error("取得待合せ前に終了"); }))]);
+            await Promise.race([
+                Promise.all(gate.entered.map((g) => g.promise)),
+                ...[pa, pb].map((pending) =>
+                    pending.then(() => {
+                        throw new Error("取得待合せ前に終了");
+                    }),
+                ),
+            ]);
             gate.release[0].resolve();
             await pa;
             expect(await snapshot(f.editing.id)).toMatchObject({ name: "更新A", price: 1000 });
             gate.release[1].resolve();
             const resultB = await pb;
-            expect(await snapshot(f.editing.id)).toMatchObject({ name: "更新B", price: 2000,
-                image_url: resultB.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")) });
+            expect(await snapshot(f.editing.id)).toMatchObject({
+                name: "更新B",
+                price: 2000,
+                image_url: resultB.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")),
+            });
         } finally {
             gate.release.forEach((g) => g.resolve());
             await settled;
@@ -56,27 +72,42 @@ describe("P2 実DB並行処理・観測", () => {
     it("P02 O05: ロック下で再取得しBの名称・価格を一貫して保存する", async () => {
         const sql: string[] = [];
         sequelize.addHook("beforeQuery", "captureSql", (_options, query) => {
-            query.options.logging = (statement) => { sql.push(statement); };
+            query.options.logging = (statement) => {
+                sql.push(statement);
+            };
         });
         const gate = gateReads();
         const a = structuredClone(f.body);
         const b = structuredClone(f.body);
-        a.itemMeta.name = "Aだけ変更"; a.price = f.editing.price!;
-        b.itemMeta.name = f.editing.name!; b.price = 2000;
+        a.itemMeta.name = "Aだけ変更";
+        a.price = f.editing.price!;
+        b.itemMeta.name = f.editing.name!;
+        b.price = 2000;
         const pa = run(f, a);
         const pb = run(f, b);
         const settled = Promise.allSettled([pa, pb]);
         try {
-            await Promise.race([Promise.all(gate.entered.map((g) => g.promise)), ...[pa, pb].map((pending) => pending.then(() => { throw new Error("取得待合せ前に終了"); }))]);
-            gate.release[0].resolve(); await pa;
-            gate.release[1].resolve(); await pb;
+            await Promise.race([
+                Promise.all(gate.entered.map((g) => g.promise)),
+                ...[pa, pb].map((pending) =>
+                    pending.then(() => {
+                        throw new Error("取得待合せ前に終了");
+                    }),
+                ),
+            ]);
+            gate.release[0].resolve();
+            await pa;
+            gate.release[1].resolve();
+            await pb;
             expect(await snapshot(f.editing.id)).toMatchObject({ name: b.itemMeta.name, price: 2000 });
             const writes = sql.filter((line) => line.includes('UPDATE "item_editing"'));
             expect(writes).toHaveLength(4);
             expect(writes[0]).toContain('"name"=');
             expect(writes[2]).toContain('"name"=');
             expect(writes[2]).toContain('"price"=');
-            const lockedReads = sql.filter((line) => line.includes('FROM "item_editing"') && line.includes('FOR UPDATE'));
+            const lockedReads = sql.filter(
+                (line) => line.includes('FROM "item_editing"') && line.includes("FOR UPDATE"),
+            );
             expect(lockedReads).toHaveLength(2);
             for (const read of lockedReads) expect(read).toContain('"seller_id"');
         } finally {
@@ -87,11 +118,19 @@ describe("P2 実DB並行処理・観測", () => {
     });
 
     it("P03: 別ユーザーの商品を別transactionで同時更新し値が混ざらない", async () => {
-        await f.otherEditing.update({ original_url: "https://media.test/other-video", thumbnail_url: "https://media.test/other-thumbnail", image_url: ["https://media.test/other-image"] });
+        await f.otherEditing.update({
+            original_url: "https://media.test/other-video",
+            thumbnail_url: "https://media.test/other-thumbnail",
+            image_url: ["https://media.test/other-image"],
+        });
         const a = structuredClone(f.body);
         const b = structuredClone(f.body);
-        a.itemMeta.name = "A商品"; newMedia(a);
-        b.itemMeta.name = "B商品"; b.price = 2000; b.attributes.allInventory = 8; newMedia(b);
+        a.itemMeta.name = "A商品";
+        newMedia(a);
+        b.itemMeta.name = "B商品";
+        b.price = 2000;
+        b.attributes.allInventory = 8;
+        newMedia(b);
         const entered = deferred<void>();
         const release = deferred<void>();
         const real = command.updateItemEditingImage;
@@ -104,21 +143,42 @@ describe("P2 実DB並行処理・観測", () => {
         });
         const pending = Promise.all([run(f, a), run(f, b, f.otherEditing.id, f.other.id)]);
         try {
-            await Promise.race([entered.promise, pending.then(() => { throw new Error("両transactionに到達せず終了"); })]);
+            await Promise.race([
+                entered.promise,
+                pending.then(() => {
+                    throw new Error("両transactionに到達せず終了");
+                }),
+            ]);
             expect(transactions.size).toBe(2);
-        } finally { release.resolve(); await pending; }
+        } finally {
+            release.resolve();
+            await pending;
+        }
         const [ra, rb] = await pending;
-        expect(await snapshot(f.editing.id)).toMatchObject({ seller_id: f.owner.id, name: "A商品", price: 300,
-            image_url: ra.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")) });
-        expect(await snapshot(f.otherEditing.id)).toMatchObject({ seller_id: f.other.id, name: "B商品", price: 2000,
+        expect(await snapshot(f.editing.id)).toMatchObject({
+            seller_id: f.owner.id,
+            name: "A商品",
+            price: 300,
+            image_url: ra.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")),
+        });
+        expect(await snapshot(f.otherEditing.id)).toMatchObject({
+            seller_id: f.other.id,
+            name: "B商品",
+            price: 2000,
             attributes: { inventory: { initial: 8, current: 8, low_stock_ratio: 0.2 } },
-            image_url: rb.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")) });
+            image_url: rb.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")),
+        });
     });
 
     it("P04: A commit後に同じ旧行のBが画像失敗してもAを取り消さない", async () => {
         const gate = gateReads();
-        const a = structuredClone(f.body); a.itemMeta.name = "成功A"; newMedia(a);
-        const b = structuredClone(f.body); b.itemMeta.name = "失敗B"; b.price = 2000; newMedia(b);
+        const a = structuredClone(f.body);
+        a.itemMeta.name = "成功A";
+        newMedia(a);
+        const b = structuredClone(f.body);
+        b.itemMeta.name = "失敗B";
+        b.price = 2000;
+        newMedia(b);
         const real = command.updateItemEditingImage;
         const error = new Error("Bの画像失敗");
         vi.spyOn(command, "updateItemEditingImage").mockImplementation(async (params) => {
@@ -130,10 +190,19 @@ describe("P2 実DB並行処理・観測", () => {
         const failure = expect(pb).rejects.toBe(error);
         const settled = Promise.allSettled([pa, pb]);
         try {
-            await Promise.race([Promise.all(gate.entered.map((g) => g.promise)), ...[pa, pb].map((pending) => pending.then(() => { throw new Error("取得待合せ前に終了"); }))]);
-            gate.release[0].resolve(); await pa;
+            await Promise.race([
+                Promise.all(gate.entered.map((g) => g.promise)),
+                ...[pa, pb].map((pending) =>
+                    pending.then(() => {
+                        throw new Error("取得待合せ前に終了");
+                    }),
+                ),
+            ]);
+            gate.release[0].resolve();
+            await pa;
             const committed = await snapshot(f.editing.id);
-            gate.release[1].resolve(); await failure;
+            gate.release[1].resolve();
+            await failure;
             expect(await snapshot(f.editing.id)).toEqual(committed);
         } finally {
             gate.release.forEach((g) => g.resolve());
@@ -156,12 +225,23 @@ describe("P2 実DB並行処理・観測", () => {
             return result;
         });
         // 同一商品では行ロックで検索自体が直列化するため、別商品で別名作成を競合させる。
-        await f.otherEditing.update({ original_url: f.editing.original_url, thumbnail_url: f.editing.thumbnail_url,
-            image_url: f.editing.image_url });
+        await f.otherEditing.update({
+            original_url: f.editing.original_url,
+            thumbnail_url: f.editing.thumbnail_url,
+            image_url: f.editing.image_url,
+        });
         const pending = Promise.all([run(f), run(f, f.body, f.otherEditing.id, f.other.id)]);
         try {
-            await Promise.race([entered.promise, pending.then(() => { throw new Error("両検索に到達せず終了"); })]);
-        } finally { release.resolve(); await pending; }
+            await Promise.race([
+                entered.promise,
+                pending.then(() => {
+                    throw new Error("両検索に到達せず終了");
+                }),
+            ]);
+        } finally {
+            release.resolve();
+            await pending;
+        }
         const rows = await BrandAliases.findAll({ where: { name_normalized: f.body.brand.name } });
         expect(rows).toHaveLength(1);
         expect((await ItemEditing.findByPk(f.editing.id))!.brand_aliases_id).toBe(rows[0].id);
@@ -182,24 +262,32 @@ describe("P2 実DB並行処理・観測", () => {
         vi.spyOn(query, "getMyItemEditing").mockImplementation(async (params) => {
             const row = await real(params);
             if (params.transaction) {
-                await expect(observer.query('SELECT id FROM item_editing WHERE id = :id FOR UPDATE NOWAIT', {
-                    replacements: { id: f.editing.id }, type: QueryTypes.SELECT,
-                })).rejects.toMatchObject({ original: { code: "55P03" } });
+                await expect(
+                    observer.query("SELECT id FROM item_editing WHERE id = :id FOR UPDATE NOWAIT", {
+                        replacements: { id: f.editing.id },
+                        type: QueryTypes.SELECT,
+                    }),
+                ).rejects.toMatchObject({ original: { code: "55P03" } });
                 checked = true;
             }
             return row;
         });
         await run(f);
         expect(checked).toBe(true);
-        await expect(observer.query('SELECT id FROM item_editing WHERE id = :id FOR UPDATE NOWAIT', {
-            replacements: { id: f.editing.id }, type: QueryTypes.SELECT,
-        })).resolves.toEqual([{ id: f.editing.id }]);
+        await expect(
+            observer.query("SELECT id FROM item_editing WHERE id = :id FOR UPDATE NOWAIT", {
+                replacements: { id: f.editing.id },
+                type: QueryTypes.SELECT,
+            }),
+        ).resolves.toEqual([{ id: f.editing.id }]);
     });
 
     it.each(["削除", "所有者変更"])("P08 O05: 初回取得後の%sを再確認で拒否し商品・別名を更新しない", async (mode) => {
         const sql: string[] = [];
         sequelize.addHook("beforeQuery", "captureSql", (_options, query) => {
-            query.options.logging = (statement) => { sql.push(statement); };
+            query.options.logging = (statement) => {
+                sql.push(statement);
+            };
         });
         const before = await snapshot(f.editing.id);
         f.body.brand = { id: null, name: `${f.prefix}rejected` };
@@ -210,8 +298,16 @@ describe("P2 実DB並行処理・観測", () => {
         vi.spyOn(query, "getMyItemEditing").mockImplementationOnce(async (params) => {
             const row = await real(params);
             expect(row).not.toBeNull();
-            if (mode === "削除") await observer.query('DELETE FROM item_editing WHERE id = :id', { replacements: { id: f.editing.id }, type: QueryTypes.DELETE });
-            else await observer.query('UPDATE item_editing SET seller_id = :owner WHERE id = :id', { replacements: { id: f.editing.id, owner: f.other.id }, type: QueryTypes.UPDATE });
+            if (mode === "削除")
+                await observer.query("DELETE FROM item_editing WHERE id = :id", {
+                    replacements: { id: f.editing.id },
+                    type: QueryTypes.DELETE,
+                });
+            else
+                await observer.query("UPDATE item_editing SET seller_id = :owner WHERE id = :id", {
+                    replacements: { id: f.editing.id, owner: f.other.id },
+                    type: QueryTypes.UPDATE,
+                });
             return row;
         });
         try {
@@ -224,9 +320,13 @@ describe("P2 実DB並行処理・観測", () => {
             expect(await BrandAliases.count({ where: { name_normalized: f.body.brand.name } })).toBe(0);
             const writes = sql.filter((line) => line.includes('UPDATE "item_editing"'));
             expect(writes).toHaveLength(0);
-            const lockedReads = sql.filter((line) => line.includes('FROM "item_editing"') && line.includes('FOR UPDATE'));
+            const lockedReads = sql.filter(
+                (line) => line.includes('FROM "item_editing"') && line.includes("FOR UPDATE"),
+            );
             expect(lockedReads).toHaveLength(1);
             expect(lockedReads[0]).toContain('"seller_id"');
-        } finally { sequelize.removeHook("beforeQuery", "captureSql"); }
+        } finally {
+            sequelize.removeHook("beforeQuery", "captureSql");
+        }
     });
 });

@@ -243,7 +243,11 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(await resolveBrand({ brandId: null, body })).toEqual({ brand: null, alias: { id: 71, brand_id: null } });
         expect(mocks.getAliasOne).toHaveBeenCalledExactlyOnceWith({ normalized });
         expect(mocks.getBrandOne).toHaveBeenCalledExactlyOnceWith({ normalized });
-        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: name, normalized, transaction: undefined });
+        expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({
+            inputName: name,
+            normalized,
+            transaction: undefined,
+        });
     });
     it.each([false, true])("P05: 作成時の再検索で再利用したaliasのbrand有無=%sを更新へ渡す", async (linked) => {
         byName();
@@ -252,7 +256,8 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         await run();
         expect(mocks.createAliases).toHaveBeenCalledTimes(1);
         expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({
-            brand_id: linked ? brand.id : null, brand_aliases_id: alias.id,
+            brand_id: linked ? brand.id : null,
+            brand_aliases_id: alias.id,
         });
     });
     it("AF-B03 B05 O02: 名前で見つかったブランドを商品更新のIDへ採用する", async () => {
@@ -309,9 +314,7 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
             expect(mocks.updateConfirm).not.toHaveBeenCalled();
             expect(mocks.updateItemEditingImage).not.toHaveBeenCalled();
             expect(mocks.transaction).toHaveBeenCalledOnce();
-            expect(mocks.transaction.mock.invocationCallOrder[0]).toBeLessThan(
-                mocks[name].mock.invocationCallOrder[0],
-            );
+            expect(mocks.transaction.mock.invocationCallOrder[0]).toBeLessThan(mocks[name].mock.invocationCallOrder[0]);
             await expect(mocks.transaction.mock.results[0].value).rejects.toBe(error);
         },
     );

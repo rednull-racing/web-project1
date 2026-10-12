@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deferred, makeItem } from "./fixtures.js";
 const mocks = vi.hoisted(() => ({ findOne: vi.fn(), query: vi.fn(), findAlias: vi.fn(), createAlias: vi.fn() }));
 vi.mock("../../../../src/models/index.js", () => ({
-    ItemEditing: { findOne: mocks.findOne }, Item: {},
-    BrandAliases: { findOne: mocks.findAlias, create: mocks.createAlias }, Brands: {},
+    ItemEditing: { findOne: mocks.findOne },
+    Item: {},
+    BrandAliases: { findOne: mocks.findAlias, create: mocks.createAlias },
+    Brands: {},
 }));
 vi.mock("../../../../src/db.js", () => ({ default: { query: mocks.query } }));
 import { Brands } from "../../../../src/models/index.js";
@@ -71,17 +73,17 @@ describe("P1: DBへ接続しないservice契約", () => {
     });
 });
 
-
 it("P02/P08: 所有者条件と同じtransactionで更新ロックを指定する", async () => {
     const transaction = { LOCK: { UPDATE: "UPDATE" } } as Transaction;
     const item = makeItem();
     mocks.findOne.mockResolvedValue(item);
     expect(await getMyItemEditing({ itemEditingId: 11, userId: 7, transaction })).toBe(item);
     expect(mocks.findOne).toHaveBeenCalledExactlyOnceWith({
-        where: { id: 11, seller_id: 7 }, transaction, lock: "UPDATE",
+        where: { id: 11, seller_id: 7 },
+        transaction,
+        lock: "UPDATE",
     });
 });
-
 
 describe("P05: 別名作成のロックと再検索", () => {
     it.each([false, true])("ロック完了後の既存alias有無=%sで再利用または作成する", async (exists) => {
@@ -99,15 +101,22 @@ describe("P05: 別名作成のロックと再検索", () => {
             );
             expect(mocks.findAlias).not.toHaveBeenCalled();
             expect(mocks.createAlias).not.toHaveBeenCalled();
-        } finally { locked.resolve(); await pending; }
+        } finally {
+            locked.resolve();
+            await pending;
+        }
         expect(await pending).toBe(alias);
         expect(mocks.findAlias).toHaveBeenCalledExactlyOnceWith({
-            where: { name_normalized: "ぶらんど" }, include: [{ model: Brands, as: "brand" }], transaction,
+            where: { name_normalized: "ぶらんど" },
+            include: [{ model: Brands, as: "brand" }],
+            transaction,
         });
         if (exists) expect(mocks.createAlias).not.toHaveBeenCalled();
-        else expect(mocks.createAlias).toHaveBeenCalledExactlyOnceWith(
-            { brand_id: null, name: "ブランド", name_normalized: "ぶらんど" }, { transaction },
-        );
+        else
+            expect(mocks.createAlias).toHaveBeenCalledExactlyOnceWith(
+                { brand_id: null, name: "ブランド", name_normalized: "ぶらんど" },
+                { transaction },
+            );
     });
 
     it.each(["query", "findAlias", "createAlias"] as const)("%sの例外をそのまま伝播する", async (step) => {

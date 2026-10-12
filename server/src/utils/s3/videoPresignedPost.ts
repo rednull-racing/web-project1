@@ -11,7 +11,11 @@ type PresignedParams = {
 export const createVideoPresignedPost = async ({ key, contentType, contentLengthRange }: PresignedParams) => {
     const bucket = buckets.public;
     if (!bucket) {
-        throw new AppError("VIDEO_SIGNED_URL_UNAVAILABLE", 500, "動画のアップロード準備ができませんでした。もう一度お試しください。");
+        throw new AppError(
+            "VIDEO_SIGNED_URL_UNAVAILABLE",
+            500,
+            "動画のアップロード準備ができませんでした。もう一度お試しください。",
+        );
     }
 
     const presignedUrl = await createPresignedPost(s3, {

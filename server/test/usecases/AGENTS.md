@@ -28,23 +28,23 @@
 
 原則として `test/usecases/<機能>/<usecase名>/` に対象一式をまとめる。以下を基本構成とし、対象の責務に応じて必要なファイルを作成する。責務のない空ファイルや、参照元と件数を合わせるためのテストは作らない。
 
-| ファイル | 役割 |
-| --- | --- |
-| `testArchitecture.md` | 初回テストの対象、根拠、責務、ケース、優先度、完了条件 |
-| `fixtures.ts` | 標準入力・既存データのfactory、共通のエラー検証、deferred Promise |
-| `usecase.test.ts` | 実usecaseと依存モックによる引数、戻り値、処理順序、失敗時の打切り |
+| ファイル                         | 役割                                                                                                  |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `testArchitecture.md`            | 初回テストの対象、根拠、責務、ケース、優先度、完了条件                                                |
+| `fixtures.ts`                    | 標準入力・既存データのfactory、共通のエラー検証、deferred Promise                                     |
+| `usecase.test.ts`                | 実usecaseと依存モックによる引数、戻り値、処理順序、失敗時の打切り                                     |
 | `<対象helper名・関心事>.test.ts` | 実helperの分岐、および必要な実usecaseとの接続。参照元では `signedUrls.test.ts`、`masterBrand.test.ts` |
-| `validation.test.ts` | 実schema、validateBody、validateParamsの受理・拒否・値の引渡し |
-| `services.test.ts` | 実serviceから依存メソッドへの呼出し契約 |
-| `controller.test.ts` | 実controllerからusecaseへの引渡し、成功応答、例外のnextへの伝播 |
-| `route.test.ts` | 実Router・認証・validator・レート制限の接続 |
-| `databaseSetup.ts` | `.env.test` の読込み、接続設定の検査、外部通信のモック。DB関連モジュールの初期化より先に適用する |
-| `databaseFixtures.ts` | 実DB名の検査、fixtureの作成と後片付け、別接続での再取得、接続の終了 |
-| `database.test.ts` | 実DBでの永続化、制約、状態遷移、所有権、逐次再実行 |
-| `databaseTransactions.test.ts` | commit・rollback、別接続からの可視性、関連行の整合性、失敗後の再試行 |
-| `databaseConcurrency.test.ts` | 実DB処理の順序を制御した並行更新、重複作成、所有者変更・削除との競合 |
-| `testReport.md` | 初回の実装内容、実行結果、設計項目との対応、観測結果、未確認事項 |
-| `afterFix.md` | 修正案、修正後のテスト設計、既存ケースの移行方針、修正・再修正報告 |
+| `validation.test.ts`             | 実schema、validateBody、validateParamsの受理・拒否・値の引渡し                                        |
+| `services.test.ts`               | 実serviceから依存メソッドへの呼出し契約                                                               |
+| `controller.test.ts`             | 実controllerからusecaseへの引渡し、成功応答、例外のnextへの伝播                                       |
+| `route.test.ts`                  | 実Router・認証・validator・レート制限の接続                                                           |
+| `databaseSetup.ts`               | `.env.test` の読込み、接続設定の検査、外部通信のモック。DB関連モジュールの初期化より先に適用する      |
+| `databaseFixtures.ts`            | 実DB名の検査、fixtureの作成と後片付け、別接続での再取得、接続の終了                                   |
+| `database.test.ts`               | 実DBでの永続化、制約、状態遷移、所有権、逐次再実行                                                    |
+| `databaseTransactions.test.ts`   | commit・rollback、別接続からの可視性、関連行の整合性、失敗後の再試行                                  |
+| `databaseConcurrency.test.ts`    | 実DB処理の順序を制御した並行更新、重複作成、所有者変更・削除との競合                                  |
+| `testReport.md`                  | 初回の実装内容、実行結果、設計項目との対応、観測結果、未確認事項                                      |
+| `afterFix.md`                    | 修正案、修正後のテスト設計、既存ケースの移行方針、修正・再修正報告                                    |
 
 usecase単体でhelperをモックした場合、その成功だけでhelper内部の分岐を検証済みとしない。helperの実処理とusecaseの組合せを必要な境界で確認し、同じassertを全レイヤーへ機械的に複製しない。
 
@@ -154,13 +154,13 @@ DBテストは、`server/.env.test` を接続設定の読込元とし、PostgreS
 
 DBテストでは、対象のusecase・helper・service・モデルと実PostgreSQLを組み合わせる。外部サービスの通信は引き続き境界でモックする。障害注入や順序制御のspyを使う場合は、どこを置換し、どこまで実処理を実行したかを明示する。
 
-| 観点 | 確認内容 |
-| --- | --- |
-| 永続化 | 更新に使ったモデルインスタンスだけを見ず、新規SELECTで保存値を取得する。主な保存項目、関連ID、行数、配列の順序、JSONBの値・キーの有無を確認する |
-| 非対象データ | 他ユーザーの行、公開側などの関連行、所有者、作成日時など、変更してはいけない値が維持されることを確認する |
-| 所有権・状態 | where条件の引数だけでなく、実際に対象外行が除外されること、エラー後に更新されないことを確認する |
-| 制約 | 入力schema、Sequelizeのvalidation、DBのNOT NULL・ENUM・文字数・外部キー・unique制約のどこで失敗したかを区別する |
-| JSONB・nullable | `undefined`のキー省略、空配列、null、0、小数、日本語などをDBから再取得して確認する。モデル上の値だけで保存表現を断定しない |
+| 観点            | 確認内容                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 永続化          | 更新に使ったモデルインスタンスだけを見ず、新規SELECTで保存値を取得する。主な保存項目、関連ID、行数、配列の順序、JSONBの値・キーの有無を確認する |
+| 非対象データ    | 他ユーザーの行、公開側などの関連行、所有者、作成日時など、変更してはいけない値が維持されることを確認する                                        |
+| 所有権・状態    | where条件の引数だけでなく、実際に対象外行が除外されること、エラー後に更新されないことを確認する                                                 |
+| 制約            | 入力schema、Sequelizeのvalidation、DBのNOT NULL・ENUM・文字数・外部キー・unique制約のどこで失敗したかを区別する                                 |
+| JSONB・nullable | `undefined`のキー省略、空配列、null、0、小数、日本語などをDBから再取得して確認する。モデル上の値だけで保存表現を断定しない                      |
 
 モデルvalidationによる拒否だけで、DBにも同じ制約があると報告しない。DB制約自体を確認する必要がある場合は、テスト行を対象に直接SQLなどで検証し、通常のusecase経路のテストと分ける。SQLの値にはバインドパラメータ等を使う。エラーは型・コード・発生箇所と、後続処理の未実行、DBへの影響を確認する。
 

@@ -2,8 +2,22 @@ import "./databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseError, ForeignKeyConstraintError, ValidationError } from "sequelize";
 import {
-    seed, run, snapshot, newImages, newMedia, sequelize, observer, ItemEditing, Item, Categories, BrandAliases,
-    ItemConditionOption, ShippingDayOption, ShippingServiceOption, TodouhukenOption, Brands,
+    seed,
+    run,
+    snapshot,
+    newImages,
+    newMedia,
+    sequelize,
+    observer,
+    ItemEditing,
+    Item,
+    Categories,
+    BrandAliases,
+    ItemConditionOption,
+    ShippingDayOption,
+    ShippingServiceOption,
+    TodouhukenOption,
+    Brands,
 } from "./databaseFixtures.js";
 import type { DbFixture } from "./databaseFixtures.js";
 import { expectAppError } from "./fixtures.js";
@@ -11,7 +25,9 @@ import { getMyItemEditing } from "../../../../src/services/itemEditing/query.js"
 import * as command from "../../../../src/services/itemEditing/command.js";
 
 let f: DbFixture;
-beforeEach(async () => { f = await seed(); });
+beforeEach(async () => {
+    f = await seed();
+});
 
 describe("P0 DB保存・状態遷移", () => {
     it("N02 N05 ST02 D03 D05 D06 D08 D10: 全保存項目と非対象行・公開商品・所有者を確認", async () => {
@@ -20,29 +36,75 @@ describe("P0 DB保存・状態遷移", () => {
         const published = (await Item.findByPk(f.item.id))!.toJSON();
         f.body.attributes.colorVariants = [
             { uiId: "blue", color: "青", inventory: 0, sizes: [] },
-            { uiId: "red", color: "赤", inventory: 8, sizes: [{ size: "M", inventory: 1 }, { size: "L", inventory: 8 }] },
+            {
+                uiId: "red",
+                color: "赤",
+                inventory: 8,
+                sizes: [
+                    { size: "M", inventory: 1 },
+                    { size: "L", inventory: 8 },
+                ],
+            },
         ];
-        f.body.attributes.materials = [{ name: "綿", ratio: 80.5 }, { name: "麻", ratio: 19.5 }];
+        f.body.attributes.materials = [
+            { name: "綿", ratio: 80.5 },
+            { name: "麻", ratio: 19.5 },
+        ];
         f.body.itemImages.push({ name: "2枚目", type: "image/png", uploaded: true });
-        expect(await run(f)).toEqual({ videoSignedUrl: null, thumbnailSignedUrl: null, itemImageSignedUrls: [], attributesImageSignedUrls: {} });
+        expect(await run(f)).toEqual({
+            videoSignedUrl: null,
+            thumbnailSignedUrl: null,
+            itemImageSignedUrls: [],
+            attributesImageSignedUrls: {},
+        });
         const after = await snapshot(f.editing.id);
         expect(after).toEqual({
-            ...before, updatedAt: expect.any(Date), name: "商品名", detail: "商品説明", price: 300, before_price: 300,
-            title: "動画タイトル", summary: "動画説明", category_id: f.category.id, item_condition_id: f.condition.id,
-            gender_type: "unisex", age_type: "both", brand_id: f.brand.id, brand_aliases_id: null,
-            shipping_day_id: f.day.id, shipping_service_id: f.service.id, shipping_place_id: f.place.id,
+            ...before,
+            updatedAt: expect.any(Date),
+            name: "商品名",
+            detail: "商品説明",
+            price: 300,
+            before_price: 300,
+            title: "動画タイトル",
+            summary: "動画説明",
+            category_id: f.category.id,
+            item_condition_id: f.condition.id,
+            gender_type: "unisex",
+            age_type: "both",
+            brand_id: f.brand.id,
+            brand_aliases_id: null,
+            shipping_day_id: f.day.id,
+            shipping_service_id: f.service.id,
+            shipping_place_id: f.place.id,
             shipping_service_free_text: "配送備考",
             attributes: {
                 inventory: { initial: 1, current: 1, low_stock_ratio: 0.2 },
                 colorVariants: [
-                    { uiId: "blue", color: "青", inventory: { initial: 0, current: 0, low_stock_ratio: 0.2 }, image_url: "https://media.test/blue", sizes: [] },
-                    { uiId: "red", color: "赤", inventory: { initial: 8, current: 8, low_stock_ratio: 0.2 }, image_url: "https://media.test/red", sizes: [
-                        { size: "M", inventory: { initial: 1, current: 1, low_stock_ratio: 0.2 } },
-                        { size: "L", inventory: { initial: 8, current: 8, low_stock_ratio: 0.2 } },
-                    ] },
+                    {
+                        uiId: "blue",
+                        color: "青",
+                        inventory: { initial: 0, current: 0, low_stock_ratio: 0.2 },
+                        image_url: "https://media.test/blue",
+                        sizes: [],
+                    },
+                    {
+                        uiId: "red",
+                        color: "赤",
+                        inventory: { initial: 8, current: 8, low_stock_ratio: 0.2 },
+                        image_url: "https://media.test/red",
+                        sizes: [
+                            { size: "M", inventory: { initial: 1, current: 1, low_stock_ratio: 0.2 } },
+                            { size: "L", inventory: { initial: 8, current: 8, low_stock_ratio: 0.2 } },
+                        ],
+                    },
                 ],
-                materials: [{ name: "綿", ratio: 80.5 }, { name: "麻", ratio: 19.5 }],
-                body_category: "top", lifestyle_category: "casual", layer: "middle",
+                materials: [
+                    { name: "綿", ratio: 80.5 },
+                    { name: "麻", ratio: 19.5 },
+                ],
+                body_category: "top",
+                lifestyle_category: "casual",
+                layer: "middle",
             },
         });
         expect(await snapshot(f.otherEditing.id)).toEqual(other);
@@ -50,7 +112,14 @@ describe("P0 DB保存・状態遷移", () => {
     });
 
     it("ST01 D10: メディア未入力・item_id=nullの行を更新し行を増やさない", async () => {
-        await f.editing.update({ item_id: null, name: null, original_url: null, thumbnail_url: null, image_url: null, first_image_url: null });
+        await f.editing.update({
+            item_id: null,
+            name: null,
+            original_url: null,
+            thumbnail_url: null,
+            image_url: null,
+            first_image_url: null,
+        });
         const count = await ItemEditing.count({ where: { seller_id: f.owner.id } });
         const itemCount = await Item.count({ where: { seller_id: f.owner.id } });
         newMedia(f.body);
@@ -92,7 +161,9 @@ describe("P0 DB保存・状態遷移", () => {
         await run(f);
         expect((await ItemEditing.findByPk(f.editing.id))!.attributes).toEqual({
             inventory: { initial: 1, current: 1, low_stock_ratio: 0.2 },
-            body_category: "top", lifestyle_category: "casual", layer: "middle",
+            body_category: "top",
+            lifestyle_category: "casual",
+            layer: "middle",
         });
     });
 
@@ -114,29 +185,52 @@ describe("P0 DB保存・状態遷移", () => {
         f.body.shipping = { day: null, service: null, place: null, freeText: null };
         f.body.brand = { id: null, name: null };
         await run(f);
-        expect(await snapshot(f.editing.id)).toMatchObject({ category_id: null, item_condition_id: null, shipping_day_id: null,
-            shipping_service_id: null, shipping_place_id: null, shipping_service_free_text: null, brand_id: null, brand_aliases_id: null });
+        expect(await snapshot(f.editing.id)).toMatchObject({
+            category_id: null,
+            item_condition_id: null,
+            shipping_day_id: null,
+            shipping_service_id: null,
+            shipping_place_id: null,
+            shipping_service_free_text: null,
+            brand_id: null,
+            brand_aliases_id: null,
+        });
     });
 
     it("ST05: サムネイルだけ変更しconverted動画と既存商品画像を引き継ぐ", async () => {
         await f.editing.update({ converted_url: "https://media.test/converted" });
         f.body.thumbnail = { name: "差替え", type: "image/png", uploaded: false };
         const result = await run(f);
-        expect(await snapshot(f.editing.id)).toMatchObject({ original_url: "https://media.test/converted", converted_url: "https://media.test/converted",
-            image_url: ["https://media.test/old-image0"], thumbnail_url: result.thumbnailSignedUrl!.replace("signed.test", "media.test") });
+        expect(await snapshot(f.editing.id)).toMatchObject({
+            original_url: "https://media.test/converted",
+            converted_url: "https://media.test/converted",
+            image_url: ["https://media.test/old-image0"],
+            thumbnail_url: result.thumbnailSignedUrl!.replace("signed.test", "media.test"),
+        });
     });
 
     it.each([null, "pending", "completed"])("ST06: video_status=%sでも更新し変換関連値を維持", async (status) => {
         await f.editing.update({ video_status: status, converted_url: "https://media.test/converted" });
         await run(f);
-        expect(await snapshot(f.editing.id)).toMatchObject({ name: "商品名", video_status: status, converted_url: "https://media.test/converted", duration: 20 });
+        expect(await snapshot(f.editing.id)).toMatchObject({
+            name: "商品名",
+            video_status: status,
+            converted_url: "https://media.test/converted",
+            duration: 20,
+        });
     });
 
     it("ST08: 価格変更でもsale_flag・割引値を再計算しない", async () => {
         await f.editing.update({ sale_flag: true, discount_rate: 20, discount_amount: 180 });
         f.body.price = 2000;
         await run(f);
-        expect(await snapshot(f.editing.id)).toMatchObject({ price: 2000, before_price: 2000, sale_flag: true, discount_rate: 20, discount_amount: 180 });
+        expect(await snapshot(f.editing.id)).toMatchObject({
+            price: 2000,
+            before_price: 2000,
+            sale_flag: true,
+            discount_rate: 20,
+            discount_amount: 180,
+        });
     });
 
     it.each(Array.from({ length: 10 }, (_, i) => i + 1))("V10 D03 D04: 画像%s件を順番どおり保存", async (count) => {
@@ -144,7 +238,9 @@ describe("P0 DB保存・状態遷移", () => {
         const result = await run(f);
         const saved = (await ItemEditing.findByPk(f.editing.id))!;
         const expected = result.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test"));
-        expect(result.itemImageSignedUrls.map((image) => image.index)).toEqual(Array.from({ length: count }, (_, i) => i));
+        expect(result.itemImageSignedUrls.map((image) => image.index)).toEqual(
+            Array.from({ length: count }, (_, i) => i),
+        );
         expect(saved.image_url).toEqual(expected);
         expect(saved.first_image_url).toBe(expected[0]);
     });
@@ -184,9 +280,11 @@ describe("P1 DB・モデル制約とrollback", () => {
         it("NOT NULLが実DBにも存在する（モデル検証を通さない直接SQL）", async () => {
             const before = await snapshot(f.editing.id);
             const column = field === "gender" ? "gender_type" : "age_type";
-            await expect(observer.query(`UPDATE item_editing SET ${column} = NULL WHERE id = :id`, {
-                replacements: { id: f.editing.id },
-            })).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "23502" } });
+            await expect(
+                observer.query(`UPDATE item_editing SET ${column} = NULL WHERE id = :id`, {
+                    replacements: { id: f.editing.id },
+                }),
+            ).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "23502" } });
             expect(await snapshot(f.editing.id)).toEqual(before);
         });
 
@@ -196,15 +294,25 @@ describe("P1 DB・モデル制約とrollback", () => {
             const images = vi.spyOn(command, "updateItemEditingImage");
             const promise = run(f);
             if (value === null) await expect(promise).rejects.toBeInstanceOf(ValidationError);
-            else await expect(promise).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "22P02" } });
+            else
+                await expect(promise).rejects.toMatchObject({
+                    name: "SequelizeDatabaseError",
+                    parent: { code: "22P02" },
+                });
             expect(images).not.toHaveBeenCalled();
             expect(await snapshot(f.editing.id)).toEqual(before);
         });
-        it.each(field === "gender" ? ["men", "women", "unisex"] : ["adult", "kids", "both"])("定義済み値%sは保存", async (value) => {
-            f.body.genderAge[field] = value;
-            await run(f);
-            expect(await snapshot(f.editing.id)).toHaveProperty(field === "gender" ? "gender_type" : "age_type", value);
-        });
+        it.each(field === "gender" ? ["men", "women", "unisex"] : ["adult", "kids", "both"])(
+            "定義済み値%sは保存",
+            async (value) => {
+                f.body.genderAge[field] = value;
+                await run(f);
+                expect(await snapshot(f.editing.id)).toHaveProperty(
+                    field === "gender" ? "gender_type" : "age_type",
+                    value,
+                );
+            },
+        );
     });
 
     describe.each(["name", "title", "freeText"] as const)("V11 D09: %sのVARCHAR", (field) => {
@@ -220,7 +328,10 @@ describe("P1 DB・モデル制約とrollback", () => {
                 expect(await snapshot(f.editing.id)).toHaveProperty(column, value);
             } else {
                 const images = vi.spyOn(command, "updateItemEditingImage");
-                await expect(run(f)).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "22001" } });
+                await expect(run(f)).rejects.toMatchObject({
+                    name: "SequelizeDatabaseError",
+                    parent: { code: "22001" },
+                });
                 expect(images).not.toHaveBeenCalled();
                 expect(await snapshot(f.editing.id)).toEqual(before);
             }
@@ -234,8 +345,14 @@ describe("P1 DB・モデル制約とrollback", () => {
             else if (field === "brand") f.body.brand = { id: value, name: null };
             else f.body.shipping[field] = value;
             const before = await snapshot(f.editing.id);
-            const models = { category: Categories, condition: ItemConditionOption, day: ShippingDayOption,
-                service: ShippingServiceOption, place: TodouhukenOption, brand: Brands };
+            const models = {
+                category: Categories,
+                condition: ItemConditionOption,
+                day: ShippingDayOption,
+                service: ShippingServiceOption,
+                place: TodouhukenOption,
+                brand: Brands,
+            };
             if (["0", " ", "-1"].includes(value)) {
                 expect(await models[field].findByPk(Number(value))).toBeNull();
             }
@@ -247,8 +364,14 @@ describe("P1 DB・モデル制約とrollback", () => {
                 await expect(promise).rejects.toBeInstanceOf(ForeignKeyConstraintError);
                 expect(await snapshot(f.editing.id)).toEqual(before);
             } else if (value === "-1" || value === "1.5") {
-                const codes = { category: "CATEGORY_NOT_FOUND", condition: "ITEM_CONDITION_NOT_FOUND", day: "SHIPPING_DAY_NOT_FOUND",
-                    service: "SHIPPING_SERVICE_NOT_FOUND", place: "PLACE_NOT_FOUND", brand: "" };
+                const codes = {
+                    category: "CATEGORY_NOT_FOUND",
+                    condition: "ITEM_CONDITION_NOT_FOUND",
+                    day: "SHIPPING_DAY_NOT_FOUND",
+                    service: "SHIPPING_SERVICE_NOT_FOUND",
+                    place: "PLACE_NOT_FOUND",
+                    brand: "",
+                };
                 await expectAppError(promise, codes[field], 404);
                 expect(await snapshot(f.editing.id)).toEqual(before);
             } else {
@@ -260,27 +383,40 @@ describe("P1 DB・モデル制約とrollback", () => {
 });
 
 describe("P2 ブランド・逐次再実行", () => {
-    it.each(["ID", "名前", "紐付alias", "未紐付alias", "新規alias", "なし"])("N08 O02: %sの関連IDを実DBへ保存", async (mode) => {
-        let brandId: number | null = f.brand.id;
-        let aliasId: number | null = null;
-        if (mode !== "ID") f.body.brand.id = null;
-        if (mode === "紐付alias" || mode === "未紐付alias") {
-            const name = `${f.prefix}alias`;
-            const alias = await BrandAliases.create({ name, name_normalized: name, brand_id: mode === "紐付alias" ? f.brand.id : null });
-            f.body.brand.name = name;
-            aliasId = alias.id;
-            if (mode === "未紐付alias") brandId = null;
-        }
-        if (mode === "新規alias") { f.body.brand.name = `${f.prefix}new`; brandId = null; }
-        if (mode === "なし") { f.body.brand.name = null; brandId = null; }
-        await run(f);
-        if (mode === "新規alias") {
-            const aliases = await BrandAliases.findAll({ where: { name_normalized: f.body.brand.name } });
-            expect(aliases).toHaveLength(1);
-            aliasId = aliases[0].id;
-        }
-        expect(await snapshot(f.editing.id)).toMatchObject({ brand_id: brandId, brand_aliases_id: aliasId });
-    });
+    it.each(["ID", "名前", "紐付alias", "未紐付alias", "新規alias", "なし"])(
+        "N08 O02: %sの関連IDを実DBへ保存",
+        async (mode) => {
+            let brandId: number | null = f.brand.id;
+            let aliasId: number | null = null;
+            if (mode !== "ID") f.body.brand.id = null;
+            if (mode === "紐付alias" || mode === "未紐付alias") {
+                const name = `${f.prefix}alias`;
+                const alias = await BrandAliases.create({
+                    name,
+                    name_normalized: name,
+                    brand_id: mode === "紐付alias" ? f.brand.id : null,
+                });
+                f.body.brand.name = name;
+                aliasId = alias.id;
+                if (mode === "未紐付alias") brandId = null;
+            }
+            if (mode === "新規alias") {
+                f.body.brand.name = `${f.prefix}new`;
+                brandId = null;
+            }
+            if (mode === "なし") {
+                f.body.brand.name = null;
+                brandId = null;
+            }
+            await run(f);
+            if (mode === "新規alias") {
+                const aliases = await BrandAliases.findAll({ where: { name_normalized: f.body.brand.name } });
+                expect(aliases).toHaveLength(1);
+                aliasId = aliases[0].id;
+            }
+            expect(await snapshot(f.editing.id)).toMatchObject({ brand_id: brandId, brand_aliases_id: aliasId });
+        },
+    );
 
     it("Q01: 同一bodyの2回保存で業務値一致・商品行数不変", async () => {
         const count = await ItemEditing.count({ where: { seller_id: f.owner.id } });
@@ -305,8 +441,12 @@ describe("P2 ブランド・逐次再実行", () => {
         expect(saved.original_url).not.toBe(before!.original_url);
         expect(saved.original_url).toBe(`https://media.test/${second.videoSignedUrl!.fields.key}`);
         expect(saved.thumbnail_url).toBe(second.thumbnailSignedUrl!.replace("signed.test", "media.test"));
-        expect(saved.image_url).toEqual(second.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")));
-        expect(saved.attributes.colorVariants![0].image_url).toBe(second.attributesImageSignedUrls.red.replace("signed.test", "media.test"));
+        expect(saved.image_url).toEqual(
+            second.itemImageSignedUrls.map((image) => image.url.replace("signed.test", "media.test")),
+        );
+        expect(saved.attributes.colorVariants![0].image_url).toBe(
+            second.attributesImageSignedUrls.red.replace("signed.test", "media.test"),
+        );
     });
 
     it("Q03 O02: 未登録名の逐次2回実行でaliasを1行だけ作り再利用", async () => {

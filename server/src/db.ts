@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === "test") {
     if (dbName !== "test_db") {
         throw new Error("Test environment must use test_db!");
     }
-    
+
     dotenv.config({
         path: ".env.test",
         override: true,

@@ -30,10 +30,19 @@ export const observer = new Sequelize(process.env.DATABASE_URL!, {
 });
 
 const cleanupModels: ModelStatic<Model>[] = [
-    ItemDraft, ItemEditing, Item, BrandAliases, Brands, Categories,
-    ItemConditionOption, ShippingDayOption, ShippingServiceOption, TodouhukenOption, User,
+    ItemDraft,
+    ItemEditing,
+    Item,
+    BrandAliases,
+    Brands,
+    Categories,
+    ItemConditionOption,
+    ShippingDayOption,
+    ShippingServiceOption,
+    TodouhukenOption,
+    User,
 ];
-const created = new Map<ModelStatic<Model>, number[]>(cleanupModels.map(model => [model, []]));
+const created = new Map<ModelStatic<Model>, number[]>(cleanupModels.map((model) => [model, []]));
 let safe = false;
 
 beforeAll(async () => {
@@ -43,7 +52,8 @@ beforeAll(async () => {
             throw new Error("DB_TEST_STOP: Sequelize database is not test_db; user decision required");
         }
         const [row] = await connection.query<{ name: string }>("SELECT current_database() AS name", {
-            type: QueryTypes.SELECT, logging: false,
+            type: QueryTypes.SELECT,
+            logging: false,
         });
         if (row.name !== "test_db") {
             throw new Error("DB_TEST_STOP: actual database is not test_db; user decision required");
@@ -93,19 +103,38 @@ export const seed = async () => {
     const owner = await User.create({ email: `${prefix}@example.test`, password: "unused-test-value" });
     const other = await User.create({ email: `${prefix}other@example.test`, password: "unused-test-value" });
     const category = await Categories.create({
-        name: prefix, level: 1, path: prefix, body_category: "top", lifestyle_category: "casual", layer: "middle",
+        name: prefix,
+        level: 1,
+        path: prefix,
+        body_category: "top",
+        lifestyle_category: "casual",
+        layer: "middle",
     });
     const condition = await ItemConditionOption.create({ name: "新品" });
     const day = await ShippingDayOption.create({ name: "翌日" });
     const service = await ShippingServiceOption.create({ name: "テスト配送" });
     const place = await TodouhukenOption.create({ name: "東京都" });
     const brand = await Brands.create({ name: prefix, name_normalized: prefix });
-    const item = await Item.create({ seller_id: owner.id, name: "公開商品", price: 900, uploaded_at: new Date("2026-01-01T00:00:00Z") });
+    const item = await Item.create({
+        seller_id: owner.id,
+        name: "公開商品",
+        price: 900,
+        uploaded_at: new Date("2026-01-01T00:00:00Z"),
+    });
     const editing = await ItemEditing.create({
-        seller_id: owner.id, item_id: item.id, name: "更新前", detail: "以前の説明", price: 900, before_price: 1200,
-        original_url: "https://media.test/old-video", thumbnail_url: "https://media.test/old-thumbnail",
+        seller_id: owner.id,
+        item_id: item.id,
+        name: "更新前",
+        detail: "以前の説明",
+        price: 900,
+        before_price: 1200,
+        original_url: "https://media.test/old-video",
+        thumbnail_url: "https://media.test/old-thumbnail",
         image_url: ["https://media.test/old-image0", "https://media.test/old-image1"],
-        first_image_url: "https://media.test/old-image0", title: "旧題名", summary: "旧説明", duration: 20,
+        first_image_url: "https://media.test/old-image0",
+        title: "旧題名",
+        summary: "旧説明",
+        duration: 20,
         attributes: {
             inventory: { initial: 10, current: 4, low_stock_ratio: 0.5 },
             colorVariants: [
@@ -127,19 +156,27 @@ export const seed = async () => {
 
 export type DbFixture = Awaited<ReturnType<typeof seed>>;
 // schemaの拒否も非同期アサーションで確認できるよう、呼出し境界をPromiseへ揃える。
-export const run = async (fixture: DbFixture, body: CreateItemDraftBody = fixture.body, id = fixture.editing.id, userId = fixture.owner.id) =>
-    createItemDraftUseCase({ userId, body: createItemDraftBodySchema.parse({ ...body, itemEditingId: id }) });
+export const run = async (
+    fixture: DbFixture,
+    body: CreateItemDraftBody = fixture.body,
+    id = fixture.editing.id,
+    userId = fixture.owner.id,
+) => createItemDraftUseCase({ userId, body: createItemDraftBodySchema.parse({ ...body, itemEditingId: id }) });
 
 export const editingSnapshot = async (id: number) => {
-    const rows = await observer.query<Record<string, unknown>>('SELECT * FROM item_editing WHERE id = :id', {
-        replacements: { id }, type: QueryTypes.SELECT,
+    const rows = await observer.query<Record<string, unknown>>("SELECT * FROM item_editing WHERE id = :id", {
+        replacements: { id },
+        type: QueryTypes.SELECT,
     });
     return rows[0] ?? null;
 };
 
-export const newImages = (count: number) => Array.from({ length: count }, (_, index) => ({
-    name: `商品画像${index}`, type: "image/png", uploaded: false,
-}));
+export const newImages = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({
+        name: `商品画像${index}`,
+        type: "image/png",
+        uploaded: false,
+    }));
 
 export const newMedia = (body: CreateItemDraftBody) => {
     body.video = { name: "動画", type: "video/mp4", uploaded: false };
@@ -152,8 +189,9 @@ export const draftIds = () => [...(created.get(ItemDraft) ?? [])];
 export const draftRows = async () => {
     const ids = draftIds();
     if (!ids.length) return [];
-    return observer.query<Record<string, unknown>>('SELECT * FROM item_draft WHERE id IN (:ids) ORDER BY id', {
-        replacements: { ids }, type: QueryTypes.SELECT,
+    return observer.query<Record<string, unknown>>("SELECT * FROM item_draft WHERE id IN (:ids) ORDER BY id", {
+        replacements: { ids },
+        type: QueryTypes.SELECT,
     });
 };
 export const onlyDraft = async () => {
@@ -161,10 +199,11 @@ export const onlyDraft = async () => {
     expect(rows).toHaveLength(1);
     return rows[0];
 };
-export const aliasRows = (name: string) => observer.query<{ id: number; brand_id: number | null }>(
-    'SELECT id, brand_id FROM brand_aliases WHERE name_normalized = :name ORDER BY id',
-    { replacements: { name }, type: QueryTypes.SELECT },
-);
+export const aliasRows = (name: string) =>
+    observer.query<{ id: number; brand_id: number | null }>(
+        "SELECT id, brand_id FROM brand_aliases WHERE name_normalized = :name ORDER BY id",
+        { replacements: { name }, type: QueryTypes.SELECT },
+    );
 export const unchanged = async (f: DbFixture, editing: unknown, other: unknown, item: unknown) => {
     expect(await editingSnapshot(f.editing.id)).toEqual(editing);
     expect(await editingSnapshot(f.otherEditing.id)).toEqual(other);

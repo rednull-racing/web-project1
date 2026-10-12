@@ -8,7 +8,9 @@ import * as command from "../../../../src/services/itemEditing/command.js";
 import * as master from "../../../../src/usecases/shared/validateMaster.js";
 
 let f: DbFixture;
-beforeEach(async () => { f = await seed(); });
+beforeEach(async () => {
+    f = await seed();
+});
 
 describe("P0 DB transaction・再試行", () => {
     it.each(["本体", "画像"])("E12 E13 ST07 T03 T05: %s保存失敗で商品全列と新規aliasをrollback", async (stage) => {
@@ -43,14 +45,23 @@ describe("P0 DB transaction・再試行", () => {
         newMedia(f.body);
         const pending = run(f);
         try {
-            await Promise.race([entered.promise, pending.then(() => { throw new Error("画像更新に到達しなかった"); })]);
+            await Promise.race([
+                entered.promise,
+                pending.then(() => {
+                    throw new Error("画像更新に到達しなかった");
+                }),
+            ]);
             expect(await snapshot(f.editing.id)).toEqual(before);
         } finally {
             release.resolve();
             await pending;
         }
         expect(images).toHaveBeenCalledOnce();
-        expect(await snapshot(f.editing.id)).toMatchObject({ name: "商品名", price: 300, image_url: expect.arrayContaining([expect.stringContaining("/item-image/")]) });
+        expect(await snapshot(f.editing.id)).toMatchObject({
+            name: "商品名",
+            price: 300,
+            image_url: expect.arrayContaining([expect.stringContaining("/item-image/")]),
+        });
     });
 
     it("T07 Q05: 初回画像失敗後、同じbodyの再試行でalias1行と商品をcommit", async () => {
@@ -65,8 +76,12 @@ describe("P0 DB transaction・再試行", () => {
         await run(f);
         const aliases = await BrandAliases.findAll({ where: { name_normalized: f.body.brand.name } });
         expect(aliases).toHaveLength(1);
-        expect(await snapshot(f.editing.id)).toMatchObject({ name: "商品名", price: 300, brand_aliases_id: aliases[0].id,
-            image_url: expect.arrayContaining([expect.stringContaining("/item-image/")]) });
+        expect(await snapshot(f.editing.id)).toMatchObject({
+            name: "商品名",
+            price: 300,
+            brand_aliases_id: aliases[0].id,
+            image_url: expect.arrayContaining([expect.stringContaining("/item-image/")]),
+        });
     });
 
     it("D07: マスター検証後に別接続で削除すると外部キー違反、商品はrollback", async () => {
@@ -74,7 +89,10 @@ describe("P0 DB transaction・再試行", () => {
         const real = master.validateMaster;
         vi.spyOn(master, "validateMaster").mockImplementationOnce(async (params) => {
             const result = await real(params);
-            await observer.query('DELETE FROM categories WHERE id = :id', { replacements: { id: f.category.id }, type: QueryTypes.DELETE });
+            await observer.query("DELETE FROM categories WHERE id = :id", {
+                replacements: { id: f.category.id },
+                type: QueryTypes.DELETE,
+            });
             return result;
         });
         const images = vi.spyOn(command, "updateItemEditingImage");

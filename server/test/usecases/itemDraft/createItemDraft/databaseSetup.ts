@@ -8,7 +8,11 @@ const environment = await vi.hoisted(async () => {
     const parsed = dotenv.parse(readFileSync(path));
     if (process.env.NODE_ENV !== "test") throw new Error("DB_TEST_STOP: NODE_ENV must be test");
     let databaseName: string | undefined;
-    try { databaseName = new URL(parsed.DATABASE_URL).pathname; } catch { /* URL全体をエラーに含めない。 */ }
+    try {
+        databaseName = new URL(parsed.DATABASE_URL).pathname;
+    } catch {
+        /* URL全体をエラーに含めない。 */
+    }
     if (databaseName !== "/test_db") {
         throw new Error("DB_TEST_STOP: .env.test must specify test_db; user decision required");
     }

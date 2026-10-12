@@ -21,7 +21,7 @@ const request = () =>
         user: { id: 7 },
         body: { seller_id: 999, price: 1 },
         validatedBody: makeBody(),
-    } as unknown as Request);
+    }) as unknown as Request;
 beforeEach(() => {
     vi.resetAllMocks();
 });

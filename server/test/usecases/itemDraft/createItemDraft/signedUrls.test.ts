@@ -104,9 +104,11 @@ describe("P1: 動画・サムネイルの新規署名と再利用", () => {
         item.thumbnail_url = null;
         expect((await run()).thumbnailUrl).toBeNull();
     });
-    it.each([undefined, null])("AF-SIGN01 S15: 新規動画署名%sは500で停止して後続署名を呼ばない", async signature => {
+    it.each([undefined, null])("AF-SIGN01 S15: 新規動画署名%sは500で停止して後続署名を呼ばない", async (signature) => {
         body.video = { name: "new", type: "video/mp4", uploaded: false };
-        body.thumbnail = upload(); body.itemImages = [upload()]; body.attributes.colorVariants[0].image = upload();
+        body.thumbnail = upload();
+        body.itemImages = [upload()];
+        body.attributes.colorVariants[0].image = upload();
         mocks.createVideoPresignedPost.mockResolvedValue(signature);
         await expectAppError(run(), "VIDEO_SIGNED_URL_UNAVAILABLE", 500);
         expect(mocks.createVideoPresignedPost).toHaveBeenCalledOnce();
@@ -239,7 +241,9 @@ describe("P2: 完了順を制御した観測・重複実行", () => {
             }
             const result = await pending;
             expect(result.finalImageUrls).toEqual(
-                Array.from({ length: count }, (_, i) => (targets.includes(i) ? url("item-image", `_${i}`) : `old-${i}`)),
+                Array.from({ length: count }, (_, i) =>
+                    targets.includes(i) ? url("item-image", `_${i}`) : `old-${i}`,
+                ),
             );
             expect(result.itemImageSignedUrls).toEqual(targets.map((index) => ({ index, url: `signed-${index}` })));
             expect(new Set(result.itemImageSignedUrls.map((v) => v.index)).size).toBe(targets.length);
@@ -265,7 +269,12 @@ describe("P2: 完了順を制御した観測・重複実行", () => {
         });
         const pending = run();
         try {
-            await Promise.race([started.promise, pending.then(() => { throw new Error("色署名待合せ未到達"); })]);
+            await Promise.race([
+                started.promise,
+                pending.then(() => {
+                    throw new Error("色署名待合せ未到達");
+                }),
+            ]);
             blue.resolve("signed-blue");
             await Promise.resolve();
             red.resolve("signed-red");
@@ -275,7 +284,11 @@ describe("P2: 完了順を制御した観測・重複実行", () => {
                 red: url("attributes", "_red"),
                 blue: url("attributes", "_blue"),
             });
-        } finally { red.resolve("signed-red"); blue.resolve("signed-blue"); await Promise.allSettled([pending]); }
+        } finally {
+            red.resolve("signed-red");
+            blue.resolve("signed-blue");
+            await Promise.allSettled([pending]);
+        }
     });
     it("S17 Q02: 時刻を進めて再実行すると新規アップロードURLが変わる", async () => {
         body.video = { name: "video", type: "video/mp4", uploaded: false };
@@ -418,7 +431,11 @@ describe("P1: 境界とキー対応", () => {
             expect(resultB.itemImageSignedUrls).toEqual([{ index: 0, url: "signed-b" }]);
             expect(resultA.finalImageUrls).toEqual([url("item-image", "_0")]);
             expect(resultB.finalImageUrls).toEqual([url("item-image", "_0").replace("request-a", "request-b")]);
-        } finally { first.resolve("signed-a"); second.resolve("signed-b"); await Promise.allSettled([a, b]); }
+        } finally {
+            first.resolve("signed-a");
+            second.resolve("signed-b");
+            await Promise.allSettled([a, b]);
+        }
     });
     it.each([{ ids: [] }, { ids: ["red"] }, { ids: ["blue", "red"] }])(
         "S10: 一意uiId=$idsをschemaで受理して既存画像の対応を保持する",
@@ -435,86 +452,162 @@ describe("P1: 境界とキー対応", () => {
 });
 
 describe("P1/P2: 署名の待機と並行呼出しの対応", () => {
-    it.each(["動画", "商品画像"])("S18: %sの最後の署名が保留中は次の段階へ進まない", async stage => {
+    it.each(["動画", "商品画像"])("S18: %sの最後の署名が保留中は次の段階へ進まない", async (stage) => {
         body.video = { name: "動画", type: "video/mp4", uploaded: false };
-        body.thumbnail = upload(); body.itemImages = [upload(), upload()]; body.attributes.colorVariants[0].image = upload();
-        const entered = deferred<void>(), release = deferred<string>();
+        body.thumbnail = upload();
+        body.itemImages = [upload(), upload()];
+        body.attributes.colorVariants[0].image = upload();
+        const entered = deferred<void>(),
+            release = deferred<string>();
         let done = false;
-        if (stage === "動画") mocks.createVideoPresignedPost.mockImplementationOnce(async () => {
-            entered.resolve(); await release.promise; return { url: "post", fields: {} };
+        if (stage === "動画")
+            mocks.createVideoPresignedPost.mockImplementationOnce(async () => {
+                entered.resolve();
+                await release.promise;
+                return { url: "post", fields: {} };
+            });
+        else
+            mocks.generateSignedUrl.mockImplementation(async ({ key: inputKey }: { key: string }) => {
+                if (inputKey === key("item-image", "_1")) {
+                    entered.resolve();
+                    return release.promise;
+                }
+                return `signed:${inputKey}`;
+            });
+        const pending = run().then((value) => {
+            done = true;
+            return value;
         });
-        else mocks.generateSignedUrl.mockImplementation(async ({ key: inputKey }: { key: string }) => {
-            if (inputKey === key("item-image", "_1")) { entered.resolve(); return release.promise; }
-            return `signed:${inputKey}`;
-        });
-        const pending = run().then(value => { done = true; return value; });
         try {
-            await Promise.race([entered.promise, pending.then(() => { throw new Error("署名待合せ未到達"); })]);
+            await Promise.race([
+                entered.promise,
+                pending.then(() => {
+                    throw new Error("署名待合せ未到達");
+                }),
+            ]);
             expect(done).toBe(false);
             if (stage === "動画") expect(mocks.generateSignedUrl).not.toHaveBeenCalled();
-            else expect(mocks.generateSignedUrl.mock.calls.map(([params]) => params.key)).not.toContain(key("attributes", "_red"));
-        } finally { release.resolve("signed-last"); await pending; }
-        expect(done).toBe(true); expect((await pending).finalAttributesImageUrls.red).toBe(url("attributes", "_red"));
+            else
+                expect(mocks.generateSignedUrl.mock.calls.map(([params]) => params.key)).not.toContain(
+                    key("attributes", "_red"),
+                );
+        } finally {
+            release.resolve("signed-last");
+            await pending;
+        }
+        expect(done).toBe(true);
+        expect((await pending).finalAttributesImageUrls.red).toBe(url("attributes", "_red"));
     });
 
     it("S14: 色署名が1件だけ保留中でもhelperは成功を返さない", async () => {
-        body.attributes.colorVariants = ["red", "blue"].map(uiId => ({ uiId, inventory: 1, sizes: [], image: upload() }));
-        const started = deferred<void>(), gate = deferred<string>(); let completed = false;
+        body.attributes.colorVariants = ["red", "blue"].map((uiId) => ({
+            uiId,
+            inventory: 1,
+            sizes: [],
+            image: upload(),
+        }));
+        const started = deferred<void>(),
+            gate = deferred<string>();
+        let completed = false;
         mocks.generateSignedUrl.mockImplementation(async ({ key: inputKey }: { key: string }) => {
-            if (inputKey.includes("_blue_")) { started.resolve(); return gate.promise; }
+            if (inputKey.includes("_blue_")) {
+                started.resolve();
+                return gate.promise;
+            }
             return "signed-red";
         });
-        const pending = run().then(value => { completed = true; return value; });
+        const pending = run().then((value) => {
+            completed = true;
+            return value;
+        });
         try {
-            await Promise.race([started.promise, pending.then(() => { throw new Error("色署名待合せ未到達"); })]);
+            await Promise.race([
+                started.promise,
+                pending.then(() => {
+                    throw new Error("色署名待合せ未到達");
+                }),
+            ]);
             expect(completed).toBe(false);
-        } finally { gate.resolve("signed-blue"); await pending; }
+        } finally {
+            gate.resolve("signed-blue");
+            await pending;
+        }
         expect((await pending).attributesImageSignedUrls).toEqual({ red: "signed-red", blue: "signed-blue" });
     });
 
-    it.each(["video", "thumbnail", "item", "attribute"])("S16: %s失敗で次の署名群は未開始", async stage => {
+    it.each(["video", "thumbnail", "item", "attribute"])("S16: %s失敗で次の署名群は未開始", async (stage) => {
         body.video = { name: "動画", type: "video/mp4", uploaded: false };
-        body.thumbnail = upload(); body.itemImages = [upload()]; body.attributes.colorVariants[0].image = upload();
+        body.thumbnail = upload();
+        body.itemImages = [upload()];
+        body.attributes.colorVariants[0].image = upload();
         const error = new Error(stage);
         if (stage === "video") mocks.createVideoPresignedPost.mockRejectedValueOnce(error);
-        else mocks.generateSignedUrl.mockImplementation(async ({ key: inputKey }: { key: string }) => {
-            if ((stage === "thumbnail" && inputKey.startsWith("thumbnail/")) ||
-                (stage === "item" && inputKey.startsWith("item-image/")) ||
-                (stage === "attribute" && inputKey.startsWith("attributes/"))) throw error;
-            return `signed:${inputKey}`;
-        });
+        else
+            mocks.generateSignedUrl.mockImplementation(async ({ key: inputKey }: { key: string }) => {
+                if (
+                    (stage === "thumbnail" && inputKey.startsWith("thumbnail/")) ||
+                    (stage === "item" && inputKey.startsWith("item-image/")) ||
+                    (stage === "attribute" && inputKey.startsWith("attributes/"))
+                )
+                    throw error;
+                return `signed:${inputKey}`;
+            });
         await expect(run()).rejects.toBe(error);
-        expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(stage === "video" ? 0 : stage === "thumbnail" ? 1 : stage === "item" ? 2 : 3);
+        expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(
+            stage === "video" ? 0 : stage === "thumbnail" ? 1 : stage === "item" ? 2 : 3,
+        );
     });
 
-    it.each(["非配列", "空URL"])("S06: 既存画像%sは入力nameをURLとして採用しない", async mode => {
+    it.each(["非配列", "空URL"])("S06: 既存画像%sは入力nameをURLとして採用しない", async (mode) => {
         Object.assign(item, { image_url: mode === "非配列" ? "https://untrusted.test/image" : [""] });
-        const result = await run(); expect(result.finalImageUrls).toEqual([]); expect(result.itemImageSignedUrls).toEqual([]);
+        const result = await run();
+        expect(result.finalImageUrls).toEqual([]);
+        expect(result.itemImageSignedUrls).toEqual([]);
     });
     it("S12: 既存colorVariantsが非配列なら画像を再利用しない", async () => {
-        Object.assign(item.attributes, { colorVariants: {} }); expect((await run()).finalAttributesImageUrls).toEqual({});
+        Object.assign(item.attributes, { colorVariants: {} });
+        expect((await run()).finalAttributesImageUrls).toEqual({});
     });
 
     it("P10 S13 S14 S17: B→Aで商品画像と色署名を逆順完了しても元index/uiId/requestの対応を維持", async () => {
         item.image_url = ["old-0", "old-1", "old-2", "old-3"];
         body.itemImages = [{ ...upload(), uploaded: true }, upload(), { ...upload(), uploaded: true }, upload()];
-        body.attributes.colorVariants = ["red", "blue"].map(uiId => ({ uiId, inventory: 1, sizes: [], image: upload() }));
+        body.attributes.colorVariants = ["red", "blue"].map((uiId) => ({
+            uiId,
+            inventory: 1,
+            sizes: [],
+            image: upload(),
+        }));
         mocks.randomUUID.mockReturnValueOnce("request-a").mockReturnValueOnce("request-b");
         const gates = new Map<string, ReturnType<typeof deferred<string>>>();
         for (const requestId of ["request-a", "request-b"]) {
             for (const index of [1, 3]) gates.set(`item-image/7/11_${index}_1000_${requestId}`, deferred<string>());
-            for (const uiId of ["red", "blue"]) gates.set(`attributes/7/11_${uiId}_1000_${requestId}`, deferred<string>());
+            for (const uiId of ["red", "blue"])
+                gates.set(`attributes/7/11_${uiId}_1000_${requestId}`, deferred<string>());
         }
-        const allItems = deferred<void>(), colorA = deferred<void>(), colorB = deferred<void>();
-        let itemCalls = 0, colorACalls = 0, colorBCalls = 0;
+        const allItems = deferred<void>(),
+            colorA = deferred<void>(),
+            colorB = deferred<void>();
+        let itemCalls = 0,
+            colorACalls = 0,
+            colorBCalls = 0;
         mocks.generateSignedUrl.mockImplementation(({ key: inputKey }: { key: string }) => {
             if (inputKey.startsWith("item-image/") && ++itemCalls === 4) allItems.resolve();
-            if (inputKey.startsWith("attributes/") && inputKey.endsWith("request-a") && ++colorACalls === 2) colorA.resolve();
-            if (inputKey.startsWith("attributes/") && inputKey.endsWith("request-b") && ++colorBCalls === 2) colorB.resolve();
-            const gate = gates.get(inputKey); if (!gate) throw new Error("想定外の署名キーです"); return gate.promise;
+            if (inputKey.startsWith("attributes/") && inputKey.endsWith("request-a") && ++colorACalls === 2)
+                colorA.resolve();
+            if (inputKey.startsWith("attributes/") && inputKey.endsWith("request-b") && ++colorBCalls === 2)
+                colorB.resolve();
+            const gate = gates.get(inputKey);
+            if (!gate) throw new Error("想定外の署名キーです");
+            return gate.promise;
         });
         let aDone = false;
-        const pa = run().then(result => { aDone = true; return result; }), pb = run(), settled = Promise.allSettled([pa, pb]);
+        const pa = run().then((result) => {
+                aDone = true;
+                return result;
+            }),
+            pb = run(),
+            settled = Promise.allSettled([pa, pb]);
         const resolveGroup = (prefix: string, ids: readonly (string | number)[], requestId: string) => {
             for (const id of ids) {
                 const inputKey = `${prefix}/7/11_${id}_1000_${requestId}`;
@@ -522,22 +615,60 @@ describe("P1/P2: 署名の待機と並行呼出しの対応", () => {
             }
         };
         try {
-            await Promise.race([allItems.promise, pa.then(() => { throw new Error("Aが早期終了しました"); }), pb.then(() => { throw new Error("Bが早期終了しました"); })]);
+            await Promise.race([
+                allItems.promise,
+                pa.then(() => {
+                    throw new Error("Aが早期終了しました");
+                }),
+                pb.then(() => {
+                    throw new Error("Bが早期終了しました");
+                }),
+            ]);
             resolveGroup("item-image", [3, 1], "request-b");
-            await Promise.race([colorB.promise, pb.then(() => { throw new Error("Bの色署名未到達"); })]);
-            resolveGroup("attributes", ["blue", "red"], "request-b"); const rb = await pb; expect(aDone).toBe(false);
+            await Promise.race([
+                colorB.promise,
+                pb.then(() => {
+                    throw new Error("Bの色署名未到達");
+                }),
+            ]);
+            resolveGroup("attributes", ["blue", "red"], "request-b");
+            const rb = await pb;
+            expect(aDone).toBe(false);
             resolveGroup("item-image", [3, 1], "request-a");
-            await Promise.race([colorA.promise, pa.then(() => { throw new Error("Aの色署名未到達"); })]);
-            resolveGroup("attributes", ["blue", "red"], "request-a"); const ra = await pa;
-            for (const [result, requestId] of [[ra, "request-a"], [rb, "request-b"]] as const) {
+            await Promise.race([
+                colorA.promise,
+                pa.then(() => {
+                    throw new Error("Aの色署名未到達");
+                }),
+            ]);
+            resolveGroup("attributes", ["blue", "red"], "request-a");
+            const ra = await pa;
+            for (const [result, requestId] of [
+                [ra, "request-a"],
+                [rb, "request-b"],
+            ] as const) {
                 expect(result.itemImageSignedUrls).toEqual([
                     { index: 1, url: `signed:item-image/7/11_1_1000_${requestId}` },
                     { index: 3, url: `signed:item-image/7/11_3_1000_${requestId}` },
                 ]);
-                expect(result.finalImageUrls).toEqual(["old-0", `https://media.test/item-image/7/11_1_1000_${requestId}`, "old-2", `https://media.test/item-image/7/11_3_1000_${requestId}`]);
-                expect(result.attributesImageSignedUrls).toEqual({ red: `signed:attributes/7/11_red_1000_${requestId}`, blue: `signed:attributes/7/11_blue_1000_${requestId}` });
-                expect(result.finalAttributesImageUrls).toEqual({ red: `https://media.test/attributes/7/11_red_1000_${requestId}`, blue: `https://media.test/attributes/7/11_blue_1000_${requestId}` });
+                expect(result.finalImageUrls).toEqual([
+                    "old-0",
+                    `https://media.test/item-image/7/11_1_1000_${requestId}`,
+                    "old-2",
+                    `https://media.test/item-image/7/11_3_1000_${requestId}`,
+                ]);
+                expect(result.attributesImageSignedUrls).toEqual({
+                    red: `signed:attributes/7/11_red_1000_${requestId}`,
+                    blue: `signed:attributes/7/11_blue_1000_${requestId}`,
+                });
+                expect(result.finalAttributesImageUrls).toEqual({
+                    red: `https://media.test/attributes/7/11_red_1000_${requestId}`,
+                    blue: `https://media.test/attributes/7/11_blue_1000_${requestId}`,
+                });
             }
-        } finally { for (const gate of gates.values()) gate.resolve("cleanup"); await settled; }
+        } finally {
+            for (const gate of gates.values()) gate.resolve("cleanup");
+            await settled;
+        }
     });
 });

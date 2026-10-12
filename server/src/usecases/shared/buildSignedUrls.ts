@@ -34,7 +34,11 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
             })) ?? null;
 
         if (!videoSignedUrl) {
-            throw new AppError("VIDEO_SIGNED_URL_UNAVAILABLE", 500, "動画のアップロード準備ができませんでした。もう一度お試しください。");
+            throw new AppError(
+                "VIDEO_SIGNED_URL_UNAVAILABLE",
+                500,
+                "動画のアップロード準備ができませんでした。もう一度お試しください。",
+            );
         }
 
         videoUrl = `${publicS3Domain}/${originalKey}`;
