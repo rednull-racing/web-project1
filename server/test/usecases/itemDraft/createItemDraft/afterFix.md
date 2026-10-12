@@ -189,3 +189,48 @@ Q02の未確認部分はAF-DB01で補完します。元ケースIDを残し、�
 実装する場合は、まずF1で入口を成立させ、F2の所有者保存、F3/F4の業務契約を確認した修正、F5の署名欠落時の停止へ進みます。F6は本番仕様の変更と独立して補強できます。各段階で該当する観測テストを新しい契約へ移行し、同じディレクトリの回帰テストとDB安全確認を実行します。新しいモデル制約・migrationが必要になる変更は、別途範囲を明示します。
 
 **本書に記載した改善案・追加テストは未実装・未実行です。今回の成果は結果報告と提案の記録に限ります。**
+
+---
+
+
+## 9. F1〜F6対応後の再実行結果（2026-10-12）
+
+**11ファイル・1,000件すべて成功。失敗・skip・todo・未処理エラーは0件です。** 本節が最新の検証結果です。上記の「未実装・未実行」は改善案作成時の記録として残します。
+
+`server/` で次のコマンドを実行しました。ファイル間のDB fixture・hookの干渉を避けるため1 workerとし、各テスト内の並行処理は維持しています。
+
+```bash
+npm run test:run -- test/usecases/itemDraft/createItemDraft/ --maxWorkers=1 --reporter=default --reporter=json --outputFile=/tmp/createItemDraft-rerun-results-authorized.json --no-cache
+```
+
+| ファイル | 成功件数 |
+| --- | ---: |
+| usecase.test.ts | 79 |
+| masterBrand.test.ts | 253 |
+| signedUrls.test.ts | 72 |
+| validation.test.ts | 350 |
+| services.test.ts | 41 |
+| controller.test.ts | 5 |
+| route.test.ts | 19 |
+| videoPresignedPost.test.ts | 4 |
+| database.test.ts | 148 |
+| databaseTransactions.test.ts | 17 |
+| databaseConcurrency.test.ts | 12 |
+| **合計** | **1,000** |
+
+DB非接続は823件、実DBは177件です。実DBは `server/.env.test` 由来の設定を使用し、全接続の設定DB名と `SELECT current_database()` が `test_db` であることをガードで確認しました。commit・rollback後の再取得、関連行の整合性、fixture IDを限定した後片付けも成功しています。S3/AWS通信はモックです。
+
+F1〜F6の主な確認結果は次のとおりです。
+
+- **F1**：正常POSTは200。不正body、認証優先順位、5回／6回目のレート制限、未知の所有者情報の除去を確認。
+- **F2**：認証ユーザーの `seller_id` 保存、別ユーザー並行作成での所有者の非混在、保存障害時のrollbackを確認。
+- **F3**：transaction内の再取得・行ロック、所有者変更／削除後の404、同じ参照元でのロック待ちとrollback後のBのcommitを確認。メディアは初回snapshotを使う契約を維持。
+- **F4**：ENUMとnullの `unisex/both` 補完、255文字境界（補助平面文字・ブランド正規化後も含む）、正整数IDの範囲と空白のnull化、確定画像10枚上限を確認。モデル・DB制約の直接検証も成功。
+- **F5**：新規動画署名欠落／bucket未設定時の500と後続停止、既存動画の署名null許容、正常署名・元例外の伝播を確認。
+- **F6**：Q02の色画像URLと返却署名、P02のJSONB全体とユーザー別の対応、deferredの解放・回収、ケース名の整理、実ロック待ちの診断を含む回帰が成功。
+
+### 新たな修正点・今回の変更範囲
+
+今回の再実行から、追加修正を要する失敗は確認されませんでした。初回はサンドボックスの通信制限（`EPERM`）でRouter19件が失敗し、DB177件はsetupで未実行でしたが、制限外で同じ安全ガード付きテストを再実行すると全件成功しました。これはコードの修正点ではありません。
+
+今回編集したのは本書への追記のみです。本番コード・テストコードの追加修正は行っていません。`item_id` 継承の仕様決定、最新メディア保証、共通helperを利用する別usecase、実S3アップロードは今回の検証対象外です。
