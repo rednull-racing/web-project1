@@ -8,7 +8,7 @@ import {
 } from "./databaseFixtures.js";
 import type { DbFixture } from "./databaseFixtures.js";
 import type { CreateItemDraftBody } from "../../../../src/validators/body/itemDraft.js";
-import { deferred } from "./fixtures.js";
+import { deferred, expectAppError } from "./fixtures.js";
 import * as query from "../../../../src/services/itemEditing/query.js";
 import * as command from "../../../../src/services/itemDraft/command.js";
 import * as aliases from "../../../../src/services/brandAliases.js";
@@ -28,9 +28,10 @@ const gateReads = () => {
     const real = query.getMyItemEditing;
     let index = 0;
     vi.spyOn(query, "getMyItemEditing").mockImplementation(async params => {
+        if (params.transaction) return real(params);
         const i = index++;
         const row = await real(params);
-        if (i > 1) throw new Error("想定外の再取得です");
+        if (i > 1) throw new Error("想定外の初回取得です");
         expect(params.transaction).toBeUndefined();
         entered[i].resolve();
         await release[i].promise;
@@ -42,6 +43,10 @@ const inputs = () => {
     const a = structuredClone(f.body), b = structuredClone(f.body);
     a.itemMeta.name = "下書きA"; a.price = 1000; a.attributes.allInventory = 4;
     b.itemMeta.name = "下書きB"; b.price = 2000; b.attributes.allInventory = 8;
+    a.attributes.colorVariants = [{ uiId: "red", color: "赤A", inventory: 3, sizes: [{ size: "M-A", inventory: 2 }], image: { name: "赤A", type: "image/png", uploaded: false } }];
+    b.attributes.colorVariants = [{ uiId: "blue", color: "青B", inventory: 7, sizes: [{ size: "L-B", inventory: 6 }], image: { name: "青B", type: "image/png", uploaded: false } }];
+    a.attributes.materials = [{ name: "綿A", ratio: 80 }, { name: "麻A", ratio: 20 }];
+    b.attributes.materials = [{ name: "毛B", ratio: 100 }];
     newMedia(a); newMedia(b);
     return { a, b };
 };
@@ -54,33 +59,54 @@ const assertSaved = (
     result: Awaited<ReturnType<typeof run>>, userId: number, editingId: number,
 ) => {
     expect(row).toMatchObject({
-        name: body.itemMeta.name, price: body.price, before_price: body.price, seller_id: null, item_id: null,
+        name: body.itemMeta.name, price: body.price, before_price: body.price, seller_id: userId, item_id: null,
         attributes: { inventory: { initial: body.attributes.allInventory, current: body.attributes.allInventory, low_stock_ratio: 0.2 } },
         original_url: `https://media.test/${result.videoSignedUrl!.fields.key}`,
         thumbnail_url: result.thumbnailSignedUrl!.replace("signed.test", "media.test"),
         image_url: result.itemImageSignedUrls.map(image => image.url.replace("signed.test", "media.test")),
     });
+    const inventory = (n: number) => ({ initial: n, current: n, low_stock_ratio: 0.2 });
+    expect(row.attributes).toEqual({
+        inventory: inventory(body.attributes.allInventory),
+        colorVariants: body.attributes.colorVariants.map(variant => ({
+            uiId: variant.uiId, color: variant.color,
+            inventory: inventory(variant.inventory),
+            sizes: variant.sizes.map(size => ({ size: size.size, inventory: inventory(size.inventory) })),
+            image_url: result.attributesImageSignedUrls[variant.uiId].replace("signed.test", "media.test"),
+        })),
+        materials: body.attributes.materials,
+        body_category: "top", lifestyle_category: "casual", layer: "middle",
+    });
+    for (const variant of body.attributes.colorVariants) {
+        expect(result.attributesImageSignedUrls[variant.uiId]).toContain(`/attributes/${userId}/${editingId}_${variant.uiId}_`);
+    }
     expect(result.videoSignedUrl!.fields.key).toContain(`video/original/${userId}/${editingId}_`);
     expect(row.first_image_url).toBe((row.image_url as string[])[0]);
 };
 
-// Bの接続PIDを指定して実ロック待ちを観測する。sleepによる推測はしない。
-const waitForAliasLock = async (pid: number) => {
-    for (let attempt = 0; attempt < 100; attempt++) {
-        const [state] = await observer.query<{ waiting: boolean }>(
-            `SELECT EXISTS (
-                SELECT 1 FROM pg_stat_activity
-                WHERE datname = current_database() AND wait_event_type = 'Lock'
-                  AND wait_event = 'advisory'
-                  AND query LIKE '%pg_advisory_xact_lock%'
-                  AND pid = :pid
-            ) AS waiting`,
-            { replacements: { pid }, type: QueryTypes.SELECT },
-        );
-        if (state.waiting) return;
+// 固定sleepで成功を推測せず、指定した接続が実際にロックを待っていることを検査する。
+const waitForLock = async (pid: number, kind: "alias" | "editing") => {
+    const deadline = Date.now() + 3000;
+    const maxAttempts = 500;
+    let lastState: { state: string; wait_event_type: string | null; wait_event: string | null } | undefined;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const [state] = await observer.query<{
+            state: string; wait_event_type: string | null; wait_event: string | null; waiting: boolean;
+        }>(`SELECT state, wait_event_type, wait_event,
+            (wait_event_type = 'Lock' AND CASE WHEN :kind = 'alias'
+                THEN wait_event = 'advisory' AND query LIKE '%pg_advisory_xact_lock%'
+                ELSE query LIKE '%item_editing%' AND query LIKE '%FOR UPDATE%' END) AS waiting
+            FROM pg_stat_activity WHERE datname = current_database() AND pid = :pid`,
+            { replacements: { pid, kind }, type: QueryTypes.SELECT });
+        lastState = state;
+        if (state?.waiting) return;
+        if (Date.now() >= deadline || attempt === maxAttempts) {
+            throw new Error(`ロック待ち未確認: kind=${kind}, pid=${pid}, attempts=${attempt}/${maxAttempts}, ` +
+                `state=${lastState?.state ?? "接続なし"}, event=${lastState?.wait_event_type}/${lastState?.wait_event}`);
+        }
     }
-    throw new Error("Bのブランド別名ロック待ちを確認できませんでした");
 };
+const waitForAliasLock = (pid: number) => waitForLock(pid, "alias");
 const transactionPid = async (t: Transaction) => {
     const [row] = await sequelize.query<{ pid: number; isolation: string }>(
         "SELECT pg_backend_pid() AS pid, current_setting('transaction_isolation') AS isolation",
@@ -109,7 +135,7 @@ describe("P2: 下書き作成の並行処理", () => {
         } finally { gate.release.forEach(g => g.resolve()); await settled; }
     });
 
-    it("P02 O02: 別ユーザー・別商品を交差させても入力と署名が混ざらない", async () => {
+    it("AF-P01 AF-OWN02 P02 O02: 別ユーザー・別商品を交差させても入力と署名が混ざらない", async () => {
         await prepareOther(); const before = await editingSnapshot(f.editing.id), other = await editingSnapshot(f.otherEditing.id);
         const { a, b } = inputs(), real = command.updateItemDraftImage;
         const both = deferred<void>(), release = deferred<void>(), transactions = new Set<Transaction | undefined>();
@@ -130,23 +156,36 @@ describe("P2: 下書き作成の並行処理", () => {
         } finally { release.resolve(); await settled; }
     });
 
-    it("P03: Aの本体INSERT後rollbackとBのcommitを独立して扱う", async () => {
-        const { a, b } = inputs(), real = command.updateItemDraftImage;
-        const entered = deferred<void>(), release = deferred<void>(), error = new Error("Aの画像保存失敗");
+    it("AF-AUTH04 P03: 同じ参照元のBはAのrollbackを待ち、Bだけcommitする", async () => {
+        const { a, b } = inputs(), realImage = command.updateItemDraftImage, realRead = query.getMyItemEditing;
+        const before = await editingSnapshot(f.editing.id);
+        const entered = deferred<void>(), release = deferred<void>(), bRequested = deferred<void>();
+        const error = new Error("Aの画像保存失敗"); let bPid = 0, bCompleted = false;
         vi.spyOn(command, "updateItemDraftImage").mockImplementation(async params => {
             if (params.itemDraft.name === a.itemMeta.name) { entered.resolve(); await release.promise; throw error; }
-            return real(params);
+            return realImage(params);
         });
         const pa = run(f, a), failure = expect(pa).rejects.toBe(error);
         let pb: ReturnType<typeof run> | undefined;
         try {
-            await reach(entered.promise, [pa]); pb = run(f, b); const resultB = await pb;
+            await reach(entered.promise, [pa]);
+            // Aの再取得完了後なので、次のtransaction付き取得はBと特定できる。
+            vi.spyOn(query, "getMyItemEditing").mockImplementation(async params => {
+                if (params.transaction) {
+                    bPid = await transactionPid(params.transaction);
+                    const pending = realRead(params); bRequested.resolve(); return pending;
+                }
+                return realRead(params);
+            });
+            pb = run(f, b).then(result => { bCompleted = true; return result; });
+            await reach(bRequested.promise, [pa, pb]); await waitForLock(bPid, "editing");
+            expect(bCompleted).toBe(false); expect(await draftRows()).toEqual([]);
+            release.resolve(); await failure; const resultB = await pb;
             const committed = await onlyDraft(); assertSaved(committed, b, resultB, f.owner.id, f.editing.id);
-            release.resolve(); await failure; expect(await onlyDraft()).toEqual(committed);
+            expect(await editingSnapshot(f.editing.id)).toEqual(before);
         } finally { release.resolve(); await Promise.allSettled(pb ? [pa, pb] : [pa]); await failure; }
     });
-
-    it.each([false, true])("P04 P05: Aのrollback=%s、Bは実ロック待ち後に再検索", async rollback => {
+    it.each([false, true])("AF-GUARD01 P04 P05: Aのrollback=%s、Bは実ロック待ち後に再検索", async rollback => {
         await prepareOther(); const { a, b } = inputs(), name = `${f.prefix}shared`;
         a.brand = { id: null, name }; b.brand = { id: null, name };
         const reads = [deferred<void>(), deferred<void>()], releases = [deferred<void>(), deferred<void>()];
@@ -200,7 +239,8 @@ describe("P2: 下書き作成の並行処理", () => {
         }
     });
 
-    it("P06: 異なる正規化名ならAがロック保持中でもBをcommitできる", async () => {
+    it("P06: 別参照元・異なる正規化名ならAがロック保持中でもBをcommitできる", async () => {
+        await prepareOther();
         const { a, b } = inputs(), nameA = `${f.prefix}one`, nameB = `${f.prefix}two`;
         a.brand = { id: null, name: nameA }; b.brand = { id: null, name: nameB };
         const [hashes] = await observer.query<{ a: number; b: number }>("SELECT hashtext(:a) AS a, hashtext(:b) AS b", {
@@ -222,7 +262,7 @@ describe("P2: 下書き作成の並行処理", () => {
         });
         const pa = run(f, a); let pb: ReturnType<typeof run> | undefined;
         try {
-            await reach(holding.promise, [pa]); pb = run(f, b); await pb;
+            await reach(holding.promise, [pa]); pb = run(f, b, f.otherEditing.id, f.other.id); await pb;
             expect(await aliasRows(nameA)).toEqual([]); expect(await aliasRows(nameB)).toHaveLength(1);
             expect((await onlyDraft()).name).toBe(b.itemMeta.name);
             release.resolve(); await pa; expect(await draftRows()).toHaveLength(2); expect(await aliasRows(nameA)).toHaveLength(1);
@@ -231,7 +271,7 @@ describe("P2: 下書き作成の並行処理", () => {
 });
 
 describe("P2: 参照元・ブランドの変更との競合を観測", () => {
-    it("P07 O04: 取得後のメディア変更を保存してもAは取得済みsnapshotを再利用", async () => {
+    it("AF-AUTH05 P07 O04: 取得後のメディア変更を保存してもAは取得済みsnapshotを再利用", async () => {
         const real = query.getMyItemEditing, entered = deferred<void>(), release = deferred<void>();
         vi.spyOn(query, "getMyItemEditing").mockImplementationOnce(async params => {
             const row = await real(params); entered.resolve(); await release.promise; return row;
@@ -251,24 +291,29 @@ describe("P2: 参照元・ブランドの変更との競合を観測", () => {
         } finally { release.resolve(); await Promise.allSettled([pending]); }
     });
 
-    it.each(["所有者変更", "削除"])("P08 O03: 初回取得後の%sを再確認せず下書き作成を継続", async mode => {
+    it.each([["AF-AUTH02", "所有者変更"], ["AF-AUTH03", "削除"]])("%s P08 O03: 初回取得後の%sは再認可で404となり作成なし", async (_id, mode) => {
         const real = query.getMyItemEditing, entered = deferred<void>(), release = deferred<void>();
         const reads = vi.spyOn(query, "getMyItemEditing").mockImplementationOnce(async params => {
             const row = await real(params); entered.resolve(); await release.promise; return row;
         });
         const other = await editingSnapshot(f.otherEditing.id), published = f.item.toJSON();
-        const pending = run(f);
+        const name = `${f.prefix}reauth`; f.body.brand = { id: null, name };
+        const create = vi.spyOn(command, "CreateItemDraft"), images = vi.spyOn(command, "updateItemDraftImage"), aliasCreate = vi.spyOn(aliases, "createAliases");
+        const pending = run(f), failure = expectAppError(pending, "ITEM_EDITING_NOT_FOUND", 404);
         try {
             await reach(entered.promise, [pending]);
             if (mode === "削除") await observer.query("DELETE FROM item_editing WHERE id = :id", { replacements: { id: f.editing.id } });
             else await observer.query("UPDATE item_editing SET seller_id = :owner WHERE id = :id", { replacements: { id: f.editing.id, owner: f.other.id } });
-            const changed = await editingSnapshot(f.editing.id); release.resolve(); await pending;
-            expect(await onlyDraft()).toMatchObject({ name: f.body.itemMeta.name, seller_id: null, item_id: null });
-            expect(reads).toHaveBeenCalledExactlyOnceWith({ itemEditingId: f.editing.id, userId: f.owner.id });
+            const changed = await editingSnapshot(f.editing.id); release.resolve(); await failure;
+            expect(await draftRows()).toEqual([]); expect(await aliasRows(name)).toEqual([]);
+            expect(create).not.toHaveBeenCalled(); expect(images).not.toHaveBeenCalled(); expect(aliasCreate).not.toHaveBeenCalled();
+            expect(reads).toHaveBeenCalledTimes(2);
+            expect(reads).toHaveBeenNthCalledWith(1, { itemEditingId: f.editing.id, userId: f.owner.id });
+            expect(reads).toHaveBeenNthCalledWith(2, { itemEditingId: f.editing.id, userId: f.owner.id, transaction: expect.any(Object) });
             expect(await editingSnapshot(f.editing.id)).toEqual(changed);
             if (mode === "削除") expect(changed).toBeNull(); else expect(changed!.seller_id).toBe(f.other.id);
             expect(await editingSnapshot(f.otherEditing.id)).toEqual(other); expect((await Item.findByPk(f.item.id))!.toJSON()).toEqual(published);
-        } finally { release.resolve(); await Promise.allSettled([pending]); }
+        } finally { release.resolve(); await Promise.allSettled([pending]); await failure; }
     });
 
     it.each(["brand", "alias"])("P09: 採用%sが解決後に削除されるとFK失敗で作成なし", async target => {

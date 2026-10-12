@@ -3,7 +3,7 @@ import express, { type ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeBody } from "./fixtures.js";
+import { makeBody, makeDuplicateUiIdBody } from "./fixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
@@ -13,6 +13,7 @@ const post = (body: object = makeBody(), userId = 7, suffix = "") => request(app
     .set("Authorization", `Bearer ${token(userId)}`).send(body);
 beforeEach(async () => {
     vi.resetModules(); vi.resetAllMocks();
+    mocks.create.mockResolvedValue({ videoSignedUrl: null, thumbnailSignedUrl: null, itemImageSignedUrls: [], attributesImageSignedUrls: {} });
     vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
     vi.setSystemTime(new Date("2026-10-12T00:00:00Z"));
     vi.spyOn(console, "log").mockImplementation(() => {});
@@ -42,26 +43,54 @@ describe("P0/P1: 実Routerの到達性と優先順位", () => {
     });
     it("R01: 未認証6回は認証済みユーザーの制限枠を消費しない", async () => {
         for (let i = 0; i < 6; i++) expect((await request(app).post("/api/item-draft").send({})).status).toBe(401);
-        for (let i = 0; i < 5; i++) expect((await post()).status).toBe(400);
-        expect((await post()).status).toBe(429); expect(mocks.create).not.toHaveBeenCalled();
+        for (let i = 0; i < 5; i++) expect((await post()).status).toBe(200);
+        expect((await post()).status).toBe(429); expect(mocks.create).toHaveBeenCalledTimes(5);
     });
-    it.each([{ body: makeBody(), suffix: "" }, { body: {}, suffix: "" }, { body: { ...makeBody(), id: 11 }, suffix: "?id=11" }])(
-        "R02 R03 O01: 正常認証でもparams不足が先に400となる $suffix", async ({ body, suffix }) => {
-            const result = await post(body, 7, suffix);
-            expect(result.status).toBe(400); expect(result.body).toEqual({ code: "INVALID_PARAMS" });
+    it("AF-R01 R02 O01: 正常JWTとbodyでusecaseへ到達し署名4項目を200で返す", async () => {
+        const signed = { videoSignedUrl: { url: "upload", fields: { key: "video" } }, thumbnailSignedUrl: "thumb",
+            itemImageSignedUrls: [{ index: 0, url: "image" }], attributesImageSignedUrls: { red: "red" } };
+        mocks.create.mockResolvedValue(signed);
+        const result = await post();
+        expect(result.status).toBe(200); expect(result.body).toEqual(signed);
+        expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, body: makeBody() });
+    });
+    it.each(["空body", "ID欠落", "IDゼロ", "ID文字列", "価格不正", "重複uiId", "ENUM不正", "文字数超過"])(
+        "AF-R02 R03: %sはINVALID_BODYでusecase未実行", async mode => {
+            const body = mode === "重複uiId" ? makeDuplicateUiIdBody() : makeBody();
+            if (mode === "ID欠落") Reflect.deleteProperty(body, "itemEditingId");
+            if (mode === "IDゼロ") body.itemEditingId = 0;
+            if (mode === "ID文字列") Object.assign(body, { itemEditingId: "11" });
+            if (mode === "価格不正") body.price = 299;
+            if (mode === "ENUM不正") Object.assign(body.genderAge, { gender: "invalid" });
+            if (mode === "文字数超過") body.itemMeta.name = "あ".repeat(256);
+            const result = await post(mode === "空body" ? {} : body);
+            expect(result.status).toBe(400); expect(result.body).toEqual({ code: "INVALID_BODY" });
             expect(mocks.create).not.toHaveBeenCalled();
         });
-    it("R04: 5回通過後6回目429、別ユーザーと10分窓更新後は再びparams400", async () => {
-        for (let i = 0; i < 5; i++) expect((await post()).body).toEqual({ code: "INVALID_PARAMS" });
-        expect((await post()).status).toBe(429);
-        expect((await post(makeBody(), 8)).status).toBe(400);
-        await vi.advanceTimersByTimeAsync(10 * 60 * 1000 + 1);
-        expect((await post()).body).toEqual({ code: "INVALID_PARAMS" }); expect(mocks.create).not.toHaveBeenCalled();
+    it("AF-R05 C01 V18: 混入した所有者・item_id・queryのidを採用しない", async () => {
+        const body = { ...makeBody(), userId: 999, seller_id: 999, item_id: 777 };
+        const result = await post(body, 7, "?id=999");
+        expect(result.status).toBe(200);
+        expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, body: makeBody() });
     });
-    it("R05 R06: 不正入力も加算され6回目はvalidatorより先に429", async () => {
-        for (let i = 0; i < 5; i++) expect((await post({})).body).toEqual({ code: "INVALID_PARAMS" });
+    it("AF-R04 R04: 正常5回・6回目429、別ユーザーと時間窓更新後は200", async () => {
+        for (let i = 0; i < 5; i++) expect((await post()).status).toBe(200);
+        expect((await post()).status).toBe(429);
+        expect((await post(makeBody(), 8)).status).toBe(200);
+        await vi.advanceTimersByTimeAsync(10 * 60 * 1000 + 1);
+        expect((await post()).status).toBe(200); expect(mocks.create).toHaveBeenCalledTimes(7);
+    });
+    it("AF-R04 R05 R06: 不正入力も加算され6回目はbody検証より先に429", async () => {
+        for (let i = 0; i < 5; i++) expect((await post({})).body).toEqual({ code: "INVALID_BODY" });
         expect((await post()).status).toBe(429); expect((await post({})).status).toBe(429);
         expect(mocks.create).not.toHaveBeenCalled();
+    });
+    it("AF-R03: 期限切れトークンと不正bodyを6回送っても認証済み枠を消費しない", async () => {
+        for (let i = 0; i < 6; i++) {
+            expect((await request(app).post("/api/item-draft").set("Authorization", `Bearer ${token(7, -1)}`).send({})).status).toBe(401);
+        }
+        for (let i = 0; i < 5; i++) expect((await post()).status).toBe(200);
+        expect((await post()).status).toBe(429); expect(mocks.create).toHaveBeenCalledTimes(5);
     });
     it("R07: 存在しないid付きパスは404", async () => {
         expect((await post(makeBody(), 7, "/11")).status).toBe(404); expect(mocks.create).not.toHaveBeenCalled();

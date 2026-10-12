@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, makeBody, makeItem } from "./fixtures.js";
+import { deferred, expectAppError, makeBody, makeItem } from "./fixtures.js";
 const mocks = vi.hoisted(() => ({
     generateSignedUrl: vi.fn(),
     createVideoPresignedPost: vi.fn(),
@@ -38,7 +38,7 @@ afterEach(() => {
 });
 
 describe("P1: 動画・サムネイルの新規署名と再利用", () => {
-    it("S01 S03: 変換済み動画があっても新規動画の署名と公開URLを生成する", async () => {
+    it("AF-SIGN03 S01 S03: 変換済み動画があっても新規動画の署名と公開URLを生成する", async () => {
         item.converted_url = "converted";
         body.video = { name: "new.mp4", type: "video/mp4", uploaded: false };
         const result = await run();
@@ -104,12 +104,13 @@ describe("P1: 動画・サムネイルの新規署名と再利用", () => {
         item.thumbnail_url = null;
         expect((await run()).thumbnailUrl).toBeNull();
     });
-    it("S15: 動画署名undefinedでも新規公開URLは組み立てる", async () => {
+    it.each([undefined, null])("AF-SIGN01 S15: 新規動画署名%sは500で停止して後続署名を呼ばない", async signature => {
         body.video = { name: "new", type: "video/mp4", uploaded: false };
-        mocks.createVideoPresignedPost.mockResolvedValue(undefined);
-        const result = await run();
-        expect(result.videoSignedUrl).toBeNull();
-        expect(result.videoUrl).toBe(url("video/original"));
+        body.thumbnail = upload(); body.itemImages = [upload()]; body.attributes.colorVariants[0].image = upload();
+        mocks.createVideoPresignedPost.mockResolvedValue(signature);
+        await expectAppError(run(), "VIDEO_SIGNED_URL_UNAVAILABLE", 500);
+        expect(mocks.createVideoPresignedPost).toHaveBeenCalledOnce();
+        expect(mocks.generateSignedUrl).not.toHaveBeenCalled();
     });
     it("S04: サムネイルだけ差し替え、動画と商品画像は引き継ぐ", async () => {
         item.converted_url = "converted";
@@ -126,7 +127,7 @@ describe("P1: 動画・サムネイルの新規署名と再利用", () => {
 });
 
 describe("P1: 商品画像・属性画像の対応", () => {
-    it("S05 S05: 新規と既存を交互に指定して確定画像の入力順を維持する", async () => {
+    it("S05: 新規と既存を交互に指定して確定画像の入力順を維持する", async () => {
         body.itemImages = [upload(), { ...upload(), uploaded: true }, upload()];
         const result = await run();
         expect(result.finalImageUrls).toEqual([url("item-image", "_0"), item.image_url[1], url("item-image", "_2")]);
@@ -220,7 +221,7 @@ describe("P2: 完了順を制御した観測・重複実行", () => {
         ["S13", [1], [1]],
         ["S13", [0, 2], [2, 0]],
         ["S13", [1, 3], [3, 1]],
-    ] as const)("%s S13 S13 S13: 新規index=%j・完了順=%jでも署名を全件返す", async (_id, targetIndices, order) => {
+    ] as const)("%s AF-SAFE01: 新規index=%j・完了順=%jでも署名を全件返す", async (_id, targetIndices, order) => {
         const targets: readonly number[] = targetIndices;
         const count = Math.max(...targets) + 1;
         item.image_url = Array.from({ length: count }, (_, i) => `old-${i}`);
@@ -230,19 +231,24 @@ describe("P2: 完了順を制御した観測・重複実行", () => {
             ({ key: k }: { key: string }) => gates.get(Number(k.split("_")[1]))!.promise,
         );
         const pending = run();
-        expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(targets.length);
-        for (const index of order) {
-            gates.get(index)!.resolve(`signed-${index}`);
-            await Promise.resolve();
+        try {
+            expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(targets.length);
+            for (const index of order) {
+                gates.get(index)!.resolve(`signed-${index}`);
+                await Promise.resolve();
+            }
+            const result = await pending;
+            expect(result.finalImageUrls).toEqual(
+                Array.from({ length: count }, (_, i) => (targets.includes(i) ? url("item-image", `_${i}`) : `old-${i}`)),
+            );
+            expect(result.itemImageSignedUrls).toEqual(targets.map((index) => ({ index, url: `signed-${index}` })));
+            expect(new Set(result.itemImageSignedUrls.map((v) => v.index)).size).toBe(targets.length);
+        } finally {
+            for (const [index, gate] of gates) gate.resolve(`signed-${index}`);
+            await Promise.allSettled([pending]);
         }
-        const result = await pending;
-        expect(result.finalImageUrls).toEqual(
-            Array.from({ length: count }, (_, i) => (targets.includes(i) ? url("item-image", `_${i}`) : `old-${i}`)),
-        );
-        expect(result.itemImageSignedUrls).toEqual(targets.map((index) => ({ index, url: `signed-${index}` })));
-        expect(new Set(result.itemImageSignedUrls.map((v) => v.index)).size).toBe(targets.length);
     });
-    it("S14: 色画像を逆順に完了しても一意uiIdの対応を維持する", async () => {
+    it("AF-SAFE01 S14: 色画像を逆順に完了しても一意uiIdの対応を維持する", async () => {
         body.attributes.colorVariants = ["red", "blue"].map((uiId) => ({
             uiId,
             inventory: 1,
@@ -258,16 +264,18 @@ describe("P2: 完了順を制御した観測・重複実行", () => {
             return k.includes("red") ? red.promise : blue.promise;
         });
         const pending = run();
-        await started.promise;
-        blue.resolve("signed-blue");
-        await Promise.resolve();
-        red.resolve("signed-red");
-        const result = await pending;
-        expect(result.attributesImageSignedUrls).toEqual({ blue: "signed-blue", red: "signed-red" });
-        expect(result.finalAttributesImageUrls).toEqual({
-            red: url("attributes", "_red"),
-            blue: url("attributes", "_blue"),
-        });
+        try {
+            await Promise.race([started.promise, pending.then(() => { throw new Error("色署名待合せ未到達"); })]);
+            blue.resolve("signed-blue");
+            await Promise.resolve();
+            red.resolve("signed-red");
+            const result = await pending;
+            expect(result.attributesImageSignedUrls).toEqual({ blue: "signed-blue", red: "signed-red" });
+            expect(result.finalAttributesImageUrls).toEqual({
+                red: url("attributes", "_red"),
+                blue: url("attributes", "_blue"),
+            });
+        } finally { red.resolve("signed-red"); blue.resolve("signed-blue"); await Promise.allSettled([pending]); }
     });
     it("S17 Q02: 時刻を進めて再実行すると新規アップロードURLが変わる", async () => {
         body.video = { name: "video", type: "video/mp4", uploaded: false };
@@ -284,7 +292,7 @@ describe("P2: 完了順を制御した観測・重複実行", () => {
         expect(mocks.createVideoPresignedPost).toHaveBeenCalledTimes(2);
         expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(6);
     });
-    it("S17 S17 S17: 同一ミリ秒でもrequestIdが異なれば全メディアのキーが分かれる", async () => {
+    it("S17: 同一ミリ秒でもrequestIdが異なれば全メディアのキーが分かれる", async () => {
         body.video = { name: "video", type: "video/mp4", uploaded: false };
         body.thumbnail = upload();
         body.itemImages = [upload()];
@@ -332,7 +340,7 @@ describe("S16: 各署名処理のreject", () => {
 });
 
 describe("P1: 境界とキー対応", () => {
-    it.each([0, 1, 10])("S08 S08 V12: 新規署名%s件と確定画像の件数・対応を保持する", async (count) => {
+    it.each([0, 1, 10])("S08 V12: 新規署名%s件と確定画像の件数・対応を保持する", async (count) => {
         if (count > 0) body.itemImages = Array.from({ length: count }, upload);
         const result = await run();
         expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(count);
@@ -372,7 +380,7 @@ describe("P1: 境界とキー対応", () => {
         expect(result.thumbnailSignedUrl).toBe(`signed:${key("thumbnail")}`);
         expect(result.attributesImageSignedUrls).toEqual({ red: `signed:${key("attributes", "_red")}` });
     });
-    it("S02: 全メディアを既存利用するとURLを保持して署名を発行しない", async () => {
+    it("AF-SIGN02 S02: 全メディアを既存利用するとURLを保持して署名を発行しない", async () => {
         body.video = { uploaded: true };
         body.thumbnail = { uploaded: true };
         body.attributes.colorVariants[0].image = { ...upload(), uploaded: true };
@@ -390,7 +398,7 @@ describe("P1: 境界とキー対応", () => {
         expect(mocks.createVideoPresignedPost).not.toHaveBeenCalled();
         expect(mocks.generateSignedUrl).not.toHaveBeenCalled();
     });
-    it("S17: 同時開始した別requestIdの署名を逆順完了しても呼出し間で混ざらない", async () => {
+    it("AF-SAFE01 S17: 同時開始した別requestIdの署名を逆順完了しても呼出し間で混ざらない", async () => {
         body.itemImages = [upload()];
         mocks.randomUUID.mockReturnValueOnce("request-a").mockReturnValueOnce("request-b");
         const first = deferred<string>(),
@@ -400,15 +408,17 @@ describe("P1: 境界とキー対応", () => {
             .mockImplementationOnce(() => second.promise);
         const a = run(),
             b = run();
-        expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(2);
-        second.resolve("signed-b");
-        const resultB = await b;
-        first.resolve("signed-a");
-        const resultA = await a;
-        expect(resultA.itemImageSignedUrls).toEqual([{ index: 0, url: "signed-a" }]);
-        expect(resultB.itemImageSignedUrls).toEqual([{ index: 0, url: "signed-b" }]);
-        expect(resultA.finalImageUrls).toEqual([url("item-image", "_0")]);
-        expect(resultB.finalImageUrls).toEqual([url("item-image", "_0").replace("request-a", "request-b")]);
+        try {
+            expect(mocks.generateSignedUrl).toHaveBeenCalledTimes(2);
+            second.resolve("signed-b");
+            const resultB = await b;
+            first.resolve("signed-a");
+            const resultA = await a;
+            expect(resultA.itemImageSignedUrls).toEqual([{ index: 0, url: "signed-a" }]);
+            expect(resultB.itemImageSignedUrls).toEqual([{ index: 0, url: "signed-b" }]);
+            expect(resultA.finalImageUrls).toEqual([url("item-image", "_0")]);
+            expect(resultB.finalImageUrls).toEqual([url("item-image", "_0").replace("request-a", "request-b")]);
+        } finally { first.resolve("signed-a"); second.resolve("signed-b"); await Promise.allSettled([a, b]); }
     });
     it.each([{ ids: [] }, { ids: ["red"] }, { ids: ["blue", "red"] }])(
         "S10: 一意uiId=$idsをschemaで受理して既存画像の対応を保持する",

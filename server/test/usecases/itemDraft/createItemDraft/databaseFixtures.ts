@@ -126,7 +126,8 @@ export const seed = async () => {
 };
 
 export type DbFixture = Awaited<ReturnType<typeof seed>>;
-export const run = (fixture: DbFixture, body: CreateItemDraftBody = fixture.body, id = fixture.editing.id, userId = fixture.owner.id) =>
+// schemaの拒否も非同期アサーションで確認できるよう、呼出し境界をPromiseへ揃える。
+export const run = async (fixture: DbFixture, body: CreateItemDraftBody = fixture.body, id = fixture.editing.id, userId = fixture.owner.id) =>
     createItemDraftUseCase({ userId, body: createItemDraftBodySchema.parse({ ...body, itemEditingId: id }) });
 
 export const editingSnapshot = async (id: number) => {
@@ -146,7 +147,7 @@ export const newMedia = (body: CreateItemDraftBody) => {
     body.itemImages = newImages(2);
 };
 
-// seller_idが保存されない現行経路でも、このsuiteが作成したIDだけを追跡する。
+// rollbackした行も含め、このsuiteが作成したIDだけを追跡する。
 export const draftIds = () => [...(created.get(ItemDraft) ?? [])];
 export const draftRows = async () => {
     const ids = draftIds();

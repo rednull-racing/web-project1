@@ -11,7 +11,8 @@ import * as master from "../../../../src/usecases/shared/validateMaster.js";
 let f: DbFixture;
 beforeEach(async () => { f = await seed(); });
 describe("P0/P1: 実transactionの原子性・可視性", () => {
-    it.each(["本体前", "画像前", "画像後"])("T04 T05 E10 E11 ST07: %sの障害で新規aliasと本体がrollback", async (stage) => {
+    it.each([["E10", "本体前"], ["E11", "画像前"], ["E11", "画像後"]])(
+        "%s AF-OWN03 AF-NAME01 T04 T05 ST07: %sの障害で新規aliasと本体がrollback", async (_id, stage) => {
         const before = await editingSnapshot(f.editing.id); const name = `${f.prefix}rollback`; f.body.brand = { id: null, name }; newMedia(f.body);
         const error = new Error("意図した保存失敗"), real = command.updateItemDraftImage;
         const aliases = vi.spyOn(BrandAliases, "create"), create = vi.spyOn(command, "CreateItemDraft"), images = vi.spyOn(command, "updateItemDraftImage");
@@ -19,6 +20,7 @@ describe("P0/P1: 実transactionの原子性・可視性", () => {
         else images.mockImplementationOnce(async (params) => { if (stage === "画像後") await real(params); throw error; });
         await expect(run(f)).rejects.toBe(error);
         expect(aliases).toHaveBeenCalledOnce(); await expect(aliases.mock.results[0].value).resolves.toBeInstanceOf(BrandAliases);
+        expect(create.mock.calls[0][0].data.seller_id).toBe(f.owner.id);
         if (stage === "本体前") expect(images).not.toHaveBeenCalled();
         else { expect(create).toHaveBeenCalledOnce(); await expect(create.mock.results[0].value).resolves.toBeInstanceOf(ItemDraft); }
         expect(await draftRows()).toEqual([]); expect(await aliasRows(name)).toEqual([]); expect(await editingSnapshot(f.editing.id)).toEqual(before);
@@ -55,8 +57,13 @@ describe("P0/P1: 実transactionの原子性・可視性", () => {
         await run(f); const aliases = await aliasRows(name); expect(aliases).toHaveLength(1);
         expect(await onlyDraft()).toHaveProperty("brand_aliases_id", aliases[0].id); expect(await editingSnapshot(f.editing.id)).toEqual(before);
     });
-    it("T04: 実DBの本体文字数エラーでも作成済みaliasをrollback", async () => {
-        const name = `${f.prefix}constraint`; f.body.brand = { id: null, name }; f.body.itemMeta.name = "あ".repeat(256);
+    it("T04 D06: schema通過後のservice障害としてDB文字数エラーを注入しaliasもrollback", async () => {
+        const name = `${f.prefix}constraint`; f.body.brand = { id: null, name };
+        // HTTP入力は正常のまま、本体serviceの境界でDB制約違反を注入する。
+        const realCreate = command.CreateItemDraft;
+        vi.spyOn(command, "CreateItemDraft").mockImplementationOnce(params => realCreate({
+            ...params, data: { ...params.data, name: "あ".repeat(256) },
+        }));
         const aliases = vi.spyOn(BrandAliases, "create");
         await expect(run(f)).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "22001" } });
         expect(aliases).toHaveBeenCalledOnce(); await expect(aliases.mock.results[0].value).resolves.toBeInstanceOf(BrandAliases);

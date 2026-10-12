@@ -78,7 +78,8 @@ describe("P0: usecaseの作成と処理順序", () => {
             ],
         });
         const result = await run();
-        expect(mocks.getMyItemEditing).toHaveBeenCalledTimes(1);
+        expect(mocks.getMyItemEditing).toHaveBeenCalledTimes(2);
+        expect(mocks.getMyItemEditing).toHaveBeenNthCalledWith(2, { itemEditingId: 11, userId: 7, transaction });
         expect(mocks.getMyItemEditing).toHaveBeenNthCalledWith(1, { itemEditingId: 11, userId: 7 });
         expect(mocks.buildSignedUrls).toHaveBeenCalledExactlyOnceWith({
             itemEditingId: 11,
@@ -98,6 +99,7 @@ describe("P0: usecaseの作成と処理順序", () => {
         expect(mocks.CreateItemDraft).toHaveBeenCalledExactlyOnceWith({
             transaction,
             data: {
+                seller_id: 7,
                 name: "商品名",
                 detail: "商品説明",
                 price: 300,
@@ -164,6 +166,7 @@ describe("P0: usecaseの作成と処理順序", () => {
             mocks.CreateItemDraft,
             mocks.updateItemDraftImage,
         ].map((m) => m.mock.invocationCallOrder[0]);
+        order.splice(5, 0, mocks.getMyItemEditing.mock.invocationCallOrder[1]);
         expect(order).toEqual([...order].sort((a, b) => a - b));
         const urls = makeUrls();
         expect(result).toEqual({
@@ -253,7 +256,6 @@ describe("P0: usecaseの作成と処理順序", () => {
         item.video_status = status;
         await run();
         for (const key of [
-            "seller_id",
             "item_id",
             "video_status",
             "converted_url",
@@ -330,7 +332,11 @@ describe("P0: 失敗伝播と後続未実行", () => {
         "CreateItemDraft",
         "updateItemDraftImage",
     ] as const;
-    it.each(stages)("E08 E09 E10 E11 T08: %sの例外をそのまま伝え後続を実行しない", async (stage) => {
+    const failures = [
+        ["E08", "getMyItemEditing"], ["E08", "buildSignedUrls"], ["E06", "validateNumber"],
+        ["E08", "validateMaster"], ["E09", "resolveBrand"], ["E10", "CreateItemDraft"], ["E11", "updateItemDraftImage"],
+    ] as const;
+    it.each(failures)("%s AF-NAME01 T08: %sの例外をそのまま伝え後続を実行しない", async (_id, stage) => {
         const error = new Error(stage);
         mocks[stage].mockRejectedValueOnce(error);
         await expect(run()).rejects.toBe(error);
@@ -428,7 +434,7 @@ describe("P0: 設計照合で不足していた境界と待機", () => {
         expect(mocks.updateItemDraftImage.mock.calls[0][0].urls).toBe(urls.finalImageUrls);
         expect(result.itemImageSignedUrls).toBe(urls.itemImageSignedUrls);
         expect(result.attributesImageSignedUrls).toBe(urls.attributesImageSignedUrls);
-        expect(data()).not.toHaveProperty("seller_id"); expect(data()).not.toHaveProperty("item_id");
+        expect(data().seller_id).toBe(7); expect(data()).not.toHaveProperty("item_id");
     });
 
     it.each([null, undefined])("N10: HTTP外のsize=%sをundefinedに補完", async value => {
@@ -446,5 +452,66 @@ describe("P0: 設計照合で不足していた境界と待機", () => {
             expect(attrs.colorVariants![0].inventory).toEqual(inventory(layer === "色" ? value : 2));
             expect(attrs.colorVariants![0].sizes![0].inventory).toEqual(inventory(layer === "サイズ" ? value : 3));
         });
+    });
+});
+
+
+describe("P0: F2〜F4の修正後契約", () => {
+    it("AF-OWN01 AF-OWN02: bodyの所有者混入を無視して認証IDを保存する", async () => {
+        Object.assign(body, { userId: 999, seller_id: 999, item_id: 777 });
+        await run();
+        expect(data().seller_id).toBe(7); expect(data()).not.toHaveProperty("item_id");
+    });
+    it.each([
+        [null, null, "unisex", "both"], [null, "kids", "unisex", "kids"], ["women", null, "women", "both"],
+        ["men", "adult", "men", "adult"],
+    ] as const)("AF-V01: gender=%s/age=%sを%s/%sで保存する", async (gender, age, expectedGender, expectedAge) => {
+        body.genderAge = { gender, age }; await run();
+        expect(data()).toMatchObject({ gender_type: expectedGender, age_type: expectedAge });
+    });
+    it.each([1, 10, 11])("AF-IMG01: 確定画像%s枚はINSERT前に上限を判定する", async count => {
+        const urls = Array.from({ length: count }, (_, i) => `image-${i}`);
+        mocks.buildSignedUrls.mockResolvedValue({ ...makeUrls(), finalImageUrls: urls });
+        if (count <= 10) {
+            await run(); expect(data().first_image_url).toBe(urls[0]);
+            expect(mocks.updateItemDraftImage).toHaveBeenCalledExactlyOnceWith({ itemDraft: draft, urls, transaction });
+        } else {
+            body.category.id = "abc";
+            await expectAppError(run(), "ITEM_IMAGE_LIMIT_EXCEEDED");
+            for (const fn of [mocks.validateNumber, mocks.validateMaster, mocks.transaction, mocks.resolveBrand,
+                mocks.CreateItemDraft, mocks.updateItemDraftImage]) expect(fn).not.toHaveBeenCalled();
+            expect(mocks.getMyItemEditing).toHaveBeenCalledOnce();
+        }
+    });
+    it("AF-AUTH01 T02: transaction内の再取得が完了するまでブランド解決・保存しない", async () => {
+        const entered = deferred<void>(), release = deferred<ReturnType<typeof makeItem>>();
+        const fresh = makeItem(); fresh.original_url = "fresh-video"; fresh.image_url = ["fresh-image"];
+        mocks.getMyItemEditing.mockResolvedValueOnce(item).mockImplementationOnce(() => {
+            entered.resolve(); return release.promise;
+        });
+        const pending = run();
+        try {
+            await Promise.race([entered.promise, pending.then(() => { throw new Error("再取得待合せ未到達"); })]);
+            expect(mocks.getMyItemEditing).toHaveBeenNthCalledWith(2, { itemEditingId: 11, userId: 7, transaction });
+            expect(mocks.transaction).toHaveBeenCalledOnce();
+            for (const fn of [mocks.resolveBrand, mocks.CreateItemDraft, mocks.updateItemDraftImage]) expect(fn).not.toHaveBeenCalled();
+        } finally { release.resolve(fresh); await pending; }
+        // 再認可は追加するが、初回snapshotから確定したメディアを使う契約を維持する。
+        expect(data().original_url).toBe("https://media.test/new-video");
+        expect(mocks.updateItemDraftImage.mock.calls[0][0].urls).toEqual(["image-a", "image-b"]);
+    });
+    it("AF-AUTH02 AF-AUTH03: 再取得なしはtransaction内で404、ブランド・本体・画像なし", async () => {
+        mocks.getMyItemEditing.mockResolvedValueOnce(item).mockResolvedValueOnce(null);
+        await expectAppError(run(), "ITEM_EDITING_NOT_FOUND", 404);
+        expect(mocks.getMyItemEditing).toHaveBeenNthCalledWith(2, { itemEditingId: 11, userId: 7, transaction });
+        for (const fn of [mocks.resolveBrand, mocks.CreateItemDraft, mocks.updateItemDraftImage]) expect(fn).not.toHaveBeenCalled();
+        await expect(mocks.transaction.mock.results[0].value).rejects.toMatchObject({ code: "ITEM_EDITING_NOT_FOUND", statusCode: 404 });
+    });
+    it("AF-AUTH01 T08: 再取得の例外をそのまま伝播して保存を止める", async () => {
+        const error = new Error("再取得失敗");
+        mocks.getMyItemEditing.mockResolvedValueOnce(item).mockRejectedValueOnce(error);
+        await expect(run()).rejects.toBe(error);
+        for (const fn of [mocks.resolveBrand, mocks.CreateItemDraft, mocks.updateItemDraftImage]) expect(fn).not.toHaveBeenCalled();
+        await expect(mocks.transaction.mock.results[0].value).rejects.toBe(error);
     });
 });

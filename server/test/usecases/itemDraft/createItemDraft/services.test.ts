@@ -25,14 +25,14 @@ import { getTodouhuken } from "../../../../src/services/todouhuken.js";
 const transaction = { LOCK: { UPDATE: "UPDATE" } } as Transaction;
 beforeEach(() => { vi.resetAllMocks(); });
 describe("P1: DB serviceの契約（DB非接続）", () => {
-    it.each([undefined, transaction])("SV01 SV02: t=%sで所有者条件と必要時だけロック", async (t) => {
+    it.each([undefined, transaction])("AF-AUTH01 SV01 SV02: t=%sで所有者条件と必要時だけロック", async (t) => {
         const row = { id: 11 }; mocks.editing.findOne.mockResolvedValue(row);
         expect(await getMyItemEditing({ itemEditingId: 11, userId: 7, transaction: t })).toBe(row);
         expect(mocks.editing.findOne).toHaveBeenCalledExactlyOnceWith({ where: { id: 11, seller_id: 7 }, ...(t ? { transaction: t, lock: "UPDATE" } : {}) });
     });
-    it("SV03 T01: 作成dataとtを渡しモデル参照を返す", async () => {
+    it("AF-OWN01 SV03 T01: 作成dataとtを渡しモデル参照を返す", async () => {
         // Modelはモック。serviceが加工しない契約の確認に限る最小DTO。
-        const data = { name: "作成" } as Parameters<typeof CreateItemDraft>[0]["data"];
+        const data = { seller_id: 7, name: "作成" } as Parameters<typeof CreateItemDraft>[0]["data"];
         const row = { id: 111 }; mocks.draft.create.mockResolvedValue(row);
         expect(await CreateItemDraft({ data, transaction })).toBe(row);
         expect(mocks.draft.create).toHaveBeenCalledExactlyOnceWith(data, { transaction });

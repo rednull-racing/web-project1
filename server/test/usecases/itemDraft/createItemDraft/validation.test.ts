@@ -152,10 +152,14 @@ describe("P1: optional・nullableとschemaが制限しない入力", () => {
     ] as const)("V08: condition.id=%sの受理=%s", (value, accepted) => {
         expect(parse("condition.id", value).success).toBe(accepted);
     });
-    describe.each(["genderAge.gender", "genderAge.age"])("V15: %s", (path) => {
-        it.each(["unisex", "both", null, "任意文字列"])("%sはschemaでは受理する（DB制約は対象外）", (value) => {
-            expect(parse(path, value).success).toBe(true);
-        });
+    describe.each(["genderAge.gender", "genderAge.age"])("AF-V01 V15: %s", path => {
+        it.each(["men", "women", "unisex", "adult", "kids", "both", null, "", "任意文字列"])(
+            "値%sは項目ごとのENUMとnullだけ受理する", value => {
+                const allowed = path.endsWith("gender") ? ["men", "women", "unisex", null] : ["adult", "kids", "both", null];
+                const result = parse(path, value);
+                expect(result.success).toBe(allowed.includes(value));
+                if (!result.success) expect(result.error.issues.map(issue => issue.path)).toEqual([path.split(".")]);
+            });
     });
     it.each([0, 1, 10, 11])("V12: 商品画像%s件をschemaでは受理する", (count) => {
         const body = makeBody();
@@ -163,8 +167,8 @@ describe("P1: optional・nullableとschemaが制限しない入力", () => {
         expect(schema.safeParse(body).success).toBe(true);
     });
     describe.each(["itemMeta.name", "videoMeta.title", "shipping.freeText", "brand.name"])("V16: %s", (path) => {
-        it.each([0, 1, 2, 254, 255, 256])("日本語%s文字をschemaでは受理する", (length) => {
-            expect(parse(path, "あ".repeat(length)).success).toBe(true);
+        it.each([0, 1, 2, 254, 255, 256])("AF-V02: 日本語%s文字は保存項目のみ255文字以内に制限する", (length) => {
+            expect(parse(path, "あ".repeat(length)).success).toBe(path === "brand.name" || length <= 255);
         });
     });
     it.each(["attributes.colorVariants", "attributes.colorVariants.0.sizes", "attributes.materials"])(
@@ -321,10 +325,11 @@ describe("P0/P1: 設計書にある追加の入力条件", () => {
         expect(parse("itemImages.0.name", "").success).toBe(true);
         expect(schema.safeParse(change("itemImages.0.name", undefined, true)).success).toBe(false);
     });
-    it.each(["genderAge.gender", "genderAge.age"])("V08 V15: %sの全定義値・空・nullをschemaで受理", path => {
-        for (const value of path.endsWith("gender") ? ["men", "women", "unisex", "", null] : ["adult", "kids", "both", "", null]) {
+    it.each(["genderAge.gender", "genderAge.age"])("V08 AF-V01: %sの全定義値とnullを受理、空文字を拒否", path => {
+        for (const value of path.endsWith("gender") ? ["men", "women", "unisex", null] : ["adult", "kids", "both", null]) {
             expect(parse(path, value).success, `入力=${String(value)}`).toBe(true);
         }
+        expect(parse(path, "").success).toBe(false);
     });
     it.each(["itemMeta.name", "videoMeta.title", "category.name", "condition.name", "attributes.colorVariants.0.uiId",
         "attributes.colorVariants.0.sizes.0.size", "attributes.materials.0.name"])("V07 V08: %sのnullは拒否", path => {
@@ -353,5 +358,26 @@ describe("P0/P1: 設計書にある追加の入力条件", () => {
             expect.objectContaining({ code: "INVALID_PARAMS", statusCode: 400 }),
         );
         expect(req.validatedParams).toBeUndefined(); expect(next).not.toHaveBeenCalled();
+    });
+});
+
+
+describe("P0: F4の文字数境界とmiddleware", () => {
+    describe.each(["itemMeta.name", "videoMeta.title", "shipping.freeText"])("AF-V02: %s", path => {
+        it.each([254, 255, 256])("補助平面の文字%s個をDBと同じ文字数で判定する", length => {
+            const result = parse(path, "𠮷".repeat(length));
+            expect(result.success).toBe(length <= 255);
+            if (!result.success) expect(result.error.issues).toMatchObject([{ path: path.split(".") }]);
+        });
+        it("256文字はmiddlewareで400となりnext・validatedBodyを設定しない", () => {
+            const req = { body: change(path, "あ".repeat(256)) } as Request, next = vi.fn();
+            expect(() => validateBody(schema)(req, {} as Response, next)).toThrow(
+                expect.objectContaining({ code: "INVALID_BODY", statusCode: 400 }));
+            expect(next).not.toHaveBeenCalled(); expect(req.validatedBody).toBeUndefined();
+        });
+    });
+    it.each(["itemMeta.detail", "videoMeta.summary", "brand.name"])("AF-V02: %sは255文字制限をschemaで追加しない", path => {
+        const body = change(path, "あ".repeat(1000));
+        expect(schema.parse(body)).toEqual(body);
     });
 });

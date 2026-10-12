@@ -1,9 +1,10 @@
 import "./databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DatabaseError, ForeignKeyConstraintError, ValidationError } from "sequelize";
+import { ValidationError } from "sequelize";
 import { seed, run, editingSnapshot, draftRows, onlyDraft, newImages, newMedia, unchanged, sequelize, observer,
-    ItemDraft, Item, Categories, BrandAliases, Brands, ItemConditionOption, ShippingDayOption, ShippingServiceOption, TodouhukenOption } from "./databaseFixtures.js";
+    ItemDraft, Item, Categories, BrandAliases } from "./databaseFixtures.js";
 import type { DbFixture } from "./databaseFixtures.js";
+import { createItemDraftBodySchema as schema } from "../../../../src/validators/body/itemDraft.js";
 import { expectAppError } from "./fixtures.js";
 import * as command from "../../../../src/services/itemDraft/command.js";
 let f: DbFixture;
@@ -11,7 +12,7 @@ beforeEach(async () => { f = await seed(); });
 const inv = (n: number) => ({ initial: n, current: n, low_stock_ratio: 0.2 });
 
 describe("P0: 実DBへの下書き作成", () => {
-    it("N02 N05 D01 D03 D10 ST01 O02: 全保存列・所有者未設定・非対象行不変", async () => {
+    it("AF-OWN01 N02 N05 D01 D03 D10 ST01 O02: 全保存列・認証所有者・非対象行不変", async () => {
         const before = await editingSnapshot(f.editing.id), other = await editingSnapshot(f.otherEditing.id), published = f.item.toJSON();
         f.body.attributes.colorVariants = [
             { uiId: "blue", color: "青", inventory: 0, sizes: [] },
@@ -22,7 +23,7 @@ describe("P0: 実DBへの下書き作成", () => {
         const count = await Item.count({ where: { seller_id: f.owner.id } });
         expect(await run(f)).toEqual({ videoSignedUrl: null, thumbnailSignedUrl: null, itemImageSignedUrls: [], attributesImageSignedUrls: {} });
         expect(await onlyDraft()).toEqual({
-            id: expect.any(Number), item_id: null, seller_id: null, name: "商品名", detail: "商品説明", price: 300, before_price: 300,
+            id: expect.any(Number), item_id: null, seller_id: f.owner.id, name: "商品名", detail: "商品説明", price: 300, before_price: 300,
             image_url: ["https://media.test/old-image0", "https://media.test/old-image1"], first_image_url: "https://media.test/old-image0",
             category_id: f.category.id, item_condition_id: f.condition.id, gender_type: "unisex", age_type: "both",
             brand_id: f.brand.id, brand_aliases_id: null, recommend: false,
@@ -42,7 +43,7 @@ describe("P0: 実DBへの下書き作成", () => {
         await f.editing.update({ sale_flag: true, recommend: true, discount_rate: 20, discount_amount: 100, converted_url: "converted", video_status: "completed" });
         const before = await editingSnapshot(f.editing.id);
         await run(f);
-        expect(await onlyDraft()).toMatchObject({ seller_id: null, item_id: null, sale_flag: false, recommend: false, discount_rate: null,
+        expect(await onlyDraft()).toMatchObject({ seller_id: f.owner.id, item_id: null, sale_flag: false, recommend: false, discount_rate: null,
             discount_amount: null, duration: null, converted_url: null, video_status: null, original_url: "converted" });
         expect(await editingSnapshot(f.editing.id)).toEqual(before);
     });
@@ -111,25 +112,43 @@ describe("P1: DB・モデル制約", () => {
         f.body.itemImages = [...newImages(10), { name: "欠落", type: null, uploaded: false }]; await run(f);
         expect((await onlyDraft()).image_url).toHaveLength(10);
     });
-    it("D05 E11: 確定11枚はモデルで拒否、本体INSERTもrollback", async () => {
-        f.body.itemImages = newImages(11); const create = vi.spyOn(command, "CreateItemDraft");
-        await expect(run(f)).rejects.toThrow("画像は最大10枚までです。");
-        expect(create).toHaveBeenCalledOnce(); await expect(create.mock.results[0].value).resolves.toBeInstanceOf(ItemDraft);
+    it("AF-IMG01 D05: 確定11枚は400、transaction・本体INSERT前に停止", async () => {
+        f.body.itemImages = newImages(11);
+        const create = vi.spyOn(command, "CreateItemDraft"), transaction = vi.spyOn(sequelize, "transaction");
+        await expectAppError(run(f), "ITEM_IMAGE_LIMIT_EXCEEDED");
+        expect(create).not.toHaveBeenCalled(); expect(transaction).not.toHaveBeenCalled();
         expect(await draftRows()).toEqual([]);
+    });
+    it("D05 E11: serviceに直接渡した画像11枚は既存モデルvalidatorで拒否し保存値不変", async () => {
+        await run(f); const before = await onlyDraft(), row = (await ItemDraft.findByPk(before.id as number))!;
+        await expect(command.updateItemDraftImage({ itemDraft: row, urls: Array.from({ length: 11 }, (_, i) => `image-${i}`) }))
+            .rejects.toBeInstanceOf(ValidationError);
+        expect(await onlyDraft()).toEqual(before);
     });
     it("E04: 画像0件はtransaction前に400", async () => {
         f.body.itemImages = []; const transaction = vi.spyOn(sequelize, "transaction");
         await expectAppError(run(f), "ITEM_IMAGE_NULL"); expect(transaction).not.toHaveBeenCalled(); expect(await draftRows()).toEqual([]);
     });
-    describe.each(["gender", "age"] as const)("D04 V15: %s", (field) => {
-        it.each([null, "", "invalid"])("値%sは拒否し後続画像保存なし", async (value) => {
-            f.body.genderAge[field] = value; const images = vi.spyOn(command, "updateItemDraftImage"), pending = run(f);
-            if (value === null) await expect(pending).rejects.toBeInstanceOf(ValidationError);
-            else await expect(pending).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "22P02" } });
-            expect(images).not.toHaveBeenCalled(); expect(await draftRows()).toEqual([]);
+    describe.each(["gender", "age"] as const)("AF-V01 D04 V15: %s", field => {
+        it("nullは未選択の既定値で保存する", async () => {
+            f.body.genderAge[field] = null; await run(f);
+            expect(await onlyDraft()).toHaveProperty(`${field}_type`, field === "gender" ? "unisex" : "both");
         });
-        it.each(field === "gender" ? ["men", "women", "unisex"] : ["adult", "kids", "both"])("値%sを保存", async (value) => {
-            f.body.genderAge[field] = value; await run(f); expect(await onlyDraft()).toHaveProperty(`${field}_type`, value);
+        it.each(["", "invalid"])("値%sはschemaで拒否しtransaction・本体・画像なし", async value => {
+            Object.assign(f.body.genderAge, { [field]: value });
+            const transaction = vi.spyOn(sequelize, "transaction"), create = vi.spyOn(command, "CreateItemDraft"), images = vi.spyOn(command, "updateItemDraftImage");
+            await expect(run(f)).rejects.toMatchObject({ name: "ZodError", issues: [{ path: ["genderAge", field] }] });
+            expect(transaction).not.toHaveBeenCalled(); expect(create).not.toHaveBeenCalled(); expect(images).not.toHaveBeenCalled();
+            expect(await draftRows()).toEqual([]);
+        });
+        it.each(field === "gender" ? ["men", "women", "unisex"] : ["adult", "kids", "both"])("定義値%sを保存", async value => {
+            Object.assign(f.body.genderAge, { [field]: value }); await run(f);
+            expect(await onlyDraft()).toHaveProperty(`${field}_type`, value);
+        });
+        it("直接モデルへnullを渡すと既存NOT NULL validatorで拒否する", async () => {
+            const row = ItemDraft.build({ seller_id: f.owner.id, [`${field}_type`]: null });
+            await expect(row.validate()).rejects.toBeInstanceOf(ValidationError);
+            expect(await draftRows()).toEqual([]);
         });
     });
     describe.each(["name", "title", "freeText", "brand"] as const)("D06 V16: %sの文字数", (field) => {
@@ -139,25 +158,29 @@ describe("P1: DB・モデル制約", () => {
             if (field === "title") f.body.videoMeta.title = value;
             if (field === "freeText") f.body.shipping.freeText = value;
             if (field === "brand") f.body.brand = { id: null, name: `${f.prefix}${value}`.slice(0, length) };
-            if (length > 255) { await expect(run(f)).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "22001" } }); expect(await draftRows()).toEqual([]); }
+            if (length > 255) {
+                if (field === "brand") await expectAppError(run(f), "BRAND_NAME_TOO_LONG");
+                else await expect(run(f)).rejects.toMatchObject({ name: "ZodError" });
+                expect(await draftRows()).toEqual([]);
+            }
             else { await run(f); if (field !== "brand") expect(await onlyDraft()).toHaveProperty(field === "freeText" ? "shipping_service_free_text" : field, value); }
             if (field === "brand" && length > 255) expect(await BrandAliases.count({ where: { name: f.body.brand.name } })).toBe(0);
         });
     });
     const targets = ["category", "condition", "day", "service", "place", "brand"] as const;
-    describe.each(targets)("I03 I04 D07 O06: %s ID", (field) => {
-        it.each(["0", " ", "-1", "1.5", "Infinity", "2147483648"])("値%sの失敗位置またはbrand fallback", async (value) => {
-            const models = { category: Categories, condition: ItemConditionOption, day: ShippingDayOption, service: ShippingServiceOption, place: TodouhukenOption, brand: Brands };
-            if (["0", " ", "-1"].includes(value)) expect(await models[field].findByPk(Number(value))).toBeNull();
+    describe.each(targets)("AF-I01 AF-I02 I03 I04 D07 O06: %s ID", field => {
+        it.each(["0", " ", "-1", "1.5", "Infinity", "2147483648"])("値%sは未選択か保存前400", async value => {
             if (field === "category") f.body.category.id = value; else if (field === "condition") f.body.condition.id = value;
             else if (field === "brand") f.body.brand = { id: value, name: null }; else f.body.shipping[field] = value;
-            const pending = run(f);
-            if (field === "brand" && value !== "Infinity") { await pending; expect(await onlyDraft()).toMatchObject({ brand_id: null, brand_aliases_id: null }); }
-            else if (["0", " "].includes(value)) { await expect(pending).rejects.toBeInstanceOf(ForeignKeyConstraintError); expect(await draftRows()).toEqual([]); }
-            else if (value !== "Infinity") {
-                const codes = { category: "CATEGORY_NOT_FOUND", condition: "ITEM_CONDITION_NOT_FOUND", day: "SHIPPING_DAY_NOT_FOUND", service: "SHIPPING_SERVICE_NOT_FOUND", place: "PLACE_NOT_FOUND", brand: "" };
-                await expectAppError(pending, codes[field], 404); expect(await draftRows()).toEqual([]);
-            } else { await expect(pending).rejects.toBeInstanceOf(DatabaseError); expect(await draftRows()).toEqual([]); }
+            const transaction = vi.spyOn(sequelize, "transaction");
+            if (value.trim() === "") {
+                await run(f);
+                const column = { category: "category_id", condition: "item_condition_id", day: "shipping_day_id", service: "shipping_service_id", place: "shipping_place_id", brand: "brand_id" }[field];
+                expect(await onlyDraft()).toHaveProperty(column, null);
+            } else {
+                await expectAppError(run(f), "INVALID_NUMBER");
+                expect(transaction).not.toHaveBeenCalled(); expect(await draftRows()).toEqual([]);
+            }
         });
     });
     it.each(["NOT NULL", "ENUM", "FK"])("D09: %sをモデル経由でなく直接SQLで確認", async (kind) => {
@@ -197,7 +220,7 @@ describe("P2: ブランド関連・逐次再実行", () => {
         expect(rows[1]).toEqual({ ...first, id: expect.any(Number), createdAt: expect.any(Date), updatedAt: expect.any(Date) });
         expect(rows[1].id).not.toBe(first.id);
     });
-    it("Q02: 同一時刻の新規メディア再送は別UUIDの2行", async () => {
+    it("AF-DB01 Q02: 同一時刻・別UUIDの2行で色画像まで返却署名に対応", async () => {
         newMedia(f.body); f.body.attributes.colorVariants[0].image = { name: "赤", type: "image/png", uploaded: false };
         vi.spyOn(Date, "now").mockReturnValue(1800000000000);
         const a = await run(f), b = await run(f); const rows = await draftRows();
@@ -206,7 +229,13 @@ describe("P2: ブランド関連・逐次再実行", () => {
             expect(rows[index].original_url).toBe(`https://media.test/${result.videoSignedUrl!.fields.key}`);
             expect(rows[index].thumbnail_url).toBe(result.thumbnailSignedUrl!.replace("signed.test", "media.test"));
             expect(rows[index].image_url).toEqual(result.itemImageSignedUrls.map(v => v.url.replace("signed.test", "media.test")));
+            const saved = (await ItemDraft.findByPk(rows[index].id as number))!;
+            const red = saved.attributes.colorVariants!.find(variant => variant.uiId === "red");
+            expect(red?.image_url).toBe(result.attributesImageSignedUrls.red.replace("signed.test", "media.test"));
         }
+        const savedRows = await Promise.all(rows.map(row => ItemDraft.findByPk(row.id as number)));
+        expect(savedRows[0]!.attributes.colorVariants!.find(v => v.uiId === "red")!.image_url)
+            .not.toBe(savedRows[1]!.attributes.colorVariants!.find(v => v.uiId === "red")!.image_url);
     });
     it("Q03: 未登録名を逐次再送すると別下書き2行でalias1行共有", async () => {
         f.body.brand = { id: null, name: `${f.prefix}new` }; await run(f); await run(f);
@@ -241,25 +270,31 @@ describe("P1: 保存値・制約・非対象行の追加確認", () => {
         const transaction = vi.spyOn(sequelize, "transaction"); await expectAppError(run(f), codes[field], 404);
         expect(transaction).not.toHaveBeenCalled(); expect(await draftRows()).toEqual([]);
     });
-    it.each(["name", "title", "freeText"] as const)("D06: %sの実DB文字数違反で新規aliasもrollback", async field => {
+    it.each(["name", "title", "freeText"] as const)("AF-V02 D06: %sの256文字はschemaで拒否しaliasも作成しない", async field => {
         const name = `${f.prefix}length`; f.body.brand = { id: null, name };
         if (field === "name") f.body.itemMeta.name = "あ".repeat(256);
         if (field === "title") f.body.videoMeta.title = "あ".repeat(256);
         if (field === "freeText") f.body.shipping.freeText = "あ".repeat(256);
-        const aliasCreate = vi.spyOn(BrandAliases, "create"), images = vi.spyOn(command, "updateItemDraftImage");
-        await expect(run(f)).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "22001" } });
-        expect(aliasCreate).toHaveBeenCalledOnce(); await expect(aliasCreate.mock.results[0].value).resolves.toBeInstanceOf(BrandAliases);
-        expect(images).not.toHaveBeenCalled(); expect(await draftRows()).toEqual([]);
-        expect(await BrandAliases.count({ where: { name_normalized: name } })).toBe(0);
+        const aliasCreate = vi.spyOn(BrandAliases, "create"), images = vi.spyOn(command, "updateItemDraftImage"), transaction = vi.spyOn(sequelize, "transaction");
+        await expect(run(f)).rejects.toMatchObject({ name: "ZodError" });
+        expect(aliasCreate).not.toHaveBeenCalled(); expect(images).not.toHaveBeenCalled(); expect(transaction).not.toHaveBeenCalled();
+        expect(await draftRows()).toEqual([]); expect(await BrandAliases.count({ where: { name_normalized: name } })).toBe(0);
     });
-    it.each([255, 256])("D06: 未登録ブランド名%s文字の関連保存または全体rollback", async length => {
+    it.each(["name", "title", "shipping_service_free_text"] as const)("D06: %sの実DB VARCHAR制約は直接SQLでも256文字を拒否", async column => {
+        await run(f); const before = await onlyDraft();
+        await expect(observer.query(`UPDATE item_draft SET ${column} = :value WHERE id = :id`, {
+            replacements: { value: "あ".repeat(256), id: before.id },
+        })).rejects.toMatchObject({ parent: { code: "22001" } });
+        expect(await onlyDraft()).toEqual(before);
+    });
+    it.each([255, 256])("AF-V02 D06: 未登録ブランド名%s文字の関連保存またはINSERT前拒否", async length => {
         const name = `${f.prefix}${"名".repeat(length)}`.slice(0, length); f.body.brand = { id: null, name };
         if (length === 255) {
             await run(f); const aliases = await BrandAliases.findAll({ where: { name_normalized: name } });
             expect(aliases).toHaveLength(1); expect(aliases[0].name).toBe(name);
             expect(await onlyDraft()).toMatchObject({ brand_id: null, brand_aliases_id: aliases[0].id });
         } else {
-            await expect(run(f)).rejects.toMatchObject({ name: "SequelizeDatabaseError", parent: { code: "22001" } });
+            await expectAppError(run(f), "BRAND_NAME_TOO_LONG");
             expect(await draftRows()).toEqual([]); expect(await BrandAliases.count({ where: { name_normalized: name } })).toBe(0);
         }
     });
@@ -271,5 +306,54 @@ describe("P1: 保存値・制約・非対象行の追加確認", () => {
         expect((await ItemDraft.findByPk(existing.id))!.toJSON()).toEqual(before);
         await unchanged(f, editing, other, published);
         expect((await draftRows()).filter(row => row.id !== existing.id)).toHaveLength(1);
+    });
+});
+
+
+describe("P0/P1: F2・F4のDB保存追加境界", () => {
+    it("AF-OWN02: bodyの所有者混入はschemaで除去し認証所有者で保存", async () => {
+        Object.assign(f.body, { userId: f.other.id, seller_id: f.other.id, item_id: f.item.id });
+        await run(f); expect(await onlyDraft()).toMatchObject({ seller_id: f.owner.id, item_id: null });
+    });
+    it.each([null, "men", "women", "unisex"] as const)("AF-V01: gender=%sとage=nullを保存", async gender => {
+        f.body.genderAge = { gender, age: null }; await run(f);
+        expect(await onlyDraft()).toMatchObject({ gender_type: gender ?? "unisex", age_type: "both" });
+    });
+    it.each(["itemMeta", "videoMeta", "shipping"] as const)("AF-V02: %sの補助平面255文字を実DBに保存", async field => {
+        const value = "𠮷".repeat(255);
+        if (field === "itemMeta") f.body.itemMeta.name = value;
+        if (field === "videoMeta") f.body.videoMeta.title = value;
+        if (field === "shipping") f.body.shipping.freeText = value;
+        await run(f);
+        expect(await onlyDraft()).toHaveProperty(field === "itemMeta" ? "name" : field === "videoMeta" ? "title" : "shipping_service_free_text", value);
+    });
+    it.each(["ゼロ付き", "空白付き", "指数形式"])("AF-I02: %sの有効IDを実DBで同じ関連へ保存", async mode => {
+        const format = (id: number) => mode === "ゼロ付き" ? `0${id}` : mode === "空白付き" ? ` ${id} ` : `${id}e0`;
+        f.body.category.id = format(f.category.id); f.body.condition.id = format(f.condition.id);
+        f.body.shipping.day = format(f.day.id); f.body.shipping.service = format(f.service.id); f.body.shipping.place = format(f.place.id);
+        f.body.brand.id = format(f.brand.id);
+        expect(schema.safeParse(f.body).success).toBe(true); await run(f);
+        expect(await onlyDraft()).toMatchObject({ category_id: f.category.id, item_condition_id: f.condition.id,
+            shipping_day_id: f.day.id, shipping_service_id: f.service.id, shipping_place_id: f.place.id, brand_id: f.brand.id });
+    });
+});
+
+
+describe("P1: F4で入口を制限した後も保存先の制約を維持する", () => {
+    it.each(["gender_type", "age_type"] as const)("D04 D09: %sのDB ENUMを直接SQLで検証", async column => {
+        await run(f); const before = await onlyDraft();
+        await expect(observer.query(`UPDATE item_draft SET ${column} = :value WHERE id = :id`, {
+            replacements: { value: "invalid", id: before.id },
+        })).rejects.toMatchObject({ parent: { code: "22P02" } });
+        expect(await onlyDraft()).toEqual(before);
+    });
+    it.each(["name", "name_normalized"] as const)("D06: ブランド別名の%sはDBでも256文字を拒否", async column => {
+        const name = `${f.prefix}dbconstraint`;
+        const alias = await BrandAliases.create({ name, name_normalized: name, brand_id: null });
+        const before = alias.toJSON();
+        await expect(observer.query(`UPDATE brand_aliases SET ${column} = :value WHERE id = :id`, {
+            replacements: { value: "あ".repeat(256), id: alias.id },
+        })).rejects.toMatchObject({ parent: { code: "22001" } });
+        expect((await BrandAliases.findByPk(alias.id))!.toJSON()).toEqual(before);
     });
 });
