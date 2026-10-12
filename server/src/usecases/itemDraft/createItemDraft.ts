@@ -2,7 +2,7 @@ import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
 import { CreateItemDraft, updateItemDraftImage } from "../../services/itemDraft/command.js";
 import { getMyItemEditing } from "../../services/itemEditing/query.js";
-import { CreateItemDraftBody } from "../../validators/body/itemDraft.js";
+import type { CreateItemDraftBody } from "../../validators/body/itemDraft.js";
 import { buildSignedUrls } from "../shared/buildSignedUrls.js";
 import { resolveBrand } from "../shared/resolveBrand.js";
 import { validateMaster } from "../shared/validateMaster.js";
@@ -41,6 +41,9 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
     if (!videoUrl) throw new AppError("VIDEO_URL_NULL", 400);
     if (!thumbnailUrl) throw new AppError("THUMBNAIL_URL_NULL", 400);
     if (!finalImageUrls || finalImageUrls.length === 0) throw new AppError("ITEM_IMAGE_NULL", 400);
+    if (finalImageUrls.length > 10) {
+        throw new AppError("ITEM_IMAGE_LIMIT_EXCEEDED", 400, "商品画像は10枚以内にしてください。");
+    }
 
     // 数値チェック
     const { categoryId, conditionId, dayId, serviceId, placeId, brandId } = await validateNumber({ body });
@@ -56,18 +59,25 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
 
     // データ更新
     await sequelize.transaction(async (t) => {
+        // 作成直前に再認可し、commitまで参照元の削除・所有者変更を待機させる。
+        const currentItemEditing = await getMyItemEditing({ itemEditingId, userId, transaction: t });
+        if (!currentItemEditing) {
+            throw new AppError("ITEM_EDITING_NOT_FOUND", 404);
+        }
+
         // ブランドチェック兼brandAliases作成
         const brandResult = await resolveBrand({ brandId, body, transaction: t });
 
         const itemDraft = await CreateItemDraft({
             data: {
+                seller_id: userId,
                 name: itemMeta.name,
                 detail: itemMeta.detail ?? "",
                 price: body.price,
                 first_image_url: finalImageUrls[0],
                 category_id: categoryId,
-                gender_type: genderAge.gender,
-                age_type: genderAge.age,
+                gender_type: genderAge.gender ?? "unisex",
+                age_type: genderAge.age ?? "both",
                 brand_id: brandResult.brand?.id ?? null,
                 brand_aliases_id: brandResult.alias?.id ?? null,
                 item_condition_id: conditionId,

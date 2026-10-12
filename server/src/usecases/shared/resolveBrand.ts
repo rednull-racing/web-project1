@@ -1,9 +1,10 @@
-import { Transaction } from "sequelize";
+import type { Transaction } from "sequelize";
+import { AppError } from "../../errors.js";
 import { createAliases, getAliasOne } from "../../services/brandAliases.js";
 import { getBrand, getBrandOne } from "../../services/brands.js";
 import type { BrandResult } from "../../types/serviceType/brands.js";
 import { normalizeJapanese } from "../../utils/normalizeJapanese.js";
-import { ItemUploadSharedUseCaseBody } from "./bodyType.js";
+import type { ItemUploadSharedUseCaseBody } from "./bodyType.js";
 
 type Params = {
     brandId: number | null;
@@ -34,6 +35,10 @@ export const resolveBrand = async ({ brandId, body, transaction }: Params): Prom
     if (alias) return { brand: null, alias };
 
     if (inputName.length >= 2) {
+        if (Array.from(inputName).length > 255 || Array.from(normalized).length > 255) {
+            throw new AppError("BRAND_NAME_TOO_LONG", 400, "ブランド名が長すぎます。短くしてもう一度お試しください。");
+        }
+
         const createdAlias = await createAliases({ inputName, normalized, transaction });
         return { brand: createdAlias.brand ?? null, alias: createdAlias };
     }

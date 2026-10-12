@@ -1,25 +1,38 @@
-import { toNullableNumber } from "../../utils/toNullableNumber.js";
-import { ItemUploadSharedUseCaseBody } from "./bodyType.js";
+import { AppError } from "../../errors.js";
+import type { ItemUploadSharedUseCaseBody } from "./bodyType.js";
+
+const MAX_ID = 2147483647;
 
 type Params = {
     body: ItemUploadSharedUseCaseBody;
+};
+
+const toNullableId = (value: string | null): number | null => {
+    if (value === null || value.trim() === "") return null;
+
+    const id = Number(value);
+    if (!Number.isInteger(id) || id < 1 || id > MAX_ID) {
+        throw new AppError("INVALID_NUMBER", 400);
+    }
+
+    return id;
 };
 
 export const validateNumber = async ({ body }: Params) => {
     const { category, condition, shipping, brand } = body;
 
     // 数値チェック
-    const categoryId = toNullableNumber(category.id);
+    const categoryId = toNullableId(category.id);
 
-    const conditionId = toNullableNumber(condition.id);
+    const conditionId = toNullableId(condition.id);
 
-    const dayId = toNullableNumber(shipping.day);
+    const dayId = toNullableId(shipping.day);
 
-    const serviceId = toNullableNumber(shipping.service);
+    const serviceId = toNullableId(shipping.service);
 
-    const placeId = toNullableNumber(shipping.place);
+    const placeId = toNullableId(shipping.place);
 
-    const brandId = toNullableNumber(brand.id);
+    const brandId = toNullableId(brand.id);
 
     return {
         categoryId,

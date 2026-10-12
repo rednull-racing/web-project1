@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { AppError } from "../../errors.js";
 import { publicS3Domain } from "../../infra/aws/s3.js";
 import { SignedUrlWithIndex } from "../../infra/aws/type.js";
 import { ItemEditing } from "../../models/index.js";
@@ -31,6 +32,10 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
                 contentType: video.type,
                 contentLengthRange: 500 * 1024 * 1024,
             })) ?? null;
+
+        if (!videoSignedUrl) {
+            throw new AppError("VIDEO_SIGNED_URL_UNAVAILABLE", 500, "動画のアップロード準備ができませんでした。もう一度お試しください。");
+        }
 
         videoUrl = `${publicS3Domain}/${originalKey}`;
     }

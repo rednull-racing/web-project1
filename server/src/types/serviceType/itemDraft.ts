@@ -1,16 +1,17 @@
-import { Transaction } from "sequelize";
-import { ItemDraft } from "../../models/index.js";
-import { BodyCategory, Layer, LifeStyleCategory } from "../itemAttributes.js";
+import type { Transaction } from "sequelize";
+import type { ItemDraft } from "../../models/index.js";
+import type { BodyCategory, Layer, LifeStyleCategory } from "../itemAttributes.js";
 
 export type CreateItemDraftParams = {
     data: {
+        seller_id: number;
         name: string;
         detail: string;
         price: number;
         first_image_url: string;
         category_id: number | null;
-        gender_type: string | null;
-        age_type: string | null;
+        gender_type: InstanceType<typeof ItemDraft>["gender_type"];
+        age_type: InstanceType<typeof ItemDraft>["age_type"];
         brand_id: number | null;
         brand_aliases_id: number | null;
         item_condition_id: number | null;

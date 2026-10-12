@@ -1,5 +1,10 @@
-import { z } from "zod";
+import z from "zod";
 import { colorVariantSchema, fileSchema, itemImageSchema, materialSchema } from "./utils/putItem.js";
+
+// PostgreSQLのVARCHARはUTF-16の長さではなく、文字数で上限を判定する。
+const storedStringSchema = z.string().refine((value) => Array.from(value).length <= 255, {
+    message: "255文字以内で入力してください。",
+});
 
 export const createItemDraftBodySchema = z.object({
     itemEditingId: z.number().int().min(1),
@@ -9,14 +14,14 @@ export const createItemDraftBodySchema = z.object({
     thumbnail: fileSchema.optional(),
 
     videoMeta: z.object({
-        title: z.string(),
+        title: storedStringSchema,
         summary: z.string().nullable(),
     }),
 
     itemImages: z.array(itemImageSchema),
 
     itemMeta: z.object({
-        name: z.string(),
+        name: storedStringSchema,
         detail: z.string().nullable(),
     }),
 
@@ -28,8 +33,8 @@ export const createItemDraftBodySchema = z.object({
     }),
 
     genderAge: z.object({
-        gender: z.string().nullable(),
-        age: z.string().nullable(),
+        gender: z.enum(["men", "women", "unisex"]).nullable(),
+        age: z.enum(["adult", "kids", "both"]).nullable(),
     }),
 
     brand: z.object({
@@ -68,7 +73,7 @@ export const createItemDraftBodySchema = z.object({
         day: z.string().nullable(),
         service: z.string().nullable(),
         place: z.string().nullable(),
-        freeText: z.string().nullable(),
+        freeText: storedStringSchema.nullable(),
     }),
 
     price: z.number().int().positive().min(300).max(1000000),
