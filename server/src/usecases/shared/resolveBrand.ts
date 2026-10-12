@@ -35,7 +35,7 @@ export const resolveBrand = async ({ brandId, body, transaction }: Params): Prom
 
     if (inputName.length >= 2) {
         const createdAlias = await createAliases({ inputName, normalized, transaction });
-        return { brand: null, alias: createdAlias };
+        return { brand: createdAlias.brand ?? null, alias: createdAlias };
     }
 
     return { brand: null, alias: null };

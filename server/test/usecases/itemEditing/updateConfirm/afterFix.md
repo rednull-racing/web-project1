@@ -491,3 +491,27 @@ T05/Q05について、以前の報告ではcallback内での呼出しのみを�
 P02ではA名称/B価格の混在、P08では削除後の成功応答と所有者変更後の書込みを観測した。テスト成功はこれらの不具合解消を意味しない。フォルダ外編集禁止に従い、修正やdocs/todoへの追加を行わず本報告へ残した。
 
 最終実行は**DB104件＋回帰502件＝606件、10ファイルすべて成功、失敗/skip/todoは0件**。全接続で`.env.test`由来の`test_db`を確認。作成したIDだけを削除し、残存0件を検証した。全体lint/型検査は対象外の既存エラーで失敗したが、変更TS8ファイルの追加lintは成功し、対象内の型エラーはない。コマンド・エラー箇所・途中経過はtestReport.mdに記録した。
+
+
+## 2026-10-12 P02・P05・P08修正後のテスト結果（最新）
+
+先行するアプリ修正を根拠に、旧不具合の観測テストを修正後の契約へ移行した。今回の編集は本ディレクトリのテスト4ファイル（`usecase.test.ts`、`services.test.ts`、`masterBrand.test.ts`、`databaseConcurrency.test.ts`）、`testArchitecture.md`、本書のみ。
+
+- **P02**：初回取得の待合せとtransaction内の再取得を区別。後の入力の名称・価格が保存され、SQLに名称の更新と所有者条件付きFOR UPDATEが含まれることを確認。単体では再取得の完了待ちと最新インスタンスの両更新への引渡しを確認した。
+- **P05**：別商品の両検索が未登録の状態から並行作成し、別名1行を両商品が共有することを確認。同一商品の同時更新、serviceのロック待機・再検索・例外伝播、再利用した別名のbrand反映も確認した。
+- **P08**：初回取得後の削除・所有者変更をITEM_EDITING_NOT_FOUND/404で拒否し、本体・画像・別名を更新しないことを確認。別接続のFOR UPDATE NOWAITによるロック取得は処理中に拒否され、commit後は成功した。
+
+最終結果は **10ファイル・619件すべて成功（失敗・skip・todoは0件）**。内訳はcontroller 5、masterBrand 152、route 22、services 10、signedUrls 60、usecase 53、validation 211、database 91、databaseTransactions 6、databaseConcurrency 9件。既存のrollback・再試行・逐次別名再利用も成功した。
+
+実行コマンド（`server/`）：
+
+```bash
+npm run test:run -- test/usecases/itemEditing/updateConfirm/ --maxWorkers=1
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+DB接続は既存ガードで`.env.test`由来の`test_db`を確認し、作成IDだけを削除して残存0件を確認した。ファイル間のDB負荷を抑えるためworkerを1にし、ケース内の並行transactionは維持した。
+
+lint・アプリ型検査は成功。変更テスト4ファイルへESLint APIとtypescript-eslint recommendedを追加適用し、エラー・警告0件。テスト型検査は対象外の既知エラー（`shopSignup/signup1.test.ts:33`、`signup5.test.ts:27`のimport先不在2件）のみで失敗し、今回の変更ファイルに型エラーは報告されなかった。対象外ファイルは編集していない。確認範囲は上記の制御した競合順序であり、既存の重複別名の整理やDB一意制約の保証は含まない。

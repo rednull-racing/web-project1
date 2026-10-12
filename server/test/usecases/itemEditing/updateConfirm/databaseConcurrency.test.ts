@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryTypes } from "sequelize";
 import { seed, run, snapshot, newMedia, observer, sequelize, ItemEditing, BrandAliases } from "./databaseFixtures.js";
 import type { DbFixture } from "./databaseFixtures.js";
-import { deferred } from "./fixtures.js";
+import { deferred, expectAppError } from "./fixtures.js";
 import * as query from "../../../../src/services/itemEditing/query.js";
 import * as command from "../../../../src/services/itemEditing/command.js";
 import * as aliases from "../../../../src/services/brandAliases.js";
@@ -18,6 +18,7 @@ const gateReads = () => {
     const real = query.getMyItemEditing;
     let index = 0;
     vi.spyOn(query, "getMyItemEditing").mockImplementation(async (params) => {
+        if (params.transaction) return real(params);
         const i = index++;
         const row = await real(params);
         entered[i].resolve();
@@ -52,7 +53,7 @@ describe("P2 実DB並行処理・観測", () => {
         }
     });
 
-    it("P02 O05: staleインスタンスの変更検知でAの名称とBの価格が混在する観測", async () => {
+    it("P02 O05: ロック下で再取得しBの名称・価格を一貫して保存する", async () => {
         const sql: string[] = [];
         sequelize.addHook("beforeQuery", "captureSql", (_options, query) => {
             query.options.logging = (statement) => { sql.push(statement); };
@@ -69,12 +70,15 @@ describe("P2 実DB並行処理・観測", () => {
             await Promise.race([Promise.all(gate.entered.map((g) => g.promise)), ...[pa, pb].map((pending) => pending.then(() => { throw new Error("取得待合せ前に終了"); }))]);
             gate.release[0].resolve(); await pa;
             gate.release[1].resolve(); await pb;
-            expect(await snapshot(f.editing.id)).toMatchObject({ name: "Aだけ変更", price: 2000 });
+            expect(await snapshot(f.editing.id)).toMatchObject({ name: b.itemMeta.name, price: 2000 });
             const writes = sql.filter((line) => line.includes('UPDATE "item_editing"'));
             expect(writes).toHaveLength(4);
             expect(writes[0]).toContain('"name"=');
-            expect(writes[2]).not.toContain('"name"=');
+            expect(writes[2]).toContain('"name"=');
             expect(writes[2]).toContain('"price"=');
+            const lockedReads = sql.filter((line) => line.includes('FROM "item_editing"') && line.includes('FOR UPDATE'));
+            expect(lockedReads).toHaveLength(2);
+            for (const read of lockedReads) expect(read).toContain('"seller_id"');
         } finally {
             gate.release.forEach((g) => g.resolve());
             await settled;
@@ -138,7 +142,7 @@ describe("P2 実DB並行処理・観測", () => {
         }
     });
 
-    it("P05 O02: 同名aliasの両検索が未登録なら別transactionで2行作成される観測", async () => {
+    it("P05 O02: 別商品の同名alias検索が両方未登録でも1行を共有する", async () => {
         f.body.brand = { id: null, name: `${f.prefix}race` };
         const real = aliases.getAliasOne;
         const entered = deferred<void>();
@@ -151,20 +155,57 @@ describe("P2 実DB並行処理・観測", () => {
             await release.promise;
             return result;
         });
-        const pending = Promise.all([run(f), run(f)]);
+        // 同一商品では行ロックで検索自体が直列化するため、別商品で別名作成を競合させる。
+        await f.otherEditing.update({ original_url: f.editing.original_url, thumbnail_url: f.editing.thumbnail_url,
+            image_url: f.editing.image_url });
+        const pending = Promise.all([run(f), run(f, f.body, f.otherEditing.id, f.other.id)]);
         try {
             await Promise.race([entered.promise, pending.then(() => { throw new Error("両検索に到達せず終了"); })]);
         } finally { release.resolve(); await pending; }
         const rows = await BrandAliases.findAll({ where: { name_normalized: f.body.brand.name } });
-        expect(rows).toHaveLength(2);
-        expect(rows.map((row) => row.id)).toContain((await ItemEditing.findByPk(f.editing.id))!.brand_aliases_id);
+        expect(rows).toHaveLength(1);
+        expect((await ItemEditing.findByPk(f.editing.id))!.brand_aliases_id).toBe(rows[0].id);
+        expect((await ItemEditing.findByPk(f.otherEditing.id))!.brand_aliases_id).toBe(rows[0].id);
     });
 
-    it.each(["削除", "所有者変更"])("P08 O05: 所有権確認後の%sで再認可せず更新する現状をSQLと最終行で観測", async (mode) => {
+    it("P05: 同一商品への同名aliasの同時更新も1行を再利用する", async () => {
+        f.body.brand = { id: null, name: `${f.prefix}same` };
+        await Promise.all([run(f), run(f)]);
+        const rows = await BrandAliases.findAll({ where: { name_normalized: f.body.brand.name } });
+        expect(rows).toHaveLength(1);
+        expect((await snapshot(f.editing.id))!.brand_aliases_id).toBe(rows[0].id);
+    });
+
+    it("P08: 再取得した行のロックは更新完了まで別接続のロック取得を拒否する", async () => {
+        const real = query.getMyItemEditing;
+        let checked = false;
+        vi.spyOn(query, "getMyItemEditing").mockImplementation(async (params) => {
+            const row = await real(params);
+            if (params.transaction) {
+                await expect(observer.query('SELECT id FROM item_editing WHERE id = :id FOR UPDATE NOWAIT', {
+                    replacements: { id: f.editing.id }, type: QueryTypes.SELECT,
+                })).rejects.toMatchObject({ original: { code: "55P03" } });
+                checked = true;
+            }
+            return row;
+        });
+        await run(f);
+        expect(checked).toBe(true);
+        await expect(observer.query('SELECT id FROM item_editing WHERE id = :id FOR UPDATE NOWAIT', {
+            replacements: { id: f.editing.id }, type: QueryTypes.SELECT,
+        })).resolves.toEqual([{ id: f.editing.id }]);
+    });
+
+    it.each(["削除", "所有者変更"])("P08 O05: 初回取得後の%sを再確認で拒否し商品・別名を更新しない", async (mode) => {
         const sql: string[] = [];
         sequelize.addHook("beforeQuery", "captureSql", (_options, query) => {
             query.options.logging = (statement) => { sql.push(statement); };
         });
+        const before = await snapshot(f.editing.id);
+        f.body.brand = { id: null, name: `${f.prefix}rejected` };
+        const update = vi.spyOn(command, "updateConfirm");
+        const images = vi.spyOn(command, "updateItemEditingImage");
+        const createAlias = vi.spyOn(aliases, "createAliases");
         const real = query.getMyItemEditing;
         vi.spyOn(query, "getMyItemEditing").mockImplementationOnce(async (params) => {
             const row = await real(params);
@@ -174,15 +215,18 @@ describe("P2 実DB並行処理・観測", () => {
             return row;
         });
         try {
-            await expect(run(f)).resolves.toEqual({ videoSignedUrl: null, thumbnailSignedUrl: null, itemImageSignedUrls: [], attributesImageSignedUrls: {} });
+            await expectAppError(run(f), "ITEM_EDITING_NOT_FOUND", 404);
             if (mode === "削除") expect(await snapshot(f.editing.id)).toBeNull();
-            else expect(await snapshot(f.editing.id)).toMatchObject({ seller_id: f.other.id, name: "商品名", price: 300 });
+            else expect(await snapshot(f.editing.id)).toEqual({ ...before, seller_id: f.other.id });
+            expect(update).not.toHaveBeenCalled();
+            expect(images).not.toHaveBeenCalled();
+            expect(createAlias).not.toHaveBeenCalled();
+            expect(await BrandAliases.count({ where: { name_normalized: f.body.brand.name } })).toBe(0);
             const writes = sql.filter((line) => line.includes('UPDATE "item_editing"'));
-            expect(writes).toHaveLength(2);
-            for (const write of writes) {
-                expect(write.split(" WHERE ")[1]).toMatch(/^"id" = /);
-                expect(write.split(" WHERE ")[1]).not.toContain("seller_id");
-            }
+            expect(writes).toHaveLength(0);
+            const lockedReads = sql.filter((line) => line.includes('FROM "item_editing"') && line.includes('FOR UPDATE'));
+            expect(lockedReads).toHaveLength(1);
+            expect(lockedReads[0]).toContain('"seller_id"');
         } finally { sequelize.removeHook("beforeQuery", "captureSql"); }
     });
 });

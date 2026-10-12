@@ -245,6 +245,16 @@ describe("P1/P2: ブランド解決と副作用の境界", () => {
         expect(mocks.getBrandOne).toHaveBeenCalledExactlyOnceWith({ normalized });
         expect(mocks.createAliases).toHaveBeenCalledExactlyOnceWith({ inputName: name, normalized, transaction: undefined });
     });
+    it.each([false, true])("P05: 作成時の再検索で再利用したaliasのbrand有無=%sを更新へ渡す", async (linked) => {
+        byName();
+        const alias = { id: 72, brand_id: linked ? brand.id : null, brand: linked ? brand : null };
+        mocks.createAliases.mockResolvedValue(alias);
+        await run();
+        expect(mocks.createAliases).toHaveBeenCalledTimes(1);
+        expect(mocks.updateConfirm.mock.calls[0][0].data).toMatchObject({
+            brand_id: linked ? brand.id : null, brand_aliases_id: alias.id,
+        });
+    });
     it("AF-B03 B05 O02: 名前で見つかったブランドを商品更新のIDへ採用する", async () => {
         byName();
         mocks.getBrandOne.mockResolvedValue(brand);

@@ -77,7 +77,9 @@ describe("P0: usecaseの更新と処理順序", () => {
             ],
         });
         const result = await run();
-        expect(mocks.getMyItemEditing).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 11, userId: 7 });
+        expect(mocks.getMyItemEditing).toHaveBeenCalledTimes(2);
+        expect(mocks.getMyItemEditing).toHaveBeenNthCalledWith(1, { itemEditingId: 11, userId: 7 });
+        expect(mocks.getMyItemEditing).toHaveBeenNthCalledWith(2, { itemEditingId: 11, userId: 7, transaction });
         expect(mocks.buildSignedUrls).toHaveBeenCalledExactlyOnceWith({
             itemEditingId: 11,
             userId: 7,
@@ -388,5 +390,42 @@ describe("P0: 失敗伝播と後続未実行", () => {
         commit.resolve();
         await result;
         expect(settled).toBe(true);
+    });
+});
+
+
+describe("P02/P08: transaction内の再取得", () => {
+    it("P02: 再取得の完了を待ち最新インスタンスを両更新へ渡す", async () => {
+        const current = makeItem();
+        const entered = deferred<void>();
+        const release = deferred<typeof current>();
+        mocks.getMyItemEditing.mockResolvedValueOnce(item).mockImplementationOnce(() => {
+            entered.resolve();
+            return release.promise;
+        });
+        const pending = run();
+        try {
+            await entered.promise;
+            expect(mocks.transaction).toHaveBeenCalledTimes(1);
+            expect(mocks.resolveBrand).not.toHaveBeenCalled();
+            expect(mocks.updateConfirm).not.toHaveBeenCalled();
+            expect(mocks.updateItemEditingImage).not.toHaveBeenCalled();
+        } finally { release.resolve(current); await pending; }
+        expect(mocks.updateConfirm.mock.calls[0][0].itemEditing).toBe(current);
+        expect(mocks.updateItemEditingImage.mock.calls[0][0].itemEditing).toBe(current);
+        expect(mocks.getMyItemEditing.mock.invocationCallOrder[1]).toBeGreaterThan(mocks.transaction.mock.invocationCallOrder[0]);
+    });
+
+    it.each(["対象なし", "DB例外"])("P08: 再取得が%sなら後続を停止する", async (mode) => {
+        const error = new Error("locked read failed");
+        mocks.getMyItemEditing.mockResolvedValueOnce(item);
+        if (mode === "対象なし") mocks.getMyItemEditing.mockResolvedValueOnce(null);
+        else mocks.getMyItemEditing.mockRejectedValueOnce(error);
+        if (mode === "対象なし") await expectAppError(run(), "ITEM_EDITING_NOT_FOUND", 404);
+        else await expect(run()).rejects.toBe(error);
+        expect(mocks.resolveBrand).not.toHaveBeenCalled();
+        expect(mocks.updateConfirm).not.toHaveBeenCalled();
+        expect(mocks.updateItemEditingImage).not.toHaveBeenCalled();
+        await expect(mocks.transaction.mock.results[0].value).rejects.toBeDefined();
     });
 });

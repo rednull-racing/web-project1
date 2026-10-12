@@ -44,6 +44,21 @@ export const getAllAliases = ({ keyword, directLength }: GetAllAliasesParams) =>
 };
 
 export const createAliases = async ({ inputName, normalized, transaction }: NameNormalizedParams) => {
+    if (transaction) {
+        // 未登録名には行ロックを取れないため、正規化名ごとのtransactionロックで作成を直列化する。
+        await sequelize.query("SELECT pg_advisory_xact_lock(hashtext('brand_aliases'), hashtext($normalized))", {
+            bind: { normalized },
+            transaction,
+        });
+
+        const existingAlias = await BrandAliases.findOne({
+            where: { name_normalized: normalized },
+            include: [{ model: Brands, as: "brand" }],
+            transaction,
+        });
+        if (existingAlias) return existingAlias;
+    }
+
     return BrandAliases.create(
         {
             brand_id: null,

@@ -6,7 +6,6 @@ export {
     destroyDraftItem,
     destroyPerfectItem,
     updateImage,
-    updateItem,
     updateLogicalDeleteItem,
     updatePrice,
     updatePublishItem,

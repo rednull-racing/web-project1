@@ -57,11 +57,17 @@ export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, b
 
     // データ更新
     await sequelize.transaction(async (t) => {
+        // 更新直前に所有権を再確認し、commitまで削除・所有者変更・並行更新を待機させる。
+        const currentItemEditing = await getMyItemEditing({ itemEditingId, userId, transaction: t });
+        if (!currentItemEditing) {
+            throw new AppError("ITEM_EDITING_NOT_FOUND", 404);
+        }
+
         // ブランドチェック兼brandAliases作成
         const brandResult = await resolveBrand({ brandId, body, transaction: t });
 
         await updateConfirm({
-            itemEditing,
+            itemEditing: currentItemEditing,
             data: {
                 name: itemMeta.name,
                 detail: itemMeta.detail ?? "",
@@ -128,7 +134,7 @@ export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, b
             transaction: t,
         });
 
-        await updateItemEditingImage({ itemEditing, urls: finalImageUrls, transaction: t });
+        await updateItemEditingImage({ itemEditing: currentItemEditing, urls: finalImageUrls, transaction: t });
     });
 
     return {
