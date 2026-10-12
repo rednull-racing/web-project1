@@ -1,0 +1,367 @@
+# 商品下書き作成：テスト結果報告
+
+## 1. 結果
+
+**2026-10-12、10ファイル・861件を実行し、861件すべて成功しました。失敗・skip・todoは0件です。** DBテストは156件、DB非接続テストは705件です。VitestのJSONレポートから集計しました。実行時間帯は17:49:53〜17:50:11（日本時間）です。
+
+[testArchitecture.md](./testArchitecture.md) の148ケースIDすべてに、今回実行したテストが対応しています。ただし、ケースIDがテスト名にあるだけで完了扱いにせず、コードのアサーションも照合しました。Q02は、helperのキー生成とDBの動画・サムネイル・商品画像の保存まで成功していますが、再実行した2行の**色画像URLをDBから直接比較するアサーションが不足**しています。この部分は一部実施として残します。
+
+**全件成功は、下書き作成APIを問題なく利用できるという意味ではありません。** 現行Routerでは正しい認証・bodyでも `INVALID_PARAMS / 400` で止まります。また、usecaseを直接呼ぶと所有者未設定の下書きが保存され、参照元の所有者変更・削除後も作成が継続します。これらを期待する観測テストも成功件数に含まれています。
+
+今回の編集対象は本書と [afterFix.md](./afterFix.md) だけです。本番コード、テストコード、設定、設計書は変更していません。テスト失敗箇所の修正も行っていません。以前の実行結果を今回の件数へ加算していません。
+
+## 2. ファイル別の結果と検証範囲
+
+全ファイルで失敗・skip・todoは0件です。
+
+| 記号 | テストファイル | 成功件数 | 実処理とモックの境界 |
+| --- | --- | ---: | --- |
+| U | [usecase.test.ts](./usecase.test.ts) | 68 | 実usecase。helper・service・transactionはモック。保存引数・待機・後続未実行を確認 |
+| HM | [masterBrand.test.ts](./masterBrand.test.ts) | 184 | 実helperと実usecase。DB service・S3・transactionをモック。数値・マスター・ブランド・メディアの接続を確認 |
+| HS | [signedUrls.test.ts](./signedUrls.test.ts) | 71 | 実URL helper。S3署名・公開ドメイン・時刻・UUIDを制御。署名内部のAWS処理は未検証 |
+| V | [validation.test.ts](./validation.test.ts) | 325 | 実schema・validateBody・validateParams。受理・拒否・parse後の値を確認 |
+| S | [services.test.ts](./services.test.ts) | 41 | 実service。Modelメソッド・SQL呼出しをモック。DBの効果はこのファイルでは保証しない |
+| C | [controller.test.ts](./controller.test.ts) | 5 | 実controller、usecaseモック。認証ID・検証済みbody・200応答・nextへの伝播を確認 |
+| R | [route.test.ts](./route.test.ts) | 11 | 実Router・JWT認証・レート制限・validator。usecaseモック。最小ExpressとSupertestでHTTPを検証 |
+| D | [database.test.ts](./database.test.ts) | 127 | 実usecase・helper・service・モデル・PostgreSQL。S3のみモック。永続化・制約・状態・逐次再実行を確認 |
+| T | [databaseTransactions.test.ts](./databaseTransactions.test.ts) | 17 | 同上。明示したserviceの障害注入・保留を追加。commit可視性・rollback・再試行を確認 |
+| P | [databaseConcurrency.test.ts](./databaseConcurrency.test.ts) | 12 | 同上。実SELECT・保存・別名作成をラップして順序を制御。別transactionの競合を確認 |
+| **合計** | **10ファイル** | **861** | **DB156件＋DB非接続705件** |
+
+JSONの `numTotalTestSuites=144` はdescribe等を含む集計値です。テストファイル数には `testResults` の10ファイルを使いました。ケースIDと `it.each` 展開後の件数も別の数字です。一つのテストが複数IDに対応するため、ID別に件数を足して861件を算出してはいません。
+
+## 3. DB接続・後片付け
+
+- 読込元は **`server/.env.test`**。事前検査でNODE_ENV=testと接続URLのDB名=test_dbを確認しました。接続URL全体や認証情報は本書へ記載しません。
+- [databaseSetup.ts](./databaseSetup.ts) はDBモジュール初期化前に同じ設定を検査し、dotenvの既定呼出しも検証済み値へ限定します。別envの明示指定・接続URL変更は停止条件です。
+- [databaseFixtures.ts](./databaseFixtures.ts) でアプリ用・models/index用・observer用の3接続について設定DB名を検査し、接続後の `SELECT current_database()` がtest_dbであることを確認してからfixtureを作成しました。全DBファイルのsetupが通過し、安全条件による中断はありませんでした。
+- `describeTable` により必要なテーブルとモデル上の列の存在を確認しました。すべての索引・制約のDDL一致までを網羅した検査ではありません。実制約のうち確認したものはD04〜D09に記載しています。
+- 新規下書きIDはafterCreate hookで追跡しています。seller_idがnullでも対象を見失わず、rollbackした採番IDも含めて、作成したIDだけを外部キー順に削除しました。各ケースの残存0件アサーションと接続終了が通過しました。シーケンスは戻していません。
+- DB作成、migration、sync、truncate、テーブル全件削除は行っていません。S3への実アップロードも行っていません。
+- 結果はobserverの新規SELECTまたは新しく取得したモデルで判定しました。rollback前のモデルインスタンスを保存結果の証拠にしていません。
+
+## 4. 設計書との対応
+
+以下の記号は第2節のファイルに対応します。判定は「成功＝記載した検証が成功」「観測＝現行挙動を再現」「一部実施＝実行済み部分は成功したが設計の確認が残る」です。観測の成功は修正済みや望ましい仕様という意味ではありません。
+
+
+### 正常系
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| N01 | 成功 | HM・U | 処理順・各呼出し回数・body/モデル/URL配列の参照・署名4項目の返却。 |
+| N02 | 成功 | D・U | 全作成項目とDB全列を照合。seller_id/item_id未設定はO02として区別。 |
+| N03 | 成功 | D・U | detail/summaryのnullだけ空文字へ補完し、空文字・日本語を保存。 |
+| N04 | 成功 | D・U | 全体・色・サイズ在庫0/1/8を同時および独立に変更。initial/currentと比率0.2を確認。 |
+| N05 | 成功 | D・U | 複数色・サイズ・素材の順序、日本語・小数、uiIdによる色画像対応。 |
+| N06 | 成功 | D・U | 色・素材の空配列は保存引数でundefined、JSONBではキー省略。sizes=[]は保持。 |
+| N07 | 成功 | D・HM・U | 取得カテゴリの分類を採用。nullable分類null・カテゴリ未選択はキー省略。layer=nullはUの防御確認のみ。 |
+| N08 | 成功 | D・U | ID・名前・紐付alias・未紐付alias・新規alias・未選択の関連ID。 |
+| N09 | 成功 | D・U | 省略color/画像のキー省略と、空color/空サイズ名の保持。 |
+| N10 | 成功 | U | HTTP外の在庫null/undefinedは1、size=null/undefinedはundefined。schema受理とは区別。 |
+| N11 | 成功 | D・U | 配送自由文のnull・空文字・値ありを保持。 |
+
+### 異常系・後続未実行
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| E01 | 成功 | D・U | 不存在・他人所有・所有者nullで404。署名/transaction前に停止し下書きなし。 |
+| E02 | 成功 | HM・U | 実helperの動画URL null/空文字でVIDEO_URL_NULL。マスター・保存へ進まない。 |
+| E03 | 成功 | HM・HS・U | サムネイルURL null/空文字でTHUMBNAIL_URL_NULL。保存なし。 |
+| E04 | 成功 | D・HM・HS・U | 入力空、既存URL欠落、新規type不足で確定画像0件。ITEM_IMAGE_NULL、transaction未開始。 |
+| E05 | 成功 | U | helperモックのnull/undefined配列を防御分岐として拒否。通常helperの出力ではない。 |
+| E06 | 成功 | HM | 6種IDのabc/NaNでINVALID_NUMBER。署名済みでも照合・保存を開始しない。 |
+| E07 | 成功 | D・HM | 5種マスターの個別・複数不存在で対応404。後続検索・保存を打切り。 |
+| E08 | 成功 | HM・U | 取得・署名・数値・マスターの元例外と後続未実行。開始済み署名の取消しは保証しない。 |
+| E09 | 成功 | T・HM・U | ブランド4依存の個別障害。transaction内で停止し本体/画像なし。実別名作成後の障害もrollback。 |
+| E10 | 成功 | T・HM・U | 本体作成失敗で画像保存なし。先に作成した別名もrollback。 |
+| E11 | 成功 | D・T・U | 本体INSERT後の画像失敗で本体・新規別名が残らない。 |
+| E12 | 成功 | U | transaction開始/完了のモック例外を伝播。実commit通信障害は未再現。 |
+| E13 | 成功 | HM・U | 取得・動画・サムネイル・画像・数値・マスターのエラー優先順位。 |
+| E14 | 成功 | HM | 動画URLなしでもhelper内の商品画像署名の例外が先に伝播。数値/保存なし。 |
+
+### 入力検証・境界値
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| V01 | 成功 | V | itemEditingIdの負数/0/1/2/小数/文字列/null/欠落。正の整数numberだけ受理。 |
+| V02 | 成功 | V | 価格299/300/301/999999/1000000/1000001の境界。 |
+| V03 | 成功 | V | 価格0・負数・小数・文字列・null・欠落・非JSONのNaN/Infinityを拒否。 |
+| V04 | 成功 | V | 全体・色・サイズ在庫の型・整数・0下限。 |
+| V05 | 成功 | V | 比率0〜100は小数も受理。範囲外/型不正を拒否、合計100は要求しない。 |
+| V06 | 成功 | V | カテゴリlevelは1以上の整数のみ受理。 |
+| V07 | 成功 | V | 各必須項目の欠落・型違い・nullを検証。nullableキーも欠落は拒否。 |
+| V08 | 成功 | V | nullable文字列のnullを受理、通常の必須文字列nullを拒否。 |
+| V09 | 成功 | V | 動画/サムネイルとname/type省略は受理。file=null、uploaded欠落/型違いは拒否。 |
+| V10 | 成功 | V | 商品画像type=null/空は受理、type/name欠落は拒否。空name・任意MIMEを受理。 |
+| V11 | 成功 | V | optional色/画像/typeの省略とnull拒否、sizes必須・空サイズ名の保持。 |
+| V12 | 成功 | HM・HS・V | 画像0/1/10/11枚・空の色/サイズ/素材を受理。保存可否はE04/D05で別判定。 |
+| V13 | 成功 | V | 一意・2件/3件/非隣接重複。重複位置のuiIdにcustom issue。 |
+| V14 | 成功 | V | 空uiId1件は受理、2件は拒否。大小文字/空白の違いを正規化しない。 |
+| V15 | 成功 | D・V | schemaは全定義値・null・空・不正文字列を受理。DB保存の拒否をD04で確認。 |
+| V16 | 成功 | D・V | 0/1/2/254/255/256文字をschemaで受理。DBの255境界と別名閾値は別検証。 |
+| V17 | 成功 | V | 任意MIME・長文・大きな安全整数・多数の色サイズを受理。在庫合計一致の制約なし。負荷試験ではない。 |
+| V18 | 成功 | C・V | トップ/入れ子の未知キーを除去。controllerは認証IDとvalidatedBodyを採用。 |
+| V19 | 成功 | V | parse済みbodyの格納とnext1回。失敗はINVALID_BODY、値設定/正常nextなし。 |
+| V20 | 成功 | V | params 1/01を数値1へ変換。0/負数/小数/abc/欠落はINVALID_PARAMS、nextなし。 |
+
+### 数値変換
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| I01 | 成功 | D・HM | 6種IDのnull/空文字をnullへ変換。空文字は実usecase保存まで接続。condition.id=nullはHTTP外。 |
+| I02 | 成功 | HM | 1/01/空白付き1/1e2を1/1/1/100へ変換。 |
+| I03 | 成功 | D・HM | 0/空白は0。マスター5種の検索を省略するが保存時FK違反。brandは検索後fallback。 |
+| I04 | 成功 | D・HM | 負数・小数・Infinity・INTEGER上限超過文字列が数値変換を通る。DB結果は第5節。 |
+| I05 | 成功 | HM | 6種の非数値と複数不正。先行の数値変換で停止する順序を確認。 |
+
+### マスター照合
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| M01 | 成功 | HM | 有効IDの引数名、null/0の検索抑止、カテゴリ結果の参照。 |
+| M02 | 成功 | HM | 各位置以降が複数不存在でも最初の対応404で停止。 |
+| M03 | 成功 | HM | 各検索を保留/失敗させ、後続検索・transactionが進まないことを確認。 |
+
+### 署名URL
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| S01 | 成功 | HM・HS | 新規動画のkey/MIME/500MiB上限と公開URL、usecase保存への接続。実容量検査ではない。 |
+| S02 | 成功 | HS | 動画新規条件不成立の再利用、converted→original→null。空文字はnullish fallbackしない。 |
+| S03 | 成功 | HM・HS | 変換済み動画があっても新規動画URLを採用。converted_urlを作成先へコピーしない。 |
+| S04 | 成功 | HM・HS | 新規/既存/不完全なサムネイル指定、公開URL・保存値・署名の対応。 |
+| S05 | 成功 | HM・HS | 新規/既存混在の元index対応、確定順序、先頭と全画像の保存引渡し。 |
+| S06 | 成功 | HS | 既存index欠落・空URL・null/非配列を採用しない。nameを既存URLとみなさない。 |
+| S07 | 成功 | HS | 新規商品画像の空nameでもtypeありなら署名する。 |
+| S08 | 成功 | HM・HS | type null/空は署名なし。部分欠落は圧縮、全欠落は400、署名indexは元位置。 |
+| S09 | 成功 | HM・HS | 新規色画像のuiIdキー、返却辞書と保存URLの対応。 |
+| S10 | 成功 | HM・HS | 省略/既存色画像をuiIdで再利用。色の並替えでも対応を保持。 |
+| S11 | 成功 | HM・HS | 不完全な新規色画像は署名せず、既存画像にもfallbackしない。 |
+| S12 | 成功 | HS | 削除/変更したuiIdと非配列の既存色から旧画像を持ち込まない。S3実削除は対象外。 |
+| S13 | 成功 | HM・HS | 正順/逆順/混在、index1のみ・1/3等でも署名の元index・件数・順序を保持。 |
+| S14 | 成功 | HS | 色署名の逆順完了でも対応を維持。最後の1件が保留中は未完了。 |
+| S15 | 成功 | HM・HS | 新規動画POST署名undefinedでも公開URL生成・作成へ進む。O05参照。 |
+| S16 | 成功 | HM・HS | 各署名段階の例外を伝播し、次の署名群を開始しない。開始済み兄弟Promiseも回収。 |
+| S17 | 成功 | HS | 同一時刻でも別UUIDで全メディアkeyを分離。1呼出し内の共有と並行結果の非混在。 |
+| S18 | 成功 | HS | 動画署名/最後の商品画像署名の保留中は次段階の署名へ進まない。 |
+
+### ブランド解決
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| B01 | 成功 | HM | 指定ID優先、存在しなければ名前fallback。不要な検索/別名作成を抑止。 |
+| B02 | 成功 | HM | ID未指定/不在＋名前null/空で両関連なし。404へ変換しない。 |
+| B03 | 成功 | HM | brand付きaliasを優先し、直接ブランド検索/作成を停止。 |
+| B04 | 成功 | HM | aliasなし/未紐付aliasありでも、直接ブランドがあればbrandのみ採用。 |
+| B05 | 成功 | HM | 直接ブランドなしの未紐付aliasを再利用、追加作成なし。 |
+| B06 | 成功 | HM | 新規alias結果とbrand有無を保存引数へ採用。同じtを作成へ渡す。 |
+| B07 | 成功 | HM | 元名長0/1/2、空白2つ・絵文字のJS lengthによる検索/作成分岐。 |
+| B08 | 成功 | HM | 全角・大小文字・カタカナ・空白の正規化。検索名と保存する元名を区別。 |
+| B09 | 成功 | HM | ブランドの各依存の待機/例外・後続未実行。 |
+
+### serviceの契約
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| SV01 | 成功 | S | idとseller_idを同じwhereで取得、transactionなし時のlock未指定、null/例外。 |
+| SV02 | 成功 | S | 共通serviceへtを指定すると同じtとFOR UPDATE指定。このusecase自身の再取得ではない。 |
+| SV03 | 成功 | S | dataとtをModel.createへそのまま渡し、モデル参照を返す。 |
+| SV04 | 成功 | S | 画像setDataValue→changed→save、同じ配列/t、空配列の引渡し。 |
+| SV05 | 成功 | S | create/saveの元例外、save完了前のservice未完了。 |
+| SV06 | 成功 | S | マスター/ブランド/別名の検索引数・include・返却参照/null/例外。 |
+| SV07 | 成功 | S | bind付きadvisory lock→同じtの再検索→未登録なら作成。 |
+| SV08 | 成功 | S | ロック完了を待ち、再検索で見つかったaliasを返してcreateしない。 |
+| SV09 | 成功 | S | ロック/再検索/作成の各失敗で後続を止める。 |
+| SV10 | 成功 | S | tなしはロック/再検索せずcreate。任意の呼出しの重複防止は保証しない。 |
+
+### DB整合性・制約
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| D01 | 成功 | D | 全保存列・画像順と先頭一致、非対象行と公開Item不変。 |
+| D02 | 成功 | D | sale/recommend=false、割引/動画変換情報はnull。元値をコピーしない。所有者もnull。 |
+| D03 | 成功 | D | JSONBのキー省略・空配列・各在庫0・素材小数・日本語・nullable FKを再取得。 |
+| D04 | 成功 | D | 両ENUMの全定義値を保存。nullはモデルvalidation、不正/空はDB 22P02で拒否。 |
+| D05 | 成功 | D | 確定画像1/9/10を保存。11はモデルvalidatorで拒否し本体rollback。入力11/確定10は保存。 |
+| D06 | 成功 | D | name/title/freeText・新規別名の255/256境界。256で22001、新規別名もrollback。 |
+| D07 | 成功 | D | nullable ID保存、0/空白のFK違反、実マスター削除後の事前404。 |
+| D08 | 成功 | D | brand/未紐付alias削除時に該当FKだけSET NULL。他列維持。 |
+| D09 | 成功 | D | 直接SQLでgenderのNOT NULL/ENUM、categoryのFKを確認（23502/22P02/23503）。単文失敗後は元行不変。 |
+| D10 | 成功 | D | 参照元item_idあり/nullの作成、他ユーザー・既存下書き・公開商品全列の不変。 |
+
+### 状態遷移
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| ST01 | 成功 | D | 下書き1行新規作成、元編集行を維持、公開Itemの増加なし。 |
+| ST02 | 成功 | D | 同一参照元の再作成でも既存下書きを変更せず別行追加。 |
+| ST03 | 成功 | D・U | 元initial=10/current=4でも新下書き在庫はbody由来。元行不変。 |
+| ST04 | 成功 | D | 既存利用はconvertedをoriginalへ、新規動画は新URL。元行不変。 |
+| ST05 | 成功 | D | bodyの色/素材が空なら新下書きに旧属性なし。元属性は残る。 |
+| ST06 | 成功 | D・U | 元video_status null/pending/completedで作成可能。元状態を変更しない。 |
+| ST07 | 成功 | T | 画像保存失敗で新下書きと新規別名は残らず、元行不変。 |
+
+### トランザクション
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| T01 | 成功 | S・U | 同じtがブランド作成・本体・画像の各境界へ伝わる。DBの原子性はT04以降で確認。 |
+| T02 | 成功 | HM・U | 取得・署名・数値・マスター・ブランド・本体・画像・transaction完了をそれぞれ待つ。 |
+| T03 | 成功 | T | 本体INSERT後は同じtで見え、observerでは見えない。commit後は全画像が見える。 |
+| T04 | 成功 | T | 実別名INSERT後/実本体INSERT後の障害で両行rollback。既存別名は残す。 |
+| T05 | 成功 | T | 実画像save完了後の意図的throwでも本体・新規別名をrollback。 |
+| T06 | 成功 | T | 画像保存前/後で保留。commit前は新規2行とも見えず、後は関連付きで見える。 |
+| T07 | 成功 | T | 失敗後の同一入力再試行で成功回の下書き/別名各1行。 |
+| T08 | 成功 | HM・U | URL/数値/マスター不正ならtransaction未開始。署名発行は保存成功とは別。 |
+| T09 | 成功 | T | 5種マスターを検証後に別接続で削除。FK違反で下書き・新規別名rollback。 |
+
+### 重複実行
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| Q01 | 成功 | D・HM | 既存メディアの同一入力2回で別IDの下書き2行、先行行不変。 |
+| Q02 | 一部実施 | D・HS | helperでは全メディアkey分離を確認。DBでは動画/サムネイル/商品画像の2行を確認。色画像URLのDB比較は未確認。 |
+| Q03 | 成功 | D・HM | 逐次2回で下書き2行がalias1行を共有。 |
+| Q04 | 成功 | T | 初回画像失敗後の再試行で成功回のみ保存。自動再試行はしない。 |
+| Q05 | 成功 | D | 応答喪失後の再送を想定したusecase直接2回実行で別行追加。HTTP通信断自体は再現していない。 |
+
+### 並行処理
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| P01 | 成功 | P | 両取得後A→B/B→Aのcommit順を固定。名称/価格/在庫/画像が対応する別行2件、元行不変。 |
+| P02 | 成功 | P | 別ユーザー・別商品を2つのtで交差。名称/価格/全体在庫/新規メディアが非混在。色/サイズ/素材は同じfixture値。 |
+| P03 | 成功 | P | A本体INSERT保留中にB commit→A画像失敗。Bの保存行を維持。 |
+| P04 | 成功 | P | 両初期alias検索なし→Aが作成保留→Bの実ロック待ち→A commit→B再検索。alias1行を共有。 |
+| P05 | 成功 | P | 同じ順序でA rollback→B作成。最終下書き/alias各1行。 |
+| P06 | 成功 | P | hashtextが異なる2名を使用。Aロック保持中にB commit。alias別行。Bだけlock_timeoutを設定。 |
+| P07 | 成功 | P | 取得後に別接続でメディア/属性変更。下書きは旧取得値を再利用し、変更後の元行は維持。 |
+| P08 | 成功 | P | 取得後の所有者変更/削除を再確認せず作成成功。元行の変更/削除を維持。 |
+| P09 | 成功 | P | 解決後にbrand/alias削除。書込みFK違反、画像保存なし・下書きなし。 |
+| P10 | 成功 | HS | 同時署名をB→Aで解放、画像/色は逆順。index/uiId/requestと各返却値が非混在。 |
+
+### controller
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| C01 | 成功 | C | 認証ユーザーIDと同じvalidatedBodyを渡す。未検証body/paramsから入力を作り直さない。 |
+| C02 | 成功 | C | 200と署名4項目だけ。値あり・null・空配列・空辞書を保持。 |
+| C03 | 成功 | C | AppError/通常Errorを同一参照でnextへ、成功応答なし。 |
+| C04 | 成功 | C | usecase保留中は応答しない。解放後に200。 |
+
+### Router
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| R01 | 成功 | R | なし/Bearer不正/署名不正/期限切れは401。認証失敗はレート枠を消費しない。 |
+| R02 | 成功 | R | 認証/body正常でもparams空によりINVALID_PARAMS・400、usecase未実行。O01の観測を含む。 |
+| R03 | 成功 | R | 不正bodyやbody/queryのidでもparams不足が優先。 |
+| R04 | 成功 | R | 5回params400→6回目429、別ユーザー/10分経過後は再びparams400。作成成功は確認していない。 |
+| R05 | 成功 | R | 不正入力も枠を消費し、6回目はvalidator前の429。 |
+| R06 | 成功 | R | 無認証/制限超過は不正入力より401/429を優先。 |
+| R07 | 成功 | R | idを付けた未定義パスは404。 |
+
+### 観測
+
+| ID | 判定 | 対応 | 確認した内容・限界 |
+| --- | --- | --- | --- |
+| O01 | 観測 | R | 正しいHTTP要求でもparams400で作成へ進めない現行挙動。 |
+| O02 | 観測 | D・P・U | create dataにseller_id/item_idなし、DBでも両列null。 |
+| O03 | 観測 | P | 所有者変更・参照元削除後も再取得せず下書き作成が成立。 |
+| O04 | 観測 | P | 参照元を並行更新しても旧メディアsnapshotを使う。 |
+| O05 | 観測 | HM | 新規動画の署名nullでも公開URLを保存処理へ渡す。実アップロード可能性は未確認。 |
+| O06 | 観測 | D | IDの0/空白/負数/小数/Infinity/INTEGER上限超過で、FK・404・DBエラー・brand fallbackを観測。 |
+
+## 5. 確認した挙動とロジック上の注意点
+
+### HTTPの入口と保存結果
+
+1. **O01：正常なHTTP要求でも作成できません。** `POST /api/item-draft` は `/:id` を定義していませんが、id必須のparams検証を行います。正しいJWT・bodyの要求でも400になり、body検証・usecaseへ進みません。body/queryにidを足しても変わりません。5回分の要求はレート制限へ加算され、6回目は429になります。Cでの200はcontroller単体の成功であり、このHTTP経路の成功を意味しません。
+2. **O02：作成先のseller_id・item_idはnullです。** 参照元の所有権は検査しますが、作成データへ両IDを渡しません。実DBの再取得でもnullでした。認証ユーザーに紐付く下書きとして扱うには保存契約の見直しが必要です。item_idを継承すべきかは、新規商品と既存公開商品の編集を区別して決める事項です。
+3. **O03：取得後の所有者変更・参照元削除を再確認しません。** 初回取得を保留し、別接続で変更/削除をcommitしてから解放すると、下書き作成は成功しました。編集行を再取得せず、作成先にも参照元のFKがないため、元行の削除だけでは作成を止めません。
+4. **O04：並行更新後も取得済みメディアを使います。** 別接続がoriginal/thumbnail/商品画像/色画像を変更した後でも、下書きには旧URLが入りました。元行の新しい値は維持されます。これはsnapshot利用の観測であり、最新値を使うべきかは別途契約を決めます。
+5. **O05：新規動画の署名がnullでも保存処理へ進みます。** POST署名境界をundefinedにすると、helperは署名nullと生成した公開URLを返し、usecaseがそのURLで作成へ進みました。AWS署名処理そのものを実行した結果ではありません。実署名関数には公開bucket未設定時にundefinedを返す分岐があり、設定不備時の打切り方が未定義です。
+
+### 入力検証と保存制約の差
+
+| 入力 | schema/変換 | 実保存・検索で確認した結果 |
+| --- | --- | --- |
+| gender/age=null | schema受理 | モデルのValidationError。本体/画像・新規別名は残らない |
+| gender/ageの空・不正文字列 | schema受理 | DB ENUMエラー22P02。画像保存なし |
+| name/title/freeText/未登録ブランド名256文字 | schema受理 | DB文字数エラー22001。新規別名もrollback |
+| マスター5種のID=0/空白 | 0へ変換、事前照合を省略 | 参照先0なしを確認した環境でFKエラー。nullの代わりに0を保存しようとする |
+| マスター5種の負数/小数/2147483648 | 数値変換を通過 | 取得で見つからず、対応する404。型不正としてINVALID_NUMBERにはならない |
+| brand ID=0/空白/負数/小数/2147483648、名前なし | 数値変換を通過 | IDで見つからず、brand/aliasともnullで保存へ進む |
+| 6種IDのInfinity | NaNではないため変換を通過 | DatabaseError。具体的なHTTP応答までは確認していない |
+| 商品画像11枚 | schemaに枚数上限なし | **確定URL**が11件ならモデルvalidatorで拒否。本体INSERTもrollback。入力11/確定10は成功 |
+
+DBが不正な保存を拒否し原子性を維持したことは確認できています。一方、schemaで受理した入力が通常のDB例外として上位へ出るため、入力エラーの扱いがレイヤー間で揃っていません。明示的なAppErrorによる400になる契約は、これらのケースにはありません。本番の共通エラーハンドラーを含むHTTP応答は未検証です。
+
+### transaction・重複実行・並行処理
+
+- 本体INSERT後の画像失敗、画像save後の意図的例外、本体の実文字数違反のいずれでも、新規下書き・transaction内の新規別名は残りませんでした。前から存在する別名は維持されました。
+- commit前はobserverから新規行が見えず、commit後に本体・画像・別名の関連が見えました。元モデルの変更済み値をrollback判定へ使っていません。
+- 同じbodyを再実行すると下書きは2行になります。作成APIに冪等性はありません。未登録ブランド名の逐次再実行では別名1行を共有します。
+- 同じ参照元の両取得を待ち合わせ、A→BとB→Aのcommit順を固定しても、名称・価格・全体在庫・画像が対応する別行2件になりました。
+- 別ユーザーの2transactionを画像保存前で交差させても、確認した入力とURLは混ざりませんでした。色・サイズ・素材まで異なる値での比較は未追加です。
+- ブランド別名は、両初期検索が未登録→Aがalias作成を保留→Bのadvisory lock待ちをpg_stat_activityで確認→A commit→B再検索の順序で1行を共有しました。A rollbackの場合はBが作成し、最終的に別名・下書き各1行になりました。両transactionの分離レベルはread committedでした。
+- 異なる正規化名ではhashtext値が異なることを確認し、Aのロック保持中にBがcommitしました。ハッシュ衝突を含むすべての名称の並行性を保証する試験ではありません。
+- 共通serviceを通さない任意のSQL INSERTの重複防止、DB全体の一意制約、全スケジュールでの競合安全性を保証したものではありません。
+
+## 6. 再現コマンドと静的確認
+
+実行ディレクトリは `/home/conta/project/server`。以前確認されたサンドボックスのHTTP待受・DB接続制限を避け、今回のVitestは承認された実行環境で実行しました。今回、通信拒否による失敗や設定差替えはありません。
+
+```bash
+npm run test:run -- test/usecases/itemDraft/createItemDraft/ --maxWorkers=1 --reporter=json --outputFile=/tmp/createItemDraft-report-run.json > /tmp/createItemDraft-report-run.log 2>&1
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+ファイル間のDB fixture/hook・レート制限状態の干渉を抑えるため `--maxWorkers=1` を指定しました。ケース内部の並行処理はP系で別に制御しています。
+
+| 確認 | 結果 |
+| --- | --- |
+| Vitest | 861/861成功、10ファイル、skip/todoなし、終了コード0 |
+| npm run lint | 成功、終了コード0。ただし既存設定のTypeScript対象はsrc配下 |
+| npm run typecheck | 成功、終了コード0 |
+| テストtsconfigの型検査 | 終了コード2。対象外のshopSignup/signup1.test.tsとsignup5.test.tsの参照先不在（TS2307）2件。createItemDraft内のエラーは報告されていない |
+| 対象テストTSへの追加ESLint | 13ファイル、エラー0・警告0。ESLint APIでtypescript-eslint recommendedを指定して検査。既存設定は未変更 |
+| 変更範囲 | 実行前後のコードハッシュを照合。既存コード・テスト・設計書の編集なし。報告用Markdown2ファイルのみ |
+
+対象テストへの追加ESLintは、既存ESLintとtypescript-eslintを使って次の方法で実行しました。
+
+```bash
+node --input-type=module - <<'JS'
+import { ESLint } from 'eslint';
+import tseslint from 'typescript-eslint';
+const eslint = new ESLint({
+  overrideConfigFile: true,
+  overrideConfig: tseslint.config({
+    files: ['test/usecases/itemDraft/createItemDraft/**/*.ts'],
+    extends: [...tseslint.configs.recommended],
+    rules: { '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
+  }),
+});
+const results = await eslint.lintFiles(['test/usecases/itemDraft/createItemDraft/**/*.ts']);
+console.log((await eslint.loadFormatter('stylish')).format(results));
+console.log(JSON.stringify({
+  files: results.length,
+  errors: results.reduce((n, r) => n + r.errorCount, 0),
+  warnings: results.reduce((n, r) => n + r.warningCount, 0),
+}));
+process.exitCode = results.some(r => r.errorCount) ? 1 : 0;
+JS
+```
+
+JSONとログは `/tmp` の一時成果物です。上記コマンドで再生成でき、今回の成功/失敗/skip/todo件数はそのランナー出力に基づきます。
+
+## 7. 完了範囲と残る確認
+
+今回の完了範囲は、既存10テストファイルの実行、148設計IDとの照合、結果報告と改善案の記載です。設計IDの判定は成功141項目・観測6項目・一部実施1項目です。これは861件という実行件数とは別の集計です。
+
+残る確認はQ02の色画像URLのDB比較、並行時の色/サイズ/素材の値の区別、実アプリ登録・共通エラー処理を含むHTTP＋DBの結合、実S3署名・アップロード、実commit通信障害です。前2つは [afterFix.md](./afterFix.md) にテスト改善案を記載しました。後者の外部通信・障害再現は今回の設計範囲に含めていません。カバレッジは取得していません。
+
+観測されたルート不整合、所有者未設定、取得後の競合、入力制約の差は修正していません。具体的な修正案と仕様確認が必要な点はafterFix.mdを参照してください。
