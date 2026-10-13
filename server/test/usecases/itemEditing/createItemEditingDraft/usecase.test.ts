@@ -7,7 +7,9 @@ import { copyVariants, deferred, expectAppError, makeData, makeDraft, waitForGat
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn<(callback: (t: Transaction) => Promise<number>) => Promise<number>>(),
-    get: vi.fn<typeof getMyItemDraft>(), create: vi.fn<typeof createItemEditingDraft>(), delete: vi.fn<typeof deleteItemDraft>(),
+    get: vi.fn<typeof getMyItemDraft>(),
+    create: vi.fn<typeof createItemEditingDraft>(),
+    delete: vi.fn<typeof deleteItemDraft>(),
 }));
 vi.mock("../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
 vi.mock("../../../../src/services/itemDraft/query.js", () => ({ getMyItemDraft: mocks.get }));
@@ -57,14 +59,17 @@ describe("P0: usecaseのコピー・所有権・同一transaction", () => {
         expect(mocks.create).not.toHaveBeenCalled();
         expect(mocks.delete).not.toHaveBeenCalled();
     });
-    it.each(["transaction", "get", "create", "delete"] as const)("E03 E04 E05 E06: %sの元例外を伝播して後続を止める", async (step) => {
-        const error = new Error(step);
-        mocks[step].mockRejectedValue(error);
-        await expect(run()).rejects.toBe(error);
-        if (step === "transaction") expect(mocks.get).not.toHaveBeenCalled();
-        if (step === "transaction" || step === "get") expect(mocks.create).not.toHaveBeenCalled();
-        if (step !== "delete") expect(mocks.delete).not.toHaveBeenCalled();
-    });
+    it.each(["transaction", "get", "create", "delete"] as const)(
+        "E03 E04 E05 E06: %sの元例外を伝播して後続を止める",
+        async (step) => {
+            const error = new Error(step);
+            mocks[step].mockRejectedValue(error);
+            await expect(run()).rejects.toBe(error);
+            if (step === "transaction") expect(mocks.get).not.toHaveBeenCalled();
+            if (step === "transaction" || step === "get") expect(mocks.create).not.toHaveBeenCalled();
+            if (step !== "delete") expect(mocks.delete).not.toHaveBeenCalled();
+        },
+    );
 });
 
 describe("P1: コピー値の境界と任意項目", () => {
@@ -79,27 +84,55 @@ describe("P1: コピー値の境界と任意項目", () => {
 
 describe("P0: awaitとtransaction完了待ち", () => {
     it.each(["get", "create", "delete", "commit"] as const)("T02: %s保留中は後続と成功返却がない", async (step) => {
-        const entered = deferred<void>(), release = deferred<void>();
+        const entered = deferred<void>(),
+            release = deferred<void>();
         let completed = false;
-        if (step === "get") mocks.get.mockImplementation(async () => { entered.resolve(); await release.promise; return draft; });
-        if (step === "create") mocks.create.mockImplementation(async () => { entered.resolve(); await release.promise; return editing; });
-        if (step === "delete") mocks.delete.mockImplementation(async () => { entered.resolve(); await release.promise; });
-        if (step === "commit") mocks.transaction.mockImplementation(async (callback) => {
-            const id = await callback(t); entered.resolve(); await release.promise; return id;
+        if (step === "get")
+            mocks.get.mockImplementation(async () => {
+                entered.resolve();
+                await release.promise;
+                return draft;
+            });
+        if (step === "create")
+            mocks.create.mockImplementation(async () => {
+                entered.resolve();
+                await release.promise;
+                return editing;
+            });
+        if (step === "delete")
+            mocks.delete.mockImplementation(async () => {
+                entered.resolve();
+                await release.promise;
+            });
+        if (step === "commit")
+            mocks.transaction.mockImplementation(async (callback) => {
+                const id = await callback(t);
+                entered.resolve();
+                await release.promise;
+                return id;
+            });
+        const pending = run().then((id) => {
+            completed = true;
+            return id;
         });
-        const pending = run().then((id) => { completed = true; return id; });
         const settled = Promise.allSettled([pending]);
         try {
             await waitForGate(entered.promise, pending);
             expect(completed).toBe(false);
             if (step === "get") expect(mocks.create).not.toHaveBeenCalled();
             if (step === "get" || step === "create") expect(mocks.delete).not.toHaveBeenCalled();
-        } finally { release.resolve(); await settled; }
+        } finally {
+            release.resolve();
+            await settled;
+        }
         expect(await pending).toBe(456);
     });
     it("E09: callback成功後のtransaction完了例外をそのまま伝播する（commit障害は模擬）", async () => {
         const error = new Error("commit boundary");
-        mocks.transaction.mockImplementation(async (callback) => { await callback(t); throw error; });
+        mocks.transaction.mockImplementation(async (callback) => {
+            await callback(t);
+            throw error;
+        });
         await expect(run()).rejects.toBe(error);
         expect(mocks.delete).toHaveBeenCalledOnce();
     });

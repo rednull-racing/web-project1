@@ -25,14 +25,16 @@ describe("P0: 正整数IDのschemaとvalidateBody", () => {
     it("V05 V06: 未知キーを除去した検証済みbodyだけを設定しnextを呼ぶ", () => {
         const body = { ...makeBody(), userId: 8, seller_id: 8, unknown: "ignored" };
         expect(schema.parse(body)).toEqual(makeBody());
-        const req = { body } as Request, next = vi.fn();
+        const req = { body } as Request,
+            next = vi.fn();
         validateBody(schema)(req, {} as Response, next);
         expect(req.validatedBody).toEqual(makeBody());
         expect(req.validatedBody).not.toBe(body);
         expect(next).toHaveBeenCalledExactlyOnceWith();
     });
     it.each(invalidIds)("V06: $nameでAppErrorをthrowし値設定・nextを行わない", ({ value }) => {
-        const req = { body: { itemDraftId: value } } as Request, next = vi.fn();
+        const req = { body: { itemDraftId: value } } as Request,
+            next = vi.fn();
         const run = () => validateBody(schema)(req, {} as Response, next);
         expect(run).toThrow(AppError);
         expect(run).toThrow(expect.objectContaining({ code: "INVALID_BODY", statusCode: 400 }));

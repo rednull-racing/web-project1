@@ -71,14 +71,14 @@ U の transaction モックは callback へ同一 t を渡し callback の Promi
 
 ## 4. 標準 fixture・共通アサーション
 
--   U/S/C/R の標準値は所有者 A=7、別ユーザー B=8、下書き ID=11、返却編集 ID=456、body=`{ itemDraftId: 11 }`。DB では実採番 ID を使い、存在しない ID も fixture から不存在を確認して選ぶ。
--   全項目入り下書きに異なる name/title/detail/summary、画像 3 枚、商品・分類・ブランド・配送の有効参照 ID、動画の original/converted/thumbnail の別 URL を設定する。price=800、before_price=1200、discount_rate=25、discount_amount=400、sale_flag=true、recommend=true、duration=30 とし、再計算やデフォルト置換を検出する。
--   attributes は在庫 initial=10/current=4/low_stock_ratio=0.5、色 2 件・サイズ 2 件、異なる uiId/色画像、日本語素材名・小数 ratio、分類・fit を含む。JSON の任意項目を失わず、在庫を初期化しないことを確認する。
--   DB には A の別下書き、B の下書き、既存編集セッション、参照元 Item・マスター・ブランドも用意してスナップショットを保存する。元下書きの日時は十分古い既知日時とする。
--   body、配列、JSON、モデル相当値はケースごとに factory で新しく作る。ケース別に対象条件だけ変え、fixture 内でコピー処理を再実装して期待値を算出しない。
--   公開応答・service への data は完全一致で検証する。transaction、削除対象インスタンス、作成 service へ渡す image_url/attributes は参照同一性も確認する。DB では JSON・配列の値と順序を新規 SELECT で確認し、参照同一性は期待しない。
--   AppError は型・code・statusCode、予期しない例外は元の Error との同一性を確認する。異常系では後続未実行と全対象行の不変／不存在を確認する。
--   DB の件数は fixture・作成 ID に限定する。テーブル全件数、連続 ID、下書き ID と編集 ID の不一致を成功条件にしない。
+- U/S/C/R の標準値は所有者 A=7、別ユーザー B=8、下書き ID=11、返却編集 ID=456、body=`{ itemDraftId: 11 }`。DB では実採番 ID を使い、存在しない ID も fixture から不存在を確認して選ぶ。
+- 全項目入り下書きに異なる name/title/detail/summary、画像 3 枚、商品・分類・ブランド・配送の有効参照 ID、動画の original/converted/thumbnail の別 URL を設定する。price=800、before_price=1200、discount_rate=25、discount_amount=400、sale_flag=true、recommend=true、duration=30 とし、再計算やデフォルト置換を検出する。
+- attributes は在庫 initial=10/current=4/low_stock_ratio=0.5、色 2 件・サイズ 2 件、異なる uiId/色画像、日本語素材名・小数 ratio、分類・fit を含む。JSON の任意項目を失わず、在庫を初期化しないことを確認する。
+- DB には A の別下書き、B の下書き、既存編集セッション、参照元 Item・マスター・ブランドも用意してスナップショットを保存する。元下書きの日時は十分古い既知日時とする。
+- body、配列、JSON、モデル相当値はケースごとに factory で新しく作る。ケース別に対象条件だけ変え、fixture 内でコピー処理を再実装して期待値を算出しない。
+- 公開応答・service への data は完全一致で検証する。transaction、削除対象インスタンス、作成 service へ渡す image_url/attributes は参照同一性も確認する。DB では JSON・配列の値と順序を新規 SELECT で確認し、参照同一性は期待しない。
+- AppError は型・code・statusCode、予期しない例外は元の Error との同一性を確認する。異常系では後続未実行と全対象行の不変／不存在を確認する。
+- DB の件数は fixture・作成 ID に限定する。テーブル全件数、連続 ID、下書き ID と編集 ID の不一致を成功条件にしない。
 
 ### N02：保存項目の対応表
 

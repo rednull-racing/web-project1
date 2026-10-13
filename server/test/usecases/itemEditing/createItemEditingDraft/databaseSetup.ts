@@ -21,26 +21,37 @@ const environment = await vi.hoisted(async () => {
 });
 
 // db.tsの明示指定とmodels/configの引数なしconfigを、同じ検証済み設定へ限定する。
-vi.mock("dotenv", () => ({ default: {
-    config: (options?: { path?: string | string[] }) => {
-        if (options?.path && (typeof options.path !== "string" || environment.resolve(options.path) !== environment.path)) {
-            throw new Error("DB_TEST_STOP: non-.env.test access; user decision required");
-        }
-        if (process.env.NODE_ENV !== "test" || process.env.DATABASE_URL !== environment.parsed.DATABASE_URL
-            || process.env.DB_SSL !== (environment.parsed.DB_SSL ?? "false")) {
-            throw new Error("DB_TEST_STOP: connection environment changed; user decision required");
-        }
-        return { parsed: environment.parsed };
+vi.mock("dotenv", () => ({
+    default: {
+        config: (options?: { path?: string | string[] }) => {
+            if (
+                options?.path &&
+                (typeof options.path !== "string" || environment.resolve(options.path) !== environment.path)
+            ) {
+                throw new Error("DB_TEST_STOP: non-.env.test access; user decision required");
+            }
+            if (
+                process.env.NODE_ENV !== "test" ||
+                process.env.DATABASE_URL !== environment.parsed.DATABASE_URL ||
+                process.env.DB_SSL !== (environment.parsed.DB_SSL ?? "false")
+            ) {
+                throw new Error("DB_TEST_STOP: connection environment changed; user decision required");
+            }
+            return { parsed: environment.parsed };
+        },
     },
-} }));
+}));
 
 // HTTP→DB結合でcontrollerがimportする、対象外usecaseの外部通信を読み込まない。
 vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
 vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
 
 export const assertEnvironment = () => {
-    if (process.env.NODE_ENV !== "test" || process.env.DATABASE_URL !== environment.parsed.DATABASE_URL
-        || process.env.DB_SSL !== (environment.parsed.DB_SSL ?? "false")) {
+    if (
+        process.env.NODE_ENV !== "test" ||
+        process.env.DATABASE_URL !== environment.parsed.DATABASE_URL ||
+        process.env.DB_SSL !== (environment.parsed.DB_SSL ?? "false")
+    ) {
         throw new Error("DB_TEST_STOP: connection environment changed; user decision required");
     }
 };

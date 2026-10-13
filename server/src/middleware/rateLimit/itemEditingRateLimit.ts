@@ -39,9 +39,9 @@ export const createItemEditingDraftRateLimit = rateLimit({
 
     keyGenerator: (req) => {
         const authReq = req as unknown as {
-            user: AuthUser 
+            user: AuthUser;
         };
-        
+
         return `admin:${authReq.user.id}`;
     },
 });
