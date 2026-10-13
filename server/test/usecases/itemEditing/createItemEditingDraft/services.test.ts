@@ -1,3 +1,4 @@
+import { ValidationError } from "sequelize";
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { copyColumns, deferred, makeData, makeDraft } from "./fixtures.js";
@@ -38,6 +39,20 @@ describe("P1: DB非接続の取得・作成・削除service契約", () => {
         expect(await deleteItemDraft({ itemDraft: draft(), transaction })).toBeUndefined();
         expect(mocks.destroy).toHaveBeenCalledExactlyOnceWith({ transaction });
         expect(mocks.destroy.mock.calls[0][0].transaction).toBe(transaction);
+    });
+    it("E08 AF-S01: 画像11件を同じdata/tでモデルへ渡しValidationErrorを同じ参照で伝播する", async () => {
+        const images = Array.from({ length: 11 }, (_, i) => `https://media.test/overflow-${i}`);
+        const data = makeData({ image_url: images });
+        // 件数の拒否は実モデルを使うDケースで検証し、ここではservice境界だけを確認する。
+        const error = new ValidationError("image_url exceeds 10", []);
+        mocks.create.mockRejectedValue(error);
+        await expect(createItemEditingDraft({ data, transaction })).rejects.toBe(error);
+        expect(mocks.create).toHaveBeenCalledExactlyOnceWith(data, { transaction });
+        expect(mocks.create.mock.calls[0][0]).toBe(data);
+        expect(mocks.create.mock.calls[0][0].image_url).toBe(images);
+        expect(images).toHaveLength(11);
+        expect(mocks.create.mock.calls[0][1].transaction).toBe(transaction);
+        expect(mocks.itemCreate).not.toHaveBeenCalled();
     });
     const operations = {
         findOne: () => getMyItemDraft({ userId: 7, itemDraftId: 11, transaction }),

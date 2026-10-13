@@ -174,8 +174,10 @@ export const savedEditings = async (f: DbFixture) => observer.query<Record<strin
     'SELECT * FROM item_editing WHERE seller_id IN (:owners) AND id<>:existing ORDER BY id',
     { replacements: { owners: [f.owner.id, f.other.id], existing: f.editing.id }, type: QueryTypes.SELECT },
 );
-export const protectedRows = async (f: DbFixture) => Promise.all([
-    snapshot("item_draft", f.sameOwnerDraft.id), snapshot("item_draft", f.otherDraft.id), snapshot("item_editing", f.editing.id),
+export const protectedRows = async (f: DbFixture, excludedDraftIds: readonly number[] = []) => Promise.all([
+    ...[f.sameOwnerDraft, f.otherDraft].filter((draft) => !excludedDraftIds.includes(draft.id))
+        .map((draft) => snapshot("item_draft", draft.id)),
+    snapshot("item_editing", f.editing.id),
     snapshot("item", f.item.id), snapshot("categories", f.category.id), snapshot("brands", f.brand.id), snapshot("brand_aliases", f.alias.id),
     snapshot("item_condition_option", f.condition.id), snapshot("shipping_day_option", f.day.id),
     snapshot("shipping_service_option", f.service.id), snapshot("todouhuken_option", f.place.id),

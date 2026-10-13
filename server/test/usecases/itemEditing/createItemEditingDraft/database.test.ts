@@ -76,7 +76,7 @@ describe("P0/P1: 実DBのコピー・削除・所有権・再実行", () => {
 
 describe("P0: HTTP入口で拒否した場合の実DB不変", () => {
     afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); });
-    it.each(["未認証", "入力不正", "制限超過"] as const)("ST03: %sではtransactionを始めず実DBを保持する", async (mode) => {
+    it.each(["未認証", "入力不正", "制限超過"] as const)("ST03 AF-R05: %sではtransactionを始めず実DBを保持する", async (mode) => {
         const original = (await snapshot("item_draft", f.draft.id))!, protectedBefore = await protectedRows(f);
         vi.spyOn(console, "log").mockImplementation(() => {});
         vi.spyOn(console, "error").mockImplementation(() => {});
@@ -88,9 +88,12 @@ describe("P0: HTTP入口で拒否した場合の実DB不変", () => {
         createItemEditingDraftRateLimit.resetKey(`admin:${f.owner.id}`);
         const app = express(); app.use(express.json()); app.use("/api/item-editing", router);
         const observe: ErrorRequestHandler = (error, _req, res, _next) => {
+            void _req;
+            void _next;
             if (error instanceof AppError) res.status(error.statusCode).json({ code: error.code });
             else res.status(500).json({ code: "TEST_UNEXPECTED_ERROR" });
         };
+        expect(observe.length).toBe(4);
         app.use(observe);
         const token = jwt.sign({ id: f.owner.id }, secret, { expiresIn: 3600 });
         const send = (valid: boolean, authenticated = true) => {

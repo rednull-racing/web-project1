@@ -12,7 +12,7 @@ vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ cr
 vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 
-let app: ReturnType<typeof express>, secret: string;
+let app: ReturnType<typeof express>, commonApp: ReturnType<typeof express>, secret: string;
 const token = (id = 7, expiresIn = 3600, key = secret) => jwt.sign({ id, email: "test@example.test", admin: false }, key, { expiresIn });
 const post = (body: object = makeBody(), id = 7) => request(app)
     .post("/api/item-editing/draft").set("Authorization", `Bearer ${token(id)}`).send(body);
@@ -26,16 +26,59 @@ beforeEach(async () => {
     vi.stubEnv("NEXTAUTH_SECRET", secret);
     const { default: router } = await import("../../../../src/routes/itemEditing.js");
     const { AppError } = await import("../../../../src/errors.js");
+    const { errorHandler } = await import("../../../../src/middleware/errorHandler.js");
+    commonApp = express(); commonApp.use(express.json()); commonApp.use("/api/item-editing", router);
+    expect(errorHandler.length).toBe(4);
+    commonApp.use(errorHandler);
     app = express(); app.use(express.json()); app.use("/api/item-editing", router);
     // エラーの到達観測用。共通errorHandlerのHTTP保証ではない。
     const observe: ErrorRequestHandler = (error, _req, res, _next) => {
+        void _req;
+        void _next;
         mocks.observe(error);
         if (error instanceof AppError) res.status(error.statusCode).json({ code: error.code });
         else res.status(500).json({ code: "TEST_UNEXPECTED_ERROR" });
     };
+    expect(observe.length).toBe(4);
     app.use(observe); mocks.create.mockResolvedValue(456);
 });
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllEnvs(); });
+
+describe("P1: 実Routerと実共通errorHandlerの接続", () => {
+    const send = (body: object = makeBody()) => request(commonApp)
+        .post("/api/item-editing/draft").set("Authorization", `Bearer ${token()}`).send(body);
+    it.each(invalidIds)("AF-R01: ID=$nameは共通handlerから400のJSONを返しusecase未実行", async ({ value }) => {
+        const result = await send({ itemDraftId: value });
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ code: "INVALID_BODY", message: "INVALID_BODY" });
+        expect(mocks.create).not.toHaveBeenCalled();
+        expect(mocks.observe).not.toHaveBeenCalled();
+    });
+    it("AF-R02: ITEM_DRAFT_NOT_FOUNDは共通handlerから404のJSONを返す", async () => {
+        const { AppError } = await import("../../../../src/errors.js");
+        mocks.create.mockRejectedValue(new AppError("ITEM_DRAFT_NOT_FOUND", 404));
+        const result = await send();
+        expect(result.status).toBe(404);
+        expect(result.body).toEqual({ code: "ITEM_DRAFT_NOT_FOUND", message: "ITEM_DRAFT_NOT_FOUND" });
+        expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemDraftId: 11 });
+        expect(mocks.observe).not.toHaveBeenCalled();
+    });
+    it("AF-R03: 通常Errorは内部詳細を含まない500のJSONを返す", async () => {
+        mocks.create.mockRejectedValue(new Error("DB failure: private detail"));
+        const result = await send();
+        expect(result.status).toBe(500);
+        expect(result.body).toEqual({ error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" });
+        expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemDraftId: 11 });
+        expect(mocks.observe).not.toHaveBeenCalled();
+    });
+    it("AF-R04: 正常要求は201とitemEditingIdを維持する", async () => {
+        const result = await send();
+        expect(result.status).toBe(201);
+        expect(result.body).toEqual({ itemEditingId: 456 });
+        expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemDraftId: 11 });
+        expect(mocks.observe).not.toHaveBeenCalled();
+    });
+});
 
 describe("P1: 実Routerの認証・入力・201接続", () => {
     it("R02 C02 V05: 実パスで検証済みIDと認証所有者を渡し201を返す", async () => {
@@ -66,7 +109,7 @@ describe("P1: 実Routerの認証・入力・201接続", () => {
         expect((await post(makeBody(id))).status).toBe(201);
         expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemDraftId: id });
     });
-    it.each(["AppError", "通常Error"] as const)("R08: %sを同じ参照でエラーmiddlewareへ渡す", async (mode) => {
+    it.each(["AppError", "通常Error"] as const)("R08 AF-R05: %sを同じ参照で4引数のエラーmiddlewareへ渡す", async (mode) => {
         const { AppError } = await import("../../../../src/errors.js");
         const error = mode === "AppError" ? new AppError("ITEM_DRAFT_NOT_FOUND", 404) : new Error("DB failure");
         mocks.create.mockRejectedValue(error);
