@@ -90,7 +90,7 @@
 - フロント: /item/draft/[id]
 - route: POST /item-editing/draft
     - bodyにitemDraftId
-- usecase: itemEditingテーブルを作成し、itemDraftからコピー
+- usecase: itemEditingテーブルを作成し、itemDraftから内容をすべてコピー
 
 - 認可:
     - itemDraft.seller_id === userId
