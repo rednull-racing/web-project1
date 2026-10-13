@@ -1,8 +1,11 @@
-import type { Request, Response } from "express-serve-static-core";
+import type { ErrorRequestHandler } from "express-serve-static-core";
 
 import { AppError } from "../errors.js";
 
-export const errorHandler = (err: unknown, req: Request, res: Response) => {
+export const errorHandler: ErrorRequestHandler = (err: unknown, req, res, next) => {
+    void req;
+    void next;
+
     console.error(err);
 
     if (err instanceof AppError) {
