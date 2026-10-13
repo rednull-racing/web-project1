@@ -33,7 +33,7 @@
 
 /server/src
 
-- route: /route/itemEditing.ts
+- route: /routes/itemEditing.ts
 - rateLimit: /middleware/rateLimit/itemEditingRateLimit
     - createItemEditingDraftRateLimit
 - 認証: /middleware/authMiddleware.ts
@@ -50,15 +50,15 @@
 - service:
     - item_draft取得: /services/itemDraft/query.ts
         - getMyItemDraft
-        - serviceType: /types/serviceTypes/itemDraft.ts
+        - serviceType: /types/serviceType/itemDraft.ts
             - ItemDraftUserIdParams
     - item_editing生成: /services/itemEditing/command.ts
         - createItemEditingDraft
-        - serviceType: /types/serviceTypes/itemEditing.ts
+        - serviceType: /types/serviceType/itemEditing.ts
             - CreateItemEditingDraftParams
     - item_draft削除: /services/itemDraft/command.ts
         - deleteItemDraft
-        - serviceType: /types/serviceTypes/itemDraft.ts
+        - serviceType: /types/serviceType/itemDraft.ts
             - ItemDraftTransactionParams
 
 ### リクエスト
@@ -239,7 +239,6 @@ const itemDraft = await ItemDraft.findOne({
 | レート制限超過     | 429  | レート制限ミドルウェアの規約に従う |
 | 不正なitemDraftId  | 400  | INVALID_BODY                       |
 | 下書きが存在しない | 404  | ITEM_DRAFT_NOT_FOUND               |
-| 所有者が異なる     | 403  | FORBIDDEN                          |
 | DB操作失敗         | 500  | INTERNAL_SERVER_ERROR              |
 
 ※エラーコードは既存のAppError規約に合わせる。
