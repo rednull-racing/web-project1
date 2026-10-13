@@ -41,7 +41,7 @@
 - bodyバリデーション: /validators/body/itemEditing.ts
     - createItemEditingDraftBodySchema
     - type: CreateItemEditingDraftBody
-    - wrapper: /middleware/validate/validatedBody.ts
+    - wrapper: /middleware/validate/validateBody.ts
         - validatedBody
 - controller: /controllers/itemEditing.ts
     - createItemEditingDraftController
@@ -93,7 +93,7 @@
 1. 認証ミドルウェア（authenticateToken）からuserIdを取得する
 2. itemDraftIdをもとにitem_draftを取得する
 3. itemDraft.seller_idとuserIdを比較する
-4. 一致しない場合は403を返す
+4. 一致しない場合は404を返す
 
 存在しない下書きに対しては404を返す。
 
@@ -142,7 +142,7 @@ flowchart TD
     E --> F{下書きが存在するか}
     F -->|No| X[404]
     F -->|Yes| G{所有者か}
-    G -->|No| Y[403]
+    G -->|No| Y[404]
     G -->|Yes| H[item_editing作成]
     H --> I[データコピー]
     I --> J[item_draft削除]

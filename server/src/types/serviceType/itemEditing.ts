@@ -84,3 +84,39 @@ export type UpdateItemEditingImageParams = {
     urls: string[];
     transaction?: Transaction;
 };
+
+export type CreateItemEditingDraftParams = {
+    data: Pick<
+        InstanceType<typeof ItemEditing>,
+        | "item_id"
+        | "name"
+        | "detail"
+        | "image_url"
+        | "price"
+        | "item_condition_id"
+        | "first_image_url"
+        | "gender_type"
+        | "age_type"
+        | "recommend"
+        | "category_id"
+        | "brand_id"
+        | "brand_aliases_id"
+        | "attributes"
+        | "thumbnail_url"
+        | "title"
+        | "summary"
+        | "duration"
+        | "original_url"
+        | "converted_url"
+        | "video_status"
+        | "before_price"
+        | "discount_rate"
+        | "discount_amount"
+        | "sale_flag"
+        | "shipping_day_id"
+        | "shipping_service_id"
+        | "shipping_place_id"
+        | "shipping_service_free_text"
+    > & { seller_id: number };
+    transaction: Transaction;
+};

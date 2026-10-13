@@ -73,3 +73,9 @@ export const updateItemEditingConfirmBodySchema = z.object({
 });
 
 export type ItemEditingConfirmBody = z.infer<typeof updateItemEditingConfirmBodySchema>;
+
+export const createItemEditingDraftBodySchema = z.object({
+    itemDraftId: z.number().int().positive(),
+});
+
+export type CreateItemEditingDraftBody = z.infer<typeof createItemEditingDraftBodySchema>;

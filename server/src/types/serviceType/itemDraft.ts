@@ -72,3 +72,14 @@ export type UpdateItemDraftImageParams = {
     urls: string[];
     transaction?: Transaction;
 };
+
+export type ItemDraftUserIdParams = {
+    itemDraftId: number;
+    userId: number;
+    transaction: Transaction;
+};
+
+export type ItemDraftTransactionParams = {
+    itemDraft: InstanceType<typeof ItemDraft>;
+    transaction: Transaction;
+};

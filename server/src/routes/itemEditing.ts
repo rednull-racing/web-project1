@@ -1,3 +1,6 @@
+import { createItemEditingDraftController } from "../controllers/itemEditing.js";
+import { createItemEditingDraftRateLimit } from "../middleware/rateLimit/itemEditingRateLimit.js";
+import { createItemEditingDraftBodySchema } from "../validators/body/itemEditing.js";
 import { Router } from "express";
 import { createItemEditingController, updateItemEditingConfirmController } from "../controllers/itemEditing.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -27,6 +30,17 @@ router.put(
     validateParams(idParamSchema),
     validateBody(updateItemEditingConfirmBodySchema),
     updateItemEditingConfirmController,
+);
+
+// POST /item-editing/draft
+// summary: 下書きから商品編集セッション作成
+// page: /item/draft/[id]
+router.post(
+    "/draft",
+    authenticateToken,
+    createItemEditingDraftRateLimit,
+    validateBody(createItemEditingDraftBodySchema),
+    createItemEditingDraftController,
 );
 
 export default router;

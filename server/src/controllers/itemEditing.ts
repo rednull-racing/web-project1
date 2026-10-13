@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { createItemEditingUseCase } from "../usecases/itemEditing/createItemEditing.js";
+import { createItemEditingDraftUseCase } from "../usecases/itemEditing/createItemEditingDraft.js";
 import { updateItemEditingConfirmUseCase } from "../usecases/itemEditing/updateConfirm.js";
+import type { CreateItemEditingDraftBody } from "../validators/body/itemEditing.js";
 import { ItemEditingConfirmBody } from "../validators/body/itemEditing.js";
 
 // POST /item-editing
@@ -41,6 +43,27 @@ export const updateItemEditingConfirmController = async (
             itemImageSignedUrls,
             attributesImageSignedUrls,
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// POST /item-editing/draft
+// summary: 下書きから商品編集セッション作成
+// page: /item/draft/[id]
+export const createItemEditingDraftController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+
+        const { itemDraftId } = req.validatedBody as CreateItemEditingDraftBody;
+
+        const itemEditingId = await createItemEditingDraftUseCase({ userId, itemDraftId });
+
+        res.status(201).json({ itemEditingId });
     } catch (err) {
         next(err);
     }
