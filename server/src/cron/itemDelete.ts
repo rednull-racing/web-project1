@@ -1,5 +1,4 @@
 import cron from "node-cron";
-import { cronEditingDeleteUseCase } from "../usecases/items/cron/cronEditingDelete.js";
 import { cronPerfectDeleteUseCase } from "../usecases/items/cron/cronPerfectDelete.js";
 
 export const startItemDeleteCron = () => {
@@ -18,28 +17,6 @@ export const startItemDeleteCron = () => {
                 console.log(`[cron] 30日経過アイテムを${deletedCount}件削除しました。`);
             } catch (err) {
                 console.error("[cron] itemDeleteエラー：", err);
-            }
-        },
-        {
-            timezone: "Asia/Tokyo",
-        },
-    );
-
-    // 1週間放置item削除
-    cron.schedule(
-        "0 12 * * *",
-        async () => {
-            try {
-                const deletedCount = await cronEditingDeleteUseCase();
-
-                if (deletedCount === 0) {
-                    console.log("[cron] 1週間放置itemはありません。");
-                    return;
-                }
-
-                console.log(`[cron] ${deletedCount}件の1週間放置itemを削除しました。`);
-            } catch (err) {
-                console.error("[cron] 1週間放置item削除エラー：", err);
             }
         },
         {

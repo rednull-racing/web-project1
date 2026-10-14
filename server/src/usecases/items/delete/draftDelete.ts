@@ -17,10 +17,6 @@ export const deleteDraftItemUseCase = async ({ itemId, userId }: Params) => {
         throw new AppError("ITEM_NOT_FOUND", 404);
     }
 
-    if (item.status !== "draft") {
-        throw new AppError("INVALID_ITEM", 400, "不正なアクセスが検出されました");
-    }
-
     // item削除
     await destroyDraftItem({ item });
 };

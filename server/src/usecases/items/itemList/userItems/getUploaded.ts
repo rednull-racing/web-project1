@@ -21,11 +21,11 @@ export const getUploadedItemsUseCase = async ({ page, userId, status, keyword }:
     };
 
     // status分岐
-    if (status) {
+    if (status === "active" || status === "soldout") {
         where.status = status;
     } else {
         // デフォルト
-        where.status = { [Op.in]: ["active", "hidden", "soldout"] };
+        where.status = { [Op.in]: ["active", "soldout"] };
     }
 
     if (keyword) {

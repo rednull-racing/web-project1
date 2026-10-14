@@ -4,6 +4,7 @@ import { ItemIdParams, UserIdParams, UserItemIdParams } from "../../../types/ser
 import type {
     GetMyItemWithVideoSaleShippingParams,
     ItemWithVideoSaleShipping,
+    UserSaleIdParams,
 } from "../../../types/serviceType/items.js";
 
 export const getItem = ({ itemId }: ItemIdParams) => {
@@ -14,6 +15,16 @@ export const getMyItem = ({ itemId, userId }: UserItemIdParams) => {
     return Item.findOne({
         where: {
             id: itemId,
+            seller_id: userId,
+        },
+    });
+};
+
+export const getMyItemBySaleId = ({ saleId, userId }: UserSaleIdParams) => {
+    return Item.findOne({
+        attributes: ["id"],
+        where: {
+            sale_id: saleId,
             seller_id: userId,
         },
     });

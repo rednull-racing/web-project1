@@ -15,7 +15,6 @@ export const updateLogicalDeleteItem = async ({ item, data, transaction }: Logic
             uploaded_at: null,
             sort_number: 0,
             sort_buzz_number: 0,
-            status: "deleted",
             deleted_at: nowDate,
             ...data,
         },
@@ -34,7 +33,6 @@ export const destroyPerfectItem = async ({ item, transaction }: ItemTransactionP
 export const destroyCronEditingItems = ({ createdBefore }: CronEditingDeleteParams) => {
     return Item.destroy({
         where: {
-            status: "editing",
             createdAt: { [Op.lt]: createdBefore },
         },
     });

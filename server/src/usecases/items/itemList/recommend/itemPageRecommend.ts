@@ -20,6 +20,10 @@ export const getItemPageRecommendUseCase = async ({ itemId, userId }: Params) =>
 
     const baseCategory = item.Category;
 
+    if (!baseCategory) {
+        throw new AppError("INVALID_CATEGORY", 400);
+    }
+
     const targetParentId = baseCategory.parent_id ?? baseCategory.id;
 
     const where: ItemWhere = {

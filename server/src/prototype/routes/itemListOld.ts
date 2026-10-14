@@ -21,7 +21,7 @@ router.get(
                 attributes: ["id", "name", "price", "status", "uploaded_at", "first_image_url"],
                 where: {
                     seller_id: currentUserId,
-                    status: { [Op.in]: ["active", "hidden", "soldout"] },
+                    status: { [Op.in]: ["active", "soldout"] },
                     id: { [Op.ne]: itemId },
                 },
                 order: [["uploaded_at", "DESC"]],
@@ -51,7 +51,7 @@ router.get(
                 attributes: ["id", "name", "price", "status", "uploaded_at", "first_image_url"],
                 where: {
                     seller_id: currentUserId,
-                    status: { [Op.in]: ["active", "hidden", "soldout"] },
+                    status: { [Op.in]: ["active", "soldout"] },
                 },
                 order: [["uploaded_at", "DESC"]],
                 include: [

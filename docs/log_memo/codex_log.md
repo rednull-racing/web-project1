@@ -109,3 +109,42 @@
 - 16ファイルの変換後JavaScriptが変更前と同一であることを確認。変更ファイルlint・git diff --check通過。
 - 全体lintは既存any21件、typecheckは対象外98件で失敗（変更前99件）。別名itemWhereのanyは今回の対象外。
 - 商品一覧のstatusとModel定義の不一致は修正せずP2 Todoに記録。DB・クエリ・業務処理は未変更。
+
+---
+
+## 20261014_backend-coding_Itemの旧status参照削除
+
+- Itemのactive・soldout以外の条件・代入を削除し、フロントエンドのItem型と旧画面のstatus判定も整合。
+- 最終指示に従い下書き・削除済み一覧、旧削除API、定期処理、取得対象Modelを維持。通常商品が混ざることは了承済み。
+- 所有者条件・検索語・ページング・期限・transactionを維持する動作確認を実施。DBへのクエリ発行なし。
+- 旧1週間削除はcreatedAtの期限のみで通常商品も対象。30日削除はdeleted_atの期限を保持。
+- 変更ファイルlint・client typecheck・git diff --check通過。全体lintはserver21件・client29件、server typecheckは97件の対象外エラーで失敗。
+- Todoをdoneへ移動。DB・Model定義・マイグレーションは変更していない。
+
+---
+
+## 20261014_backend-coding_itemWhereのany解消
+
+- カート・いいね・閲覧履歴のserviceTypeと呼び出し元UseCaseの計6箇所でitemWhereのanyを既存ItemWhere型へ変更。
+- Serviceのinclude先がItemであることを確認。検索条件・所有者条件・ページングは変更していない。
+- 6ファイルの変換後JavaScriptが変更前と同一であることを確認。変更ファイルlint・git diff --check通過。
+- 全体lintは残存any15件、typecheckは対象外97件のエラーで失敗。変更した6ファイルに型エラーなし。
+
+---
+
+## 20261014_backend-coding_SaleからItem取得の参照方向修正
+
+- saleEdit.ts・saleStop.tsで廃止済みSale.item_idを使わず、Item.sale_idとseller_idから対象Itemを取得。
+- getMyItemBySaleIdのService・引数型・再exportを追加。必要なItem.idのみ取得し、所有者確認を検索条件へ維持。
+- セール開始・終了の価格・フラグ更新、共通transaction、Sale不在・商品不在／他所有者時の更新停止、既存入力検証をDB接続なしで確認。
+- 変更ファイルlint・git diff --check通過。全体lintは残存any15件、typecheckは対象外92件で失敗。今回のSale参照エラーは解消。
+- saleShop.tsは存在しないためsaleStop.tsを修正。旧createSaleのitem_id指定は変更せずTodoへ記録。
+- DB・Model・マイグレーションは変更していない。
+
+---
+
+## 20261014_backend-coding_検索履歴ソートのany解消
+
+- getSearchHistory.tsのsort引数のanyを削除し、Serviceが返すSearch型の推論を使用。
+- createdAtはDateのためgetTime()で数値へ変換し、新しい日時順の並び替えを維持。
+- 対象ファイルlint・git diff --check通過。全体lintは残存any13件、typecheckは対象外92件で失敗。対象ファイルの型エラーなし。

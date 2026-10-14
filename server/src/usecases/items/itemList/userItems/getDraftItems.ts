@@ -17,7 +17,6 @@ export const getDraftItemsUseCase = async ({ page, userId, keyword }: Params) =>
 
     const where: ItemWhere = {
         seller_id: userId,
-        status: "draft",
     };
 
     if (keyword) {

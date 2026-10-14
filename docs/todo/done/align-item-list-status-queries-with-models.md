@@ -1,5 +1,13 @@
 # 商品一覧のstatus条件を現行Modelと照合する
 
+## 完了（2026-10-14）
+
+- ユーザー指示により、取得対象Modelや旧API・一覧・定期処理を維持し、Itemの無効なstatus条件・代入だけを削除した。
+- 在庫・出品・旧prototype一覧からhiddenを削除し、出品一覧の動的statusはactive・soldoutのみ使用する。フロントエンドのItem型も2値へ統一した。
+- 下書き・削除済み一覧と旧下書き削除・アップロード画面は残し、draft・deleted・editingのstatus条件を削除。通常商品が混ざることはユーザー了承済み。
+- 定期処理は継続し、旧編集中データ削除はcreatedAtの期限のみ、30日削除はdeleted_atの期限のみで対象を選ぶ。前者は通常商品も対象になる。
+- 所有者条件・検索語・ページング・期限・transactionの保持をDBへ接続せず確認。client typecheck通過。全体lintとserver typecheckは対象外の既存エラーで失敗。
+
 ## 問題の概要・原因
 
 商品一覧の検索条件を型付けする作業で、Itemに定義されていないstatusを使用する既存処理を確認した。

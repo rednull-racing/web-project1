@@ -17,7 +17,6 @@ export const getDeletedItemsUseCase = async ({ page, userId, keyword }: Params) 
 
     const where: ItemWhere = {
         seller_id: userId,
-        status: "deleted",
     };
 
     if (keyword) {

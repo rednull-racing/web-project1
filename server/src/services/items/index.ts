@@ -36,6 +36,7 @@ export {
     getItemWithVideoSaleShipping,
     getMetadata,
     getMyItem,
+    getMyItemBySaleId,
     getMyItemsWithVideoAll,
     getMyItemWithVideoCategoriesUser,
     getMyItemWithVideoSaleShipping,

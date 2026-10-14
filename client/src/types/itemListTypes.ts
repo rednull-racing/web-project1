@@ -38,7 +38,7 @@ export type Items = {
     price: number;
     gender_type: "men" | "women" | "unisex";
     age_type: "adult" | "kids" | "both";
-    status: "editing" | "draft" | "active" | "hidden" | "soldout" | "deleted";
+    status: "active" | "soldout";
     uploaded_at: Date;
     seller_id: string;
     first_image_url: string;

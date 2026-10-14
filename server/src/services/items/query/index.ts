@@ -15,6 +15,7 @@ export { getAdminItemPage, getItemPageData } from "./page.js";
 export {
     getItem,
     getMyItem,
+    getMyItemBySaleId,
     getItemHighlight,
     getItemWithCategory,
     getItemWithVideoCategoriesUser,

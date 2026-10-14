@@ -1,5 +1,6 @@
 import { Transaction } from "sequelize";
 import { Cart } from "../../models/index.js";
+import type { ItemWhere } from "./items.js";
 
 export type ItemUserParams = {
     itemId: number;
@@ -12,7 +13,7 @@ export type ItemIdParams = {
 
 export type CartListParams = {
     userId: number;
-    itemWhere: any;
+    itemWhere: ItemWhere;
     limit: number;
     offset: number;
 };

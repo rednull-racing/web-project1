@@ -17,7 +17,7 @@ export type Item = {
     id: string;
     name: string;
     price: number;
-    status: "editing" | "draft" | "active" | "hidden" | "soldout" | "deleted";
+    status: "active" | "soldout";
     gender_type: "men" | "women" | "unisex";
     age_type: "adult" | "kids" | "both";
     save_at: Date;

@@ -60,6 +60,11 @@ export type UserItemIdParams = {
     itemId: number;
 };
 
+export type UserSaleIdParams = {
+    userId: number;
+    saleId: number;
+};
+
 export type GetMyItemWithVideoSaleShippingParams = UserItemIdParams & {
     transaction?: Transaction;
 };

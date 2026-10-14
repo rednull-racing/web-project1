@@ -32,7 +32,7 @@ export const patchPublishUseCase = async ({ itemId, userId }: Params) => {
         followerCount * 10 +
         sellItemCount * 10;
 
-    if (item.User?.penalty_points <= 5) {
+    if (Number(item.User?.penalty_points) <= 5) {
         sort = sort + 5000;
     }
 

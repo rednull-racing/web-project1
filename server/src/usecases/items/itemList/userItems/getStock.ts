@@ -17,7 +17,7 @@ export const getStockItemsUseCase = async ({ page, userId, keyword }: Params) =>
 
     const where: ItemWhere = {
         seller_id: userId,
-        status: { [Op.in]: ["active", "hidden", "soldout"] },
+        status: { [Op.in]: ["active", "soldout"] },
     };
 
     if (keyword) {
