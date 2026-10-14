@@ -33,6 +33,10 @@ export const updateShopSignupRepNameUseCase = async ({ shopSignupId, body, userI
 
     if (!shopSignup) throw new AppError("SHOP_NOT_FOUND", 404);
 
+    const representativeName = shopSignup.RepresentativeName;
+
+    if (!representativeName) throw new AppError("REP_NAME_NOT_FOUND", 404);
+
     const idCard = shopSignup.IdCard;
     const oldFront = idCard?.FrontIdCard;
     const oldRear = idCard?.RearIdCard;
@@ -124,7 +128,7 @@ export const updateShopSignupRepNameUseCase = async ({ shopSignupId, body, userI
             if (rearIdCard && oldRear) await deleteS3Metadata({ s3Metadata: oldRear, transaction });
 
             await updateName({
-                name: shopSignup.RepresentativeName,
+                name: representativeName,
                 data: {
                     sei,
                     mei,

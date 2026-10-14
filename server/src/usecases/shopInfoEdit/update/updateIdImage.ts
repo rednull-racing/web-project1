@@ -33,7 +33,7 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
 
     if (!shopEdit) throw new AppError("SHOP_EDIT_NOT_FOUND", 404);
 
-    const shopId = shopEdit.ShopInfo.id;
+    const shopId = shopEdit?.ShopInfo?.id;
     const uploadedObjects: UploadedObject[] = [];
     let committed = false;
 

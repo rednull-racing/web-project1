@@ -41,6 +41,7 @@ export class ShopSignup extends Model {
     declare ContactName?: NonAttribute<Name | null>;
     declare IdCard?: NonAttribute<IdCard | null>;
     declare RepresentativeName?: NonAttribute<Name | null>;
+    declare Permit?: NonAttribute<Permit[]>;
 
     static associate() {
         ShopSignup.belongsTo(User, {
@@ -68,6 +69,7 @@ export class ShopSignup extends Model {
         });
         ShopSignup.hasMany(Permit, {
             foreignKey: "shop_signup_id",
+            as: "Permit",
         });
     }
 

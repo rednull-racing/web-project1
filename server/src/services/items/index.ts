@@ -26,6 +26,7 @@ export {
     getIndexRecommendItems,
     getIndexVideosWithCount,
     getItem,
+    getItemByVideoId,
     getItemForBuy,
     getItemFormData,
     getItemHighlight,

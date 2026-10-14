@@ -14,6 +14,8 @@ export default tseslint.config(
             "tmp/**",
             "eslint.config.mjs",
             "scripts/**",
+            "src/maintenance/**",
+            "src/prototype/**",
         ],
     },
 

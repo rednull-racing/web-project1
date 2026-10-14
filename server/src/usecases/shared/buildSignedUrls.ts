@@ -102,7 +102,7 @@ export const buildSignedUrls = async ({ itemEditingId, userId, itemEditing, body
 
     const existingVariantMap = new Map<string, string>();
 
-    existingVariants.forEach((variant: any) => {
+    existingVariants.forEach((variant: { uiId?: string; image_url?: string | null }) => {
         if (variant.uiId && variant.image_url) {
             existingVariantMap.set(variant.uiId, variant.image_url);
         }

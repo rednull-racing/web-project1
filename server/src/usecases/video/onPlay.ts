@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { getItem, updateSortNumber } from "../../services/items/index.js";
+import { getItemByVideoId, updateSortNumber } from "../../services/items/index.js";
 import { addPlayCount, getVideo } from "../../services/video.js";
 
 type Params = {
@@ -22,7 +22,7 @@ export const onPlayVideoUseCase = async ({ videoId, userId }: Params) => {
     await addPlayCount({ video, data: { play_count: newPlayCount } });
 
     // item取得
-    const item = await getItem({ itemId: video.item_id });
+    const item = await getItemByVideoId({ videoId: video.id });
 
     if (!item) throw new AppError("ITEM_NOT_FOUND", 404);
 

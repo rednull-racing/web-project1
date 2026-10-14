@@ -6,9 +6,17 @@ import type {
     ItemWithVideoSaleShipping,
     UserSaleIdParams,
 } from "../../../types/serviceType/items.js";
+import type { VideoIdParams } from "../../../types/serviceType/video.js";
 
 export const getItem = ({ itemId }: ItemIdParams) => {
     return Item.findByPk(itemId);
+};
+
+export const getItemByVideoId = ({ videoId }: VideoIdParams) => {
+    return Item.findOne({
+        attributes: ["id", "status", "sort_number", "sort_buzz_number"],
+        where: { video_id: videoId },
+    });
 };
 
 export const getMyItem = ({ itemId, userId }: UserItemIdParams) => {

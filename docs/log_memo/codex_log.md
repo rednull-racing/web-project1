@@ -148,3 +148,107 @@
 - getSearchHistory.tsのsort引数のanyを削除し、Serviceが返すSearch型の推論を使用。
 - createdAtはDateのためgetTime()で数値へ変換し、新しい日時順の並び替えを維持。
 - 対象ファイルlint・git diff --check通過。全体lintは残存any13件、typecheckは対象外92件で失敗。対象ファイルの型エラーなし。
+
+---
+
+## 20261014_backend-coding_日時比較の型エラー確認
+
+- serverのtypecheckと日時比較・sortの参照を確認。Dateを直接減算することに起因する型エラーは現状なし。
+- createdAtの比較4箇所とトークン期限比較は既にgetTime()を使用しているため、コード変更なし。
+- typecheckは対象外92件のエラーで失敗。getSearchItemsのuploaded_atはgetTime()未使用ではなくnullableが原因のため未修正。
+
+---
+
+## 20261014_backend-model_PermitのS3Metadata関連型修正
+
+- Permit.S3MetadataをNonAttributeで宣言し、belongsToのasをS3Metadataへ明示して自動生成名S3Metadatumとの不一致を解消。
+- 関連取得Serviceのincludeを同じasへ統一し、3種類のgetFileは型推論で関連参照・null除外を行うよう修正。
+- Sequelizeメタデータとbuildで関連取得結果・nullを確認。DB・S3へのアクセスなし。
+- 変更ファイルlint・git diff --check通過。全体lintは対象外12件、typecheckは対象外89件で失敗。getFileの該当型エラーは解消。
+- DBカラム・外部キーは変更せず、マイグレーション不要。Permits／Permitの別問題は未修正として既存Todoを更新。
+
+---
+
+## 20261014_backend-model_ShopInfoEditのPermit関連型修正
+
+- ShopInfoEdit.PermitをNonAttribute<Permit[]>で宣言し、hasManyのasをPermitへ明示。
+- ShopInfoEdit取得ServiceのincludeをPermitへ統一し、updateIdImage.tsの関連参照型エラーを解消。
+- Sequelizeのbuildと削除処理のモックで、複数Permit・単数S3Metadata・空配列・transactionを確認。DB・S3へのアクセスなし。
+- 変更ファイルlint・git diff --check通過。全体lintは対象外12件、typecheckは対象外85件で失敗。updateIdImage.tsの型エラーなし。
+- 外部キー・DBカラムは変更せずマイグレーション不要。ShopInfo・ShopSignupの別の不一致は既存Todoに残す。
+
+---
+
+## 20261014_backend-model_ShopSignupのPermit関連型修正
+
+- ShopSignup.PermitをNonAttribute<Permit[]>で宣言し、hasManyと取得ServiceのincludeのasをPermitへ統一。
+- oldShopSignup.tsは複数Permitと各単数S3Metadataを処理するよう修正し、空配列・関連不在も許容。
+- Sequelizeのbuildと削除処理のモックで、複数Permit・単数S3Metadata・空配列・transactionを確認。DB・S3へのアクセスなし。
+- 変更ファイルlint・git diff --check通過。全体lint・typecheckは対象外の既存エラーで失敗。oldShopSignup.tsの型エラーなし。
+- 外部キー・DBカラムは変更せずマイグレーション不要。既存Todoの進捗を更新。
+
+---
+
+## 20261014_backend-coding_VideoからItem取得の参照方向修正
+
+- onPlay.tsの廃止済みvideo.item_id参照を、Item.video_idで取得するgetItemByVideoIdへ変更。
+- Serviceと再exportを追加し、更新に必要なid・status・sort_number・sort_buzz_numberのみ取得。
+- 再生回数・ランキング更新、未認証／soldout時の条件、Video・Item不在時のエラーをDB接続なしで確認。
+- 変更ファイルlint・git diff --check通過。全体lintは対象外10件、typecheckは対象外66件で失敗。onPlayの型エラーなし。
+- 旧Video Serviceの削除済みカラム参照は変更せずTodoへ記録。Model・DB・マイグレーションは未変更。
+
+---
+
+## 20261014_backend-coding_videoConvertのany解消
+
+- S3のBodyをReadableのinstanceof判定で絞り込み、as anyを削除。不正なBodyは既存のS3_OBJECT_BODY_INVALIDで通知。
+- Promiseとpipeの接続をNode標準pipelineへ変更し、動画全体をメモリに読み込まず転送。送受信ストリームのエラーも伝播。
+- S3送信をモックし、バイナリ保存・Body不在／不正・読み込み／書き込み失敗・アップロードを確認。
+- 対象ファイルlint・git diff --check通過。全体lintは対象外10件、typecheckは対象外66件で失敗。対象ファイルの型エラーなし。
+
+---
+
+## 20261014_backend-coding_未使用toNullableNumber削除
+
+- リポジトリ内の参照を確認し、toNullableNumberはコードからの呼び出し・import・再exportがないことを確認。
+- 指示に従いserver/src/utils/toNullableNumber.tsを削除。既存テスト設計書の名前記載のみ残存。
+- lint・typecheckを実行。削除したファイルを参照する型エラーなし。全体には対象外の既存エラーが残存。
+- git diff --check通過。他の変換処理や呼び出し元は変更していない。
+
+---
+
+## 20261014_backend-coding_maintenanceのlint型チェック除外
+
+- server/eslint.config.mjsのignoresとserver/tsconfig.jsonのexcludeへsrc/maintenance/**を追加。
+- ESLintの除外判定とTypeScriptの実際の対象ファイルを確認し、maintenanceのみが外れprototype・usecasesが対象に残ることを検証。
+- lint・typecheckを実行し、maintenance配下の指摘がなくなったことを確認。ほかの既存エラーは残存。
+- git diff --check通過。ソースコード・DB・依存ライブラリは変更していない。
+
+---
+
+## 20261014_backend-model_銀行支店normalize型定義
+
+- 銀行・支店の取得データと既存テストを確認し、BankNormalization共有型を追加。名称のみのJSONにも対応。
+- Banks・Branchesのnormalizeをobject | nullから具体的な型へ変更し、口座編集・銀行／支店検索などのname・kana・hira参照エラーを解消。
+- DB接続なしで正規化名称検索・null／名称のみのJSON・元名称へのフォールバック・既存所有者条件を確認。
+- 変更ファイルlint・git diff --check通過。全体lintは既存3件、typecheckは対象外32件で失敗。
+- 関連signup2テストは既存Model初期化エラーで0件実行のためTodoへ記録。DB・Model制約・検索処理は変更していない。
+
+---
+
+## 20261014_backend-coding_prototypeのlint型チェック除外
+
+- ESLintのignoresとtsconfigのexcludeへsrc/prototype/**を追加し、既存maintenance除外も維持。
+- 実際のTypeScript対象とESLint除外を確認。prototype・maintenanceのみ外れ、usecasesは対象に残ることを検証。
+- lint・typecheckを実行。除外したディレクトリの指摘なし。ほかの既存エラーは残存。
+- git diff --check通過。ソースコード・DB・依存ライブラリは変更していない。
+
+---
+
+## 20261014_backend-coding_銀行支店取得スクリプトのany解消
+
+- fetchBanksAndBranches.tsのany配列をZodから推論するDirectoryEntry配列へ変更し、transaction型も明示。
+- 取得JSONはunknownで受け、既存BankNormalizationに対応する構造を検証。不正な要素はAppErrorで既存rollback処理へ渡す。
+- 検証ヘルパーだけを評価し、通常／名称のみ／null／空配列／不正データを確認。スクリプト・DB更新・外部API呼び出しは実行していない。
+- server全体lint・git diff --check通過。typecheckは対象外28件の既存エラーで失敗。対象スクリプトの型エラーなし。
+- ページング・保存カラム・commit／rollbackの流れを維持。ライブラリ追加なし。

@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../db.js";
+import type { BankNormalization } from "../types/bankNormalization.js";
 import Banks from "./banks.js";
 
 export class Branches extends Model {
@@ -9,7 +10,7 @@ export class Branches extends Model {
     declare name: string;
     declare kana: string | null;
     declare hira: string | null;
-    declare normalize: object | null;
+    declare normalize: BankNormalization | null;
 
     static associate() {
         Branches.belongsTo(Banks, {

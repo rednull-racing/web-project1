@@ -270,6 +270,7 @@ export const getMyShopInfoHasS3Data = ({ shopId, userId }: UserShopIdParams): Pr
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],

@@ -1,5 +1,13 @@
 # 関連取得結果の参照名をSequelizeの関連名へ合わせる
 
+## 進捗（2026-10-14）
+
+- Permit→S3Metadataは `as: "S3Metadata"` とModelの関連プロパティ型を追加し、取得側includeも同じ名前へ統一済み。
+- shopInfo・shopInfoEdit・shopSignupのgetFileは型推論で関連データを扱い、nullを除外する。該当するS3Metadata型エラーは解消済み。
+- ShopInfoEdit→Permitは `as: "Permit"` と配列の関連プロパティ型を追加し、取得側includeも統一済み。updateIdImage.tsの該当型エラーは解消済み。
+- ShopSignup→Permitも `as: "Permit"` と配列の関連プロパティ型を追加し、取得側includeを統一済み。oldShopSignup.tsの該当型エラーは解消済み。
+- ShopInfoのPermits／PermitおよびCategory／Categoriesの不一致は未修正。このTodoは未完了とする。
+
 ## 問題の概要・原因
 
 関連Modelの型を復元する作業で、既存の参照名と実際のSequelizeの関連名に不一致を確認した。

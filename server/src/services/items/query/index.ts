@@ -14,6 +14,7 @@ export { getMetadata } from "./meta.js";
 export { getAdminItemPage, getItemPageData } from "./page.js";
 export {
     getItem,
+    getItemByVideoId,
     getMyItem,
     getMyItemBySaleId,
     getItemHighlight,

@@ -152,11 +152,13 @@ export const getShopSignup3 = ({ shopSignupId, userId }: UserShopSignupIdParams)
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 attributes: ["id"],
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],
@@ -247,10 +249,12 @@ export const getMyShopSignupHasS3Data = ({
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],
@@ -370,10 +374,12 @@ export const getOldShopSignupAll = ({ userId, shopSignupId }: UserShopSignupIdPa
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],

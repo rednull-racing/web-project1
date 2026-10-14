@@ -40,9 +40,14 @@ export const editProfileUseCase = async ({ userId, body, imageEdit }: Params) =>
     }
 
     // DB更新
-    const updateData: any = {
+    const updateData: {
+        user_name: string;
+        user_introduction: string | null;
+        profile_image: string | null;
+    } = {
         user_name: userName,
-        user_introduction: introduction,
+        user_introduction: introduction ?? null,
+        profile_image: null,
     };
 
     if (imageEdit) {
@@ -55,9 +60,7 @@ export const editProfileUseCase = async ({ userId, body, imageEdit }: Params) =>
     });
 
     // ショップ判定・ショップDB更新
-    const hasShop = !!user.ShopInfo;
-
-    if (hasShop) {
+    if (user.ShopInfo) {
         await updateShopName({
             shopInfo: user.ShopInfo,
             data: { shop_name: userName },

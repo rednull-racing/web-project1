@@ -53,11 +53,11 @@ export const cronExpiredUriagekinUseCase = async () => {
                         trans_schedule_date: twoWeeksLater,
                         transfer_id: transferId,
                         bank_snapshot: {
-                            bank_name: account.bank_name,
-                            branch_name: account.branch,
-                            account_type: account.account_type,
-                            account_number: account.account_number,
-                            meigi: account.meigi,
+                            bank_name: String(account?.bank_name),
+                            branch_name: String(account?.branch),
+                            account_type: account?.account_type ?? "ordinary",
+                            account_number: String(account?.account_number),
+                            meigi: String(account?.meigi),
                         },
                     },
                 });

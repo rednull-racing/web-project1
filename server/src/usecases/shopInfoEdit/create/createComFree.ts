@@ -70,7 +70,7 @@ export const createShopEditComFreeUseCase = async ({ shopId, userId, comFreeId }
                 bank_code: bank?.bank_code ?? null,
                 branch: bank?.branch ?? null,
                 branch_code: bank?.branch_code ?? null,
-                account_type: bank?.account_type ?? null,
+                account_type: bank?.account_type ?? "ordinary",
                 account_number: bank?.account_number ?? null,
                 meigi: bank?.meigi ?? null,
             },

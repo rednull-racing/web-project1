@@ -84,7 +84,7 @@ export type UpdateProfileParams = {
     data: {
         user_name: string;
         user_introduction: string | null;
-        profile_image?: string;
+        profile_image: string | null;
     };
     transaction?: Transaction;
 };

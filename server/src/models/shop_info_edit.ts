@@ -39,6 +39,7 @@ export class ShopInfoEdit extends Model {
     declare IdCard?: NonAttribute<IdCard | null>;
     declare RepresentativeNameEdit?: NonAttribute<Name | null>;
     declare ShopInfo?: NonAttribute<ShopInfo | null>;
+    declare Permit?: NonAttribute<Permit[]>;
 
     static associate() {
         ShopInfoEdit.belongsTo(User, {
@@ -69,6 +70,7 @@ export class ShopInfoEdit extends Model {
         });
         ShopInfoEdit.hasMany(Permit, {
             foreignKey: "shop_info_edit_id",
+            as: "Permit",
         });
     }
 

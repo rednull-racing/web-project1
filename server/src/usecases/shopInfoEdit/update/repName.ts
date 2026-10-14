@@ -34,6 +34,8 @@ export const updateShopEditRepNameUseCase = async ({ shopEditId, userId, body }:
     const { sei, mei, seiKana, meiKana, frontIdCard, rearIdCard } = body;
     const shopEdit = await getMyShopEditHasRepName({ shopEditId, userId });
     if (!shopEdit) throw new AppError("SHOP_EDIT_NOT_FOUND", 404);
+    const representativeName = shopEdit.RepresentativeNameEdit;
+    if (!representativeName) throw new AppError("REP_NAME_NOT_FOUND", 404);
 
     const oldFront = shopEdit.IdCard?.FrontIdCard;
     const oldRear = shopEdit.IdCard?.RearIdCard;
@@ -135,7 +137,7 @@ export const updateShopEditRepNameUseCase = async ({ shopEditId, userId, body }:
             });
 
             await updateShopName({
-                name: shopEdit.RepresentativeNameEdit,
+                name: representativeName,
                 data: {
                     sei,
                     mei,

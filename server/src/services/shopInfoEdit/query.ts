@@ -57,10 +57,12 @@ export const getMyShopEditHasShop = ({ shopEditId, userId }: ShopEditUserIdParam
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],
@@ -385,10 +387,12 @@ export const getMyShopEditHasS3Data = ({
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],
