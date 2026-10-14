@@ -60,3 +60,21 @@
 - UseCase・Controllerが作成した編集セッションのidをitemEditingIdとして返すことを確認。
 - lint・typecheck・関連Serviceテスト21件・git diff --check通過。
 - Todoをdoneへ移動。コピー・下書き処理、Model・DBスキーマは変更せず、マイグレーションも未実行。
+
+---
+
+### 20261014_backend-coding_no-explicit-any無効化設定削除
+
+- server/eslint.config.mjsのno-explicit-any: offを削除し、推奨設定によるanyのエラー検知を復元。
+- 指示どおり既存コードのエラー解消は行わず、Todoは未完了のまま維持。
+- lintは既存のexplicit anyを41件検出して失敗。typecheckは通過。
+
+---
+
+### 20261014_backend-model_Modelレジストリ型復元
+
+- models/index.tsの2箇所のanyを削除し、ModelRegistryと具体的なModel型を再export先まで保持。
+- associateはModelのみを走査し、既存定義に合わせて引数なしで呼び出す。
+- OrderDeletedの再exportは登録名OrderDeletedSystemsを参照するよう整合。
+- lintは残存any39件、typecheckは型復元で表面化した87ファイル288件のエラーで失敗。index.ts自体に型エラーなし。
+- Service・UseCaseの修正は行わず、残作業を既存Todoに追記。DB・マイグレーション変更なし。

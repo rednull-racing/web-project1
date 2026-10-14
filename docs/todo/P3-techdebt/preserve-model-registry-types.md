@@ -1,5 +1,13 @@
 # Modelの再exportで型情報が失われる問題を整理する
 
+## 進捗（2026-10-14）
+
+- Model登録オブジェクトの `any` を削除し、`ModelRegistry` と各Modelの具体的な型を保持する再exportへ変更済み。
+- 設定取得の `any` も削除済み。以下は未対応のため、このTodoは未完了とする。
+- 型復元後のtypecheckは87ファイルで288件のエラーを検出。関連取得結果の型未定義、nullable値、存在しないカラム、Modelクラスとインスタンスの混同、Sequelizeメソッドの引数不整合などを個別に確認する。
+- 今回はModelインポートの型復元のみ実施。Service・UseCaseの修正、価格復元仕様の決定、オーバーロード整理は行っていない。
+- 参照先の `copyUpload/copyUpload.ts` は現在存在しないため、後続作業では現行の呼び出し元を検索する。
+
 ## 問題の概要・原因
 
 `server/src/models/index.ts` のModel登録オブジェクトが `any` のため、再exportされたModelと取得結果の型情報が失われている。
