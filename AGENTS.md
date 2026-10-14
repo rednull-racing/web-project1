@@ -192,7 +192,7 @@ docs/log_memo/codex_log.md
 
 ### タイトルのつけ方
 
-日付_タグ_作業内容
+日付*タグ*作業内容
 
 - 例：20261014_backend-coding_createItemEditingCopy実装
 

@@ -170,7 +170,9 @@ const waitForLock = async (pid: number, kind: "alias" | "editing") => {
         if (Date.now() >= deadline || attempt === maxAttempts) {
             throw new Error(
                 `ロック待ち未確認: kind=${kind}, pid=${pid}, attempts=${attempt}/${maxAttempts}, ` +
-                    `state=${lastState?.state ?? "接続なし"}, event=${lastState?.wait_event_type}/${lastState?.wait_event}`,
+                    `state=${lastState?.state ?? "接続なし"}, event=${lastState?.wait_event_type}/${
+                        lastState?.wait_event
+                    }`,
             );
         }
     }

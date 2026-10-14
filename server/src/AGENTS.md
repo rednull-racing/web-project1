@@ -56,9 +56,9 @@ Database
 
 Route → Controller → UseCase → Service → Model
 
-ControllerからServiceを直接呼ばない。
+Controller から Service を直接呼ばない。
 
-UseCaseからModelを直接呼ばない。
+UseCase から Model を直接呼ばない。
 
 責務
 
@@ -66,13 +66,13 @@ Route
 ルーティングのみ
 
 Controller
-HTTP処理のみ
+HTTP 処理のみ
 
 UseCase
 業務ロジックのみ
 
 Service
-DBアクセスのみ
+DB アクセスのみ
 
 許可
 

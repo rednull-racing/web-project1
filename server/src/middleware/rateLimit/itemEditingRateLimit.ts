@@ -54,7 +54,7 @@ export const createItemEditingCopyRateLimit = rateLimit({
 
     keyGenerator: (req) => {
         const authReq = req as typeof req & {
-            user: AuthUser
+            user: AuthUser;
         };
 
         return `admin:${authReq.user.id}`;
