@@ -1,6 +1,5 @@
 import { Video } from "../models/index.js";
 import {
-    CreateVideoCopyUploadParams,
     CreateVideoParams,
     PlayCountParams,
     UpdateStatusParams,
@@ -34,10 +33,6 @@ export const createVideo = async ({ itemId, userId, transaction }: CreateVideoPa
         },
         { transaction },
     );
-};
-
-export const createVideoCopyUpload = async ({ data, transaction }: CreateVideoCopyUploadParams) => {
-    await Video.create(data, { transaction });
 };
 
 export const updateStatus = async ({ video, data }: UpdateStatusParams) => {

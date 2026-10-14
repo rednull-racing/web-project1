@@ -4,7 +4,6 @@ import type ItemModel from "../../models/item.js";
 import type ItemShippingProfile from "../../models/item_shipping_profile.js";
 import type Sale from "../../models/sale.js";
 import type Video from "../../models/video.js";
-import { ItemAttributes } from "../itemAttributes.js";
 
 export type ItemIdParams = {
     itemId: number;
@@ -154,25 +153,6 @@ export type LogicalDeleteParams = {
     item: InstanceType<typeof Item>;
     data: {
         price: number;
-    };
-    transaction: Transaction;
-};
-
-export type CreateItemCopyUploadParams = {
-    data: {
-        name: string;
-        detail: string;
-        price: number;
-        item_condition_id: number;
-        seller_id: number;
-        search_text: string;
-        image_url: string | string[];
-        first_image_url: string;
-        gender_type: string;
-        age_type: string;
-        category_id: number;
-        brand_id: number | null;
-        attributes: ItemAttributes;
     };
     transaction: Transaction;
 };

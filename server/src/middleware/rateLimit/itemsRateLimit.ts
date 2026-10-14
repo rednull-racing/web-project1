@@ -16,21 +16,6 @@ export const createItemRateLimit = rateLimit({
     },
 });
 
-export const createItemCopyRateLimit = rateLimit({
-    windowMs: 1000 * 60 * 15,
-    limit: 5,
-    standardHeaders: true,
-    legacyHeaders: false,
-
-    keyGenerator: (req) => {
-        const authReq = req as unknown as {
-            user: AuthUser;
-        };
-
-        return `admin:${authReq.user.id}`;
-    },
-});
-
 export const uploadPublishItemRateLimit = rateLimit({
     windowMs: 1000 * 60 * 15,
     limit: 10,

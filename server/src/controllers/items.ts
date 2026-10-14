@@ -12,7 +12,6 @@ import { patchItemLogsAccessUseCase } from "../usecases/items/log/accessLogs.js"
 import { restoreItemUseCase } from "../usecases/items/restore/restore.js";
 import { getSearchItemsUseCase } from "../usecases/items/search/getSearchItems.js";
 import { patchSortNumberAddUseCase, patchSortNumberDecreaseUseCase } from "../usecases/items/sortNumber/sortNumber.js";
-import { itemCopyUploadUseCase } from "../usecases/items/upload/copyUpload/copyUpload.js";
 import { createItemsUseCase } from "../usecases/items/upload/createItem.js";
 import { patchPublishUseCase } from "../usecases/items/upload/publish.js";
 import { runDetachedTask } from "../utils/runDetachedTask.js";
@@ -34,22 +33,6 @@ export const createItemController = async (req: Request, res: Response, next: Ne
         const itemId = await createItemsUseCase({ userId });
 
         res.status(200).json({ itemId });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// POST /items/:id/copy-upload
-// summary: 商品コピーアップロード
-// page: /item/[id]
-export const copyUploadItemController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const itemId = Number(req.params.id);
-        const userId = req.user!.id;
-
-        const newItemId = await itemCopyUploadUseCase({ itemId, userId });
-
-        res.status(200).json({ newItemId });
     } catch (err) {
         next(err);
     }

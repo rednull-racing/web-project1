@@ -1,9 +1,5 @@
 import { ItemShippingProfile } from "../models/index.js";
-import {
-    CreateShippingCopyUploadParams,
-    CreateShippingParams,
-    UpdateShippingParams,
-} from "../types/serviceType/itemShippingProfile.js";
+import { CreateShippingParams, UpdateShippingParams } from "../types/serviceType/itemShippingProfile.js";
 
 export const createShipping = async ({ itemId, transaction }: CreateShippingParams) => {
     await ItemShippingProfile.create(
@@ -12,10 +8,6 @@ export const createShipping = async ({ itemId, transaction }: CreateShippingPara
         },
         { transaction },
     );
-};
-
-export const createShippingCopyUpload = async ({ data, transaction }: CreateShippingCopyUploadParams) => {
-    await ItemShippingProfile.create(data, { transaction });
 };
 
 export const updateShipping = async ({ shipping, data, transaction }: UpdateShippingParams) => {

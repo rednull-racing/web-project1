@@ -1,7 +1,6 @@
 export {
     addViewsCount,
     createItem,
-    createItemCopyUpload,
     destroyCronEditingItems,
     destroyDraftItem,
     destroyPerfectItem,

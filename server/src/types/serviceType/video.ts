@@ -42,18 +42,3 @@ export type UpdateVideoParams = {
     };
     transaction: Transaction;
 };
-
-export type CreateVideoCopyUploadParams = {
-    data: {
-        title: string;
-        summary: string;
-        duration: number;
-        user_id: number;
-        item_id: number;
-        status: string;
-        thumbnail_url: string;
-        original_url: string | null;
-        converted_url: string | null;
-    };
-    transaction: Transaction;
-};

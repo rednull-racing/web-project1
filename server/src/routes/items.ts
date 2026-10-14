@@ -1,7 +1,6 @@
 import { Router } from "express";
 import {
     addItemSortNumberController,
-    copyUploadItemController,
     createItemController,
     decreaseItemSortNumberController,
     deleteDraftItemController,
@@ -20,7 +19,6 @@ import {
 } from "../controllers/items.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
-    createItemCopyRateLimit,
     createItemRateLimit,
     draftDeleteItemRateLimit,
     editSortItemRateLimit,
@@ -52,17 +50,6 @@ const router = Router();
 // summary: 商品データ作成
 // page: /upload/before
 router.post("/", authenticateToken, createItemRateLimit, createItemController);
-
-// POST /items/:id/copy-upload
-// summary: 商品コピーアップロード
-// page: /item/[id]
-router.post(
-    "/:id/copy-upload",
-    authenticateToken,
-    createItemCopyRateLimit,
-    validateParams(idParamSchema),
-    copyUploadItemController,
-);
 
 // PATCH /items/:id/publish
 // summary: 商品公開

@@ -1,6 +1,5 @@
 import { Sale } from "../models/index.js";
 import {
-    CreateSaleCopyUploadParams,
     CreateSaleParams,
     LogicalDeleteUpdateParams,
     SaleIdParams,
@@ -19,10 +18,6 @@ export const createSale = async ({ itemId, transaction }: CreateSaleParams) => {
         },
         { transaction },
     );
-};
-
-export const createSaleCopyUpload = async ({ data, transaction }: CreateSaleCopyUploadParams) => {
-    await Sale.create(data, { transaction });
 };
 
 export const updateLogicalDelete = async ({ sale, transaction }: LogicalDeleteUpdateParams) => {

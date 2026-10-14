@@ -10,14 +10,6 @@ export type CreateSaleParams = {
     transaction: Transaction;
 };
 
-export type CreateSaleCopyUploadParams = {
-    data: {
-        before_price: number;
-        item_id: number;
-    };
-    transaction: Transaction;
-};
-
 export type LogicalDeleteUpdateParams = {
     sale: InstanceType<typeof Sale>;
     transaction: Transaction;

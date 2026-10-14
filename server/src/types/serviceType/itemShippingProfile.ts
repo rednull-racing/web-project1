@@ -16,13 +16,3 @@ export type UpdateShippingParams = {
     };
     transaction: Transaction;
 };
-
-export type CreateShippingCopyUploadParams = {
-    data: {
-        shipping_day_id: number;
-        shipping_service_id: number;
-        shipping_place_id: number;
-        item_id: number;
-    };
-    transaction: Transaction;
-};
