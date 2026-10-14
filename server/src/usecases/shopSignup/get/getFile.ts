@@ -23,9 +23,7 @@ export const getShopSignupFileUseCase = async ({ shopSignupId, s3MetadataId, use
     const rearS3Metadata = shopSignup.IdCard?.RearIdCard;
 
     const permitS3Metadata =
-        shopSignup.Permit?.map((permit) => permit.S3Metadata).filter(
-            (metadata) => metadata != null,
-        ) ?? [];
+        shopSignup.Permit?.map((permit) => permit.S3Metadata).filter((metadata) => metadata != null) ?? [];
 
     const allowedS3Metadata = [frontS3Metadata, rearS3Metadata, ...permitS3Metadata].filter(
         (metadata) => metadata != null,

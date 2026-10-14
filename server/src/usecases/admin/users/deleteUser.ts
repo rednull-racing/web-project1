@@ -302,9 +302,11 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
 
                 let newImages: string[] = [];
                 if (item.image_url && item.image_url.length > 0) {
-                    newImages = (await Promise.all(
-                        item.image_url.map((url: string) => moveToGlacier({ userId: pageUserId, url })),
-                    )).filter((url): url is string => url !== null);
+                    newImages = (
+                        await Promise.all(
+                            item.image_url.map((url: string) => moveToGlacier({ userId: pageUserId, url })),
+                        )
+                    ).filter((url): url is string => url !== null);
                 }
 
                 let newVideoUrl = null;

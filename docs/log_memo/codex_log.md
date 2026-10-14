@@ -90,7 +90,7 @@
 
 ---
 
-### 20261014_backend-model_関連Model参照型定義
+### 20261014*backend-model*関連Model参照型定義
 
 - 16個のModelで関連プロパティ41件をNonAttributeで宣言し、単数・複数と未取得・nullの可能性を型へ反映。
 - getMyItemWithVideoSaleShippingはtransactionなしの取得結果も具体的な関連型で返す契約へ修正。
@@ -143,7 +143,7 @@
 
 ---
 
-## 20261014_backend-coding_検索履歴ソートのany解消
+## 20261014*backend-coding*検索履歴ソートのany解消
 
 - getSearchHistory.tsのsort引数のanyを削除し、Serviceが返すSearch型の推論を使用。
 - createdAtはDateのためgetTime()で数値へ変換し、新しい日時順の並び替えを維持。
@@ -151,7 +151,7 @@
 
 ---
 
-## 20261014_backend-coding_日時比較の型エラー確認
+## 20261014*backend-coding*日時比較の型エラー確認
 
 - serverのtypecheckと日時比較・sortの参照を確認。Dateを直接減算することに起因する型エラーは現状なし。
 - createdAtの比較4箇所とトークン期限比較は既にgetTime()を使用しているため、コード変更なし。
@@ -208,7 +208,7 @@
 
 ---
 
-## 20261014_backend-coding_未使用toNullableNumber削除
+## 20261014*backend-coding*未使用toNullableNumber削除
 
 - リポジトリ内の参照を確認し、toNullableNumberはコードからの呼び出し・import・再exportがないことを確認。
 - 指示に従いserver/src/utils/toNullableNumber.tsを削除。既存テスト設計書の名前記載のみ残存。
@@ -219,14 +219,14 @@
 
 ## 20261014_backend-coding_maintenanceのlint型チェック除外
 
-- server/eslint.config.mjsのignoresとserver/tsconfig.jsonのexcludeへsrc/maintenance/**を追加。
+- server/eslint.config.mjsのignoresとserver/tsconfig.jsonのexcludeへsrc/maintenance/\*\*を追加。
 - ESLintの除外判定とTypeScriptの実際の対象ファイルを確認し、maintenanceのみが外れprototype・usecasesが対象に残ることを検証。
 - lint・typecheckを実行し、maintenance配下の指摘がなくなったことを確認。ほかの既存エラーは残存。
 - git diff --check通過。ソースコード・DB・依存ライブラリは変更していない。
 
 ---
 
-## 20261014_backend-model_銀行支店normalize型定義
+## 20261014*backend-model*銀行支店normalize型定義
 
 - 銀行・支店の取得データと既存テストを確認し、BankNormalization共有型を追加。名称のみのJSONにも対応。
 - Banks・Branchesのnormalizeをobject | nullから具体的な型へ変更し、口座編集・銀行／支店検索などのname・kana・hira参照エラーを解消。
@@ -238,14 +238,14 @@
 
 ## 20261014_backend-coding_prototypeのlint型チェック除外
 
-- ESLintのignoresとtsconfigのexcludeへsrc/prototype/**を追加し、既存maintenance除外も維持。
+- ESLintのignoresとtsconfigのexcludeへsrc/prototype/\*\*を追加し、既存maintenance除外も維持。
 - 実際のTypeScript対象とESLint除外を確認。prototype・maintenanceのみ外れ、usecasesは対象に残ることを検証。
 - lint・typecheckを実行。除外したディレクトリの指摘なし。ほかの既存エラーは残存。
 - git diff --check通過。ソースコード・DB・依存ライブラリは変更していない。
 
 ---
 
-## 20261014_backend-coding_銀行支店取得スクリプトのany解消
+## 20261014*backend-coding*銀行支店取得スクリプトのany解消
 
 - fetchBanksAndBranches.tsのany配列をZodから推論するDirectoryEntry配列へ変更し、transaction型も明示。
 - 取得JSONはunknownで受け、既存BankNormalizationに対応する構造を検証。不正な要素はAppErrorで既存rollback処理へ渡す。
