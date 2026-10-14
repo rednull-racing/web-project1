@@ -14,7 +14,7 @@ export const cronPerfectDeleteUseCase = async (): Promise<number> => {
 
     const itemDeleteLogs = items.map((item: InstanceType<typeof Item>) => ({
         item_id: item.id,
-        delete_user_id: item.seller_id,
+        delete_user_id: Number(item.seller_id),
         delete_by_admin: false,
         delete_reason: "自主削除、30日経過",
     }));

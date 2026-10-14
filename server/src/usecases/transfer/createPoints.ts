@@ -94,8 +94,8 @@ export const createTransferPointsUseCase = async ({ userId, value, limit }: Para
         await updatePointsUriageUser({
             user,
             data: {
-                points: oldPoints + value,
-                uriagekin: oldUriagekin - value,
+                points: Number(oldPoints) + value,
+                uriagekin: Number(oldUriagekin) - value,
             },
             transaction: t,
         });

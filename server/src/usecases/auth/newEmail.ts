@@ -16,7 +16,7 @@ export const changeNewEmailUseCase = async ({ token }: Params) => {
     const emailTokenData = await getTokenEmailChangeOne({ token });
 
     if (!emailTokenData) throw new AppError("TOKEN_DATA_NOT_FOUND", 404);
-    if (emailTokenData.expires_at < Date.now()) throw new AppError("EXPIRED_TOKEN", 401);
+    if (emailTokenData.expires_at.getTime() < Date.now()) throw new AppError("EXPIRED_TOKEN", 401);
 
     // user取得
     const user = await getUserHasShop({ userId: emailTokenData.user_id });

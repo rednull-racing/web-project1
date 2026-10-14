@@ -22,19 +22,25 @@ export const deleteUriageUseCase = async ({ pageUserId, deleteUriage }: Params) 
     const user = await getUserHasUriagekin({ userId: pageUserId });
 
     if (!user) throw new AppError("USER_NOT_FOUND", 404);
-    if (user.uriagekin < deleteUriage) {
+    if (Number(user.uriagekin) < deleteUriage) {
         throw new AppError("INVALID_BODY_OVER_URIAGEKIN", 400);
     }
 
     // uriagekinHistory削除
-    const oldUriagekin = user.uriagekin;
+    const oldUriagekin = Number(user.uriagekin);
 
     let deleteValue = deleteUriage;
 
     // aとbを日時の数値に変換して引き算
     // → マイナスならaが前、プラスならbが前
     // → 結果として「古い順（昇順）」に並ぶ
-    const lots = [...(user.UriagekinLots ?? [])].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const lots = [
+        ...((
+            user as unknown as {
+                UriagekinLots?: Array<Parameters<typeof updateUsedUriagekin>[0]["lots"]>;
+            }
+        ).UriagekinLots ?? []),
+    ].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     await sequelize.transaction(async (t) => {
         // UriagekinLots古い順に削除

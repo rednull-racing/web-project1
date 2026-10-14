@@ -83,7 +83,7 @@ export const createTransferRequestUseCase = async ({ userId, requestValue, limit
         await updateUriageUser({
             user,
             data: {
-                uriagekin: oldUriagekin - requestValue,
+                uriagekin: Number(oldUriagekin) - requestValue,
             },
             transaction: t,
         });

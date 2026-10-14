@@ -29,7 +29,7 @@ export const cronExpiredUriagekinUseCase = async () => {
 
         try {
             const sumRemainingUriagekin = userDataList.reduce(
-                (sum, data) => sum + (data.uriagekin - data.used_Uriagekin),
+                (sum, data) => sum + (data.uriagekin - data.used_uriagekin),
                 0,
             );
             const user = await getUserHasBankAccount({ userId });

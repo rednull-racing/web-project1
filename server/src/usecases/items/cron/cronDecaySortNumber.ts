@@ -7,7 +7,7 @@ export const cronDecaySortNumberUseCase = async (): Promise<void> => {
     });
 
     for (const item of items) {
-        const sortNumber = item.sort_number / 2;
+        const sortNumber = Number(item.sort_number) / 2;
 
         await updateSortNumberDecay({
             item,

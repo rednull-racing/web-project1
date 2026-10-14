@@ -7,7 +7,7 @@ export const cronDecaySortBuzzNumberUseCase = async (): Promise<void> => {
     });
 
     for (const item of items) {
-        const sortBuzzNumber = item.sort_buzz_number / 2;
+        const sortBuzzNumber = Number(item.sort_buzz_number) / 2;
 
         await updateSortBuzzNumberDecay({
             item,

@@ -29,7 +29,7 @@ export const getFormDataUseCase = async ({ itemId, userId }: Params) => {
         findAllShippingDay(),
         findAllShippingService(),
         getAllTodouhuken(),
-        getUserHasShop({ userId: item.seller_id }),
+        getUserHasShop({ userId: Number(item.seller_id) }),
     ]);
 
     const hasShop = !!userHasShop.ShopInfo;

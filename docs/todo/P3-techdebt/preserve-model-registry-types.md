@@ -7,6 +7,10 @@
 - 型復元後のtypecheckは87ファイルで288件のエラーを検出。関連取得結果の型未定義、nullable値、存在しないカラム、Modelクラスとインスタンスの混同、Sequelizeメソッドの引数不整合などを個別に確認する。
 - 今回はModelインポートの型復元のみ実施。Service・UseCaseの修正、価格復元仕様の決定、オーバーロード整理は行っていない。
 - 参照先の `copyUpload/copyUpload.ts` は現在存在しないため、後続作業では現行の呼び出し元を検索する。
+- 後続作業で16個のModelに関連プロパティ41件を `NonAttribute` で宣言し、未取得はundefined、単数関連の不在はnull、複数関連は配列として型を保持。
+- `getMyItemWithVideoSaleShipping` はtransactionなしでも `ItemWithVideoSaleShipping | null` を返す型契約へ修正済み。クエリや業務処理は変更していない。
+- 最新のtypecheckは107件のエラーが残存。関連先やカラムのnull確認、存在しないカラム、Modelクラスとインスタンスの混同、Sequelizeメソッドの引数不整合は未修正。
+- 関連名の不一致は `docs/todo/P1-bug/align-eager-loaded-association-property-names.md` に記録し、型宣言で隠さず別途対応する。
 
 ## 問題の概要・原因
 

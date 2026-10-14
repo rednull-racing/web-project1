@@ -75,7 +75,7 @@ export const getItemWithVideoCategoriesUser = ({ itemId }: ItemIdParams) => {
 export function getMyItemWithVideoSaleShipping(
     params: Required<GetMyItemWithVideoSaleShippingParams>,
 ): Promise<ItemWithVideoSaleShipping | null>;
-export function getMyItemWithVideoSaleShipping(params: UserItemIdParams): ReturnType<typeof Item.findOne>;
+export function getMyItemWithVideoSaleShipping(params: UserItemIdParams): Promise<ItemWithVideoSaleShipping | null>;
 export async function getMyItemWithVideoSaleShipping({
     itemId,
     userId,

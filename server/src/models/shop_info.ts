@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import Address from "./address.js";
@@ -35,6 +36,12 @@ export class ShopInfo extends Model {
     declare address_id: number | null;
     declare account_id: number | null;
     declare idcard_id: number | null;
+
+    declare Address?: NonAttribute<Address | null>;
+    declare BankAccount?: NonAttribute<BankAccount | null>;
+    declare ContactName?: NonAttribute<Name | null>;
+    declare IdCard?: NonAttribute<IdCard | null>;
+    declare RepresentativeName?: NonAttribute<Name | null>;
 
     static associate() {
         ShopInfo.belongsTo(User, {

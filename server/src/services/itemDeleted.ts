@@ -6,7 +6,7 @@ type CreateItemDeletedParams = {
         item_id: number;
         seller_id: number;
         item_name: string;
-        explain: string;
+        detail: string;
         price: number;
         image_url: string[];
         video_url: string | null;

@@ -7,7 +7,7 @@ export class UriagekinLots extends Model {
     declare id: number;
     declare uriagekin: number;
     declare user_id: number;
-    declare used_Uriagekin: number;
+    declare used_uriagekin: number;
     declare expires_at: Date;
     declare createdAt: Date;
     declare updatedAt: Date;

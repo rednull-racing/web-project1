@@ -28,8 +28,8 @@ export const onPlayVideoUseCase = async ({ videoId, userId }: Params) => {
 
     // sort_number更新
     if (userId && item.status === "active") {
-        const newSortNumber = item.sort_number + 15;
-        const newSortBuzzNumber = item.sort_buzz_number + 70;
+        const newSortNumber = Number(item.sort_number) + 15;
+        const newSortBuzzNumber = Number(item.sort_buzz_number) + 70;
 
         await updateSortNumber({
             item,

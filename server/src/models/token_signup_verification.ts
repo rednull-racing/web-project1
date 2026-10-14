@@ -1,4 +1,5 @@
 import { Model, DataTypes, Association } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import User from "./user.js";
@@ -12,6 +13,8 @@ export class TokenSignupVerification extends Model {
     declare user_id: number;
     declare createdAt: Date;
     declare updatedAt: Date;
+
+    declare User?: NonAttribute<User | null>;
 
     static associate() {
         TokenSignupVerification.belongsTo(User, {

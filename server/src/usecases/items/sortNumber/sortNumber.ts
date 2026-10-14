@@ -19,8 +19,8 @@ export const patchSortNumberAddUseCase = async ({ itemId, number, buzzNumber }: 
 
     const sortBuzzNumber = buzzNumber || number * 3;
 
-    const newSortNumber = item.sort_number + number;
-    const newSortBuzzNumber = item.sort_buzz_number + sortBuzzNumber;
+    const newSortNumber = Number(item.sort_number) + number;
+    const newSortBuzzNumber = Number(item.sort_buzz_number) + sortBuzzNumber;
 
     if (item.status === "active") {
         await updateSortNumber({
@@ -45,8 +45,8 @@ export const patchSortNumberDecreaseUseCase = async ({ itemId, number, buzzNumbe
 
     const sortBuzzNumber = buzzNumber || number * 3;
 
-    const newSortNumber = item.sort_number - Math.min(item.sort_number, number);
-    const newSortBuzzNumber = item.sort_buzz_number - Math.min(item.sort_buzz_number, sortBuzzNumber);
+    const newSortNumber = Number(item.sort_number) - Math.min(Number(item.sort_number), number);
+    const newSortBuzzNumber = Number(item.sort_buzz_number) - Math.min(Number(item.sort_buzz_number), sortBuzzNumber);
 
     if (item.status === "active") {
         await updateSortNumber({

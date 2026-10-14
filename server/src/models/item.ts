@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 import type { ItemAttributes } from "../types/itemAttributes.js";
 
@@ -51,6 +52,10 @@ export class Item extends Model {
     declare video_id: number | null;
     declare sale_id: number | null;
     declare shipping_id: number | null;
+
+    declare Category?: NonAttribute<Categories | null>;
+    declare User?: NonAttribute<User | null>;
+    declare Video?: NonAttribute<Video | null>;
 
     static associate() {
         Item.belongsTo(User, {

@@ -1,4 +1,5 @@
 import { Model, DataTypes, Association } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 import type { BodyCategory, LifeStyleCategory, Layer } from "../types/itemAttributes.js";
 import CouponCategory from "./coupon_category.js";
@@ -15,6 +16,8 @@ export class Categories extends Model {
     declare lifestyle_category: LifeStyleCategory | null;
     declare layer?: Layer | null;
     declare path?: string | null;
+
+    declare parent?: NonAttribute<Categories | null>;
 
     static associate() {
         Categories.belongsTo(Categories, {

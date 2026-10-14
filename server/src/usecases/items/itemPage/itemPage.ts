@@ -18,13 +18,7 @@ export const getItemPageUseCase = async ({ itemId, userId, mode }: Params) => {
     // itemデータ取得
     const item = await getItemPageData({ itemId });
 
-    if (
-        !item ||
-        (mode === "normal" && !["active", "soldout"].includes(item.status)) ||
-        (mode === "draft" && !(item.status === "draft")) ||
-        (mode === "confirm" && item.status === "deleted") ||
-        (mode === "deleted" && !(item.status === "deleted"))
-    ) {
+    if (!item || (mode === "normal" && !["active", "soldout"].includes(item.status))) {
         throw new AppError("ITEM_NOTFOUND", 404);
     }
 

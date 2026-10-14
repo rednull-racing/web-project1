@@ -17,7 +17,7 @@ export const resetPWUseCase = async ({ token, password }: Params) => {
     const resetRecord = await getTokenOne({ token });
 
     if (!resetRecord) throw new AppError("TOKEN_NOT_FOUND", 404);
-    if (resetRecord.expires_at < Date.now()) throw new AppError("EXPIRED_TOKEN", 401);
+    if (resetRecord.expires_at.getTime() < Date.now()) throw new AppError("EXPIRED_TOKEN", 401);
 
     // ユーザー取得
     const user = await getUser({ userId: resetRecord.user_id });

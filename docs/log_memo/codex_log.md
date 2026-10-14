@@ -78,3 +78,23 @@
 - OrderDeletedの再exportは登録名OrderDeletedSystemsを参照するよう整合。
 - lintは残存any39件、typecheckは型復元で表面化した87ファイル288件のエラーで失敗。index.ts自体に型エラーなし。
 - Service・UseCaseの修正は行わず、残作業を既存Todoに追記。DB・マイグレーション変更なし。
+
+---
+
+### 20261014_backend-coding_UseCaseのnullable数値変換
+
+- UseCaseの10ファイルでnullableな数値をNumber()で変換し、算術演算・Service引数の型エラー19件を解消。
+- 単純なstring | nullの型エラーは現状なし。オブジェクト・配列・日付のnullや関連Model型のエラーは対象外。
+- 変更ファイルのlint通過。全体lintは既存any39件、typecheckは対象外217件のエラーで失敗。
+- Number(null)は0となる。既存のユーザー変更は保持し、Service・Model・DBは変更していない。
+
+---
+
+### 20261014_backend-model_関連Model参照型定義
+
+- 16個のModelで関連プロパティ41件をNonAttributeで宣言し、単数・複数と未取得・nullの可能性を型へ反映。
+- getMyItemWithVideoSaleShippingはtransactionなしの取得結果も具体的な関連型で返す契約へ修正。
+- Sequelizeの実際の関連名・対象・件数と宣言の一致、および16ファイルの変換後JavaScriptが変更前と同一であることを確認。
+- 変更ファイルのlint通過。全体lintは既存any39件、typecheckは217件から107件に減少したが対象外エラーで失敗。
+- null確認・関連名不一致・存在しないカラム等は未修正。既存Todoを更新し、関連名不一致をP1 Todoへ記録。
+- DBスキーマ・関連定義・業務処理は変更せず、マイグレーションも不要・未実行。

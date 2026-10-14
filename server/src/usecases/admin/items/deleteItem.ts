@@ -40,7 +40,7 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
 
     if (!item) throw new AppError("ITEM_NOT_FOUND", 404);
 
-    const sellerId = item.seller_id;
+    const sellerId = Number(item.seller_id);
 
     // 取引中orders
     const orders = await getTradingOrdersAll({ itemId });
@@ -61,6 +61,8 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
 
         if (orders && orders.length > 0) {
             for (const order of orders) {
+                if (!order.buyer_user_id) break;
+
                 await updateOrdersStatus({
                     order,
                     data: { status: "cancelled" },
@@ -79,8 +81,8 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
                     data: {
                         orders_id: order.id,
                         cancel_reason: "商品削除",
-                        return_amount: order.total_amount,
-                        item_count: order.item_count,
+                        return_amount: Number(order.total_amount),
+                        item_count: Number(order.item_count),
                         cancel_flag: true,
                         cancel_fee_return_id: 2,
                     },
@@ -88,6 +90,10 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
                 });
 
                 const buyer = await getUserHasBankAccount({ userId: order.buyer_user_id });
+
+                if (!buyer) {
+                    throw new AppError("BUYER_NOT_FOUND", 404);
+                }
 
                 const account = buyer.BankAccount;
                 const buyerHasAccount = !!account;
@@ -115,9 +121,9 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
 
                 await createTransfer({
                     data: {
-                        request_money: order.total_amount,
+                        request_money: Number(order.total_amount),
                         handling_charge: 0,
-                        trans_money: order.total_amount,
+                        trans_money: Number(order.total_amount),
                         trans_reason_id: 2,
                         trans_schedule_date: twoWeeksLater,
                         user_id: buyer.id,
@@ -139,7 +145,7 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
                     cancel_reason: "出品者削除",
                     refund_status: "未返金",
                     refund_method: "口座振込",
-                    refund_amount: order.total_amount,
+                    refund_amount: Number(order.total_amount),
                     deleted_by: adminId,
                 });
 
@@ -152,11 +158,12 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
             });
         }
 
-        let newImages = [];
+        let newImages: string[] = [];
         if (item.image_url && item.image_url.length > 0) {
-            newImages = await Promise.all(
+            const movedImages = await Promise.all(
                 item.image_url.map((url: string) => moveToGlacier({ userId: sellerId, url })),
             );
+            newImages = movedImages.filter((url): url is string => url !== null);
         }
 
         let newVideoUrl = null;
@@ -179,10 +186,10 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
         await createItemDeleted({
             data: {
                 item_id: item.id,
-                seller_id: item.seller_id,
-                item_name: item.name,
-                explain: item.explain,
-                price: item.price,
+                seller_id: sellerId,
+                item_name: String(item.name),
+                detail: String(item.detail),
+                price: Number(item.price),
                 image_url: newImages,
                 video_url: newVideoUrl,
                 thumbnail_url: newThumbnailUrl,

@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import Delivery from "./delivery.js";
@@ -18,6 +19,8 @@ export class Address extends Model {
     declare building: string | null;
     declare createdAt: Date;
     declare updatedAt: Date;
+
+    declare AddressTodouhuken?: NonAttribute<TodouhukenOption | null>;
 
     static associate() {
         Address.belongsTo(TodouhukenOption, {

@@ -25,7 +25,7 @@ export const patchPublishUseCase = async ({ itemId, userId }: Params) => {
     const sellItemCount = await countSellItem({ userId });
 
     let sort =
-        item.price / 10 +
+        Number(item.price) / 10 +
         (item.detail?.length ?? 0) +
         (item.Video?.summary?.length ?? 0) +
         (item.User?.user_introduction?.length ?? 0) +

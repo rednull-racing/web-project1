@@ -1,4 +1,5 @@
 import { Model, DataTypes, Association } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 import Brands from "./brands.js";
 
@@ -7,6 +8,8 @@ export class BrandAliases extends Model {
     declare brand_id: number | null;
     declare name: string | null;
     declare name_normalized: string | null;
+
+    declare brand?: NonAttribute<Brands | null>;
 
     static associate() {
         BrandAliases.belongsTo(Brands, {
