@@ -32,7 +32,7 @@ Controller は以下を担当する。
 
 ## コーディング規約
 
-/docs/rule/backend/coding_rule/controller.md
+/docs/codingRule/backend/controller.md
 
 ## スコープ管理
 

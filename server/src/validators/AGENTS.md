@@ -34,7 +34,7 @@ admin、maintenance などの下位ディレクトリは、対応する Route �
 
 Validator の実装は、次の規約に必ず従う。
 
-`/docs/rule/backend/coding_rule/validator.md`
+`/docs/codingRule/backend/validator.md`
 
 schema の構成、命名、型推論、値変換、レイヤー境界などの詳細はコーディング規約を参照する。
 

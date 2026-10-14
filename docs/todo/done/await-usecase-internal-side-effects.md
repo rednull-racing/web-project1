@@ -40,7 +40,7 @@ UseCaseが正常終了しても必要な副作用が失敗している可能性�
 
 - `/server/src/utils/runDetachedTask.ts`
 - `/docs/todo/done/centralize-detached-controller-tasks.md`
-- `/docs/rule/backend/coding_rule/usecase.md`
+- `/docs/codingRule/backend/usecase.md`
 - 各UseCaseから呼び出されるServiceとController
 
 ## 実装内容

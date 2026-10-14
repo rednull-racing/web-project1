@@ -161,7 +161,7 @@ Usecase のメイン関数が大きくなりすぎる場合は、処理単位で
 
 以下の規約に従って実装する。
 
-`/docs/rule/backend/coding_rule/usecase.md`
+`/docs/codingRule/backend/usecase.md`
 
 未作成の場合は、この `AGENTS.md`、ルートの `AGENTS.md`、既存コードの記述方針を優先する。
 

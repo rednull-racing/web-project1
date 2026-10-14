@@ -64,7 +64,7 @@ Database
 
 Service の実装は、次の規約に必ず従う。
 
-`/docs/rule/backend/coding_rule/service.md`
+`/docs/codingRule/backend/service.md`
 
 既存実装と規約が矛盾する場合は規約を優先し、依頼範囲外の既存実装は変更しない。
 

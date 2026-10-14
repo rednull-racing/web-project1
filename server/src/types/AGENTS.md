@@ -35,7 +35,7 @@
 
 型定義の実装は、次の規約に必ず従う。
 
-`/docs/rule/backend/coding_rule/type.md`
+`/docs/codingRule/backend/type.md`
 
 詳細な命名、構成、型安全性、宣言ファイル、Service 用型のルールはコーディング規約を参照する。
 

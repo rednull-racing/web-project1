@@ -8,7 +8,7 @@
 
 ## 変更ルール
 
-/server/src/modelsにあるAGENTS.mdをよく読み、/docs/rule/backend/coding_rule/model.mdにあるコーディング規約に即して、/models配下のファイルの、主にinit()のカラム定義の部分をリファクタしてください。
+/server/src/modelsにあるAGENTS.mdをよく読み、/docs/codingRule/backend/model.mdにあるコーディング規約に即して、/models配下のファイルの、主にinit()のカラム定義の部分をリファクタしてください。
 
 ### 編集しなくてよいファイル
 

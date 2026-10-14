@@ -16,7 +16,7 @@
 
 Model の実装は以下の規約に必ず従う。
 
-docs/rule/backend/coding_rule/model.md
+docs/codingRule/backend/model.md
 
 ## migration との関係
 

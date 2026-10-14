@@ -28,7 +28,7 @@
 
 Service 用型の実装は、次の規約に必ず従う。
 
-`/docs/rule/backend/coding_rule/type.md`
+`/docs/codingRule/backend/type.md`
 
 ## スコープ管理
 
