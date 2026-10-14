@@ -1,14 +1,13 @@
 import { ItemEditing } from "../../models/index.js";
 import type { CreateItemEditingCopyParams, CreateItemEditingDraftParams } from "../../types/serviceType/itemEditing.js";
-import { Item } from "../../models/index.js";
-import {
+import type {
     CreateItemEditingParams,
     UpdateConfirmParams,
     UpdateItemEditingImageParams,
 } from "../../types/serviceType/itemEditing.js";
 
-export const createItemEditing = async ({ data, transaction }: CreateItemEditingParams) => {
-    return await Item.create(data, { transaction });
+export const createItemEditing = ({ data, transaction }: CreateItemEditingParams) => {
+    return ItemEditing.create(data, { transaction });
 };
 
 export const updateConfirm = async ({ itemEditing, data, transaction }: UpdateConfirmParams) => {

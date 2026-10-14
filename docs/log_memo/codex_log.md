@@ -50,3 +50,13 @@
 - コピー処理のRoute・Controller・UseCase・Serviceを確認し、ItemDraftの取得・所有者確認を行っていないことを確認。
 - Item.findOneのid・seller_id条件で所有者確認済みのため、本番コードの修正は不要。
 - 認可対象表記のTodoをdoneへ移動。git diff --check通過。テストは未実施。
+
+---
+
+### 20261014_backend-coding_createItemEditing保存先Model修正
+
+- createItemEditingの保存先をItemからItemEditingへ変更し、不要なItem importを削除。
+- 作成結果を返すServiceは規約に合わせてPromiseを直接returnし、型専用importを明示。
+- UseCase・Controllerが作成した編集セッションのidをitemEditingIdとして返すことを確認。
+- lint・typecheck・関連Serviceテスト21件・git diff --check通過。
+- Todoをdoneへ移動。コピー・下書き処理、Model・DBスキーマは変更せず、マイグレーションも未実行。

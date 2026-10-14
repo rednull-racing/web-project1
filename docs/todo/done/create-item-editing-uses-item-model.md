@@ -1,5 +1,7 @@
 # 商品編集セッションの新規作成で使用するModelを修正する
 
+完了: 2026-10-14。createItemEditingの保存先をItemEditing.createへ修正。UseCaseが作成した編集セッションのidを返し、ControllerがitemEditingIdとして応答することを確認。lint・typecheckと関連Serviceテスト21件が通過。
+
 ## 問題の概要・原因
 
 `POST /item-editing` のService `createItemEditing` が `ItemEditing.create` ではなく `Item.create` を呼んでいる。
