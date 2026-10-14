@@ -1,5 +1,9 @@
 import { InferAttributes, Op, Order, Transaction, WhereOptions } from "sequelize";
 import { Item } from "../../models/index.js";
+import type ItemModel from "../../models/item.js";
+import type ItemShippingProfile from "../../models/item_shipping_profile.js";
+import type Sale from "../../models/sale.js";
+import type Video from "../../models/video.js";
 import { ItemAttributes } from "../itemAttributes.js";
 
 export type ItemIdParams = {
@@ -52,6 +56,16 @@ export type GetAllItemParams = {
 export type UserItemIdParams = {
     userId: number;
     itemId: number;
+};
+
+export type GetMyItemWithVideoSaleShippingParams = UserItemIdParams & {
+    transaction?: Transaction;
+};
+
+export type ItemWithVideoSaleShipping = InstanceType<typeof ItemModel> & {
+    Video: InstanceType<typeof Video> | null;
+    Sale: InstanceType<typeof Sale> | null;
+    ItemShippingProfile: InstanceType<typeof ItemShippingProfile> | null;
 };
 
 export type ItemListParams = {

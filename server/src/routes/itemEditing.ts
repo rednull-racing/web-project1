@@ -1,6 +1,12 @@
-import { createItemEditingDraftController } from "../controllers/itemEditing.js";
-import { createItemEditingDraftRateLimit } from "../middleware/rateLimit/itemEditingRateLimit.js";
-import { createItemEditingDraftBodySchema } from "../validators/body/itemEditing.js";
+import { createItemEditingCopyController, createItemEditingDraftController } from "../controllers/itemEditing.js";
+import {
+    createItemEditingCopyRateLimit,
+    createItemEditingDraftRateLimit,
+} from "../middleware/rateLimit/itemEditingRateLimit.js";
+import {
+    createItemEditingCopyBodySchema,
+    createItemEditingDraftBodySchema,
+} from "../validators/body/itemEditing.js";
 import { Router } from "express";
 import { createItemEditingController, updateItemEditingConfirmController } from "../controllers/itemEditing.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -41,6 +47,17 @@ router.post(
     createItemEditingDraftRateLimit,
     validateBody(createItemEditingDraftBodySchema),
     createItemEditingDraftController,
+);
+
+// POST /item-editing/copy
+// summary: 販売中商品からitem_editingへのコピー
+// page: /item/[id]
+router.post(
+    "/copy",
+    authenticateToken,
+    createItemEditingCopyRateLimit,
+    validateBody(createItemEditingCopyBodySchema),
+    createItemEditingCopyController,
 );
 
 export default router;

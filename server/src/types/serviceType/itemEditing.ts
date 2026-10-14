@@ -1,5 +1,5 @@
-import { Transaction } from "sequelize";
-import { ItemEditing } from "../../models/index.js";
+import type { Transaction } from "sequelize";
+import type ItemEditing from "../../models/item_editing.js";
 import { BodyCategory, Layer, LifeStyleCategory } from "../itemAttributes.js";
 
 export type ItemEditingUserIdParams = {
@@ -118,5 +118,15 @@ export type CreateItemEditingDraftParams = {
         | "shipping_place_id"
         | "shipping_service_free_text"
     > & { seller_id: number };
+    transaction: Transaction;
+};
+
+export type CreateItemEditingCopyParams = {
+    data: CreateItemEditingDraftParams["data"] & {
+        item_id: null;
+        discount_rate: null;
+        discount_amount: null;
+        sale_flag: false;
+    };
     transaction: Transaction;
 };

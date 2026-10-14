@@ -1,5 +1,5 @@
 import { ItemEditing } from "../../models/index.js";
-import type { CreateItemEditingDraftParams } from "../../types/serviceType/itemEditing.js";
+import type { CreateItemEditingCopyParams, CreateItemEditingDraftParams } from "../../types/serviceType/itemEditing.js";
 import { Item } from "../../models/index.js";
 import {
     CreateItemEditingParams,
@@ -22,5 +22,9 @@ export const updateItemEditingImage = async ({ itemEditing, urls, transaction }:
 };
 
 export const createItemEditingDraft = ({ data, transaction }: CreateItemEditingDraftParams) => {
+    return ItemEditing.create(data, { transaction });
+};
+
+export const createItemEditingCopy = ({ data, transaction }: CreateItemEditingCopyParams) => {
     return ItemEditing.create(data, { transaction });
 };

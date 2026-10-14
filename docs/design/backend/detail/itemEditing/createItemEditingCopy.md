@@ -15,7 +15,7 @@
 - Method: POST
 - Endpoint: /item-editing/copy
 - 認証: 必須
-- 認可: ItemDraft所有者のみ
+- 認可: コピー元のItem所有者のみ（item.seller_idが認証済みuserIdと一致すること）
 - Content-Type: application/json
 - レート制限: 10分間に5回
 
@@ -81,6 +81,8 @@
 ```
 
 ## 3. 認証・認可
+
+所有者確認の対象はコピー元のItemとし、ItemDraftは使用しない。
 
 1. 認証ミドルウェア（authenticateToken）からuserIdを取得する
 2. itemIdをもとにitemを取得する
