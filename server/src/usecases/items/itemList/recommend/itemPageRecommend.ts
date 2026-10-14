@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { AppError } from "../../../../errors.js";
 import { getItemPageRecommendItems, getItemWithCategory } from "../../../../services/items/index.js";
+import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {
     itemId?: number;
@@ -21,7 +22,7 @@ export const getItemPageRecommendUseCase = async ({ itemId, userId }: Params) =>
 
     const targetParentId = baseCategory.parent_id ?? baseCategory.id;
 
-    const where: any = {
+    const where: ItemWhere = {
         id: { [Op.ne]: itemId },
         status: "active",
     };

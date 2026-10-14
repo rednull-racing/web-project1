@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 import { AppError } from "../../../errors.js";
 import { getProfileVideosWithCount } from "../../../services/items/index.js";
 import { getProfileUser } from "../../../services/users/query.js";
+import type { ItemWhere } from "../../../types/serviceType/items.js";
 
 type Params = {
     userId: number;
@@ -21,7 +22,7 @@ export const getProfileUseCase = async ({ userId, page, limit }: Params) => {
     const hasShop = !!user.ShopInfo;
 
     // 商品リスト取得
-    const where: any = {
+    const where: ItemWhere = {
         status: { [Op.in]: ["active", "soldout"] },
         seller_id: userId,
     };

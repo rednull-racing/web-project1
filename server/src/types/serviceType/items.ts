@@ -1,9 +1,12 @@
-import { InferAttributes, Op, Order, Transaction, WhereOptions } from "sequelize";
-import { Item } from "../../models/index.js";
+import { Op } from "sequelize";
+import type { InferAttributes, Order, Transaction, WhereOptions } from "sequelize";
+import type { Item } from "../../models/index.js";
 import type ItemModel from "../../models/item.js";
 import type ItemShippingProfile from "../../models/item_shipping_profile.js";
 import type Sale from "../../models/sale.js";
 import type Video from "../../models/video.js";
+
+export type ItemWhere = WhereOptions<InferAttributes<ItemModel>>;
 
 export type ItemIdParams = {
     itemId: number;
@@ -68,24 +71,24 @@ export type ItemWithVideoSaleShipping = InstanceType<typeof ItemModel> & {
 };
 
 export type ItemListParams = {
-    where: any;
+    where: ItemWhere;
     limit: number;
     offset: number;
 };
 
 export type RecommendParams = {
-    where: any;
+    where: ItemWhere;
 };
 
 export type ItemPageRecommendParams = {
-    where: any;
+    where: ItemWhere;
     targetParentId: number;
     categoryRequired: boolean;
 };
 
 export type SearchItemParams = {
     limit: number;
-    where: WhereOptions<InferAttributes<typeof Item>>;
+    where: ItemWhere;
     order: Order;
 };
 

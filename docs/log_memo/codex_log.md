@@ -98,3 +98,14 @@
 - 変更ファイルのlint通過。全体lintは既存any39件、typecheckは217件から107件に減少したが対象外エラーで失敗。
 - null確認・関連名不一致・存在しないカラム等は未修正。既存Todoを更新し、関連名不一致をP1 Todoへ記録。
 - DBスキーマ・関連定義・業務処理は変更せず、マイグレーションも不要・未実行。
+
+---
+
+### 20261014_backend-coding_Service検索条件のwhere型付け
+
+- serviceTypeのwhere: anyを4箇所修正し、Item・Ordersのインスタンス属性に対応するWhereOptionsを指定。
+- ServiceのfindAll・countへの受け渡しとUseCaseの検索条件を照合し、呼び出し元14箇所のwhere: anyも同じ型へ変更。
+- SearchItemParamsのInferAttributesへModelクラスを渡す誤りも同じ商品検索型へ統一して解消。
+- 16ファイルの変換後JavaScriptが変更前と同一であることを確認。変更ファイルlint・git diff --check通過。
+- 全体lintは既存any21件、typecheckは対象外98件で失敗（変更前99件）。別名itemWhereのanyは今回の対象外。
+- 商品一覧のstatusとModel定義の不一致は修正せずP2 Todoに記録。DB・クエリ・業務処理は未変更。

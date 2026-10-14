@@ -1,6 +1,7 @@
 import { literal, Op } from "sequelize";
 import { AppError } from "../../../../errors.js";
 import { getCartRecommendItems } from "../../../../services/items/index.js";
+import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {
     userId: number | null;
@@ -12,7 +13,7 @@ type Params = {
 export const getCartRecommendUseCase = async ({ userId }: Params) => {
     if (!userId) throw new AppError("INVALID_USER_ID", 401);
 
-    const where: any = {
+    const where: ItemWhere = {
         status: "active",
         seller_id: { [Op.ne]: userId },
         id: {

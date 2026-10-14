@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import { getUserItemsStockList } from "../../../../services/items/index.js";
+import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {
     page: number;
@@ -14,7 +15,7 @@ export const getStockItemsUseCase = async ({ page, userId, keyword }: Params) =>
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const where: any = {
+    const where: ItemWhere = {
         seller_id: userId,
         status: { [Op.in]: ["active", "hidden", "soldout"] },
     };

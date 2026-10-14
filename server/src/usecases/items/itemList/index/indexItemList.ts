@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import { getIndexItemsWithCount } from "../../../../services/items/index.js";
+import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {
     userId: number | null;
@@ -11,7 +12,7 @@ type Params = {
 // summary: 商品リスト取得
 // page: /lp・/など
 export const getIndexItemsUseCase = async ({ userId, page, limit }: Params) => {
-    const where: any = { status: "active" };
+    const where: ItemWhere = { status: "active" };
     if (userId) {
         where.seller_id = { [Op.ne]: userId };
     }

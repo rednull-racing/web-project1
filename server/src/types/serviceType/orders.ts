@@ -1,8 +1,10 @@
-import { Transaction } from "sequelize";
-import { Orders } from "../../models/index.js";
+import type { InferAttributes, Transaction, WhereOptions } from "sequelize";
+import type { Orders } from "../../models/index.js";
+
+export type OrderWhere = WhereOptions<InferAttributes<InstanceType<typeof Orders>>>;
 
 export type OrderListParams = {
-    where: any;
+    where: OrderWhere;
     limit: number;
     offset: number;
 };

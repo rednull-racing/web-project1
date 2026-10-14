@@ -32,7 +32,7 @@ export const searchBranchesUseCase = async ({ kw, bankCode }: Params) => {
                 nHira.includes(kw)
             );
         })
-        .map((b: typeof Branches) => ({
+        .map((b: InstanceType<typeof Branches>) => ({
             code: b.code,
             name: b.normalize?.name || b.name,
             kana: b.kana,
