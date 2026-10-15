@@ -1,6 +1,14 @@
 # shopSignup/signup2のテスト起動時のModel初期化を修正する
 
-## 問題の概要・原因
+## 進捗（2026-10-15・完了）
+
+- ユーザー指定に従い、既存の単一ファイル形式・5ケース・期待値を維持し、モック境界だけを修正。
+- 旧services/shopSignup.jsのモックを、実UseCaseがimportするquery.js・command.jsのモックへ分割。
+- 修正前はDeliveryStatusOption.initで停止し0件実行、修正後は対象テスト5件すべて成功。実Model・DB設定・本番コードは変更していない。
+- server全体lint・本番typecheckと、対象テストへのtypescript-eslint推奨設定による追加lintが通過。
+- test/tsconfig.jsonの型検査は対象外signup1・signup5の既存importエラー2件で失敗。別Todoへ記録。
+
+## 問題の概要・原因（修正前）
 
 `npm --prefix server run test:run -- test/usecases/shopSignup/signup2.test.ts` が、テスト実行前にSequelize Modelの初期化で停止する。
 `DeliveryStatusOption.init` から `Cannot read properties of undefined (reading 'define')` が発生し、0件実行となる。

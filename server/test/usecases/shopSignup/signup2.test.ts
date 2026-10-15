@@ -27,8 +27,11 @@ vi.mock("../../../src/services/branches.js", () => ({
     getBranchOne: mocks.getBranchOne,
 }));
 
-vi.mock("../../../src/services/shopSignup.js", () => ({
+vi.mock("../../../src/services/shopSignup/query.js", () => ({
     getMyShopSignup: mocks.getMyShopSignup,
+}));
+
+vi.mock("../../../src/services/shopSignup/command.js", () => ({
     updateShopSignupBankAccount: mocks.updateShopSignupBankAccount,
 }));
 

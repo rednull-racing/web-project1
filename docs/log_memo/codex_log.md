@@ -296,3 +296,10 @@
 - getMyVideoはItemへの必須JOINとseller_id条件で所有者を確認。Sale関連・transaction・戻り値を維持。
 - server全体lint・typecheck通過。DBモックで作成関連・全作成段階のエラー伝播、生成SQLで所有者条件・旧カラム不使用を確認。
 - 対象Todoを完了記録付きでdoneへ移動。Model変更・DB接続・migration実行なし。
+
+## 20261015_backend-test_signup2テストのModel初期化エラー修正
+
+- signup2.test.tsのShopSignupモック先を現行query.js・command.jsへ変更。既存形式・5ケース・期待値を維持。
+- 修正前のDeliveryStatusOption.initエラーを再現し、修正後の対象5件成功を確認。本番コード・DB設定は変更なし。
+- server全体lint・本番typecheck・対象テスト追加lintが通過。テスト型検査は対象外signup1・signup5の旧importエラー2件で失敗し、別Todoへ記録。
+- 対象Todoへ完了内容を記録。DB接続・migration実行なし。
