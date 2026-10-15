@@ -266,6 +266,7 @@ export const getMyShopInfoHasS3Data = ({ shopId, userId }: UserShopIdParams): Pr
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {

@@ -267,3 +267,11 @@
 - deleteUser.tsの返金口座引数エラーを、deleteUserRefund.tsの入力型修正で解消。
 - BankAccountの対象カラムをPickで参照し、口座自体のnullも許容。既存の空文字への変換処理は維持。
 - 全体lint・返金ヘルパー既存テスト3件が通過。typecheckは対象エラー解消、対象外2件が残存。
+
+## 20261015_backend-coding_関連取得プロパティ名の残存不一致修正
+
+- ShopInfoの関連定義・型・includeを既存参照のPermitへ統一。
+- prototypeの注文取得のカテゴリinclude・参照とItemのassociations型をCategoryへ統一。
+- server全体lint・typecheck、git diff --check通過。DB接続なしで関連名・include・関連ファイル有無・所有者条件を検証。
+- 元Todoを完了に更新。別件のShopInfo→Permit外部キー不整合はP1 Todoへ記録し、変更していない。
+- DBスキーマ変更・migration実行なし。

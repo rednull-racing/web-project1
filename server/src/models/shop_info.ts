@@ -41,6 +41,7 @@ export class ShopInfo extends Model {
     declare BankAccount?: NonAttribute<BankAccount | null>;
     declare ContactName?: NonAttribute<Name | null>;
     declare IdCard?: NonAttribute<IdCard | null>;
+    declare Permit?: NonAttribute<Permit[]>;
     declare RepresentativeName?: NonAttribute<Name | null>;
 
     static associate() {
@@ -72,6 +73,7 @@ export class ShopInfo extends Model {
         });
         ShopInfo.hasMany(Permit, {
             foreignKey: "permit_id",
+            as: "Permit",
         });
     }
 

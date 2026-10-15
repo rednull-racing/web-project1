@@ -117,7 +117,7 @@ export class Item extends Model {
         ItemLike: Association<Item, ItemLike>;
         Video: Association<Item, Video>;
         Sale: Association<Item, Sale>;
-        Categories: Association<Item, Categories>;
+        Category: Association<Item, Categories>;
         ItemReport: Association<Item, ItemReport>;
         Brand: Association<Item, Brands>;
         BrandAliases: Association<Item, BrandAliases>;

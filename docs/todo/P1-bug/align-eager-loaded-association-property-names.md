@@ -1,14 +1,17 @@
 # 関連取得結果の参照名をSequelizeの関連名へ合わせる
 
-## 進捗（2026-10-14）
+## 進捗（2026-10-15・完了）
 
 - Permit→S3Metadataは `as: "S3Metadata"` とModelの関連プロパティ型を追加し、取得側includeも同じ名前へ統一済み。
 - shopInfo・shopInfoEdit・shopSignupのgetFileは型推論で関連データを扱い、nullを除外する。該当するS3Metadata型エラーは解消済み。
 - ShopInfoEdit→Permitは `as: "Permit"` と配列の関連プロパティ型を追加し、取得側includeも統一済み。updateIdImage.tsの該当型エラーは解消済み。
 - ShopSignup→Permitも `as: "Permit"` と配列の関連プロパティ型を追加し、取得側includeを統一済み。oldShopSignup.tsの該当型エラーは解消済み。
-- ShopInfoのPermits／PermitおよびCategory／Categoriesの不一致は未修正。このTodoは未完了とする。
+- ShopInfo→Permitに `as: "Permit"` と配列の関連プロパティ型を追加し、取得側includeも統一済み。既存の参照・取得結果型および店舗編集・店舗申請の命名に合わせた。
+- prototypeのOrders取得にあるItem→Categoriesのincludeを2箇所とも `as: "Category"` に統一し、参照も `item.Category` へ修正。Itemの静的associations型も実際の関連名に修正済み。
+- server全体のlint・typecheck通過。DBクエリなしで関連定義・include検証、許可証の有無・S3Metadataのnull除外、ShopInfo取得の所有者条件を確認済み。
+- ShopInfo→Permitの既存外部キー `permit_id` は変更せず、別Todo `fix-shop-info-permit-foreign-key.md` に記録済み。
 
-## 問題の概要・原因
+## 問題の概要・原因（修正前）
 
 関連Modelの型を復元する作業で、既存の参照名と実際のSequelizeの関連名に不一致を確認した。
 該当プロパティはincludeしても設定されないため、関連データを取得済みでも未取得として扱われる可能性がある。
