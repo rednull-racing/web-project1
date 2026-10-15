@@ -289,3 +289,10 @@
 - UseCaseでSaleを先に作成し、同じtransactionの商品作成へsaleIdを渡してItem.sale_idに保存。
 - server全体lint・typecheck通過。DBモックで関連ID・所有者・transaction・戻り値・全作成段階のエラー伝播を確認。
 - 対象Todoを完了記録付きでdoneへ移動。Model変更・DB接続・migration実行なし。
+
+## 20261015_backend-coding_旧Videoサービスのカラム参照修正
+
+- createVideoのitem_id・user_id保存を廃止し、商品作成時に作成済みVideo.idをItem.video_idへ保存。
+- getMyVideoはItemへの必須JOINとseller_id条件で所有者を確認。Sale関連・transaction・戻り値を維持。
+- server全体lint・typecheck通過。DBモックで作成関連・全作成段階のエラー伝播、生成SQLで所有者条件・旧カラム不使用を確認。
+- 対象Todoを完了記録付きでdoneへ移動。Model変更・DB接続・migration実行なし。

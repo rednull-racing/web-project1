@@ -14,9 +14,9 @@ type Params = {
 export const createItemsUseCase = async ({ userId }: Params) => {
     return await sequelize.transaction(async (t) => {
         const sale = await createSale({ transaction: t });
-        const itemId = await createItem({ userId, saleId: sale.id, transaction: t });
+        const video = await createVideo({ transaction: t });
+        const itemId = await createItem({ userId, saleId: sale.id, videoId: video.id, transaction: t });
 
-        await createVideo({ userId, itemId, transaction: t });
         await createShipping({ itemId, transaction: t });
 
         return itemId;

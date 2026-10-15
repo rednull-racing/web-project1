@@ -1,6 +1,14 @@
 # 旧Video Serviceを現在の関連・カラム仕様と照合する
 
-## 問題の概要・原因
+## 進捗（2026-10-15・完了）
+
+- createVideoの削除済みitem_id・user_id保存が残っていたため修正。空の作成データでVideoを作成し、結果を返す。
+- 商品作成UseCaseでVideoを先に作成し、同じtransactionのcreateItemへvideoIdを渡してItem.video_idに保存。seller_idとsale_idの保存・商品idの戻り値を維持。
+- getMyVideoはVideo.idで絞り込み、Itemへのrequiredなincludeでseller_idを照合する。所有者が一致する関連Itemがない動画は取得しない。
+- server全体lint・typecheck通過。DBモックで関連ID・所有者・共通transaction・各作成段階のエラー伝播と後続停止を確認。生成SQLのINNER JOIN・seller_id条件・旧カラム不使用も確認。
+- Model・DBスキーマの変更なし。DB接続・migration実行なし。
+
+## 問題の概要・原因（修正前）
 
 onPlayのVideo.item_id参照を修正する作業で、旧Video Serviceにも削除済みカラムの参照が残っていることを確認した。
 createVideoはitem_id・user_idを作成データへ渡し、getMyVideoはuser_idで検索するが、現在のVideo Modelには両カラムがない。

@@ -1,4 +1,4 @@
-import { Video } from "../models/index.js";
+import { Item, Video } from "../models/index.js";
 import {
     CreateVideoParams,
     PlayCountParams,
@@ -16,8 +16,15 @@ export const getMyVideo = ({ videoId, userId }: VideoUserIdParams) => {
     return Video.findOne({
         where: {
             id: videoId,
-            user_id: userId,
         },
+        include: [
+            {
+                model: Item,
+                attributes: [],
+                where: { seller_id: userId },
+                required: true,
+            },
+        ],
     });
 };
 
@@ -25,14 +32,8 @@ export const addPlayCount = async ({ video, data }: PlayCountParams) => {
     await video.update(data);
 };
 
-export const createVideo = async ({ itemId, userId, transaction }: CreateVideoParams) => {
-    await Video.create(
-        {
-            user_id: userId,
-            item_id: itemId,
-        },
-        { transaction },
-    );
+export const createVideo = async ({ transaction }: CreateVideoParams) => {
+    return Video.create({}, { transaction });
 };
 
 export const updateStatus = async ({ video, data }: UpdateStatusParams) => {

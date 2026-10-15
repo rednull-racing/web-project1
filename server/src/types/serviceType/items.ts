@@ -104,6 +104,7 @@ export type UserIdTransactionParams = {
 
 export type CreateItemParams = UserIdTransactionParams & {
     saleId: number;
+    videoId: number;
 };
 
 export type ItemTransactionParams = {
