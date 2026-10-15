@@ -89,12 +89,10 @@ export const deleteNotificationUserLogical = async ({
     userId,
     transaction,
 }: DeleteNotificationUserIdTransactionParams) => {
-    await Notification.destroy(
-        {
-            where: { read_user_id: userId },
-        },
-        { transaction },
-    );
+    await Notification.destroy({
+        where: { read_user_id: userId },
+        transaction,
+    });
 };
 
 export const deleteCronNotification = ({ expiredBefore }: CronDeleteNotificationParams) => {

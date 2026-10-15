@@ -1,17 +1,12 @@
+import type BankAccount from "../../../models/bank_account.js";
 import { BankSnapshot } from "../../../types/bankSnapshot.js";
 
-type RefundBankAccount = {
-    bank_name: string;
-    branch: string;
-    account_type: BankSnapshot["account_type"];
-    account_number: string;
-    meigi: string;
-};
+type RefundBankAccount = Pick<BankAccount, "bank_name" | "branch" | "account_type" | "account_number" | "meigi">;
 
 const UNREGISTERED_BANK_ACCOUNT_MESSAGE =
     "口座情報が未登録です。至急口座を登録してください。30日以内に登録がない場合、返金できませんのでご注意ください。";
 
-export const createBuyerRefundBankSnapshot = (account?: RefundBankAccount): BankSnapshot => ({
+export const createBuyerRefundBankSnapshot = (account?: RefundBankAccount | null): BankSnapshot => ({
     bank_name: account?.bank_name ?? "",
     branch_name: account?.branch ?? "",
     account_type: account?.account_type ?? "",

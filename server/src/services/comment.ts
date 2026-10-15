@@ -111,12 +111,10 @@ export const destroyAllComments = async ({ comments, transaction }: DestroyAllPa
 };
 
 export const deleteCommentUserLogical = async ({ userId, transaction }: DeleteCommentUserIdTransactionParams) => {
-    await Comment.destroy(
-        {
-            where: { user_id: userId },
-        },
-        { transaction },
-    );
+    await Comment.destroy({
+        where: { user_id: userId },
+        transaction,
+    });
 };
 
 export const countItemPageComment = ({ itemId }: ItemIdParams) => {

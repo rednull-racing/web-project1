@@ -64,7 +64,6 @@ export const getShopSignup1One = ({ userId }: UserIdParams) => {
                 required: false,
             },
         ],
-        require: false,
     });
 };
 

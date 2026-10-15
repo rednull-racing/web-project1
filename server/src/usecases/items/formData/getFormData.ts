@@ -32,7 +32,7 @@ export const getFormDataUseCase = async ({ itemId, userId }: Params) => {
         getUserHasShop({ userId: Number(item.seller_id) }),
     ]);
 
-    const hasShop = !!userHasShop.ShopInfo;
+    const hasShop = !!userHasShop?.ShopInfo;
 
     return {
         item,

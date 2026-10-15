@@ -67,12 +67,10 @@ export const createTransfer = ({ data, transaction }: CreateTransferParams) => {
 };
 
 export const deleteTransferUserLogical = async ({ userId, transaction }: DeleteTransferUserIdTransactionParams) => {
-    await Transfer.destroy(
-        {
-            where: { user_id: userId },
-        },
-        { transaction },
-    );
+    await Transfer.destroy({
+        where: { user_id: userId },
+        transaction,
+    });
 };
 
 export const sumTransferNotFinishUser = ({ userId }: UserIdParams) => {

@@ -39,7 +39,6 @@ export const getFollowList = async ({ pageUserId, type, keyword }: ListParams): 
         attributes: ["id"],
         where,
         order: [["createdAt", "DESC"]],
-        distinct: true,
         include: [
             {
                 model: User,
@@ -71,21 +70,17 @@ export const destroyFollow = async ({ follow }: DestroyParams) => {
 };
 
 export const deleteFollowUserLogical = async ({ userId, transaction }: DeleteFollowUserIdTransactionParams) => {
-    await Follow.destroy(
-        {
-            where: { follow_user_id: userId },
-        },
-        { transaction },
-    );
+    await Follow.destroy({
+        where: { follow_user_id: userId },
+        transaction,
+    });
 };
 
 export const deleteFollowerUserLogical = async ({ userId, transaction }: DeleteFollowUserIdTransactionParams) => {
-    await Follow.destroy(
-        {
-            where: { follower_user_id: userId },
-        },
-        { transaction },
-    );
+    await Follow.destroy({
+        where: { follower_user_id: userId },
+        transaction,
+    });
 };
 
 export const countFollowBoth = async ({ userId }: CountParams) => {

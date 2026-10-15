@@ -27,9 +27,11 @@ export const getBrandsSuggestUseCase = async ({ keyword }: Params) => {
         brandMap.set(d.id, d);
     }
 
-    for (const alias of fromAlias) {
-        if (alias.brand) {
-            brandMap.set(alias.brand.id, alias.brand);
+    if (fromAlias) {
+        for (const alias of fromAlias) {
+            if (alias.brand) {
+                brandMap.set(alias.brand.id, alias.brand);
+            }
         }
     }
 

@@ -47,12 +47,10 @@ export const createPurchaseSession = ({ data, transaction }: CreatePurchaseSessi
 };
 
 export const deleteCron = async ({ now, transaction }: CronDeleteParams) => {
-    return PurchaseSession.destroy(
-        {
-            where: {
-                expires_at: { [Op.lt]: now },
-            },
+    return PurchaseSession.destroy({
+        where: {
+            expires_at: { [Op.lt]: now },
         },
         transaction,
-    );
+    });
 };

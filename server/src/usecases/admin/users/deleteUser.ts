@@ -283,7 +283,7 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
 
                         deleteOrder.push({
                             orders_id: order.id,
-                            delivery_id: order.Delivery.id,
+                            delivery_id: Number(order.Delivery?.id),
                             cancel_reason: "出品者削除",
                             refund_status: "未返金",
                             refund_method: "口座振込",

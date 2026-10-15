@@ -96,10 +96,8 @@ export const destroyAllCarts = async ({ carts, transaction }: DestroyAllParams) 
 };
 
 export const deleteCartUserLogical = async ({ userId, transaction }: DeleteCartUserTransactionParams) => {
-    await Cart.destroy(
-        {
-            where: { user_id: userId },
-        },
-        { transaction },
-    );
+    await Cart.destroy({
+        where: { user_id: userId },
+        transaction,
+    });
 };

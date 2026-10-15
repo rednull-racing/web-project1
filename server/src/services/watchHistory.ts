@@ -92,12 +92,10 @@ export const deleteWatchHistoryUserLogical = async ({
     userId,
     transaction,
 }: DeleteWatchHistoryUserIdTransactionParams) => {
-    await WatchHistory.destroy(
-        {
-            where: { user_id: userId },
-        },
-        { transaction },
-    );
+    await WatchHistory.destroy({
+        where: { user_id: userId },
+        transaction,
+    });
 };
 
 export const deleteCronWatchHistory = ({ updatedBefore }: CronDeleteWatchHistoryParams) => {

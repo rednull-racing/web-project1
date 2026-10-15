@@ -126,7 +126,7 @@ export const getSearchItemsUseCase = async ({ keyword, limit, sort, cursorScore,
 
     const nextCursorScore = (() => {
         if (sort === "popular") return Number(lastItem.sort_number);
-        if (sort === "new") return lastItem.uploaded_at.getTime();
+        if (sort === "new") return lastItem.uploaded_at?.getTime();
         if (sort === "priceAsc" || sort === "priceDesc") return lastItem.price;
         return undefined;
     })();

@@ -1,6 +1,6 @@
 import { InferAttributes, Transaction, WhereOptions } from "sequelize";
-import { Transfer } from "../../models/index.js";
 import { BankSnapshot } from "../bankSnapshot.js";
+import Transfer from "../../models/transfer.js";
 
 export type TransIdParams = {
     transId: number;
@@ -20,7 +20,7 @@ export type TransferIdParams = {
 };
 
 export type TransferHistoryParams = {
-    where: WhereOptions<InferAttributes<typeof Transfer>>;
+    where: WhereOptions<InferAttributes<Transfer>>;
     limit: number;
 };
 

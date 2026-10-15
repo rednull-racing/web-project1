@@ -33,7 +33,6 @@ export const getItemLikeList = async ({ itemId, keyword }: ListParams) => {
         attributes: ["id"],
         where: { item_id: itemId },
         order: [["createdAt", "DESC"]],
-        distinct: true,
         include: [
             {
                 model: User,
@@ -125,12 +124,10 @@ export const destroyItemLikeTransaction = async ({ itemLikes, transaction }: Des
 };
 
 export const deleteItemLikeUserLogical = async ({ userId, transaction }: DeleteItemLikeUserIdTransactionParams) => {
-    await ItemLike.destroy(
-        {
-            where: { user_id: userId },
-        },
-        { transaction },
-    );
+    await ItemLike.destroy({
+        where: { user_id: userId },
+        transaction,
+    });
 };
 
 export const countItemLike = async ({ itemId }: ItemIdParams) => {

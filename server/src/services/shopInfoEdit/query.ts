@@ -363,7 +363,7 @@ export const getMyShopEditHasS3Data = ({
     shopEditId,
     userId,
 }: ShopEditUserIdParams): Promise<ShopEditWithS3Data | null> => {
-    return ShopInfo.findOne({
+    return ShopInfoEdit.findOne({
         where: {
             id: shopEditId,
             user_id: userId,

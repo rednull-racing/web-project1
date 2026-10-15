@@ -50,7 +50,7 @@ export const deleteItemLogicallyUseCase = async ({ itemId, userId }: Params) => 
         await updateLogicalDeleteItem({
             item,
             data: {
-                price: item.Sale?.before_price ?? item.before_price,
+                price: item.Sale?.before_price ?? Number(item.price),
             },
             transaction: t,
         });

@@ -12,6 +12,13 @@
 - 最新のtypecheckは107件のエラーが残存。関連先やカラムのnull確認、存在しないカラム、Modelクラスとインスタンスの混同、Sequelizeメソッドの引数不整合は未修正。
 - 関連名の不一致は `docs/todo/P1-bug/align-eager-loaded-association-property-names.md` に記録し、型宣言で隠さず別途対応する。
 
+## 進捗（2026-10-15）
+
+- `server/src/services` の型エラー17件を解消。destroyのtransactionを同一optionsへ統合し、findAllの未対応distinctとfindOneの無効なrequireを削除。店舗編集のS3データ取得先をShopInfoEditへ修正。
+- 全体lintは通過。typecheckはservices内の指摘なし、対象外のtypes・usecasesに13件が残存しているため未完了。
+- `getShopSignup1One` の戻り値が正しくnullableと推論され、`server/src/usecases/shopSignup/get/signup1.ts` の16行目に2件のnull参照エラーが表面化。後続作業で呼び出し側の存在確認と既存エラー処理を確認する。
+- services外の型エラーは今回修正していない。`any`・型アサーションの追加やModel・DBの変更なし。
+
 ## 問題の概要・原因
 
 `server/src/models/index.ts` のModel登録オブジェクトが `any` のため、再exportされたModelと取得結果の型情報が失われている。

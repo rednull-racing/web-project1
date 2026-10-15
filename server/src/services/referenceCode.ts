@@ -27,22 +27,18 @@ export const deleteInputCodeUserLogical = async ({
     userId,
     transaction,
 }: DeleteReferenceCodeUserIdTransactionParams) => {
-    await ReferenceCode.destroy(
-        {
-            where: { input_user_id: userId },
-        },
-        { transaction },
-    );
+    await ReferenceCode.destroy({
+        where: { input_user_id: userId },
+        transaction,
+    });
 };
 
 export const deleteOutputCodeUserLogical = async ({
     userId,
     transaction,
 }: DeleteReferenceCodeUserIdTransactionParams) => {
-    await ReferenceCode.destroy(
-        {
-            where: { output_user_id: userId },
-        },
-        { transaction },
-    );
+    await ReferenceCode.destroy({
+        where: { output_user_id: userId },
+        transaction,
+    });
 };

@@ -252,3 +252,18 @@
 - 検証ヘルパーだけを評価し、通常／名称のみ／null／空配列／不正データを確認。スクリプト・DB更新・外部API呼び出しは実行していない。
 - server全体lint・git diff --check通過。typecheckは対象外28件の既存エラーで失敗。対象スクリプトの型エラーなし。
 - ページング・保存カラム・commit／rollbackの流れを維持。ライブラリ追加なし。
+## 20261015_backend-coding_services型エラー修正
+
+- services配下12ファイルの型エラー17件を解消。削除12箇所のtransactionをoptionsに統合。
+- findAllの未対応distinctとfindOneの無効なrequireを削除し、店舗編集S3取得をShopInfoEditへ修正。
+- モックで削除条件・transactionの有無・DBエラー伝播・期限削除の戻り値・店舗編集の取得先と所有者条件を確認。
+- 全体lint・git diff --check通過。typecheckはservices内0件、対象外13件で失敗。
+- services外のソースは変更せず、店舗申請取得のnullable推論で表面化した呼び出し側2件を既存Todoに記録。
+
+---
+
+## 20261015_backend-coding_ユーザー削除返金口座のnullable型修正
+
+- deleteUser.tsの返金口座引数エラーを、deleteUserRefund.tsの入力型修正で解消。
+- BankAccountの対象カラムをPickで参照し、口座自体のnullも許容。既存の空文字への変換処理は維持。
+- 全体lint・返金ヘルパー既存テスト3件が通過。typecheckは対象エラー解消、対象外2件が残存。

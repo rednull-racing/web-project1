@@ -25,7 +25,6 @@ export const getCommentLikeList = async ({ commentId, keyword }: ListParams) => 
         attributes: ["id"],
         where: { comment_id: commentId },
         order: [["createdAt", "DESC"]],
-        distinct: true,
         include: [
             {
                 model: User,
@@ -59,12 +58,10 @@ export const deleteCommentLikeUserLogical = async ({
     userId,
     transaction,
 }: DeleteCommentLikeUserIdTransactionParams) => {
-    await CommentLike.destroy(
-        {
-            where: { user_id: userId },
-        },
-        { transaction },
-    );
+    await CommentLike.destroy({
+        where: { user_id: userId },
+        transaction,
+    });
 };
 
 export const countCommentLike = async ({ commentId }: CommentIdParams) => {

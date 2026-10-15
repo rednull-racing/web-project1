@@ -33,10 +33,10 @@ export const postPurchaseSessionUseCase = async ({ itemId, userId }: Params) => 
 
     // 住所・氏名取得
     const userAddress = await getUserHasAddress({ userId });
-    const address = userAddress.Address;
+    const address = userAddress?.Address;
 
     const userName = await getUserHasName({ userId });
-    const name = userName.Name;
+    const name = userName?.Name;
 
     // データ作成
     const purchaseSessionId = await sequelize.transaction(async (t) => {
