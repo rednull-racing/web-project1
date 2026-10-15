@@ -1,6 +1,14 @@
 # 旧createSaleをItem.sale_idの関連仕様と照合する
 
-## 問題の概要・原因
+## 進捗（2026-10-15・完了）
+
+- 旧createSaleにSale.item_idへの保存が残っていたため修正。Saleは空の作成データで作成し、作成結果を返す。
+- 呼び出し元UseCaseでSaleを先に作成し、そのidをcreateItemへ渡してItem.sale_idに保存する。
+- Sale・Item・Video・配送設定の作成へ同じtransactionを渡す。APIの戻り値は既存の商品idを維持。
+- server全体lint・typecheck通過。DBをモックし、sale_id・seller_id・transaction・戻り値・各作成段階のエラー伝播と後続停止を確認。
+- Model・DBスキーマの変更なし。DB接続・migration実行なし。
+
+## 問題の概要・原因（修正前）
 
 Saleから対応するItemを取得する処理の修正中、旧 `createSale` が削除済みの `Sale.item_id` を作成データへ渡していることを確認した。
 現在のModelはItemのsale_idがSaleを参照するため、旧作成処理では関連を設定できない。

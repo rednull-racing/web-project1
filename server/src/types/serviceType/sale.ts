@@ -6,7 +6,6 @@ export type SaleIdParams = {
 };
 
 export type CreateSaleParams = {
-    itemId: number;
     transaction: Transaction;
 };
 

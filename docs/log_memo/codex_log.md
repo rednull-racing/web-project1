@@ -282,3 +282,10 @@
 - 関連名Permit・hasMany・カラム制約を維持。既存migrationと整合しており、新規migrationは不要。
 - server全体lint・typecheck通過。DB接続なしで双方向の外部キー・生成JOIN・所有者条件・関連ファイル有無を確認。
 - 対象Todoを完了に更新。DBクエリ・migration実行なし。
+
+## 20261015_backend-coding_旧商品作成のSale関連保存修正
+
+- createSaleに残っていたSale.item_idへの保存を削除し、Sale作成結果を返すよう変更。
+- UseCaseでSaleを先に作成し、同じtransactionの商品作成へsaleIdを渡してItem.sale_idに保存。
+- server全体lint・typecheck通過。DBモックで関連ID・所有者・transaction・戻り値・全作成段階のエラー伝播を確認。
+- 対象Todoを完了記録付きでdoneへ移動。Model変更・DB接続・migration実行なし。

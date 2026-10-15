@@ -13,10 +13,10 @@ type Params = {
 // page: /upload/before
 export const createItemsUseCase = async ({ userId }: Params) => {
     return await sequelize.transaction(async (t) => {
-        const itemId = await createItem({ userId, transaction: t });
+        const sale = await createSale({ transaction: t });
+        const itemId = await createItem({ userId, saleId: sale.id, transaction: t });
 
         await createVideo({ userId, itemId, transaction: t });
-        await createSale({ itemId, transaction: t });
         await createShipping({ itemId, transaction: t });
 
         return itemId;

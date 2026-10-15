@@ -102,6 +102,10 @@ export type UserIdTransactionParams = {
     transaction: Transaction;
 };
 
+export type CreateItemParams = UserIdTransactionParams & {
+    saleId: number;
+};
+
 export type ItemTransactionParams = {
     item: InstanceType<typeof Item>;
     transaction: Transaction;

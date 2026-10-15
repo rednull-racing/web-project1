@@ -11,13 +11,8 @@ export const getSale = ({ saleId }: SaleIdParams) => {
     return Sale.findByPk(saleId);
 };
 
-export const createSale = async ({ itemId, transaction }: CreateSaleParams) => {
-    await Sale.create(
-        {
-            item_id: itemId,
-        },
-        { transaction },
-    );
+export const createSale = async ({ transaction }: CreateSaleParams) => {
+    return Sale.create({}, { transaction });
 };
 
 export const updateLogicalDelete = async ({ sale, transaction }: LogicalDeleteUpdateParams) => {
