@@ -72,7 +72,7 @@ export class ShopInfo extends Model {
             foreignKey: "shop_info_id",
         });
         ShopInfo.hasMany(Permit, {
-            foreignKey: "permit_id",
+            foreignKey: "shop_info_id",
             as: "Permit",
         });
     }

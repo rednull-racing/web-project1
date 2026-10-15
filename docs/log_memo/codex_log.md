@@ -275,3 +275,10 @@
 - server全体lint・typecheck、git diff --check通過。DB接続なしで関連名・include・関連ファイル有無・所有者条件を検証。
 - 元Todoを完了に更新。別件のShopInfo→Permit外部キー不整合はP1 Todoへ記録し、変更していない。
 - DBスキーマ変更・migration実行なし。
+
+## 20261015_backend-model_ShopInfo許可証関連の外部キー修正
+
+- Permitモデルのカラム定義に合わせ、ShopInfo→PermitのforeignKeyをpermit_idからshop_info_idへ修正。
+- 関連名Permit・hasMany・カラム制約を維持。既存migrationと整合しており、新規migrationは不要。
+- server全体lint・typecheck通過。DB接続なしで双方向の外部キー・生成JOIN・所有者条件・関連ファイル有無を確認。
+- 対象Todoを完了に更新。DBクエリ・migration実行なし。

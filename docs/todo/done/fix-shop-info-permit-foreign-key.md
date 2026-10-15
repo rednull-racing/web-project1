@@ -1,6 +1,13 @@
 # ShopInfoからPermitを取得する外部キーを確認・修正する
 
-## 問題の概要・原因
+## 進捗（2026-10-15・完了）
+
+- Permitモデルの `shop_info_id` カラム定義を正として、ShopInfo.hasMany(Permit)のforeignKeyを `shop_info_id` に修正。
+- 関連名 `Permit` とhasManyを維持。カラム定義の変更はなく、既存migrationも同じ外部キーを定義しているため新規migrationは不要。
+- server全体lint・typecheck通過。DB接続なしで双方向の外部キー、生成SQLのJOIN条件、所有者条件、関連ファイルの有無・nullを確認。
+- DBクエリ・migrationは実行していない。
+
+## 問題の概要・原因（修正前）
 
 `ShopInfo.hasMany(Permit)` のforeignKeyが `permit_id` になっている。
 Permitの明示的なカラム定義と逆方向の `Permit.belongsTo(ShopInfo)` は `shop_info_id` を使用しており、一致していない。
