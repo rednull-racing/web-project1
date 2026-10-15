@@ -303,3 +303,18 @@
 - 修正前のDeliveryStatusOption.initエラーを再現し、修正後の対象5件成功を確認。本番コード・DB設定は変更なし。
 - server全体lint・本番typecheck・対象テスト追加lintが通過。テスト型検査は対象外signup1・signup5の旧importエラー2件で失敗し、別Todoへ記録。
 - 対象Todoへ完了内容を記録。DB接続・migration実行なし。
+
+## 20261015_backend-test_signup1とsignup5のimport先修正
+
+- ユーザー指定に従い、UseCase・helperのimport先とShopSignup依存モック先だけを現行パスへ修正。
+- テスト形式・既存ケース・期待値を維持。本番コード・DB設定は変更なし。
+- signup1・signup2・signup5の17件成功。全体lint・本番typecheck・テスト型検査通過。
+- 対象テストへのtypescript-eslint推奨設定による追加lintはsignup1の既存未使用変数4件で失敗し、別Todoへ記録。
+- 対象Todoを完了に更新。DB接続・migration実行なし。
+
+## 20261015_backend-test_signup1テストの未使用変数解消
+
+- 任意項目省略ケースの入力をSignup1Body型で宣言し、対象4プロパティをdeleteして未使用変数を解消。
+- 既存の入力条件・期待値・テスト形式を維持。本番コード・共通lint設定の変更なし。
+- 対象8件成功。全体lint・対象テスト追加lint・本番とテストの型検査・git diff --checkが通過。
+- 対象Todoに完了内容を記録。DB接続・migration実行なし。

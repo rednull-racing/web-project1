@@ -14,17 +14,20 @@ vi.mock("../../../src/db.js", () => ({
     },
 }));
 
-vi.mock("../../../src/services/shopSignup.js", () => ({
+vi.mock("../../../src/services/shopSignup/query.js", () => ({
     getMyShopSignup: mocks.getMyShopSignup,
     getOldShopSignupAll: mocks.getOldShopSignupAll,
+}));
+
+vi.mock("../../../src/services/shopSignup/command.js", () => ({
     updateShopSignupRequestAll: mocks.updateShopSignupRequestAll,
 }));
 
-vi.mock("../../../src/usecases/shopSignup/signup5/oldShopSignup.js", () => ({
+vi.mock("../../../src/usecases/shopSignup/edit/signup5/oldShopSignup.js", () => ({
     deleteOldShopSignup: mocks.deleteOldShopSignup,
 }));
 
-import { updateShopSignup5UseCase } from "../../../src/usecases/shopSignup/signup5/signup5.js";
+import { updateShopSignup5UseCase } from "../../../src/usecases/shopSignup/edit/signup5/signup5.js";
 
 const transaction = { id: "transaction" };
 const shopSignup = { id: 11 };

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Signup1Body } from "../../../src/usecases/shopSignup/edit/signup1/body.js";
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn(),
@@ -22,7 +23,7 @@ vi.mock("../../../src/services/name.js", () => ({
     createNameShop: mocks.createNameShop,
 }));
 
-vi.mock("../../../src/services/shopSignup.js", () => ({
+vi.mock("../../../src/services/shopSignup/command.js", () => ({
     createShopSignup: mocks.createShopSignup,
 }));
 
@@ -30,7 +31,7 @@ vi.mock("../../../src/usecases/address/zipUseCase.js", () => ({
     fetchAddressFromZipUseCase: mocks.fetchAddressFromZipUseCase,
 }));
 
-import { createShopSignup1 } from "../../../src/usecases/shopSignup/signup1.js";
+import { createShopSignup1 } from "../../../src/usecases/shopSignup/edit/signup1/signup1.js";
 
 const transaction = { id: "transaction" };
 const foundedDate = new Date("2020-04-01T00:00:00.000Z");
@@ -184,13 +185,11 @@ describe("createShopSignup1", () => {
     });
 
     it("任意項目を省略した個人事業主では既定値を設定する", async () => {
-        const {
-            homepage: _homepage,
-            building: _building,
-            companyNumber: _companyNumber,
-            capital: _capital,
-            ...body
-        } = createBody();
+        const body: Signup1Body = createBody();
+        delete body.homepage;
+        delete body.building;
+        delete body.companyNumber;
+        delete body.capital;
 
         await createShopSignup1({
             userId: 7,
