@@ -7,7 +7,7 @@
 2026-10-16のcontroller配置変更後、server/で次のテストを実行すると、両suiteとも収集時に `DATABASE_URL is not set!` で停止した。
 
 - `test/usecases/itemEditing/createItemEditingDraft/controller.test.ts`
-- `test/usecases/itemEditing/updateConfirm/controller.test.ts`
+- `src/controllers/itemEditing/test/updateConfirm.test.ts`
 
 移動した `src/controllers/itemEditing/test/createItemEditingCopy.test.ts` は5件成功している。
 

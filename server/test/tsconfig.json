@@ -4,5 +4,14 @@
         "rootDir": "..",
         "noEmit": true
     },
-    "include": ["./**/*.ts"]
+    "include": [
+        "./**/*.ts",
+        "../src/**/test/**/*.ts"
+    ],
+    "exclude": [
+        "../node_modules",
+        "../dist",
+        "../src/maintenance/**",
+        "../src/prototype/**"
+    ]
 }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { updateConfirm } from "../../../../src/services/itemEditing/command.js";
-import { deferred, expectAppError, makeBody, makeItem } from "./fixtures.js";
+import type { updateConfirm } from "../../../services/itemEditing/command.js";
+import { deferred, expectAppError, makeBody, makeItem } from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn(),
@@ -12,23 +12,23 @@ const mocks = vi.hoisted(() => ({
     validateMaster: vi.fn(),
     resolveBrand: vi.fn(),
 }));
-vi.mock("../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
-vi.mock("../../../../src/services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
-vi.mock("../../../../src/services/itemEditing/command.js", () => ({
+vi.mock("../../../db.js", () => ({ default: { transaction: mocks.transaction } }));
+vi.mock("../../../services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
+vi.mock("../../../services/itemEditing/command.js", () => ({
     updateConfirm: mocks.updateConfirm,
     updateItemEditingImage: mocks.updateItemEditingImage,
 }));
-vi.mock("../../../../src/usecases/shared/buildSignedUrls.js", () => ({
+vi.mock("../../shared/buildSignedUrls.js", () => ({
     buildSignedUrls: mocks.buildSignedUrls,
 }));
-vi.mock("../../../../src/usecases/shared/validateNumber.js", () => ({
+vi.mock("../../shared/validateNumber.js", () => ({
     validateNumber: mocks.validateNumber,
 }));
-vi.mock("../../../../src/usecases/shared/validateMaster.js", () => ({
+vi.mock("../../shared/validateMaster.js", () => ({
     validateMaster: mocks.validateMaster,
 }));
-vi.mock("../../../../src/usecases/shared/resolveBrand.js", () => ({ resolveBrand: mocks.resolveBrand }));
-import { updateItemEditingConfirmUseCase } from "../../../../src/usecases/itemEditing/updateConfirm.js";
+vi.mock("../../shared/resolveBrand.js", () => ({ resolveBrand: mocks.resolveBrand }));
+import { updateItemEditingConfirmUseCase } from "../updateConfirm.js";
 
 const transaction = { id: "test-transaction" };
 const ids = { categoryId: 21, conditionId: 31, dayId: 41, serviceId: 51, placeId: 13, brandId: 61 };

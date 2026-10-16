@@ -3,12 +3,12 @@ import express, { type ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "./fixtures.js";
+import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
 const mocks = vi.hoisted(() => ({ update: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
+vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: ReturnType<typeof express>;
 let secret: string;
@@ -35,8 +35,8 @@ beforeEach(async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     secret = randomBytes(32).toString("hex");
     vi.stubEnv("NEXTAUTH_SECRET", secret);
-    const { default: router } = await import("../../../../src/routes/itemEditing.js");
-    const { AppError } = await import("../../../../src/errors.js");
+    const { default: router } = await import("../../../../../src/routes/itemEditing.js");
+    const { AppError } = await import("../../../../../src/errors.js");
     app = express();
     app.use(express.json());
     app.use("/api/item-editing", router);
@@ -103,7 +103,7 @@ describe("P1: 実Router・認証・validatorの接続（usecaseのみモック�
 
 describe("F3/F4: 実Routerのエラー接続", () => {
     it("AF-I06: usecaseのITEM_IMAGE_NULLを400で引き渡す", async () => {
-        const { AppError } = await import("../../../../src/errors.js");
+        const { AppError } = await import("../../../../../src/errors.js");
         mocks.update.mockRejectedValue(new AppError("ITEM_IMAGE_NULL", 400));
         const result = await put();
         expect(result.status).toBe(400);

@@ -1,12 +1,12 @@
-import "./databaseSetup.js";
+import "../../../../fixtures/itemEditing/updateConfirm/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryTypes } from "sequelize";
-import { seed, run, snapshot, newMedia, observer, sequelize, ItemEditing, BrandAliases } from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { deferred, expectAppError } from "./fixtures.js";
-import * as query from "../../../../src/services/itemEditing/query.js";
-import * as command from "../../../../src/services/itemEditing/command.js";
-import * as aliases from "../../../../src/services/brandAliases.js";
+import { seed, run, snapshot, newMedia, observer, sequelize, ItemEditing, BrandAliases } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
+import { deferred, expectAppError } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
+import * as query from "../../../../../src/services/itemEditing/query.js";
+import * as command from "../../../../../src/services/itemEditing/command.js";
+import * as aliases from "../../../../../src/services/brandAliases.js";
 
 let f: DbFixture;
 beforeEach(async () => {

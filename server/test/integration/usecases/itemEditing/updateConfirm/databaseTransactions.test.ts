@@ -1,11 +1,11 @@
-import "./databaseSetup.js";
+import "../../../../fixtures/itemEditing/updateConfirm/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForeignKeyConstraintError, QueryTypes } from "sequelize";
-import { seed, run, snapshot, newMedia, observer, ItemEditing, BrandAliases } from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { deferred } from "./fixtures.js";
-import * as command from "../../../../src/services/itemEditing/command.js";
-import * as master from "../../../../src/usecases/shared/validateMaster.js";
+import { seed, run, snapshot, newMedia, observer, ItemEditing, BrandAliases } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
+import { deferred } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
+import * as command from "../../../../../src/services/itemEditing/command.js";
+import * as master from "../../../../../src/usecases/shared/validateMaster.js";
 
 let f: DbFixture;
 beforeEach(async () => {

@@ -1,13 +1,13 @@
 import type { Request, Response } from "express";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "../../../../src/errors.js";
-import { makeBody } from "./fixtures.js";
+import { AppError } from "../../../errors.js";
+import { makeBody } from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
 const mocks = vi.hoisted(() => ({ update: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
+vi.mock("../../../usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-import { updateItemEditingConfirmController } from "../../../../src/controllers/itemEditing/itemEditing.js";
+vi.mock("../../../usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+import { updateItemEditingConfirmController } from "../itemEditing.js";
 const response = () => {
     const json = vi.fn(),
         status = vi.fn();

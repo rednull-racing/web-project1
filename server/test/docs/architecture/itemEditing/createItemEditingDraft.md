@@ -6,7 +6,7 @@
 
 根拠は [createItemEditingDraft 詳細設計](../../../../../docs/design/backend/detail/itemEditing/createItemEditingDraft.md)、特に「8. テスト設計」と、2026-10-13 時点の本番コード。本書はテスト実装前の設計であり、実行結果を示さない。詳細設計の契約と現行挙動を区別し、不一致をテストの期待値変更で隠さない。
 
-記述・分割・fixture・DB 検証は [usecases/AGENTS.md](../../../usecases/AGENTS.md)、[updateConfirm/testArchitecture.md](../../../usecases/itemEditing/updateConfirm/testArchitecture.md)、同ディレクトリの `fixtures.ts`、`usecase.test.ts`、`services.test.ts`、`controller.test.ts`、`route.test.ts`、`databaseSetup.ts`、`databaseFixtures.ts`、`databaseConcurrency.test.ts` を参考にする。参照元の `testReport.md`、`afterFix.md` の過去報告は現行仕様と混同せず、2026-10-12 の修正後契約を区別する。
+記述・分割・fixture・DB 検証は [usecases/AGENTS.md](../../../usecases/AGENTS.md)、[updateConfirm/testArchitecture.md](updateConfirm.md)、同設計書冒頭の配置表に記載された単体・結合テストと fixture を参考にする。参照元の `testReport.md`、`afterFix.md` の過去報告は現行仕様と混同せず、2026-10-12 の修正後契約を区別する。
 
 今回編集するのは本書のみ。テストコード・fixture・報告書の作成、本番コード・詳細設計・設定・Todo の変更、DB 接続、migration 実行は対象外。フロント遷移、公開商品更新、S3 アップロード、動画変換も対象 usecase の責務ではない。
 

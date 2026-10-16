@@ -8,7 +8,7 @@
 
 作成する成果物は本書だけ。既存コード、既存テスト、設定は変更しない。実 S3 へのアップロード、動画変換、商品公開、他 API の修正、負荷試験は対象外とする。
 
-基準は [usecase テスト共通ルール](../../AGENTS.md) と [updateConfirm の設計例](../../itemEditing/updateConfirm/testArchitecture.md)。設計例の過去の観測を現在の仕様として転記しない。共通 helper の現在の実装を読み直し、この usecase 固有の作成処理・transaction 境界に合わせる。
+基準は [usecase テスト共通ルール](../../AGENTS.md) と [updateConfirm の設計例](../../../docs/architecture/itemEditing/updateConfirm.md)。設計例の過去の観測を現在の仕様として転記しない。共通 helper の現在の実装を読み直し、この usecase 固有の作成処理・transaction 境界に合わせる。
 
 ### 特に区別する現行挙動
 
@@ -39,7 +39,7 @@
 | `src/models/{user,item,item_condition_option,shipping_day_option,shipping_service_option,todouhuken_option}.ts`   | DB fixture の親行と非対象行                                               |
 | `src/db.ts`、`src/models/index.ts`、`src/config/config.ts`                                                        | DB 接続・モデル初期化、dotenv 読込み経路                                  |
 | `migrations/20261006044008-create-table-item-draft.js`、`migrations/20261006044423-update-column-item-editing.js` | 下書きテーブルの制約資料、参照元 item_id の nullable 化                   |
-| `test/usecases/itemEditing/updateConfirm/{fixtures,databaseSetup,databaseFixtures}.ts`                            | fixture、deferred、接続ガード、別接続 SELECT、後片付けの参考              |
+| `test/fixtures/itemEditing/updateConfirm/{fixtures,databaseSetup,databaseFixtures}.ts`                            | fixture、deferred、接続ガード、別接続 SELECT、後片付けの参考              |
 | `package.json`、`eslint.config.mjs`、`test/tsconfig.json`                                                         | Vitest・Supertest、lint と型検査の対象                                    |
 
 モデル・migration は設計根拠であり、反映済み DB の証明ではない。実装時に実 DB の列・制約を確認し、不一致をテスト側で補正しない。

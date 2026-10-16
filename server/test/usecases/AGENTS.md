@@ -4,13 +4,13 @@
 
 このファイルは `/server/test/usecases` 配下のすべてのテスト、fixture、設計書、報告書の新規作成・追加・変更に適用する。Codex は作業開始前に本書と上位の `AGENTS.md`、作業対象までの階層にある `AGENTS.md` を必ず読み、依頼された作業範囲を確認すること。
 
-共通ルールの基準は [itemEditing/updateConfirm](./itemEditing/updateConfirm/) 内の各ファイルとする。他の usecase テストディレクトリの慣習を根拠に、本書のルールを変更しない。
+共通ルールの基準は [updateConfirm の設計書](../docs/architecture/itemEditing/updateConfirm.md) とそこに記載された各ファイルとする。他の usecase テストディレクトリの慣習を根拠に、本書のルールを変更しない。
 
-- 設計の形式は [testArchitecture.md](./itemEditing/updateConfirm/testArchitecture.md) を参照する。
-- 初回の実装・検証報告は [testReport.md](./itemEditing/updateConfirm/testReport.md) を参照する。
-- 修正案、追加テスト、既存テストの移行、修正・再修正報告は [afterFix.md](./itemEditing/updateConfirm/afterFix.md) を参照する。
-- テストコードの分割、fixture、モック、検証方法は同ディレクトリの `*.test.ts` と `fixtures.ts` を参照する。
-- DB 接続の安全確認は [databaseSetup.ts](./itemEditing/updateConfirm/databaseSetup.ts)、データ作成・後片付け・別接続での確認は [databaseFixtures.ts](./itemEditing/updateConfirm/databaseFixtures.ts) を参照する。DB 検証の分け方は同ディレクトリの `database*.test.ts` を参照する。
+- 設計の形式は [testArchitecture.md](../docs/architecture/itemEditing/updateConfirm.md) を参照する。
+- 初回の実装・検証報告は [初回・DB追加検証報告](../docs/report/itemEditing/updateConfirm.md#initial-report) を参照する。
+- 修正案、追加テスト、既存テストの移行、修正・再修正報告は [修正・再修正記録](../docs/report/itemEditing/updateConfirm.md#follow-up) を参照する。
+- テストコードの分割、fixture、モック、検証方法は設計書冒頭の配置表を参照する。単体テストは `server/src` の対応する `test`、結合テストは `server/test/integration`、fixture は [updateConfirm の fixture](../fixtures/itemEditing/updateConfirm/) に分かれている。
+- DB 接続の安全確認は [databaseSetup.ts](../fixtures/itemEditing/updateConfirm/databaseSetup.ts)、データ作成・後片付け・別接続での確認は [databaseFixtures.ts](../fixtures/itemEditing/updateConfirm/databaseFixtures.ts) を参照する。DB 検証の分け方は [database テスト](../integration/database/itemEditing/updateConfirm/) と [usecases 結合テスト](../integration/usecases/itemEditing/updateConfirm/) を参照する。
 
 参照元には初回の観測結果と修正後の契約が併存する。過去の報告を最新仕様と混同せず、変更の根拠と最新の修正・再修正報告を確認する。商品固有の項目名、数値、エラーコード、ケース数、ファイル数は他の usecase へ一律に適用しない。
 
@@ -26,7 +26,7 @@
 
 ## ファイル構成と責務の分割
 
-原則として `test/usecases/<機能>/<usecase名>/` に対象一式をまとめる。以下を基本構成とし、対象の責務に応じて必要なファイルを作成する。責務のない空ファイルや、参照元と件数を合わせるためのテストは作らない。
+配置は [test/AGENTS.md](../AGENTS.md) に従い、単体テスト・結合テスト・fixture・設計書・レポートを分ける。以下のファイル名は旧配置での役割名として参照し、updateConfirm の現配置は設計書冒頭の対応表を確認する。責務のない空ファイルや、参照元と件数を合わせるためのテストは作らない。
 
 | ファイル                         | 役割                                                                                                      |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------- |

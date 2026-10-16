@@ -1,11 +1,11 @@
 import type { Request, Response } from "express";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "../../../../src/errors.js";
-import { validateBody } from "../../../../src/middleware/validate/validateBody.js";
-import { validateParams } from "../../../../src/middleware/validate/validateParams.js";
-import { updateItemEditingConfirmBodySchema as schema } from "../../../../src/validators/body/itemEditing.js";
-import { idParamSchema } from "../../../../src/validators/params/id.js";
-import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "./fixtures.js";
+import { AppError } from "../../../errors.js";
+import { validateBody } from "../../../middleware/validate/validateBody.js";
+import { validateParams } from "../../../middleware/validate/validateParams.js";
+import { updateItemEditingConfirmBodySchema as schema } from "../itemEditing.js";
+import { idParamSchema } from "../../params/id.js";
+import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
 
 // 型不正・欠落をschemaへ渡すためのfixture操作。実装の変換処理は再現しない。
 const change = (path: string, value: unknown, omit = false) => {

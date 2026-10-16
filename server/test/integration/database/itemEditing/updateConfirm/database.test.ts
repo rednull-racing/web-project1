@@ -1,4 +1,4 @@
-import "./databaseSetup.js";
+import "../../../../fixtures/itemEditing/updateConfirm/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseError, ForeignKeyConstraintError, ValidationError } from "sequelize";
 import {
@@ -18,11 +18,11 @@ import {
     ShippingServiceOption,
     TodouhukenOption,
     Brands,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { expectAppError } from "./fixtures.js";
-import { getMyItemEditing } from "../../../../src/services/itemEditing/query.js";
-import * as command from "../../../../src/services/itemEditing/command.js";
+} from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
+import { expectAppError } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
+import { getMyItemEditing } from "../../../../../src/services/itemEditing/query.js";
+import * as command from "../../../../../src/services/itemEditing/command.js";
 
 let f: DbFixture;
 beforeEach(async () => {

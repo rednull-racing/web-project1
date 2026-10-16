@@ -424,3 +424,11 @@
 - 単体テストは本番コードに最も近いtest、結合テストは役割/大分類/小分類、fixtureは大分類/小分類に統一。
 - 設計書・レポートはarchitectureまたはreportの大分類/小分類.mdへ配置。設計・実施・コード・モックの手順は記載なし。
 - 記載内容と既存パス例、git diff --checkを確認。文書のみのためテスト実行なし。
+
+## 20261016_backend-test_updateConfirmテストの5分類移動
+
+- 単体6ファイルを本番コード付近、結合5ファイルをintegration、fixture3ファイルをtest/fixtures/itemEditing/updateConfirmへ分類移動。
+- 設計書をdocs/architecture/itemEditing/updateConfirm.mdへ移動し、testReport・afterFixの全内容をdocs/report/itemEditing/updateConfirm.mdへ統合。
+- import・mock・文書参照を更新。fixtureの配置に合わせ、本番tsconfigからテストを除外しテスト用tsconfigで全テストを型検査。
+- lint・本番/テスト全体型検査・内容保持・参照先・git diff --checkを確認。移動前後の比較はともに451成功/57失敗、controller収集失敗で成否一致。
+- 数値変換・動画署名の旧期待値とRouter/controllerの既存モック漏れはTodoへ記録。実DBテスト・DB接続・migrationは未実施。

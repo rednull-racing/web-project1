@@ -1,5 +1,34 @@
 # 商品編集中データの確定更新：テストコード設計書
 
+## 現在の配置（2026-10-16）
+
+以下は `server/` 基準。旧ファイル名と過去の実行コマンドは当時の記録として残す。
+
+| 分類 | 旧ファイル | 現在の配置 |
+| --- | --- | --- |
+| 単体 | `usecase.test.ts` | `src/usecases/itemEditing/test/updateConfirm.test.ts` |
+| 単体 | `signedUrls.test.ts` | `src/usecases/shared/test/updateConfirm.signedUrls.test.ts` |
+| 単体 | `validation.test.ts` | `src/validators/body/test/updateConfirm.test.ts` |
+| 単体 | `controller.test.ts` | `src/controllers/itemEditing/test/updateConfirm.test.ts` |
+| 単体 | `services.test.ts` | `src/services/itemEditing/test/updateConfirm.test.ts`（5件）、`src/services/test/updateConfirm.brandAliases.test.ts`（5件） |
+| 結合 | `masterBrand.test.ts`、`route.test.ts`、`databaseTransactions.test.ts`、`databaseConcurrency.test.ts` | `test/integration/usecases/itemEditing/updateConfirm/` |
+| 結合 | `database.test.ts` | `test/integration/database/itemEditing/updateConfirm/` |
+| fixture | `fixtures.ts`、`databaseFixtures.ts`、`databaseSetup.ts` | `test/fixtures/itemEditing/updateConfirm/` |
+| 設計書 | `testArchitecture.md` | `test/docs/architecture/itemEditing/updateConfirm.md` |
+| レポート | `testReport.md`、`afterFix.md` | `test/docs/report/itemEditing/updateConfirm.md` に統合 |
+
+`masterBrand.test.ts` は実usecaseと複数helperを接続するため結合テストに分類した。serviceは本番コードに最も近いディレクトリへ分け、テスト内容・ケースID・期待値は維持した。
+単体テストは `npm run typecheck` の本番ビルド対象から除外し、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` が `src/**/test` と `test` の全テスト・fixtureを型検査する。出力先や本番コードの構成は変更しない。
+
+DB非接続の対象をまとめて実行するコマンド（server/で実行）：
+
+```bash
+npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usecases/shared/test/updateConfirm.signedUrls.test.ts src/validators/body/test/updateConfirm.test.ts src/controllers/itemEditing/test/updateConfirm.test.ts src/services/itemEditing/test/updateConfirm.test.ts src/services/test/updateConfirm.brandAliases.test.ts test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts test/integration/usecases/itemEditing/updateConfirm/route.test.ts --maxWorkers=1
+```
+
+実DBテストは `test/integration/database/itemEditing/updateConfirm/database.test.ts` と `test/integration/usecases/itemEditing/updateConfirm/database{Transactions,Concurrency}.test.ts` を指定する。実行前に既存の `.env.test`・test_db の安全条件を確認する。
+
+
 ## 2026-10-12 P02・P05・P08 修正後の契約（最新）
 
 先行する実装修正に合わせ、対象内のテストだけを移行する。
