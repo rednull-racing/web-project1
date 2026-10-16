@@ -440,3 +440,9 @@
 - 設計書をdocs/architecture/itemDraft/createItemDraft.mdへ移動。testReport・afterFixの全内容をdocs/report/itemDraft/createItemDraft.mdへ統合。
 - DB非接続の単体・結合10ファイル823件、lint・本番/テスト全体型検査、内容保持・参照先・git diff --checkを確認。
 - Router19件は初回のHTTP待受け制限後、許可を得て再実行し成功。実DBテスト177件・DB接続・migrationは未実施。
+
+## 20261016_backend-test_旧usecaseテストディレクトリの削除
+
+- ユーザー指定に従いserver/test/usecases配下の全ディレクトリと旧テスト・補助コード9ファイルを削除。
+- server/test/usecases/AGENTS.mdのみ残し、内容が変更されていないことを確認。
+- serverのlint・typecheck・テスト全体型検査とgit diff --checkが成功。テスト実行・DB接続なし。
