@@ -259,3 +259,13 @@ UseCase 内で `await` せず実行されている副作用について、単に
 既存の失敗許容副作用を、レビュー判断だけで `await` に変更してはならない。
 
 副作用を親 UseCase の完了条件へ変更する場合は、業務要件として明示的に指定された場合のみ行う。
+
+## 単体テストの共通ルール
+
+本節はこのディレクトリ配下の単体テストに適用する。上位の [src/AGENTS.md](../AGENTS.md) の単体テスト共通ルールと、対象までのAGENTS.mdを読む。対象本番コードに最も近いtestへ配置し、fixtureはserver/test/fixturesの大分類/小分類に置く。
+
+- 実usecaseを呼び、service・shared helper・transactionを責務の境界でモックする。所有権・状態・分岐・コピー/変換値・戻り値・引数・呼出し回数・必要な順序を確認する。
+- helperをモックしたusecaseの成功だけではhelperの内部処理を検証済みとしない。実helperでは優先順位・fallback・変換・URLや元index/識別子との対応と不要な後続処理の抑止を確認する。
+- transactionのcallbackへ同じtを渡し、各更新への同一参照・callback完了待ち・例外の伝播を確認する。このモックから実DBのcommit・rollback・行ロック・一意性を保証しない。
+- 実usecaseと複数helperの接続、HTTP、実DBのtransaction・並行処理はintegrationへ分ける。モックの呼出し結果を変えた逐次再実行から一般的な重複排除を推測しない。
+- Promiseの待機を扱うルールはテストの同期制御と契約上必要な処理に適用する。上記の意図的に失敗を許容する副作用を、テスト都合だけでawaitへ変更しない。

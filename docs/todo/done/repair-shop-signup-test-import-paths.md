@@ -18,7 +18,7 @@
 - `server/test/usecases/shopSignup/signup1.test.ts:33`
 - `server/test/usecases/shopSignup/signup5.test.ts:27`
 - `server/src/usecases/shopSignup/edit` 配下の現行UseCase
-- `server/test/usecases/AGENTS.md`
+- `server/src/AGENTS.md`（単体テスト共通ルール。旧server/test/usecases/AGENTS.mdから移管）
 
 ## 修正方針・実装内容
 

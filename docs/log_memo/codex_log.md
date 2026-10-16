@@ -446,3 +446,12 @@
 - ユーザー指定に従いserver/test/usecases配下の全ディレクトリと旧テスト・補助コード9ファイルを削除。
 - server/test/usecases/AGENTS.mdのみ残し、内容が変更されていないことを確認。
 - serverのlint・typecheck・テスト全体型検査とgit diff --checkが成功。テスト実行・DB接続なし。
+
+## 20261016_documents_テスト共通ルールの責務別分割
+
+- integration/database・integration/usecases・fixtures・docs/architecture・docs/reportにAGENTS.mdを作成し、旧usecasesの共通ルールを分割。
+- src/AGENTS.mdに単体共通・utilityルールを追記し、controllers・services・usecases・validatorsの既存AGENTS.mdに各層の単体ルールを追記。
+- DBの全接続ガード・中断条件・後片付け、設計と期待値、モック・非同期、報告と修正履歴の規則を現配置へ移管。
+- 文書参照を更新後、server/test/usecasesとserver/test/utils（旧utilityテスト2件）を削除。
+- src既存ルールの保持・単体テストの適用先・文書リンク54件・lint・本番/テスト全体型検査・git diff --checkを確認。
+- 共通ルール整理と指定削除のため、テスト実行・DB接続・migrationは未実施。

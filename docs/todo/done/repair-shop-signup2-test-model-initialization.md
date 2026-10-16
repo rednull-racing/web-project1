@@ -18,7 +18,7 @@
 
 - `server/test/usecases/shopSignup/signup2.test.ts`
 - `server/src/usecases/shopSignup/edit/signup2.ts` とそのimport先
-- `server/test/AGENTS.md`、`server/test/usecases/AGENTS.md`
+- `server/test/AGENTS.md`、`server/src/AGENTS.md`（単体テスト共通ルール。旧server/test/usecases/AGENTS.mdから移管）
 
 ## 修正方針・実装内容
 

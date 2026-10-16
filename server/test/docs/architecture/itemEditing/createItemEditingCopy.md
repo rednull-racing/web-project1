@@ -4,7 +4,7 @@
 
 対象は createItemEditingCopyUseCase。販売中かつ認証ユーザー所有の Item から、新しい ItemEditing をリクエストごとに作成する契約を検証する。正常系に加えて、所有権のすり抜け、コピー元の取り違え、在庫復元の漏れ、途中失敗、再試行、競合時の古いデータの利用を検出する。
 
-根拠は[詳細設計書](../../../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[usecase共通ルール](../../../usecases/AGENTS.md)および[updateConfirmの設計書](updateConfirm.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../../report/itemEditing/updateConfirm.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
+根拠は[詳細設計書](../../../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[テスト設計の共通ルール](../AGENTS.md)および[updateConfirmの設計書](updateConfirm.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../../report/itemEditing/updateConfirm.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
 
 今回の成果物は本書のみ。テストコード、fixture、実装、設定、migration、Todo、Codexログは変更しない。以下のファイル構成・実行方法・期待結果は、後続のテスト実装に向けた設計であり、実装済み・実行済みの結果ではない。DB接続・反映済みスキーマも今回は未確認。
 
@@ -24,7 +24,7 @@
 | エラー | src/errors.ts、src/middleware/errorHandler.ts |
 | モデル・接続 | src/models/{item,item_editing,video,sale,item_shipping_profile}.ts、src/models/index.ts、src/db.ts、src/config/config.ts |
 | DB定義資料 | migrations/20261005114144-create-item-editing.js、20261006044423-update-column-item-editing.js、20261002113520-add-column-item-relation.js、20261006021049-item-update-column-status.js、20260804100501-fix-item-relation-ondelete.js（すべてmigrations/配下） |
-| テストの基準 | test/AGENTS.md、test/usecases/AGENTS.md、test/docs/architecture/itemEditing/updateConfirm.md の配置表、test/docs/report/itemEditing/updateConfirm.md、test/fixtures/itemEditing/updateConfirm/、test/integration/usecases/itemEditing/updateConfirm/ |
+| テストの基準 | test/AGENTS.md、test/docs/architecture/AGENTS.md、test/integration/usecases/AGENTS.md、test/integration/database/AGENTS.md、test/fixtures/AGENTS.md、test/docs/report/AGENTS.md、test/docs/architecture/itemEditing/updateConfirm.md の配置表、test/docs/report/itemEditing/updateConfirm.md、test/fixtures/itemEditing/updateConfirm/、test/integration/usecases/itemEditing/updateConfirm/ |
 | 実行・静的検査 | package.json、tsconfig.json、test/tsconfig.json、eslint.config.mjs |
 
 対象外は公開・購入・在庫減算・ItemDraftからの生成・動画アップロード／変換・S3オブジェクトの複製・他エンドポイントの回帰全体。既存編集セッションの再利用、冪等性キー、重複排除、動画必須の再検証、商品入力の再検証は本処理にないため、保証として追加しない。

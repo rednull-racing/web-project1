@@ -37,7 +37,7 @@ npm run test:run -- src/usecases/itemDraft/test/createItemDraft.test.ts src/cont
 
 作成する成果物は本書だけ。既存コード、既存テスト、設定は変更しない。実 S3 へのアップロード、動画変換、商品公開、他 API の修正、負荷試験は対象外とする。
 
-基準は [usecase テスト共通ルール](../../../usecases/AGENTS.md) と [updateConfirm の設計例](../itemEditing/updateConfirm.md)。設計例の過去の観測を現在の仕様として転記しない。共通 helper の現在の実装を読み直し、この usecase 固有の作成処理・transaction 境界に合わせる。
+基準は [テスト設計の共通ルール](../AGENTS.md) と [updateConfirm の設計例](../itemEditing/updateConfirm.md)。設計例の過去の観測を現在の仕様として転記しない。共通 helper の現在の実装を読み直し、この usecase 固有の作成処理・transaction 境界に合わせる。
 
 ### 特に区別する現行挙動
 

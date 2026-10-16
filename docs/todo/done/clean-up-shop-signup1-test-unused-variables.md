@@ -20,7 +20,7 @@
 ## 対象・参照ファイル
 
 - `server/test/usecases/shopSignup/signup1.test.ts`
-- `server/test/usecases/AGENTS.md`
+- `server/src/AGENTS.md`（単体テスト共通ルール。旧server/test/usecases/AGENTS.mdから移管）
 - `server/eslint.config.mjs`
 
 ## 実装時の注意事項

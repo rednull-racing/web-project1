@@ -73,3 +73,12 @@ Service の実装は、次の規約に必ず従う。
 - 現在依頼されている範囲以外は変更しない。
 - 無関係なバグ、改善点、リファクタ候補はその場で修正しない。
 - 作業中に見つけた対象外の問題は、ルートの `AGENTS.md` と `/docs/todo/AGENTS.md` に従って Todo に記録する。
+
+## 単体テストの共通ルール
+
+本節はこのディレクトリ配下の単体テストに適用する。上位の [src/AGENTS.md](../AGENTS.md) の単体テスト共通ルールと、対象までのAGENTS.mdを読む。対象本番コードに最も近いtestへ配置し、fixtureはserver/test/fixturesの大分類/小分類に置く。
+
+- 実serviceを実行し、Sequelizeモデルメソッド・DB queryを境界でモックする。引数・where・attributes・include・lock・transaction・呼出し回数・必要な順序と戻り値/参照を確認する。
+- 所有者を条件に含む取得はIDとuser_id等の組合せ、作成・更新はdataと同じtransactionの引渡し、画像等の保存は変更フラグ・saveの順序を検証する。
+- 元の例外の同一参照、Promise完了待ち、失敗時の後続未実行を確認する。ロック指定やSQL呼出しを確認しただけで実ロック待ち・commit/rollback・DB制約の効果を保証しない。
+- 実DBでの保存・制約・transactionの結果はintegrationの対象へ分け、DB結合テストとfixtureのルールを適用する。
