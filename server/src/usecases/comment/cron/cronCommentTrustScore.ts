@@ -1,5 +1,5 @@
 import sequelize from "../../../db.js";
-import { getCommentsReportScoreCron, updateReportScore } from "../../../services/comment.js";
+import { getCommentsReportScoreCron, updateReportScore } from "../../../services/comment/comment.js";
 
 // コメント信頼度 1日0.9倍
 export const cronCommentTrustScoreUseCase = async (): Promise<number> => {

@@ -1,4 +1,4 @@
-import { getSearchHistoryAll } from "../../services/search.js";
+import { getSearchHistoryAll } from "../../services/search/search.js";
 
 type Params = {
     userId: number;

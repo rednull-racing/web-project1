@@ -1,5 +1,5 @@
-import { getItemLikeList } from "../../services/itemLike.js";
-import { getFollowings } from "../../services/follow.js";
+import { getItemLikeList } from "../../services/itemLike/itemLike.js";
+import { getFollowings } from "../../services/follow/follow.js";
 
 type Params = {
     itemId: number;

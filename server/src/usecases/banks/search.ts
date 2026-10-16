@@ -1,5 +1,5 @@
 import { Banks } from "../../models/index.js";
-import { getBanksAll } from "../../services/banks.js";
+import { getBanksAll } from "../../services/banks/banks.js";
 
 type Params = {
     kw: string;

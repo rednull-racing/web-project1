@@ -1,7 +1,7 @@
 import { AppError } from "../../../errors.js";
-import { countFollower } from "../../../services/follow.js";
+import { countFollower } from "../../../services/follow/follow.js";
 import { countSellItem, getMyItemWithVideoCategoriesUser, updatePublishItem } from "../../../services/items/index.js";
-import { createNotification } from "../../../services/notification.js";
+import { createNotification } from "../../../services/notification/notification.js";
 import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
 
 type Params = {

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { AppError } from "../../errors.js";
-import { destroyStoredRefreshToken, getRefreshTokenOne } from "../../services/refreshTokens.js";
+import { destroyStoredRefreshToken, getRefreshTokenOne } from "../../services/refreshTokens/refreshTokens.js";
 import { getUser } from "../../services/users/query.js";
 import { generateAccessToken } from "../../utils/jwtHelper.js";
 

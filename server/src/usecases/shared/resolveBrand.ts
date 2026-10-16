@@ -1,7 +1,7 @@
 import type { Transaction } from "sequelize";
 import { AppError } from "../../errors.js";
-import { createAliases, getAliasOne } from "../../services/brandAliases.js";
-import { getBrand, getBrandOne } from "../../services/brands.js";
+import { createAliases, getAliasOne } from "../../services/brandAliases/brandAliases.js";
+import { getBrand, getBrandOne } from "../../services/brands/brands.js";
 import type { BrandResult } from "../../types/serviceType/brands.js";
 import { normalizeJapanese } from "../../utils/normalizeJapanese.js";
 import type { ItemUploadSharedUseCaseBody } from "./bodyType.js";

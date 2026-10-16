@@ -1,7 +1,7 @@
 import { AppError } from "../../errors.js";
-import { getMyBankAccount, updateBankAccount } from "../../services/bankAccount.js";
-import { getBankOne } from "../../services/banks.js";
-import { getBranchOne } from "../../services/branches.js";
+import { getMyBankAccount, updateBankAccount } from "../../services/bankAccount/bankAccount.js";
+import { getBankOne } from "../../services/banks/banks.js";
+import { getBranchOne } from "../../services/branches/branches.js";
 import { BankBody } from "../../validators/body/bankAccount.js";
 
 type Params = {

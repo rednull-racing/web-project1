@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { AppError } from "../../errors.js";
-import { createRefreshToken, destroyRefreshToken } from "../../services/refreshTokens.js";
+import { createRefreshToken, destroyRefreshToken } from "../../services/refreshTokens/refreshTokens.js";
 import { getUserEmailOne } from "../../services/users/query.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/jwtHelper.js";
 

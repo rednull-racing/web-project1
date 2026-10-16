@@ -1,9 +1,9 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
-import { createAddressAllowNull } from "../../services/address.js";
+import { createAddressAllowNull } from "../../services/address/address.js";
 import { getItemForBuy } from "../../services/items/index.js";
-import { createNameAllowNull } from "../../services/name.js";
-import { createPurchaseSession } from "../../services/purchaseSession.js";
+import { createNameAllowNull } from "../../services/name/name.js";
+import { createPurchaseSession } from "../../services/purchaseSession/purchaseSession.js";
 import { getUser, getUserHasAddress, getUserHasName } from "../../services/users/query.js";
 
 type Params = {

@@ -1,7 +1,7 @@
 import { AppError } from "../../errors.js";
-import { destroyComment, getComment, getMyComment } from "../../services/comment.js";
+import { destroyComment, getComment, getMyComment } from "../../services/comment/comment.js";
 import { getItem } from "../../services/items/index.js";
-import { createNotification } from "../../services/notification.js";
+import { createNotification } from "../../services/notification/notification.js";
 
 type Params = {
     userId: number;

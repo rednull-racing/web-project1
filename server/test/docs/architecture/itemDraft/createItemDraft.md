@@ -11,19 +11,19 @@
 | 単体 | `validation.test.ts` | `src/validators/body/test/createItemDraft.test.ts` |
 | 単体 | `signedUrls.test.ts` | `src/usecases/shared/test/createItemDraft.signedUrls.test.ts` |
 | 単体 | `videoPresignedPost.test.ts` | `src/utils/s3/test/createItemDraft.videoPresignedPost.test.ts` |
-| 単体 | `services.test.ts` | `src/services/itemDraft/test/createItemDraft.test.ts`（作成・画像保存6件）、`src/services/itemEditing/test/createItemDraft.test.ts`（取得5件）、`src/services/test/createItemDraft.test.ts`（各マスター取得・別名作成30件） |
+| 単体 | `services.test.ts` | `src/services/itemDraft/test/createItemDraft.test.ts`（作成・画像保存6件）、`src/services/itemEditing/test/createItemDraft.test.ts`（取得5件）、`src/services/categories/test/createItemDraft.test.ts`、`src/services/itemConditionOption/test/createItemDraft.test.ts`、`src/services/shippingDayOption/test/createItemDraft.test.ts`、`src/services/shippingServiceOption/test/createItemDraft.test.ts`、`src/services/todouhuken/test/createItemDraft.test.ts`、`src/services/brands/test/createItemDraft.test.ts`、`src/services/brandAliases/test/createItemDraft.test.ts`（合計30件） |
 | 結合 | `masterBrand.test.ts`、`route.test.ts`、`databaseTransactions.test.ts`、`databaseConcurrency.test.ts` | `test/integration/usecases/itemDraft/createItemDraft/` |
 | 結合 | `database.test.ts` | `test/integration/database/itemDraft/createItemDraft/` |
 | fixture | `fixtures.ts`、`databaseFixtures.ts`、`databaseSetup.ts` | `test/fixtures/itemDraft/createItemDraft/` |
 | 設計書 | `testArchitecture.md` | `test/docs/architecture/itemDraft/createItemDraft.md` |
 | レポート | `testReport.md`、`afterFix.md` | `test/docs/report/itemDraft/createItemDraft.md` に統合 |
 
-実usecaseと複数helperを接続する `masterBrand.test.ts` は結合テストに分類した。複数マスターを共通のケース表で確認するserviceテストは、それらの本番コードに共通する `src/services/test/` に置く。ケースID・期待値・モック構成は変更しない。
+実usecaseと複数helperを接続する `masterBrand.test.ts` は結合テストに分類した。マスター取得・別名作成のserviceテストは、各本番コードと同じフォルダ内のtestへ分割配置する。ケースID・期待値・モック構成は変更しない。
 
 DB非接続の単体・結合テストの実行コマンド（server/で実行）：
 
 ```bash
-npm run test:run -- src/usecases/itemDraft/test/createItemDraft.test.ts src/controllers/itemDraft/test/createItemDraft.test.ts src/validators/body/test/createItemDraft.test.ts src/usecases/shared/test/createItemDraft.signedUrls.test.ts src/utils/s3/test/createItemDraft.videoPresignedPost.test.ts src/services/itemDraft/test/createItemDraft.test.ts src/services/itemEditing/test/createItemDraft.test.ts src/services/test/createItemDraft.test.ts test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts test/integration/usecases/itemDraft/createItemDraft/route.test.ts --maxWorkers=1
+npm run test:run -- src/usecases/itemDraft/test/createItemDraft.test.ts src/controllers/itemDraft/test/createItemDraft.test.ts src/validators/body/test/createItemDraft.test.ts src/usecases/shared/test/createItemDraft.signedUrls.test.ts src/utils/s3/test/createItemDraft.videoPresignedPost.test.ts src/services/itemDraft/test/createItemDraft.test.ts src/services/itemEditing/test/createItemDraft.test.ts src/services/categories/test/createItemDraft.test.ts src/services/itemConditionOption/test/createItemDraft.test.ts src/services/shippingDayOption/test/createItemDraft.test.ts src/services/shippingServiceOption/test/createItemDraft.test.ts src/services/todouhuken/test/createItemDraft.test.ts src/services/brands/test/createItemDraft.test.ts src/services/brandAliases/test/createItemDraft.test.ts test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts test/integration/usecases/itemDraft/createItemDraft/route.test.ts --maxWorkers=1
 ```
 
 本番コードの型は `npm run typecheck`、単体・結合テスト全体は `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` で確認する。実DBテストは第10節の接続ガード・安全条件を確認したうえで、`test/integration/database/itemDraft/createItemDraft/database.test.ts`、`test/integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts`、同 `databaseConcurrency.test.ts` を指定する。
@@ -55,8 +55,8 @@ npm run test:run -- src/usecases/itemDraft/test/createItemDraft.test.ts src/cont
 | `src/usecases/shared/{buildSignedUrls,validateNumber,validateMaster,resolveBrand,bodyType}.ts`                    | 署名・URL 再利用、ID 変換、マスター存在確認、ブランド優先順位、共有入力型 |
 | `src/services/itemDraft/command.ts`                                                                               | `CreateItemDraft` と `updateItemDraftImage`、transaction の伝達           |
 | `src/services/itemEditing/query.ts`                                                                               | `id + seller_id` による取得。transaction 指定時だけロックする共通 service |
-| `src/services/{categories,itemConditionOption,shippingDayOption,shippingServiceOption,todouhuken}.ts`             | 各マスターの主キー検索                                                    |
-| `src/services/{brands,brandAliases}.ts`                                                                           | ブランド・別名検索、transaction 単位の advisory lock と別名再検索・作成   |
+| `src/services/{categories,itemConditionOption,shippingDayOption,shippingServiceOption,todouhuken}/<同名>.ts`             | 各マスターの主キー検索                                                    |
+| `src/services/{brands,brandAliases}/<同名>.ts`                                                                           | ブランド・別名検索、transaction 単位の advisory lock と別名再検索・作成   |
 | `src/types/serviceType/{itemDraft,itemEditing,brands,brandAliases}.ts`、`src/types/itemAttributes.ts`             | service の引数・戻り値、保存する属性                                      |
 | `src/validators/body/itemDraft.ts`、`src/validators/body/utils/putItem.ts`                                        | body の型・数値境界・重複 uiId 拒否                                       |
 | `src/validators/params/id.ts`、`src/middleware/validate/{validateBody,validateParams}.ts`                         | params 検証、検証済み値の格納、AppError                                   |

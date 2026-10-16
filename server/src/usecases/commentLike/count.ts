@@ -1,4 +1,4 @@
-import { countCommentLike } from "../../services/commentLike.js";
+import { countCommentLike } from "../../services/commentLike/commentLike.js";
 
 type Params = {
     commentId: number;

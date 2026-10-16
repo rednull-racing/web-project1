@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { getUserItemsWatchList } from "../../../../services/watchHistory.js";
+import { getUserItemsWatchList } from "../../../../services/watchHistory/watchHistory.js";
 import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {

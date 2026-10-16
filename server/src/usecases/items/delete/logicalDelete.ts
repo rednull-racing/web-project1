@@ -1,12 +1,12 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { destroyAllCarts, getAllCarts } from "../../../services/cart.js";
-import { destroyAllComments, getAllComments } from "../../../services/comment.js";
-import { findDeliveryNow } from "../../../services/delivery.js";
-import { destroyItemLikeTransaction, getAllItemLikes } from "../../../services/itemLike.js";
+import { destroyAllCarts, getAllCarts } from "../../../services/cart/cart.js";
+import { destroyAllComments, getAllComments } from "../../../services/comment/comment.js";
+import { findDeliveryNow } from "../../../services/delivery/delivery.js";
+import { destroyItemLikeTransaction, getAllItemLikes } from "../../../services/itemLike/itemLike.js";
 import { getMyItemWithVideoSaleShipping, updateLogicalDeleteItem } from "../../../services/items/index.js";
-import { createNotification } from "../../../services/notification.js";
-import { updateLogicalDelete } from "../../../services/sale.js";
+import { createNotification } from "../../../services/notification/notification.js";
+import { updateLogicalDelete } from "../../../services/sale/sale.js";
 
 type Params = {
     itemId: number;

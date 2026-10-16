@@ -1,5 +1,5 @@
 import sequelize from "../../db.js";
-import { deleteCron } from "../../services/purchaseSession.js";
+import { deleteCron } from "../../services/purchaseSession/purchaseSession.js";
 
 // 期限切れpurchaseSession削除
 export const purchaseSessionCronDeleteUseCase = async () => {

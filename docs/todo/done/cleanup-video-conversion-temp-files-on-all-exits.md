@@ -22,7 +22,7 @@ timeout、ffmpeg非ゼロ終了、spawn error、S3アップロード失敗、DB 
 
 - `/server/src/utils/ffmpeg.ts`
 - `/server/src/utils/s3/videoConvert.ts`
-- `/server/src/services/video.ts`
+- `/server/src/services/video/video.ts`
 
 ## 実装内容
 

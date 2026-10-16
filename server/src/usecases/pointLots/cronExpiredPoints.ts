@@ -1,5 +1,5 @@
-import { getExpiredAll } from "../../services/pointLots.js";
-import { createPoint180 } from "../../services/pointsUriageOver.js";
+import { getExpiredAll } from "../../services/pointLots/pointLots.js";
+import { createPoint180 } from "../../services/pointsUriageOver/pointsUriageOver.js";
 
 // 180日経過ポイント回収
 export const cronExpiredPointsUseCase = async () => {

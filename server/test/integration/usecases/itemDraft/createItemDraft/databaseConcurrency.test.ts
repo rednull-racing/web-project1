@@ -20,7 +20,7 @@ import type { CreateItemDraftBody } from "../../../../../src/validators/body/ite
 import { deferred, expectAppError } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 import * as query from "../../../../../src/services/itemEditing/query.js";
 import * as command from "../../../../../src/services/itemDraft/command.js";
-import * as aliases from "../../../../../src/services/brandAliases.js";
+import * as aliases from "../../../../../src/services/brandAliases/brandAliases.js";
 import * as brandResolver from "../../../../../src/usecases/shared/resolveBrand.js";
 
 let f: DbFixture;

@@ -10,7 +10,7 @@
 | 単体 | `signedUrls.test.ts` | `src/usecases/shared/test/updateConfirm.signedUrls.test.ts` |
 | 単体 | `validation.test.ts` | `src/validators/body/test/updateConfirm.test.ts` |
 | 単体 | `controller.test.ts` | `src/controllers/itemEditing/test/updateConfirm.test.ts` |
-| 単体 | `services.test.ts` | `src/services/itemEditing/test/updateConfirm.test.ts`（5件）、`src/services/test/updateConfirm.brandAliases.test.ts`（5件） |
+| 単体 | `services.test.ts` | `src/services/itemEditing/test/updateConfirm.test.ts`（5件）、`src/services/brandAliases/test/updateConfirm.brandAliases.test.ts`（5件） |
 | 結合 | `masterBrand.test.ts`、`route.test.ts`、`databaseTransactions.test.ts`、`databaseConcurrency.test.ts` | `test/integration/usecases/itemEditing/updateConfirm/` |
 | 結合 | `database.test.ts` | `test/integration/database/itemEditing/updateConfirm/` |
 | fixture | `fixtures.ts`、`databaseFixtures.ts`、`databaseSetup.ts` | `test/fixtures/itemEditing/updateConfirm/` |
@@ -23,7 +23,7 @@
 DB非接続の対象をまとめて実行するコマンド（server/で実行）：
 
 ```bash
-npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usecases/shared/test/updateConfirm.signedUrls.test.ts src/validators/body/test/updateConfirm.test.ts src/controllers/itemEditing/test/updateConfirm.test.ts src/services/itemEditing/test/updateConfirm.test.ts src/services/test/updateConfirm.brandAliases.test.ts test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts test/integration/usecases/itemEditing/updateConfirm/route.test.ts --maxWorkers=1
+npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usecases/shared/test/updateConfirm.signedUrls.test.ts src/validators/body/test/updateConfirm.test.ts src/controllers/itemEditing/test/updateConfirm.test.ts src/services/itemEditing/test/updateConfirm.test.ts src/services/brandAliases/test/updateConfirm.brandAliases.test.ts test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts test/integration/usecases/itemEditing/updateConfirm/route.test.ts --maxWorkers=1
 ```
 
 実DBテストは `test/integration/database/itemEditing/updateConfirm/database.test.ts` と `test/integration/usecases/itemEditing/updateConfirm/database{Transactions,Concurrency}.test.ts` を指定する。実行前に既存の `.env.test`・test_db の安全条件を確認する。
@@ -69,8 +69,8 @@ npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usec
 | usecase                                        | `src/usecases/itemEditing/updateConfirm.ts`                                                                                               |
 | URL 生成・数値変換・マスター検証・ブランド解決 | `src/usecases/itemEditing/shared/{buildSignedUrls,validateNumber,validateMaster,resolveBrand}.ts`                                         |
 | 取得・更新                                     | `src/services/itemEditing/{query,command}.ts`                                                                                             |
-| マスター取得                                   | `src/services/{categories,itemConditionOption,shippingDayOption,shippingServiceOption,todouhuken}.ts`                                     |
-| ブランド取得・別名作成                         | `src/services/{brands,brandAliases}.ts`                                                                                                   |
+| マスター取得                                   | `src/services/{categories,itemConditionOption,shippingDayOption,shippingServiceOption,todouhuken}/<同名>.ts`                                     |
+| ブランド取得・別名作成                         | `src/services/{brands,brandAliases}/<同名>.ts`                                                                                                   |
 | controller・route                              | `src/controllers/itemEditing/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                      |
 | 入力検証                                       | `src/middleware/validate/{validateBody,validateParams}.ts`、`src/validators/body/itemEditing.ts`、`src/validators/params/id.ts`           |
 | 認証・制限・エラー                             | `src/middleware/authMiddleware.ts`、`src/middleware/rateLimit/itemEditingRateLimit.ts`、`src/middleware/errorHandler.ts`、`src/errors.ts` |

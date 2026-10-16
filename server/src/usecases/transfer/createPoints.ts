@@ -1,10 +1,10 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
-import { createJournal } from "../../services/journal.js";
-import { createNotification } from "../../services/notification.js";
-import { createPointLots } from "../../services/pointLots.js";
-import { createPointsHistory } from "../../services/pointsHistory.js";
-import { updateUsedUriagekin } from "../../services/uriagekinLots.js";
+import { createJournal } from "../../services/journal/journal.js";
+import { createNotification } from "../../services/notification/notification.js";
+import { createPointLots } from "../../services/pointLots/pointLots.js";
+import { createPointsHistory } from "../../services/pointsHistory/pointsHistory.js";
+import { updateUsedUriagekin } from "../../services/uriagekinLots/uriagekinLots.js";
 import { updatePointsUriageUser } from "../../services/users/command.js";
 import { getUserHasUriagekin } from "../../services/users/query.js";
 

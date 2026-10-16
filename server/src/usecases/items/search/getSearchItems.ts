@@ -1,7 +1,7 @@
 import { InferAttributes, Op, Order, WhereOptions } from "sequelize";
 import Item from "../../../models/item.js";
 import { getSearchItems } from "../../../services/items/index.js";
-import { createSearchKeyword } from "../../../services/search.js";
+import { createSearchKeyword } from "../../../services/search/search.js";
 import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
 
 type Params = {

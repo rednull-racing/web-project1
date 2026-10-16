@@ -1,6 +1,6 @@
 import { AppError } from "../../../errors.js";
 import { addViewsCount, getItem, updateSortNumber } from "../../../services/items/index.js";
-import { createWatchHistory, getWatchHistoryOne, updateUpdateAt } from "../../../services/watchHistory.js";
+import { createWatchHistory, getWatchHistoryOne, updateUpdateAt } from "../../../services/watchHistory/watchHistory.js";
 
 type Params = {
     itemId: number;

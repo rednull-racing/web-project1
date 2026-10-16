@@ -38,7 +38,9 @@ export const serviceFunction = () => {}
 既存機能の Service を追加・修正する場合は、その機能が採用している次の構成を維持する。
 
 ```text
-services/example.ts
+services/example/
+├── example.ts
+└── test/
 ```
 
 ```text

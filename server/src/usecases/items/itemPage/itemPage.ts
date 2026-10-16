@@ -1,6 +1,6 @@
 import { AppError } from "../../../errors.js";
-import { countItemPageComment } from "../../../services/comment.js";
-import { countItemLike, getItemLikeOne } from "../../../services/itemLike.js";
+import { countItemPageComment } from "../../../services/comment/comment.js";
+import { countItemLike, getItemLikeOne } from "../../../services/itemLike/itemLike.js";
 import { getItemPageData } from "../../../services/items/index.js";
 import { getMeHighlight } from "../../../services/users/query.js";
 import { ItemPageMode } from "../../../validators/query/items.js";

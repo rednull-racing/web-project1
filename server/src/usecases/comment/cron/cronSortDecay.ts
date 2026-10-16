@@ -1,4 +1,4 @@
-import { getCommentsSortDecayCron, updateSortNumber } from "../../../services/comment.js";
+import { getCommentsSortDecayCron, updateSortNumber } from "../../../services/comment/comment.js";
 
 // Comment.sort_number減算
 export const decayCommentSortNumberCronUseCase = async (): Promise<void> => {

@@ -1,5 +1,5 @@
-import { getAllAliases } from "../../services/brandAliases.js";
-import { BrandsInstance, getAllBrands } from "../../services/brands.js";
+import { getAllAliases } from "../../services/brandAliases/brandAliases.js";
+import { BrandsInstance, getAllBrands } from "../../services/brands/brands.js";
 
 type Params = {
     keyword: string;

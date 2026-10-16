@@ -1,6 +1,6 @@
 import sequelize from "../../../db.js";
 import type { Item } from "../../../models/index.js";
-import { bulkCreateItemDeleteLogs } from "../../../services/itemDeleteLogs.js";
+import { bulkCreateItemDeleteLogs } from "../../../services/itemDeleteLogs/itemDeleteLogs.js";
 import { destroyPerfectItem, getCronPerfectDeleteItems } from "../../../services/items/index.js";
 
 // 論理削除後30日経過item削除、ItemDeleteLogs作成

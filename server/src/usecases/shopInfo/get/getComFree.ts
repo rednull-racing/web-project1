@@ -1,5 +1,5 @@
 import { AppError } from "../../../errors.js";
-import { getComFreeOptionAll } from "../../../services/comOrFreeOption.js";
+import { getComFreeOptionAll } from "../../../services/comOrFreeOption/comOrFreeOption.js";
 import { getMyShopHasComFree } from "../../../services/shopInfo/query.js";
 
 type Params = {

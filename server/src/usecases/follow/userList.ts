@@ -1,4 +1,4 @@
-import { getFollowings, getFollowList } from "../../services/follow.js";
+import { getFollowings, getFollowList } from "../../services/follow/follow.js";
 import { FollowType } from "../../validators/query/follow.js";
 
 type Params = {

@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { AppError } from "../../errors.js";
-import { getTokenReissueOne, updateReissueToken } from "../../services/tokenSignupVerificationCode.js";
+import { getTokenReissueOne, updateReissueToken } from "../../services/tokenSignupVerificationCode/tokenSignupVerificationCode.js";
 
 type Params = {
     token: string;

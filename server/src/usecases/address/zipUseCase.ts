@@ -1,7 +1,7 @@
 import { AppError } from "../../errors.js";
 import { AddressResult } from "../../infra/zipcloud/type.js";
 import { fetchZipCloud } from "../../infra/zipcloud/zip.js";
-import { getTodouhukenOne } from "../../services/todouhuken.js";
+import { getTodouhukenOne } from "../../services/todouhuken/todouhuken.js";
 
 type Params = {
     zipcode: string;

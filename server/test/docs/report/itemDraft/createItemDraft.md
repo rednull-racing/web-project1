@@ -1,5 +1,14 @@
 # createItemDraft テスト報告・修正記録
 
+## 2026-10-16 service配置変更の補足
+
+service直下の単一TSを同名フォルダへ移動し、呼出し元・モックの参照を更新した。services共通testを対象コードのtestへ移動・分割した。以下の過去の実行表・コマンドは当時の配置と件数を示す。現配置は [設計書](../../architecture/itemDraft/createItemDraft.md) を参照する。
+
+旧services/testの30件はcategories・itemConditionOption・shippingDayOption・shippingServiceOption・todouhuken各3件、brands6件、brandAliases9件に分割し、ケースID・期待値を維持した。
+
+service単体テスト全体は移動前9ファイル・移動後15ファイルで、ともに72件すべて成功。Vitest JSONの全テスト名と成否が一致した。DB接続・実DBテスト・migrationは未実施。
+
+
 初回報告と改善案・再実行記録を統合した。以下は各実行時点の履歴であり、移動前の最新結果は後半の「9. F1〜F6 対応後の再実行結果（2026-10-12）」を参照する。
 
 
@@ -51,7 +60,7 @@ lint・本番コードのtypecheck・単体/結合テスト全体の型検査、
 | HM       | [masterBrand.test.ts](../../../integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts)                   |      184 | 実 helper と実 usecase。DB service・S3・transaction をモック。数値・マスター・ブランド・メディアの接続を確認 |
 | HS       | [signedUrls.test.ts](../../../../src/usecases/shared/test/createItemDraft.signedUrls.test.ts)                     |       71 | 実 URL helper。S3 署名・公開ドメイン・時刻・UUID を制御。署名内部の AWS 処理は未検証                         |
 | V        | [validation.test.ts](../../../../src/validators/body/test/createItemDraft.test.ts)                     |      325 | 実 schema・validateBody・validateParams。受理・拒否・parse 後の値を確認                                      |
-| S        | [services.test.ts](../../../../src/services/test/createItemDraft.test.ts)                         |       41 | 実 service。Model メソッド・SQL 呼出しをモック。DB の効果はこのファイルでは保証しない                        |
+| S        | [services.test.ts](../../architecture/itemDraft/createItemDraft.md)                         |       41 | 実 service。Model メソッド・SQL 呼出しをモック。DB の効果はこのファイルでは保証しない                        |
 | C        | [controller.test.ts](../../../../src/controllers/itemDraft/test/createItemDraft.test.ts)                     |        5 | 実 controller、usecase モック。認証 ID・検証済み body・200 応答・next への伝播を確認                         |
 | R        | [route.test.ts](../../../integration/usecases/itemDraft/createItemDraft/route.test.ts)                               |       11 | 実 Router・JWT 認証・レート制限・validator。usecase モック。最小 Express と Supertest で HTTP を検証         |
 | D        | [database.test.ts](../../../integration/database/itemDraft/createItemDraft/database.test.ts)                         |      127 | 実 usecase・helper・service・モデル・PostgreSQL。S3 のみモック。永続化・制約・状態・逐次再実行を確認         |

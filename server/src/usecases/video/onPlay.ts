@@ -1,6 +1,6 @@
 import { AppError } from "../../errors.js";
 import { getItemByVideoId, updateSortNumber } from "../../services/items/index.js";
-import { addPlayCount, getVideo } from "../../services/video.js";
+import { addPlayCount, getVideo } from "../../services/video/video.js";
 
 type Params = {
     videoId: number;

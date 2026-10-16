@@ -1,7 +1,7 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
 import { getMyItemBySaleId, updatePrice } from "../../services/items/index.js";
-import { getSale, updateSaleEdit } from "../../services/sale.js";
+import { getSale, updateSaleEdit } from "../../services/sale/sale.js";
 
 type Body = {
     discountRate: number;

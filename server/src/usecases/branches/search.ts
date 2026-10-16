@@ -1,5 +1,5 @@
 import { Branches } from "../../models/index.js";
-import { getBranchesAll } from "../../services/branches.js";
+import { getBranchesAll } from "../../services/branches/branches.js";
 
 type Params = {
     kw: string;

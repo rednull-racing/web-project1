@@ -6,7 +6,7 @@ import type { DbFixture } from "../../../../fixtures/itemEditing/updateConfirm/d
 import { deferred, expectAppError } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
 import * as query from "../../../../../src/services/itemEditing/query.js";
 import * as command from "../../../../../src/services/itemEditing/command.js";
-import * as aliases from "../../../../../src/services/brandAliases.js";
+import * as aliases from "../../../../../src/services/brandAliases/brandAliases.js";
 
 let f: DbFixture;
 beforeEach(async () => {

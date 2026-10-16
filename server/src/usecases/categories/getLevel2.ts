@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { getLevel2 } from "../../services/categories.js";
+import { getLevel2 } from "../../services/categories/categories.js";
 
 type Params = {
     parentId: number;

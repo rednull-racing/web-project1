@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { getMyDeliveryHasAddress } from "../../services/delivery.js";
+import { getMyDeliveryHasAddress } from "../../services/delivery/delivery.js";
 
 type Params = {
     deliveryId: number;

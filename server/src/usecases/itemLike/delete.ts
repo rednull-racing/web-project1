@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { destroyItemLike, getItemLikeOne } from "../../services/itemLike.js";
+import { destroyItemLike, getItemLikeOne } from "../../services/itemLike/itemLike.js";
 import { patchSortNumberDecreaseUseCase } from "../items/sortNumber/sortNumber.js";
 
 type Params = {

@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { AppError } from "../../errors.js";
-import { createTokenEmailChange } from "../../services/tokenEmailChange.js";
+import { createTokenEmailChange } from "../../services/tokenEmailChange/tokenEmailChange.js";
 import { getAllEmail, getUser } from "../../services/users/query.js";
 
 type Params = {

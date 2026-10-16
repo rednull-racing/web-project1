@@ -1,4 +1,4 @@
-import { createInquiry } from "../../services/inquiry.js";
+import { createInquiry } from "../../services/inquiry/inquiry.js";
 
 type Params = {
     userId: number | null;

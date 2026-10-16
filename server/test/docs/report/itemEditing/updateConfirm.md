@@ -1,5 +1,14 @@
 # updateConfirm テスト報告・修正記録
 
+## 2026-10-16 service配置変更の補足
+
+service直下の単一TSを同名フォルダへ移動し、呼出し元・モックの参照を更新した。services共通testを対象コードのtestへ移動・分割した。以下の過去の実行表・コマンドは当時の配置と件数を示す。現配置は [設計書](../../architecture/itemEditing/updateConfirm.md) を参照する。
+
+旧services/test/updateConfirm.brandAliases.test.tsの5件はsrc/services/brandAliases/test/updateConfirm.brandAliases.test.tsへ移動した。
+
+service単体テスト全体は移動前9ファイル・移動後15ファイルで、ともに72件すべて成功。Vitest JSONの全テスト名と成否が一致した。DB接続・実DBテスト・migrationは未実施。
+
+
 初回・DB追加検証報告と修正記録を統合した。以下は各実行時点の履歴であり、移動前の最新結果は後半の「2026-10-12 P02・P05・P08 修正後のテスト結果（最新）」を参照する。
 
 

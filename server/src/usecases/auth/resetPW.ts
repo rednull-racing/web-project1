@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { AppError } from "../../errors.js";
-import { deleteTokenRecord, getTokenOne } from "../../services/tokenPasswordReset.js";
+import { deleteTokenRecord, getTokenOne } from "../../services/tokenPasswordReset/tokenPasswordReset.js";
 import { updatePasswordUser } from "../../services/users/command.js";
 import { getUser } from "../../services/users/query.js";
 

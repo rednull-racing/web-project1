@@ -1,5 +1,5 @@
-import { getCommentLikeList } from "../../services/commentLike.js";
-import { getFollowings } from "../../services/follow.js";
+import { getCommentLikeList } from "../../services/commentLike/commentLike.js";
+import { getFollowings } from "../../services/follow/follow.js";
 
 type Params = {
     commentId: number;

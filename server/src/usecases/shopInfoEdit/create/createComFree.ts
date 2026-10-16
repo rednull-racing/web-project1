@@ -1,8 +1,8 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { createAddressAllowNull } from "../../../services/address.js";
-import { createBankAccountAllowNull } from "../../../services/bankAccount.js";
-import { createNameShopAllowNull } from "../../../services/name.js";
+import { createAddressAllowNull } from "../../../services/address/address.js";
+import { createBankAccountAllowNull } from "../../../services/bankAccount/bankAccount.js";
+import { createNameShopAllowNull } from "../../../services/name/name.js";
 import { getMyShopHasAddressNameBank } from "../../../services/shopInfo/query.js";
 import { createShopEditComFree } from "../../../services/shopInfoEdit/command.js";
 

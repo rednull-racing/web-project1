@@ -3,7 +3,7 @@ import crypto from "crypto";
 import fs from "fs";
 import { AppError } from "../../errors.js";
 import { publicS3Domain } from "../../infra/aws/s3.js";
-import { getMyVideo, updateStatus } from "../../services/video.js";
+import { getMyVideo, updateStatus } from "../../services/video/video.js";
 import { getDuration } from "../../utils/ffmpeg.js";
 import { createFfmpegCompletionPromise } from "../../utils/ffmpegCompletion.js";
 import { downloadVideoFromS3, uploadVideoToS3 } from "../../utils/s3/index.js";

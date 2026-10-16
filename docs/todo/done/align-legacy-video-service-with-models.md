@@ -16,7 +16,7 @@ Itemがvideo_id・seller_idを保持するため、作成時の関連設定と�
 
 ## 対象・参照ファイル
 
-- `server/src/services/video.ts` のcreateVideo・getMyVideo
+- `server/src/services/video/video.ts` のcreateVideo・getMyVideo
 - `server/src/types/serviceType/video.ts`
 - `server/src/models/video.ts`、`server/src/models/item.ts`
 - 該当Serviceの呼び出し元と動画作成・更新の仕様

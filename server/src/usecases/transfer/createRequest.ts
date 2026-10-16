@@ -1,8 +1,8 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
-import { createNotification } from "../../services/notification.js";
-import { createTransfer } from "../../services/transfer.js";
-import { updateUsedUriagekin } from "../../services/uriagekinLots.js";
+import { createNotification } from "../../services/notification/notification.js";
+import { createTransfer } from "../../services/transfer/transfer.js";
+import { updateUsedUriagekin } from "../../services/uriagekinLots/uriagekinLots.js";
 import { updateUriageUser } from "../../services/users/command.js";
 import { getUserHasUriagekinPointBank } from "../../services/users/query.js";
 import { generateTransferId } from "../../utils/generateTransferId.js";

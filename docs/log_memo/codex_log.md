@@ -455,3 +455,12 @@
 - 文書参照を更新後、server/test/usecasesとserver/test/utils（旧utilityテスト2件）を削除。
 - src既存ルールの保持・単体テストの適用先・文書リンク54件・lint・本番/テスト全体型検査・git diff --checkを確認。
 - 共通ルール整理と指定削除のため、テスト実行・DB接続・migrationは未実施。
+
+## 20261016_backend-architecture_service直下TSのフォルダ化
+
+- services直下の54ファイルを同名フォルダ/同名.tsへ移動し、各フォルダにtestを配置。空のtestは.gitkeepで保持。
+- 共通services/testを解消し、createItemDraftのマスター・別名テストを7フォルダへ分割、updateConfirm別名テストをbrandAliases/testへ移動。
+- 呼出し元・モックを含む181ファイルの参照を更新し、service規則・設計書・レポート等の参照と実行案内を現配置へ更新。
+- service単体は移動前9/移動後15ファイルとも72件成功、全テスト名・成否一致。関連usecase6ファイル563件も成功。
+- lint・本番/テスト全体型検査、変更結合TS5ファイルの追加lint、パス以外の内容保持・参照先・git diff --checkを確認。
+- DB接続・実DBテスト・migrationは未実施。

@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { getMyName, updateName } from "../../services/name.js";
+import { getMyName, updateName } from "../../services/name/name.js";
 
 type Params = {
     nameId: number;

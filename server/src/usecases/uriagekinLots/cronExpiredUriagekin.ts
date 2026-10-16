@@ -1,6 +1,6 @@
-import { createUriage180 } from "../../services/pointsUriageOver.js";
-import { createTransfer } from "../../services/transfer.js";
-import { getExpiredUriageAll } from "../../services/uriagekinLots.js";
+import { createUriage180 } from "../../services/pointsUriageOver/pointsUriageOver.js";
+import { createTransfer } from "../../services/transfer/transfer.js";
+import { getExpiredUriageAll } from "../../services/uriagekinLots/uriagekinLots.js";
 import { getUserHasBankAccount } from "../../services/users/query.js";
 import type { UriagekinLotsInstance } from "../../types/serviceType/uriagekinLots.js";
 import { generateTransferId } from "../../utils/generateTransferId.js";

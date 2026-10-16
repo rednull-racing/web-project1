@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { getUserItemsCartList } from "../../../../services/cart.js";
+import { getUserItemsCartList } from "../../../../services/cart/cart.js";
 import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {

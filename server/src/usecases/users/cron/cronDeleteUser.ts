@@ -2,7 +2,7 @@ import sequelize from "../../../db.js";
 import {
     destroySignupVerificationTokens,
     getExpiredSignupVerificationTokens,
-} from "../../../services/tokenSignupVerificationCode.js";
+} from "../../../services/tokenSignupVerificationCode/tokenSignupVerificationCode.js";
 import { destroyUnverifiedUsers } from "../../../services/users/command.js";
 
 type ExpiredSignupVerificationToken = {

@@ -1,4 +1,4 @@
-import { deleteCronNotification } from "../../services/notification.js";
+import { deleteCronNotification } from "../../services/notification/notification.js";
 
 // expires_at切れnotification削除
 export const notificationCronDeleteUseCase = () => {

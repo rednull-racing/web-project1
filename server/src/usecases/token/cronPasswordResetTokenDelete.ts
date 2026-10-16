@@ -1,4 +1,4 @@
-import { destroyExpiredPasswordResetTokens } from "../../services/tokenPasswordReset.js";
+import { destroyExpiredPasswordResetTokens } from "../../services/tokenPasswordReset/tokenPasswordReset.js";
 
 // TokenPasswordReset削除
 export const deleteCronPasswordResetTokensUseCase = (): Promise<number> => {

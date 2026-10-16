@@ -26,13 +26,13 @@ vi.mock("../../../../../src/services/itemEditing/command.js", () => ({
     updateConfirm: mocks.updateConfirm,
     updateItemEditingImage: mocks.updateItemEditingImage,
 }));
-vi.mock("../../../../../src/services/categories.js", () => ({ getCategories: mocks.getCategories }));
-vi.mock("../../../../../src/services/itemConditionOption.js", () => ({ getItemCondition: mocks.getItemCondition }));
-vi.mock("../../../../../src/services/shippingDayOption.js", () => ({ getShippingDay: mocks.getShippingDay }));
-vi.mock("../../../../../src/services/shippingServiceOption.js", () => ({ getShippingService: mocks.getShippingService }));
-vi.mock("../../../../../src/services/todouhuken.js", () => ({ getTodouhuken: mocks.getTodouhuken }));
-vi.mock("../../../../../src/services/brands.js", () => ({ getBrand: mocks.getBrand, getBrandOne: mocks.getBrandOne }));
-vi.mock("../../../../../src/services/brandAliases.js", () => ({
+vi.mock("../../../../../src/services/categories/categories.js", () => ({ getCategories: mocks.getCategories }));
+vi.mock("../../../../../src/services/itemConditionOption/itemConditionOption.js", () => ({ getItemCondition: mocks.getItemCondition }));
+vi.mock("../../../../../src/services/shippingDayOption/shippingDayOption.js", () => ({ getShippingDay: mocks.getShippingDay }));
+vi.mock("../../../../../src/services/shippingServiceOption/shippingServiceOption.js", () => ({ getShippingService: mocks.getShippingService }));
+vi.mock("../../../../../src/services/todouhuken/todouhuken.js", () => ({ getTodouhuken: mocks.getTodouhuken }));
+vi.mock("../../../../../src/services/brands/brands.js", () => ({ getBrand: mocks.getBrand, getBrandOne: mocks.getBrandOne }));
+vi.mock("../../../../../src/services/brandAliases/brandAliases.js", () => ({
     getAliasOne: mocks.getAliasOne,
     createAliases: mocks.createAliases,
 }));

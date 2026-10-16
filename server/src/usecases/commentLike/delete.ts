@@ -1,4 +1,4 @@
-import { destroyCommentLike, getCommentLikeOne } from "../../services/commentLike.js";
+import { destroyCommentLike, getCommentLikeOne } from "../../services/commentLike/commentLike.js";
 import { AppError } from "../../errors.js";
 import { patchCommentSortNumberDecreaseUseCase } from "../comment/patchSortNumber.js";
 

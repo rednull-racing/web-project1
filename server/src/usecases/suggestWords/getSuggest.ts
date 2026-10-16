@@ -1,5 +1,5 @@
 import { SuggestWords } from "../../models/index.js";
-import { getSuggestAll } from "../../services/suggestWords.js";
+import { getSuggestAll } from "../../services/suggestWords/suggestWords.js";
 
 type Params = {
     keyword: string;

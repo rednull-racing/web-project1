@@ -1,5 +1,5 @@
 import { NotificationType } from "../../../config/notification.js";
-import { getMyNotificationAll, updateNotificationType } from "../../../services/notification.js";
+import { getMyNotificationAll, updateNotificationType } from "../../../services/notification/notification.js";
 
 const MESSAGE_TYPE_MAP: { pattern: string; type: NotificationType }[] = [
     { pattern: "コメントを削除しました", type: "COMMENT" },

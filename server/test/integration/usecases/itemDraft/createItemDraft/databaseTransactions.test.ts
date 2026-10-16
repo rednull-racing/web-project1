@@ -16,8 +16,8 @@ import {
 import type { DbFixture } from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
 import { deferred } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 import * as command from "../../../../../src/services/itemDraft/command.js";
-import * as brands from "../../../../../src/services/brands.js";
-import * as aliases from "../../../../../src/services/brandAliases.js";
+import * as brands from "../../../../../src/services/brands/brands.js";
+import * as aliases from "../../../../../src/services/brandAliases/brandAliases.js";
 import * as master from "../../../../../src/usecases/shared/validateMaster.js";
 let f: DbFixture;
 beforeEach(async () => {

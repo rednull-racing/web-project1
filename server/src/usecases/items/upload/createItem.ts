@@ -1,8 +1,8 @@
 import sequelize from "../../../db.js";
 import { createItem } from "../../../services/items/index.js";
-import { createShipping } from "../../../services/itemShippingProfile.js";
-import { createSale } from "../../../services/sale.js";
-import { createVideo } from "../../../services/video.js";
+import { createShipping } from "../../../services/itemShippingProfile/itemShippingProfile.js";
+import { createSale } from "../../../services/sale/sale.js";
+import { createVideo } from "../../../services/video/video.js";
 
 type Params = {
     userId: number;

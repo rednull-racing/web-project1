@@ -1,7 +1,7 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { createAddress } from "../../../services/address.js";
-import { createNotification } from "../../../services/notification.js";
+import { createAddress } from "../../../services/address/address.js";
+import { createNotification } from "../../../services/notification/notification.js";
 import { getMyShop } from "../../../services/shopInfo/query.js";
 import { createShopEdit } from "../../../services/shopInfoEdit/command.js";
 import { AddressBody } from "../../../validators/body/address.js";

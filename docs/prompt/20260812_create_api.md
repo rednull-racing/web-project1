@@ -120,7 +120,7 @@ export const deliveryPostByIdController = async (req: Request, res: Response, ne
 
 ### 参考
 
-/server/src/services/delivery.ts
+/server/src/services/delivery/delivery.ts
 
 - createDelivery
 
@@ -159,7 +159,7 @@ export type CreateDeliveryParams = {
 ### やること
 
 - ファイル作成
-    - /server/src/services/purchaseSession.ts
+    - /server/src/services/purchaseSession/purchaseSession.ts
     - /server/src/types/serviceType/purchaseSession.ts
 - serviceType CreatePurchaseSessionParams 作成
     - 上記CreateDeliveryParamsとカラム構成は同じはずだが、微妙にカラム名が違う箇所がある可能性があるため、必ずModelを確認する。カラム名が異なる場合は、必ずModelに合わせてServiceTypeを修正する。

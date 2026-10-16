@@ -16,7 +16,7 @@ Saleから対応するItemを取得する処理の修正中、旧 `createSale` �
 
 ## 対象・参照ファイル
 
-- `server/src/services/sale.ts` の `createSale`
+- `server/src/services/sale/sale.ts` の `createSale`
 - `server/src/types/serviceType/sale.ts` の `CreateSaleParams`
 - `server/src/models/sale.ts`、`server/src/models/item.ts`
 - `createSale` を使用するUseCaseと商品新規作成の仕様

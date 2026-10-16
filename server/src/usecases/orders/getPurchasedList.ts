@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { getPurchasedOrders } from "../../services/orders.js";
+import { getPurchasedOrders } from "../../services/orders/orders.js";
 import type { OrderWhere } from "../../types/serviceType/orders.js";
 
 type Params = {

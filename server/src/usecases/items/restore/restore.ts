@@ -1,6 +1,6 @@
 import { AppError } from "../../../errors.js";
 import { getMyItem, updateRestoreItem } from "../../../services/items/index.js";
-import { createNotification } from "../../../services/notification.js";
+import { createNotification } from "../../../services/notification/notification.js";
 
 type Params = {
     itemId: number;
