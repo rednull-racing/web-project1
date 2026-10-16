@@ -3,14 +3,14 @@ import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, beforeAll, beforeEach, expect, vi } from "vitest";
 import { Op, QueryTypes, Sequelize } from "sequelize";
 import type { Model, ModelStatic, Transaction } from "sequelize";
-import type { CreateItemEditingCopyParams } from "../../../../src/types/serviceType/itemEditing.js";
-import db from "../../../../src/models/index.js";
-import sequelize from "../../../../src/db.js";
+import type { CreateItemEditingCopyParams } from "../../../../../server/src/types/serviceType/itemEditing.js";
+import db from "../../../../../server/src/models/index.js";
+import sequelize from "../../../../../server/src/db.js";
 import {
     Item, ItemEditing, Video, Sale, ItemShippingProfile, User, Categories, Brands, BrandAliases,
     ItemConditionOption, ShippingDayOption, ShippingServiceOption, TodouhukenOption,
-} from "../../../../src/models/index.js";
-import { createItemEditingCopyUseCase } from "../../../../src/usecases/itemEditing/createItemEditingCopy.js";
+} from "../../../../../server/src/models/index.js";
+import { createItemEditingCopyUseCase } from "../../../../../server/src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js";
 import { expectedData, makeItem } from "./fixtures.js";
 
 export {

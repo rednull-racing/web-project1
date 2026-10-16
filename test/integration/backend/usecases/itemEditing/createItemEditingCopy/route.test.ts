@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeHttpApp, makeToken, postCopy } from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/httpFixtures.js";
+import { makeHttpApp, makeToken, postCopy } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/httpFixtures.js";
 
 const mocks = vi.hoisted(() => ({ copy: vi.fn() }));
 vi.mock("../../../../../../server/src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: mocks.copy }));

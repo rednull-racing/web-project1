@@ -6,7 +6,7 @@
 
 ## 原因・対象ファイル
 
-- `server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.ts:13` は移動前のusecaseをimportし、TS2307になる。実ファイルは `server/src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.ts`。
+- `test/fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.ts:13` の旧usecase参照によるTS2307はfixture移動時に修正済み。実ファイルは `server/src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.ts`。
 - `test/integration/backend/usecases/itemEditing/createItemEditingCopy/databaseConcurrency.test.ts:93,94,99,104` のコールバック引数でTS7006、225,226,239行の未確定PromiseでTS2345が出る。importエラーの波及と独立した型問題を切り分ける。
 - `test/integration/backend/usecases/itemEditing/createItemEditingCopy/route.test.ts` のusecaseモック先は結合テスト配置変更時に現配置へ修正済み。実行結果は未確認。
 
@@ -18,4 +18,4 @@
 
 期待値を弱めず、anyや根拠のない型アサーションで隠さない。本番コードやDB接続設定は変更しない。Routerの検証と実DBテストを分け、DB検証は既存の安全ガードを確認してから行う。migrationは実行しない。lint・本番とテストの型検査・対象テストの結果を記録する。
 
-2026-10-16追記: 結合テスト5ファイルはルートのtest/integration/backendへ移動済み。上記8件は移動前の観測値で、現在のserver/test/tsconfig.jsonは移動後のテストを対象にしない。fixture関連は旧配置に保持。再検証前に `configure-root-backend-integration-tests.md` の実行・型検査環境を整える。
+2026-10-16追記: 結合テスト5ファイルはルートのtest/integration/backendへ移動済み。上記8件は移動前の観測値で、現在のserver/test/tsconfig.jsonは移動後のテストを対象にしない。fixture関連は `test/fixtures/backend/itemEditing/createItemEditingCopy/` へ移動済み。再検証前に `configure-root-backend-integration-tests.md` の実行・型検査環境を整える。

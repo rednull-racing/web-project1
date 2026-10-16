@@ -367,3 +367,11 @@
 - テスト設計書をtest/docs/architecture/itemEditing/createItemEditingCopy.mdへ移動。
 - 移動したテストの相対import、設計書のリンク、関連Todoの参照パスを更新。
 - 相対import先・Markdownリンク先の存在とgit diff --checkを確認。配置・参照修正のみのためテスト実行・DB接続なし。
+
+## 20261016_backend-test_createItemEditingCopyのfixture移動
+
+- refactor/create-item-editing-copy-fixturesでfixture・DB setup計4ファイルをtest/fixtures/backend/itemEditing/createItemEditingCopyへ移動。
+- 結合テスト・fixture内の相対importとDB fixtureの旧usecase参照を更新。設計書・関連Todoも現配置へ更新。
+- 全9ファイルの相対参照先の存在と、fixtureのパス以外の処理が不変であることを確認。
+- serverのlint・typecheck・git diff --check通過。ルートtestの実行環境は既存Todoで管理中のため結合テストは未実行。
+- DB接続・migration実行なし。

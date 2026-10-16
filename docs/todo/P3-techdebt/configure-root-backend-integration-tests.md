@@ -13,9 +13,9 @@ createItemEditingCopyの結合テスト5ファイルを `test/integration/backen
 ## 対象・参照ファイル
 
 - `test/integration/backend/`、`server/package.json`、`server/tsconfig.json`、`server/test/tsconfig.json`、`server/eslint.config.mjs`
-- `server/test/usecases/itemEditing/createItemEditingCopy/{fixtures,databaseFixtures,httpFixtures,databaseSetup}.ts`
+- `test/fixtures/backend/itemEditing/createItemEditingCopy/{fixtures,databaseFixtures,httpFixtures,databaseSetup}.ts`
 - `docs/todo/P3-techdebt/repair-create-item-editing-copy-integration-tests.md`
 
 ## 注意事項
 
-fixture関連は移動許可があるまで旧配置を維持する。databaseSetup.tsはserverをカレントディレクトリとして.env.testを読む安全ガードを持つため、作業ディレクトリ変更で読込先を壊さない。DB環境変数の値を出力しない。DBテスト実行前に既存の安全条件を確認し、migrationは実行しない。テスト内容・期待値・本番コードはこの実行環境の対応だけを理由に変更しない。
+fixture関連は `test/fixtures/backend/itemEditing/createItemEditingCopy/` へ移動済み。databaseSetup.tsはserverをカレントディレクトリとして.env.testを読む安全ガードを持つため、作業ディレクトリ変更で読込先を壊さない。DB環境変数の値を出力しない。DBテスト実行前に既存の安全条件を確認し、migrationは実行しない。テスト内容・期待値・本番コードはこの実行環境の対応だけを理由に変更しない。

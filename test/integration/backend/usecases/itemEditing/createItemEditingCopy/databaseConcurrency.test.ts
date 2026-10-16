@@ -1,4 +1,4 @@
-import "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseSetup.js";
+import "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseSetup.js";
 import { QueryTypes } from "sequelize";
 import type { Sequelize, Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,9 +8,9 @@ import type { GetMyItemWithVideoSaleShippingParams } from "../../../../../../ser
 import {
     seed, run, snapshot, protectedSnapshot, editingIds, expectCopy, expectedCopy,
     sequelize, observer, Item, Video, Sale, ItemShippingProfile,
-} from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import type { DbFixture } from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import { deferred, expectAppError } from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/fixtures.js";
+} from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import type { DbFixture } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import { deferred, expectAppError } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/fixtures.js";
 
 let f: DbFixture;
 beforeEach(async () => { f = await seed(); });

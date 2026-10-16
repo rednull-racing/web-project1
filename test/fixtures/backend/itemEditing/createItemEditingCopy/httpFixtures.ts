@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import request from "supertest";
 
 export const makeHttpApp = async () => {
-    const { default: router } = await import("../../../../src/routes/itemEditing.js");
-    const { errorHandler } = await import("../../../../src/middleware/errorHandler.js");
+    const { default: router } = await import("../../../../../server/src/routes/itemEditing.js");
+    const { errorHandler } = await import("../../../../../server/src/middleware/errorHandler.js");
     const app = express();
     app.use(express.json());
     app.use("/api/item-editing", router);

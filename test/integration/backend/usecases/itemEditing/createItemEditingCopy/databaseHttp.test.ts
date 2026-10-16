@@ -1,12 +1,12 @@
-import "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseSetup.js";
+import "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseSetup.js";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     seed, sequelize, editingIds, protectedSnapshot, expectedCopy, expectCopy,
-} from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import type { DbFixture } from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import { makeHttpApp, postCopy } from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/httpFixtures.js";
+} from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import type { DbFixture } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import { makeHttpApp, postCopy } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/httpFixtures.js";
 
 // 対象copyは実処理。他エンドポイントの初期化だけを切り離す。
 vi.mock("../../../../../../server/src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
