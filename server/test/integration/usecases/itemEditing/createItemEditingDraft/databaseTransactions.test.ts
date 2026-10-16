@@ -1,9 +1,9 @@
-import "./databaseSetup.js";
+import "../../../../usecases/itemEditing/createItemEditingDraft/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseError, ValidationError } from "sequelize";
-import * as query from "../../../../src/services/itemDraft/query.js";
-import * as editingCommand from "../../../../src/services/itemEditing/command.js";
-import * as draftCommand from "../../../../src/services/itemDraft/command.js";
+import * as query from "../../../../../src/services/itemDraft/query.js";
+import * as editingCommand from "../../../../../src/services/itemEditing/command.js";
+import * as draftCommand from "../../../../../src/services/itemDraft/command.js";
 import {
     seed,
     run,
@@ -14,9 +14,9 @@ import {
     expectCopied,
     expectLockReleased,
     editingIds,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { deferred, stringColumns, waitForGate } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+} from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import { deferred, stringColumns, waitForGate } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 beforeEach(async () => {

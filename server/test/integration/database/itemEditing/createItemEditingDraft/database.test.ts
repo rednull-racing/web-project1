@@ -1,11 +1,11 @@
-import "./databaseSetup.js";
+import "../../../../usecases/itemEditing/createItemEditingDraft/databaseSetup.js";
 import { randomBytes } from "node:crypto";
 import express from "express";
 import type { ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "../../../../src/errors.js";
+import { AppError } from "../../../../../src/errors.js";
 import {
     seed,
     run,
@@ -15,9 +15,9 @@ import {
     expectCopied,
     replaceDraft,
     expectUnchanged,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { copyVariants, expectAppError, makeBody } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+} from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import { copyVariants, expectAppError, makeBody } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 beforeEach(async () => {
@@ -107,9 +107,9 @@ describe("P0: HTTP入口で拒否した場合の実DB不変", () => {
             vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
             const secret = randomBytes(32).toString("hex");
             vi.stubEnv("NEXTAUTH_SECRET", secret);
-            const { default: router } = await import("../../../../src/routes/itemEditing.js");
+            const { default: router } = await import("../../../../../src/routes/itemEditing.js");
             const { createItemEditingDraftRateLimit } =
-                await import("../../../../src/middleware/rateLimit/itemEditingRateLimit.js");
+                await import("../../../../../src/middleware/rateLimit/itemEditingRateLimit.js");
             createItemEditingDraftRateLimit.resetKey(`admin:${f.owner.id}`);
             const app = express();
             app.use(express.json());
@@ -128,7 +128,7 @@ describe("P0: HTTP入口で拒否した場合の実DB不変", () => {
                 if (authenticated) req.set("Authorization", `Bearer ${token}`);
                 return req.send(valid ? makeBody(f.draft.id) : {});
             };
-            const { sequelize } = await import("./databaseFixtures.js");
+            const { sequelize } = await import("../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js");
             const transaction = vi.spyOn(sequelize, "transaction");
             if (mode === "制限超過") for (let i = 0; i < 5; i++) expect((await send(false)).status).toBe(400);
             const result = await send(mode !== "入力不正", mode !== "未認証");

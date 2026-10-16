@@ -4,14 +4,14 @@ import type { ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { invalidIds, makeBody } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import { invalidIds, makeBody } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn(), observe: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
     createItemEditingDraftUseCase: mocks.create,
 }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 
 let app: ReturnType<typeof express>, commonApp: ReturnType<typeof express>, secret: string;
@@ -31,9 +31,9 @@ beforeEach(async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     secret = randomBytes(32).toString("hex");
     vi.stubEnv("NEXTAUTH_SECRET", secret);
-    const { default: router } = await import("../../../../src/routes/itemEditing.js");
-    const { AppError } = await import("../../../../src/errors.js");
-    const { errorHandler } = await import("../../../../src/middleware/errorHandler.js");
+    const { default: router } = await import("../../../../../src/routes/itemEditing.js");
+    const { AppError } = await import("../../../../../src/errors.js");
+    const { errorHandler } = await import("../../../../../src/middleware/errorHandler.js");
     commonApp = express();
     commonApp.use(express.json());
     commonApp.use("/api/item-editing", router);
@@ -72,7 +72,7 @@ describe("P1: 実Routerと実共通errorHandlerの接続", () => {
         expect(mocks.observe).not.toHaveBeenCalled();
     });
     it("AF-R02: ITEM_DRAFT_NOT_FOUNDは共通handlerから404のJSONを返す", async () => {
-        const { AppError } = await import("../../../../src/errors.js");
+        const { AppError } = await import("../../../../../src/errors.js");
         mocks.create.mockRejectedValue(new AppError("ITEM_DRAFT_NOT_FOUND", 404));
         const result = await send();
         expect(result.status).toBe(404);
@@ -137,7 +137,7 @@ describe("P1: 実Routerの認証・入力・201接続", () => {
     it.each(["AppError", "通常Error"] as const)(
         "R08 AF-R05: %sを同じ参照で4引数のエラーmiddlewareへ渡す",
         async (mode) => {
-            const { AppError } = await import("../../../../src/errors.js");
+            const { AppError } = await import("../../../../../src/errors.js");
             const error = mode === "AppError" ? new AppError("ITEM_DRAFT_NOT_FOUND", 404) : new Error("DB failure");
             mocks.create.mockRejectedValue(error);
             const result = await post();

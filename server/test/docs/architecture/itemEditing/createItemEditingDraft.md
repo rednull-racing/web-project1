@@ -59,10 +59,19 @@
 | `validation.test.ts` | `src/validators/body/test/createItemEditingDraft.test.ts` |
 | `controller.test.ts` | `src/controllers/itemEditing/test/createItemEditingDraft.test.ts` |
 | `fixtures.ts` | `src/usecases/itemEditing/test/createItemEditingDraft.fixtures.ts`（単体・結合テスト共通） |
-| Router・DB テスト、DB fixture・setup | `test/usecases/itemEditing/createItemEditingDraft/` に維持 |
+| `database.test.ts` | `test/integration/database/itemEditing/createItemEditingDraft/`：永続化・制約・所有権・再実行。ファイル内のHTTP→DB検証も維持 |
+| `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`、`route.test.ts` | `test/integration/usecases/itemEditing/createItemEditingDraft/`：transaction・並行処理・HTTP接続 |
+| DB fixture・setup | `test/usecases/itemEditing/createItemEditingDraft/` に維持 |
 
 単体テストは `npm run test:run -- src/usecases/itemEditing/test/createItemEditingDraft.test.ts src/services/itemDraft/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/validators/body/test/createItemEditingDraft.test.ts src/controllers/itemEditing/test/createItemEditingDraft.test.ts --maxWorkers=1` で実行する。
 本番コードの `npm run typecheck` が移動先の単体テストを含む。残る結合テストの型は `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` で確認する。
+
+統合テストはファイル内のケースを分割せず、主な検証対象に従って配置した。専用のservice統合テストはないため、`integration/services` への移動はない。
+DB非接続のRouterテストは `npm run test:run -- test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts --maxWorkers=1` で実行する。
+2026-10-16の移動後確認ではlint・本番コードとテスト全体の型検査が成功。Routerテストは対象外usecaseのモック漏れによるDB設定読込みで40件とも検証前に停止し、実DBテストは未実行。対応は [Todo](../../../../../docs/todo/P3-techdebt/isolate-create-item-editing-draft-route-test-from-db.md) を参照。
+
+全統合テストは `npm run test:run -- test/integration/database/itemEditing/createItemEditingDraft/ test/integration/usecases/itemEditing/createItemEditingDraft/ --maxWorkers=1` で実行する。実DBテストを含むため、第13節の接続ガード・安全条件を先に確認する。
+
 
 
 下表は将来の実装構成。今回は各ファイルを作成しない。

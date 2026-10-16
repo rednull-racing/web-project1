@@ -1,13 +1,13 @@
-import "./databaseSetup.js";
+import "../../../../usecases/itemEditing/createItemEditingDraft/databaseSetup.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { performance } from "node:perf_hooks";
 import { setImmediate } from "node:timers/promises";
 import { QueryTypes } from "sequelize";
 import type { Transaction } from "sequelize";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as query from "../../../../src/services/itemDraft/query.js";
-import * as editingCommand from "../../../../src/services/itemEditing/command.js";
-import * as draftCommand from "../../../../src/services/itemDraft/command.js";
+import * as query from "../../../../../src/services/itemDraft/query.js";
+import * as editingCommand from "../../../../../src/services/itemEditing/command.js";
+import * as draftCommand from "../../../../../src/services/itemDraft/command.js";
 import {
     seed,
     run,
@@ -18,9 +18,9 @@ import {
     savedEditings,
     expectCopied,
     protectedRows,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { deferred, expectAppError, waitForGate } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+} from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import { deferred, expectAppError, waitForGate } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 const sql: string[] = [];

@@ -399,3 +399,12 @@
 - controllerに他usecaseのDB読込みを防ぐモックを追加し、controller・validatorのExpress型importを既存単体テストと統一。
 - 単体テスト5ファイル103件、serverのlint・typecheck、test/tsconfigの型検査、相対参照85件とgit diff --checkを確認。
 - Router・DB結合テストは現配置を維持。結合テスト実行・DB接続・migrationは未実施。
+
+## 20261016_backend-test_createItemEditingDraft統合テストの配置変更
+
+- database.test.tsをtest/integration/database/itemEditing/createItemEditingDraftへ移動。
+- transaction・並行処理・Routerの3テストをtest/integration/usecases/itemEditing/createItemEditingDraftへ移動。
+- import・mockの相対パスと設計書の配置・実行案内を更新。DB fixture・setupは旧配置を維持。
+- lint・typecheck・テスト全体の型検査、全4テストの参照先とパス以外の内容保持、git diff --checkを確認。
+- Router40件は対象外Copy usecaseの既存モック漏れでDB設定読込み時に停止。範囲外修正はせずTodoへ記録。
+- 実DBテスト・DB接続・migrationは未実施。
