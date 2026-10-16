@@ -100,7 +100,8 @@
         "techdebt",
         "fontawesome",
         "VARCHAR",
-        "NFKC"
+        "NFKC",
+        "worktree"
     ],
     "remote.autoForwardPortsFallback": 0
 }

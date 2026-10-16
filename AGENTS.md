@@ -162,6 +162,81 @@ npm run lint
 npm run typecheck
 ```
 
+## 作業別ブランチ分け
+
+### 作業開始前
+
+- 作業開始前、ブランチ切り替え前、worktree作成・削除前、マージ前には git status で作業ツリーの状態を確認する。
+
+- 既存の未コミット変更を、ユーザーの明示的な許可なくコミット・破棄・上書き・退避（stash）してはならない。
+
+- 他のエージェントやユーザーが作成した未コミット変更は、担当外の作業として保護する。
+
+- 未コミット変更が存在する場合は、その内容と影響を確認し、必要に応じてユーザーに対応方針を確認する。
+
+- git reset --hard、git clean -fd、git restore など、既存の変更を失う可能性がある操作を無断で実行してはならない。
+
+- コミット対象は原則として自身の担当作業で変更したファイルのみとし、git add . による意図しない変更の混入を避ける。
+
+- 作業終了時のコミット指示は、既存の未コミット変更を無断でコミットする許可を意味しない。
+
+### 作業開始
+
+各エージェントごとの競合を避ける、作業目的別で管理する目的で、作業時は一時ブランチを作成する
+
+- 新規実装: feature/〇〇（作業名）
+- テスト実装: test/〇〇（作業名）
+- バグ修正: fix/〇〇（作業名）
+- リファクタリング: refactor/〇〇（作業名）
+- ドキュメント作成: docs/〇〇（作業名）
+
+例：
+
+まずdevelopを最新にする。
+
+```bash
+git switch develop
+git pull origin develop
+```
+
+そして、新しいブランチを作成して移動する。
+
+```bash
+git switch -c feature/item-upload
+```
+
+### 作業終了時
+
+作成・実装・検証等の作業が終了したら、commitしてからdevelopブランチにマージして、不要になった作業用ブランチを削除する。
+
+```bash
+# 作業ブランチで検証を終えた後
+git add <今回変更したファイル>
+git commit -m "作業内容"
+git switch develop
+git pull --ff-only origin develop
+git merge feature/item-upload
+git branch -d feature/item-upload
+
+```
+
+### 並列稼働する場合
+
+複数のエージェントが並列で作業を行う場合は、Git worktreeを使う。
+
+```bash
+git worktree add -b feature/item-upload ../project-feature develop
+git worktree add -b test/item-upload ../project-test develop
+```
+
+各エージェントは担当worktreeでコミットし、developへの統合は代表が順番に行う。
+
+統合後はgit worktree remove <パス>→git branch -d <ブランチ>の順で片付ける。
+
+共通のCodexログは競合しやすいので、統合時に両方の記録を残す。
+
+---
+
 # スコープ管理
 
 現在依頼されているタスクの範囲外は変更しない。
