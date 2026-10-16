@@ -58,13 +58,27 @@
 - S（作成）: `src/services/itemEditing/test/createItemEditingCopy.test.ts`
 - C: `src/controllers/itemEditing/test/createItemEditingCopy.test.ts`
 - 共通fixture: `src/usecases/itemEditing/createItemEditingCopy/test/fixtures.ts`。旧配置の `fixtures.ts` は結合テスト向けの再exportを維持する。
-- R/DとHTTP・DB用fixture: `test/usecases/itemEditing/createItemEditingCopy/` に保留。今回の移動・実行対象外。
+- R/Dの配置は下記「結合テストの配置」を参照。HTTP・DB用fixtureは `server/test/usecases/itemEditing/createItemEditingCopy/` に保留（リポジトリルート基準）。
 
 移動後の単体テストは server/ で次のコマンドを実行する。結合テストは含めない。
 
 ~~~bash
 npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/controllers/itemEditing/test/createItemEditingCopy.test.ts src/validators/body/test/createItemEditingCopy.test.ts src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts --maxWorkers=1
 ~~~
+
+### 2026-10-16 結合テストの配置
+
+以下はリポジトリルート基準。テスト内容は分割せず、ファイルの主な検証対象に従って配置する。
+
+| 配置 | ファイル・分類理由 |
+| --- | --- |
+| `test/integration/backend/database/createItemEditingCopy/` | `database.test.ts`：永続化、モデル検証、実DB制約、所有権、逐次再実行 |
+| `test/integration/backend/usecases/createItemEditingCopy/` | `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`：usecaseのtransaction制御、失敗・再試行、競合時の業務結果 |
+| 同上 | `databaseHttp.test.ts`、`route.test.ts`：バックエンド内のHTTP接続。前者は実usecase・DB、後者はusecaseをモック |
+| `test/integration/backend/services/` | 専用のservice結合テストは現状なし。空ディレクトリを保持 |
+| `test/integration/cross-layer/`、`test/fixtures/` | 今回は空ディレクトリを保持 |
+
+`fixtures.ts`、`databaseFixtures.ts`、`httpFixtures.ts`、`databaseSetup.ts` は旧配置に保持し、移動したテストの相対importだけを更新する。DB関連fixtureの既存の旧usecase参照や型問題は未修正。既存のserver向け実行・型検査設定はルートtestを対象にしないため、結合テスト実行環境の対応は別Todoを参照する。今回DBテストは実行していない。
 
 以下は初回設計時の記録であり、今回の配置変更や検証結果はCodexログを参照する。
 

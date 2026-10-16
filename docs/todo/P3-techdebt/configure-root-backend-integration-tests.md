@@ -1,0 +1,21 @@
+# ルート配置のバックエンド結合テストの実行・型検査を整える
+
+優先度: P3-techdebt。
+
+## 問題の概要・原因
+
+createItemEditingCopyの結合テスト5ファイルを `test/integration/backend/{database,usecases}/createItemEditingCopy/` へ移動した。現在の `server/package.json` のVitestコマンドはserverを基準とし、`server/test/tsconfig.json` はserver/testのみを対象とする。ルートのnode_modulesにはvitest・sequelize・supertestがなく、移動後のテストは既存コマンドの検査対象にならない。今回の依頼は配置変更のため実行環境の変更は行っていない。
+
+## 修正方針・実装内容
+
+既存のserver側依存を利用し、新規ライブラリ追加なしでルート配置のテストを発見・実行・型検査できる設定とコマンドを整える。DBを使わないroute.test.tsと実DBテストは分けて実行できるようにする。実行手順を `test/docs/architecture/createItemEditingCopy.md` に記録する。
+
+## 対象・参照ファイル
+
+- `test/integration/backend/`、`server/package.json`、`server/tsconfig.json`、`server/test/tsconfig.json`、`server/eslint.config.mjs`
+- `server/test/usecases/itemEditing/createItemEditingCopy/{fixtures,databaseFixtures,httpFixtures,databaseSetup}.ts`
+- `docs/todo/P3-techdebt/repair-create-item-editing-copy-integration-tests.md`
+
+## 注意事項
+
+fixture関連は移動許可があるまで旧配置を維持する。databaseSetup.tsはserverをカレントディレクトリとして.env.testを読む安全ガードを持つため、作業ディレクトリ変更で読込先を壊さない。DB環境変数の値を出力しない。DBテスト実行前に既存の安全条件を確認し、migrationは実行しない。テスト内容・期待値・本番コードはこの実行環境の対応だけを理由に変更しない。

@@ -351,3 +351,12 @@
 - controller内の相対パス、Route・関連テスト・設計書・規約例の参照を更新。36ファイルの処理本体が変更されていないことを確認。
 - serverのlint・typecheck、関連controller・Routerテスト3ファイル29件、git diff --check通過。
 - HTTPテストはサンドボックスのlisten制限で初回停止し、許可後の再実行で全件成功。DB接続・migration実行なし。
+
+## 20261016_backend-test_createItemEditingCopy結合テストの分類移動
+
+- refactor/create-item-editing-copy-integration-layoutで結合テスト5ファイルをルートtest/integration/backendへ移動。
+- database/createItemEditingCopyへ永続化・制約テスト、usecases/createItemEditingCopyへtransaction・並行処理・HTTP接続テストを分類。
+- backend/services・integration/cross-layer・test/fixturesを作成し.gitkeepで保持。fixture・setup計4ファイルは旧配置のまま内容も維持。
+- 移動したテストの相対importとrouteの旧usecaseモック先を更新。全参照先の存在と、パス以外のテスト内容が不変であることを確認。
+- serverのlint・typecheck・git diff --check通過（ルートの結合テストは検査対象外）。結合テスト・DB接続・migrationは未実行。
+- ルート配置に対応する実行・型検査環境を別Todoに記録し、設計書・既存Todoの配置情報を更新。

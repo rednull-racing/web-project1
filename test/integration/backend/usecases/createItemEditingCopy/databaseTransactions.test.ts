@@ -1,13 +1,13 @@
-import "./databaseSetup.js";
+import "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseError } from "sequelize";
-import * as command from "../../../../src/services/itemEditing/command.js";
+import * as command from "../../../../../server/src/services/itemEditing/command.js";
 import {
     seed, run, snapshot, editingIds, protectedSnapshot, expectCopy, expectedCopy,
     expectUnlocked, observer, Item, ItemEditing,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { deferred } from "./fixtures.js";
+} from "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import type { DbFixture } from "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import { deferred } from "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/fixtures.js";
 
 let f: DbFixture;
 beforeEach(async () => { f = await seed(); });
