@@ -471,3 +471,10 @@
 - NODE_ENV=test・.env.testのDATABASE_URLの存在を確認。db.tsの読込み前検査と上書き後検査不足は別Todoへ記録。
 - Router40件はHTTP待受けの制限解除後に全件成功。lint・本番/テスト全体型検査・対象TS追加lintも成功。
 - 設計書・レポートを更新し、対象Todoをdoneへ移動。本番コード・環境設定の変更、DB接続・migration実行なし。
+
+## 20261016_backend-coding_テストDB設定の読込み後検証
+
+- db.tsのtest分岐で.env.test読込み後の最終URLを検証し、読込み失敗・URL欠落時の親設定へのフォールバックを禁止。
+- NODE_ENV・ファイル由来URLとの一致・PostgreSQL・ホスト・test_dbをSequelize生成前に検査し、URLのパース例外を秘匿化。
+- DB非接続の単体22件、lint、本番/テスト全体型検査が成功。既存4種のDB setupとの互換性を調査。
+- 設計・検証結果を記録しTodoをdoneへ移動。development・production・fixtureの変更、実DB接続・migration実行なし。

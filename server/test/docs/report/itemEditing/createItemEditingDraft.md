@@ -23,7 +23,7 @@ npm run typecheck
 
 すべて成功。`--maxWorkers=1`は修正前Todoの再現条件を揃えるために維持した。通常lintの対象外である変更TSは、ESLint APIで`overrideConfigFile: true`とし、当該ファイルをfilesに指定して`@eslint/js`・`typescript-eslint`のrecommended設定で追加検査した（エラー0・警告0、共有設定変更なし）。
 
-本件の完了範囲はRouterのDB設定依存解消。DB保存・transaction・実アプリ登録・カバレッジは今回検証していない。DB初期化順序と上書き後の接続先検証は [別Todo](../../../../../docs/todo/P1-bug/validate-test-db-url-after-loading-env.md) に記録し、本番コードの修正やDB接続・migrationは行っていない。
+本件の完了範囲はRouterのDB設定依存解消。DB保存・transaction・実アプリ登録・カバレッジは今回検証していない。DB初期化順序と上書き後の接続先検証は [別Todo](../../../../../docs/todo/done/validate-test-db-url-after-loading-env.md) に記録し、本番コードの修正やDB接続・migrationは行っていない。
 
 
 <a id="initial-report"></a>

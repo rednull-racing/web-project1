@@ -15,3 +15,11 @@ Routerのモック漏れは別途解消済み。このTodoではDB非接続テ�
 - 実DB接続なしのテストで、親processのURLなし・正常な.env.test、ファイル読込み失敗、URL欠落・不正、test_db以外、override前後でDB名が変わる場合を検証する。dotenvとSequelizeを境界でモックし、拒否時にはSequelizeが生成されないことを確認する。
 - development・productionの挙動やモデル・migrationは変更しない。URL・認証情報を出力しない。
 - server/で対象テスト、lint、typecheck、テスト全体型検査を実施する。DB接続・migration実行は不要。
+
+## 解決結果（2026-10-16）
+
+.env.test読込み後にファイル内URLと最終URL・NODE_ENV・PostgreSQL・ホスト・DB名test_dbを検証するよう修正。読込み失敗・URL欠落時は親processへフォールバックせず、Sequelize生成前に停止する。
+
+DB非接続の単体テスト22件・lint・本番/テスト全体型検査が成功。既存4種のdatabaseSetupのparsed返却と一致検査の互換性を調査した。DB接続・migrationは実行していない。
+
+詳細は [検証レポート](../../../server/test/docs/report/database/initialization.md) を参照。

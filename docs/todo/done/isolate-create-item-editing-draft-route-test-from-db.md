@@ -20,6 +20,6 @@ npm run test:run -- test/integration/usecases/itemEditing/createItemEditingDraft
 
 対象外のcreateItemEditingCopyUseCaseを実import先でモックし、既存40件のケース・期待値を維持したまま全件成功した。lint・本番/テスト全体型検査・対象TSの追加lintも成功。本番コード・環境設定は変更していない。
 
-`NODE_ENV=test`は有効で、server/.env.testには正しいキーの`DATABASE_URL`が存在した。ただしdb.tsは.env.test読込み前にprocess.env.DATABASE_URLを検査するため、ファイルに値があっても未設定エラーになる。加えてRouterテストはdotenvを意図的にモックしている。DB初期化順序の改善は [別Todo](../P1-bug/validate-test-db-url-after-loading-env.md) に記録した。
+`NODE_ENV=test`は有効で、server/.env.testには正しいキーの`DATABASE_URL`が存在した。ただしdb.tsは.env.test読込み前にprocess.env.DATABASE_URLを検査するため、ファイルに値があっても未設定エラーになる。加えてRouterテストはdotenvを意図的にモックしている。DB初期化順序の改善は [別Todo](validate-test-db-url-after-loading-env.md) に記録した。
 
 詳細は [検証レポート](../../../server/test/docs/report/itemEditing/createItemEditingDraft.md#route-db-isolation-20261016) を参照。DB接続・migrationは実行していない。
