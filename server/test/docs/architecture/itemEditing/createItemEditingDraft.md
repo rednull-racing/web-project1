@@ -61,7 +61,7 @@
 | `fixtures.ts` | `src/usecases/itemEditing/test/createItemEditingDraft.fixtures.ts`（単体・結合テスト共通） |
 | `database.test.ts` | `test/integration/database/itemEditing/createItemEditingDraft/`：永続化・制約・所有権・再実行。ファイル内のHTTP→DB検証も維持 |
 | `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`、`route.test.ts` | `test/integration/usecases/itemEditing/createItemEditingDraft/`：transaction・並行処理・HTTP接続 |
-| DB fixture・setup | `test/usecases/itemEditing/createItemEditingDraft/` に維持 |
+| DB fixture・setup | `test/fixtures/itemEditing/createItemEditingDraft/`（`databaseFixtures.ts`・`databaseSetup.ts`） |
 
 単体テストは `npm run test:run -- src/usecases/itemEditing/test/createItemEditingDraft.test.ts src/services/itemDraft/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/validators/body/test/createItemEditingDraft.test.ts src/controllers/itemEditing/test/createItemEditingDraft.test.ts --maxWorkers=1` で実行する。
 本番コードの `npm run typecheck` が移動先の単体テストを含む。残る結合テストの型は `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` で確認する。

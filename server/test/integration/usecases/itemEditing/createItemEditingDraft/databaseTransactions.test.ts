@@ -1,4 +1,4 @@
-import "../../../../usecases/itemEditing/createItemEditingDraft/databaseSetup.js";
+import "../../../../fixtures/itemEditing/createItemEditingDraft/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DatabaseError, ValidationError } from "sequelize";
 import * as query from "../../../../../src/services/itemDraft/query.js";
@@ -14,8 +14,8 @@ import {
     expectCopied,
     expectLockReleased,
     editingIds,
-} from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
-import type { DbFixture } from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+} from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
 import { deferred, stringColumns, waitForGate } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;

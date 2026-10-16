@@ -408,3 +408,12 @@
 - lint・typecheck・テスト全体の型検査、全4テストの参照先とパス以外の内容保持、git diff --checkを確認。
 - Router40件は対象外Copy usecaseの既存モック漏れでDB設定読込み時に停止。範囲外修正はせずTodoへ記録。
 - 実DBテスト・DB接続・migrationは未実施。
+
+## 20261016_backend-test_itemEditingのfixture配置統一
+
+- test/fixtures/backend/itemEditing/createItemEditingCopyの4ファイルをtest/fixtures/itemEditing/createItemEditingCopyへ移動。
+- DraftのdatabaseFixtures.ts・databaseSetup.tsをtest/fixtures/itemEditing/createItemEditingDraftへ移動。
+- 依存元・移動先のimportとmockパス、設計書・関連Todoの参照パスを更新。空になった旧ディレクトリを削除。
+- 変更TS14ファイルのパス以外の内容保持・相対参照先、lint・typecheck・テスト全体型検査・git diff --checkを確認。
+- CopyのHTTP統合テスト22件成功。初回はサンドボックスのlisten制限で停止し、許可後に再実行。
+- DB接続・実DBテスト・migrationは未実施。Draftの既存Routerテスト問題は既存Todoで継続管理。

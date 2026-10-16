@@ -57,8 +57,8 @@
 - S（取得）: `src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts`
 - S（作成）: `src/services/itemEditing/test/createItemEditingCopy.test.ts`
 - C: `src/controllers/itemEditing/test/createItemEditingCopy.test.ts`
-- 共通fixture: `src/usecases/itemEditing/createItemEditingCopy/test/fixtures.ts`。`server/test/fixtures/backend/itemEditing/createItemEditingCopy/fixtures.ts` は結合テスト向けの再exportを維持する（リポジトリルート基準）。
-- R/Dの配置は下記「結合テストの配置」を参照。HTTP・DB用fixtureは `server/test/fixtures/backend/itemEditing/createItemEditingCopy/` に配置（リポジトリルート基準）。
+- 共通fixture: `src/usecases/itemEditing/createItemEditingCopy/test/fixtures.ts`。`server/test/fixtures/itemEditing/createItemEditingCopy/fixtures.ts` は結合テスト向けの再exportを維持する（リポジトリルート基準）。
+- R/Dの配置は下記「結合テストの配置」を参照。HTTP・DB用fixtureは `server/test/fixtures/itemEditing/createItemEditingCopy/` に配置（リポジトリルート基準）。
 
 移動後の単体テストは server/ で次のコマンドを実行する。結合テストは含めない。
 
@@ -77,7 +77,7 @@ npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/con
 | 同上 | `databaseHttp.test.ts`、`route.test.ts`：バックエンド内のHTTP接続。前者は実usecase・DB、後者はusecaseをモック |
 | `server/test/integration/services/` | 専用のservice結合テストは現状なし。空ディレクトリを保持 |
 
-`fixtures.ts`、`databaseFixtures.ts`、`httpFixtures.ts`、`databaseSetup.ts` は `server/test/fixtures/backend/itemEditing/createItemEditingCopy/` に配置する。fixture移動時に相対importとDB用fixtureの旧usecase参照を現配置へ更新した。server/testへ集約したことで既存の依存・Vitest・test/tsconfig.jsonを利用できる。テスト全体の型検査とHTTP結合テスト22件が成功。実DBテストは未実行。
+`fixtures.ts`、`databaseFixtures.ts`、`httpFixtures.ts`、`databaseSetup.ts` は `server/test/fixtures/itemEditing/createItemEditingCopy/` に配置する。fixture移動時に相対importとDB用fixtureの旧usecase参照を現配置へ更新した。server/testへ集約したことで既存の依存・Vitest・test/tsconfig.jsonを利用できる。テスト全体の型検査とHTTP結合テスト22件が成功。実DBテストは未実行。
 
 server/での現在の実行方法。実DBテストの実行前には第11節の安全条件を確認する。
 

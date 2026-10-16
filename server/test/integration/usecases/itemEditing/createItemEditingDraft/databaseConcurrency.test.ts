@@ -1,4 +1,4 @@
-import "../../../../usecases/itemEditing/createItemEditingDraft/databaseSetup.js";
+import "../../../../fixtures/itemEditing/createItemEditingDraft/databaseSetup.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { performance } from "node:perf_hooks";
 import { setImmediate } from "node:timers/promises";
@@ -18,8 +18,8 @@ import {
     savedEditings,
     expectCopied,
     protectedRows,
-} from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
-import type { DbFixture } from "../../../../usecases/itemEditing/createItemEditingDraft/databaseFixtures.js";
+} from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
 import { deferred, expectAppError, waitForGate } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
