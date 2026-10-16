@@ -1,13 +1,13 @@
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeHttpApp, makeToken, postCopy } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/httpFixtures.js";
+import { makeHttpApp, makeToken, postCopy } from "../../../../fixtures/backend/itemEditing/createItemEditingCopy/httpFixtures.js";
 
 const mocks = vi.hoisted(() => ({ copy: vi.fn() }));
-vi.mock("../../../../../../server/src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: mocks.copy }));
-vi.mock("../../../../../../server/src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-vi.mock("../../../../../../server/src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
-vi.mock("../../../../../../server/src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: mocks.copy }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: Awaited<ReturnType<typeof makeHttpApp>>, secret: string;
 const post = (body: object = { itemId: 101 }, userId = 7) => postCopy(app, secret, body, userId);
@@ -56,7 +56,7 @@ describe("P1 実Router・認証・validator・共通errorHandler", () => {
         },
     );
     it.each(["404", "500"])("R04: usecaseの%sエラーを実handlerで応答する", async (mode) => {
-        const { AppError } = await import("../../../../../../server/src/errors.js");
+        const { AppError } = await import("../../../../../src/errors.js");
         const error = mode === "404" ? new AppError("ITEM_NOT_FOUND", 404) : new Error("secret SQL detail");
         mocks.copy.mockRejectedValue(error);
         const result = await post();
@@ -95,7 +95,7 @@ describe("P2 実レート制限・優先順位", () => {
         expect(mocks.copy).toHaveBeenCalledTimes(elapsed < 600000 ? 5 : 6);
     });
     it.each([400, 404, 500])("R08: %sの失敗も5回で消費し6回目は429", async (status) => {
-        const { AppError } = await import("../../../../../../server/src/errors.js");
+        const { AppError } = await import("../../../../../src/errors.js");
         if (status !== 400) mocks.copy.mockRejectedValue(
             status === 404 ? new AppError("ITEM_NOT_FOUND", 404) : new Error("failed"),
         );

@@ -1,17 +1,17 @@
-import "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseSetup.js";
+import "../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseSetup.js";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     seed, sequelize, editingIds, protectedSnapshot, expectedCopy, expectCopy,
-} from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import type { DbFixture } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import { makeHttpApp, postCopy } from "../../../../../fixtures/backend/itemEditing/createItemEditingCopy/httpFixtures.js";
+} from "../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/backend/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import { makeHttpApp, postCopy } from "../../../../fixtures/backend/itemEditing/createItemEditingCopy/httpFixtures.js";
 
 // 対象copyは実処理。他エンドポイントの初期化だけを切り離す。
-vi.mock("../../../../../../server/src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-vi.mock("../../../../../../server/src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
-vi.mock("../../../../../../server/src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
 
 let f: DbFixture;
 let app: Awaited<ReturnType<typeof makeHttpApp>>;
@@ -25,7 +25,7 @@ beforeEach(async () => {
     vi.stubEnv("NEXTAUTH_SECRET", secret);
     f = await seed();
     app = await makeHttpApp();
-    const { createItemEditingCopyRateLimit } = await import("../../../../../../server/src/middleware/rateLimit/itemEditingRateLimit.js");
+    const { createItemEditingCopyRateLimit } = await import("../../../../../src/middleware/rateLimit/itemEditingRateLimit.js");
     await createItemEditingCopyRateLimit.resetKey("admin:" + f.owner.id);
 });
 afterEach(() => {

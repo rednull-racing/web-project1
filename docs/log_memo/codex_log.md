@@ -375,3 +375,12 @@
 - 全9ファイルの相対参照先の存在と、fixtureのパス以外の処理が不変であることを確認。
 - serverのlint・typecheck・git diff --check通過。ルートtestの実行環境は既存Todoで管理中のため結合テストは未実行。
 - DB接続・migration実行なし。
+
+## 20261016_backend-test_server配下へのテスト集約
+
+- refactor/server-test-layoutでルートtestのintegration・fixtures・docsをserver/testへ移動。
+- integrationのbackend階層を除きdatabase・services・usecasesを直下に配置。空のcross-layerとルートtestを整理。
+- テスト・fixtureの相対import、設計書リンク・実行案内を更新。本番コード・依存・設定は変更なし。
+- serverのlint・typecheck、全テストの型検査、HTTP結合テスト22件、git diff --check通過。
+- 既存の参照先・型エラーが解消し、ルート実行環境と型修正のTodo2件をdoneへ移動。
+- 実DBテスト・DB接続・migrationは未実行。

@@ -4,7 +4,7 @@
 
 対象は createItemEditingCopyUseCase。販売中かつ認証ユーザー所有の Item から、新しい ItemEditing をリクエストごとに作成する契約を検証する。正常系に加えて、所有権のすり抜け、コピー元の取り違え、在庫復元の漏れ、途中失敗、再試行、競合時の古いデータの利用を検出する。
 
-根拠は[詳細設計書](../../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[usecase共通ルール](../../../../server/test/usecases/AGENTS.md)および[updateConfirmの設計書](../../../../server/test/usecases/itemEditing/updateConfirm/testArchitecture.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../../../../server/test/usecases/itemEditing/updateConfirm/afterFix.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
+根拠は[詳細設計書](../../../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[usecase共通ルール](../../../usecases/AGENTS.md)および[updateConfirmの設計書](../../../usecases/itemEditing/updateConfirm/testArchitecture.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../../../usecases/itemEditing/updateConfirm/afterFix.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
 
 今回の成果物は本書のみ。テストコード、fixture、実装、設定、migration、Todo、Codexログは変更しない。以下のファイル構成・実行方法・期待結果は、後続のテスト実装に向けた設計であり、実装済み・実行済みの結果ではない。DB接続・反映済みスキーマも今回は未確認。
 
@@ -57,8 +57,8 @@
 - S（取得）: `src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts`
 - S（作成）: `src/services/itemEditing/test/createItemEditingCopy.test.ts`
 - C: `src/controllers/itemEditing/test/createItemEditingCopy.test.ts`
-- 共通fixture: `src/usecases/itemEditing/createItemEditingCopy/test/fixtures.ts`。`test/fixtures/backend/itemEditing/createItemEditingCopy/fixtures.ts` は結合テスト向けの再exportを維持する（リポジトリルート基準）。
-- R/Dの配置は下記「結合テストの配置」を参照。HTTP・DB用fixtureは `test/fixtures/backend/itemEditing/createItemEditingCopy/` に配置（リポジトリルート基準）。
+- 共通fixture: `src/usecases/itemEditing/createItemEditingCopy/test/fixtures.ts`。`server/test/fixtures/backend/itemEditing/createItemEditingCopy/fixtures.ts` は結合テスト向けの再exportを維持する（リポジトリルート基準）。
+- R/Dの配置は下記「結合テストの配置」を参照。HTTP・DB用fixtureは `server/test/fixtures/backend/itemEditing/createItemEditingCopy/` に配置（リポジトリルート基準）。
 
 移動後の単体テストは server/ で次のコマンドを実行する。結合テストは含めない。
 
@@ -72,13 +72,23 @@ npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/con
 
 | 配置 | ファイル・分類理由 |
 | --- | --- |
-| `test/integration/backend/database/itemEditing/createItemEditingCopy/` | `database.test.ts`：永続化、モデル検証、実DB制約、所有権、逐次再実行 |
-| `test/integration/backend/usecases/itemEditing/createItemEditingCopy/` | `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`：usecaseのtransaction制御、失敗・再試行、競合時の業務結果 |
+| `server/test/integration/database/itemEditing/createItemEditingCopy/` | `database.test.ts`：永続化、モデル検証、実DB制約、所有権、逐次再実行 |
+| `server/test/integration/usecases/itemEditing/createItemEditingCopy/` | `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`：usecaseのtransaction制御、失敗・再試行、競合時の業務結果 |
 | 同上 | `databaseHttp.test.ts`、`route.test.ts`：バックエンド内のHTTP接続。前者は実usecase・DB、後者はusecaseをモック |
-| `test/integration/backend/services/` | 専用のservice結合テストは現状なし。空ディレクトリを保持 |
-| `test/integration/cross-layer/` | 空ディレクトリを保持 |
+| `server/test/integration/services/` | 専用のservice結合テストは現状なし。空ディレクトリを保持 |
 
-`fixtures.ts`、`databaseFixtures.ts`、`httpFixtures.ts`、`databaseSetup.ts` は `test/fixtures/backend/itemEditing/createItemEditingCopy/` に配置する。fixture移動時に相対importとDB用fixtureの旧usecase参照を現配置へ更新した。既知の型問題は別Todoで管理する。既存のserver向け実行・型検査設定はルートtestを対象にしないため、結合テスト実行環境の対応は別Todoを参照する。今回DBテストは実行していない。
+`fixtures.ts`、`databaseFixtures.ts`、`httpFixtures.ts`、`databaseSetup.ts` は `server/test/fixtures/backend/itemEditing/createItemEditingCopy/` に配置する。fixture移動時に相対importとDB用fixtureの旧usecase参照を現配置へ更新した。server/testへ集約したことで既存の依存・Vitest・test/tsconfig.jsonを利用できる。テスト全体の型検査とHTTP結合テスト22件が成功。実DBテストは未実行。
+
+server/での現在の実行方法。実DBテストの実行前には第11節の安全条件を確認する。
+
+~~~bash
+# DB非接続のHTTP結合テスト
+npm run test:run -- test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts --maxWorkers=1
+# 実DBテストを含む全5ファイル
+npm run test:run -- test/integration/database/itemEditing/createItemEditingCopy/ test/integration/usecases/itemEditing/createItemEditingCopy/ --maxWorkers=1
+# 全テストの型検査
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+~~~
 
 以下は初回設計時の記録であり、今回の配置変更や検証結果はCodexログを参照する。
 

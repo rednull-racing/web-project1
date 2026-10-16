@@ -37,7 +37,7 @@ vi.mock("dotenv", () => ({
     },
 }));
 // Routerの他usecaseのimportに伴うAWS初期化も外部境界で止める。
-vi.mock("../../../../../server/src/infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
-vi.mock("../../../../../server/src/utils/s3/index.js", () => ({
+vi.mock("../../../../../src/infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
+vi.mock("../../../../../src/utils/s3/index.js", () => ({
     generateSignedUrl: vi.fn(), createVideoPresignedPost: vi.fn(),
 }));
