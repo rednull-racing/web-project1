@@ -1,14 +1,14 @@
-import type { Request, Response } from "express";
+import type { Request, Response } from "express-serve-static-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "../../../../src/errors.js";
-import { deferred } from "./fixtures.js";
+import { AppError } from "../../errors.js";
+import { deferred } from "../../usecases/itemEditing/createItemEditingCopy/test/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ copy: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: mocks.copy }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
-import { createItemEditingCopyController } from "../../../../src/controllers/itemEditing.js";
+vi.mock("../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: mocks.copy }));
+vi.mock("../../usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
+vi.mock("../../usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
+import { createItemEditingCopyController } from "../itemEditing.js";
 
 const request = () => ({
     user: { id: 7 }, body: { itemId: 999, seller_id: 8, userId: 8, price: 1, itemEditingId: 999 },

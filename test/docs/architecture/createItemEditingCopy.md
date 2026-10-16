@@ -4,7 +4,7 @@
 
 対象は createItemEditingCopyUseCase。販売中かつ認証ユーザー所有の Item から、新しい ItemEditing をリクエストごとに作成する契約を検証する。正常系に加えて、所有権のすり抜け、コピー元の取り違え、在庫復元の漏れ、途中失敗、再試行、競合時の古いデータの利用を検出する。
 
-根拠は[詳細設計書](../../../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[usecase共通ルール](../../AGENTS.md)および[updateConfirmの設計書](../updateConfirm/testArchitecture.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../updateConfirm/afterFix.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
+根拠は[詳細設計書](../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[usecase共通ルール](../../../server/test/usecases/AGENTS.md)および[updateConfirmの設計書](../../../server/test/usecases/itemEditing/updateConfirm/testArchitecture.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../../../server/test/usecases/itemEditing/updateConfirm/afterFix.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
 
 今回の成果物は本書のみ。テストコード、fixture、実装、設定、migration、Todo、Codexログは変更しない。以下のファイル構成・実行方法・期待結果は、後続のテスト実装に向けた設計であり、実装済み・実行済みの結果ではない。DB接続・反映済みスキーマも今回は未確認。
 
@@ -14,7 +14,7 @@
 
 | 責務 | 調査対象 |
 | --- | --- |
-| usecase・非公開の在庫変換 | src/usecases/itemEditing/createItemEditingCopy.ts：createItemEditingCopyUseCase、resetInventory |
+| usecase・非公開の在庫変換 | src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.ts：createItemEditingCopyUseCase、resetInventory |
 | 取得serviceとexport経路 | src/services/items/index.ts、src/services/items/query/index.ts、src/services/items/query/relation.ts：getMyItemWithVideoSaleShipping |
 | 作成service | src/services/itemEditing/command.ts：createItemEditingCopy |
 | 入出力の型 | src/types/serviceType/items.ts、src/types/serviceType/itemEditing.ts、src/types/itemAttributes.ts |
@@ -47,6 +47,26 @@
 コピー先はitem_editingの1行であり、Video・Sale・ItemShippingProfileの新しい行は作らない。これらの値はitem_editingへ展開する。item_idは元商品IDではなくnull、マスターへの外部キーは既存IDを保持する。詳細設計の「関連レコードの外部キー」はこの構成に照らして解釈し、存在しない子テーブル作成を期待しない。
 
 ## 3. テストの分割と実処理・モックの範囲
+
+### 2026-10-16 配置変更
+
+以下は server/ 基準。後続の設計表のファイル名は、この配置に対応する。
+
+- U/I: `src/usecases/itemEditing/createItemEditingCopy/test/{usecase,inventoryReset}.test.ts`
+- V: `src/validators/body/test/createItemEditingCopy.test.ts`
+- S（取得）: `src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts`
+- S（作成）: `src/services/itemEditing/test/createItemEditingCopy.test.ts`
+- C: `src/controllers/test/createItemEditingCopy.test.ts`
+- 共通fixture: `src/usecases/itemEditing/createItemEditingCopy/test/fixtures.ts`。旧配置の `fixtures.ts` は結合テスト向けの再exportを維持する。
+- R/DとHTTP・DB用fixture: `test/usecases/itemEditing/createItemEditingCopy/` に保留。今回の移動・実行対象外。
+
+移動後の単体テストは server/ で次のコマンドを実行する。結合テストは含めない。
+
+~~~bash
+npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/controllers/test/createItemEditingCopy.test.ts src/validators/body/test/createItemEditingCopy.test.ts src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts --maxWorkers=1
+~~~
+
+以下は初回設計時の記録であり、今回の配置変更や検証結果はCodexログを参照する。
 
 | 記号 | 予定ファイル | 実処理／モック・証明範囲 |
 | --- | --- | --- |

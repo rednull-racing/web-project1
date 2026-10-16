@@ -327,3 +327,11 @@
 - 統合コマンドの欠落、未コミット変更の扱い、並列作業の終了手順を確認。
 ### 注意点・その他留意事項
 - AGENTS.mdの修正・ブランチ切替は行わず、レビュー結果を回答。ログのみ追記。
+
+## 20261016_backend-test_createItemEditingCopy単体テストの配置変更
+
+- refactor/create-item-editing-copy-testsで作業。設計書をtest/docs/architecture/createItemEditingCopy.mdへ移動し、参照リンクと配置・実行案内を更新。
+- 単体テストをsrcの対象ディレクトリ内のtestへ移動し、取得・作成serviceを分割。import・モック先とExpress型を実装の配置・型に合わせた。
+- 共通fixtureをusecaseのtestへ移動し、旧配置に結合テスト用の再exportを維持。Router・DB結合テスト本体は変更・実行なし。
+- 単体6ファイル173件成功。serverのlint・typecheck通過。
+- test/tsconfig.jsonの型検査は保留中の結合テストに既存8エラー。旧参照先・型エラーをP3-techdebtのTodoへ記録。DB接続・migration実行なし。

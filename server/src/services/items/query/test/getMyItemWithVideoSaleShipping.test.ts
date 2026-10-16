@@ -1,16 +1,15 @@
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, editingResult, expectedData, makeItem, transactionFixture } from "./fixtures.js";
+import { deferred, makeItem, transactionFixture } from "../../../../usecases/itemEditing/createItemEditingCopy/test/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ findOne: vi.fn(), create: vi.fn() }));
-vi.mock("../../../../src/models/index.js", () => ({
+vi.mock("../../../../models/index.js", () => ({
     Item: { findOne: mocks.findOne }, ItemEditing: { create: mocks.create },
     Video: { marker: "video" }, Sale: { marker: "sale" }, ItemShippingProfile: { marker: "shipping" },
     Categories: {}, User: {},
 }));
-import { Video, Sale, ItemShippingProfile } from "../../../../src/models/index.js";
-import { getMyItemWithVideoSaleShipping } from "../../../../src/services/items/query/relation.js";
-import { createItemEditingCopy } from "../../../../src/services/itemEditing/command.js";
+import { Video, Sale, ItemShippingProfile } from "../../../../models/index.js";
+import { getMyItemWithVideoSaleShipping } from "../relation.js";
 
 let transaction: Transaction;
 const params = () => ({ userId: 7, itemId: 101, transaction });
@@ -37,7 +36,7 @@ const readOptions = () => ({
 });
 beforeEach(() => { vi.resetAllMocks(); transaction = transactionFixture(); });
 
-describe("P0/P1 取得・作成serviceの呼出し契約（DB非接続）", () => {
+describe("P0/P1 取得serviceの呼出し契約（DB非接続）", () => {
     it("S01 S02 T01: 所有者込みでItemだけをロック後、関連データを同じtransactionで取得する", async () => {
         const item = makeItem();
         mocks.findOne.mockResolvedValueOnce({ id: 101 }).mockResolvedValueOnce(item);
@@ -88,20 +87,5 @@ describe("P0/P1 取得・作成serviceの呼出し契約（DB非接続）", () =
             where: { id: 101, seller_id: 7 }, attributes: undefined,
             include: [{ model: Video }, { model: Sale }, { model: ItemShippingProfile }], transaction: undefined,
         });
-    });
-    it("S08 T01: 作成dataとtransactionを同じ参照でcreateへ渡す", async () => {
-        const data = expectedData(), result = editingResult();
-        mocks.create.mockResolvedValue(result);
-        expect(await createItemEditingCopy({ data, transaction })).toBe(result);
-        expect(mocks.create).toHaveBeenCalledExactlyOnceWith(data, { transaction });
-        expect(mocks.create.mock.calls[0][0]).toBe(data);
-        expect(mocks.create.mock.calls[0][1].transaction).toBe(transaction);
-    });
-    it("S09: Model.createの例外をそのまま伝播する", async () => {
-        const error = new Error("create");
-        mocks.create.mockRejectedValue(error);
-        await expect(createItemEditingCopy({ data: expectedData(), transaction })).rejects.toBe(error);
-        expect(mocks.create).toHaveBeenCalledTimes(1);
-        expect(mocks.findOne).not.toHaveBeenCalled();
     });
 });

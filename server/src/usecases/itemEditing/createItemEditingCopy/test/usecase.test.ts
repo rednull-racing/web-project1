@@ -1,7 +1,7 @@
 import type { Transaction } from "sequelize";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { createItemEditingCopy } from "../../../../src/services/itemEditing/command.js";
-import type { GetMyItemWithVideoSaleShippingParams, ItemWithVideoSaleShipping } from "../../../../src/types/serviceType/items.js";
+import type { createItemEditingCopy } from "../../../../services/itemEditing/command.js";
+import type { GetMyItemWithVideoSaleShippingParams, ItemWithVideoSaleShipping } from "../../../../types/serviceType/items.js";
 import {
     deferred, editingResult, expectedData, expectAppError, makeItem, nullableItemKeys,
     shippingKeys, sourceResult, transactionFixture, videoKeys,
@@ -12,10 +12,10 @@ const mocks = vi.hoisted(() => ({
     get: vi.fn<(params: GetMyItemWithVideoSaleShippingParams) => Promise<ItemWithVideoSaleShipping | null>>(),
     create: vi.fn<typeof createItemEditingCopy>(),
 }));
-vi.mock("../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
-vi.mock("../../../../src/services/items/index.js", () => ({ getMyItemWithVideoSaleShipping: mocks.get }));
-vi.mock("../../../../src/services/itemEditing/command.js", () => ({ createItemEditingCopy: mocks.create }));
-import { createItemEditingCopyUseCase } from "../../../../src/usecases/itemEditing/createItemEditingCopy.js";
+vi.mock("../../../../db.js", () => ({ default: { transaction: mocks.transaction } }));
+vi.mock("../../../../services/items/index.js", () => ({ getMyItemWithVideoSaleShipping: mocks.get }));
+vi.mock("../../../../services/itemEditing/command.js", () => ({ createItemEditingCopy: mocks.create }));
+import { createItemEditingCopyUseCase } from "../createItemEditingCopy.js";
 
 let item: ReturnType<typeof makeItem>;
 let transaction: Transaction;
