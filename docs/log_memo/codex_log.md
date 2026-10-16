@@ -384,3 +384,10 @@
 - serverのlint・typecheck、全テストの型検査、HTTP結合テスト22件、git diff --check通過。
 - 既存の参照先・型エラーが解消し、ルート実行環境と型修正のTodo2件をdoneへ移動。
 - 実DBテスト・DB接続・migrationは未実行。
+
+## 20261016_documents_createItemEditingDraftテスト文書の移動・統合
+
+- 設計書をserver/test/docs/architecture/itemEditing/createItemEditingDraft.mdへ移動。
+- 初回報告とafterFix.mdの全内容をserver/test/docs/report/itemEditing/createItemEditingDraft.mdへ統合し、旧3ファイルを削除。
+- 移動後の相対リンクと初回・修正後の記録の区別を整理。Daft表記はDraftに統一。
+- 内容保持・リンク先・git diff --checkを確認。文書のみの変更のためテスト・DB接続は未実行。

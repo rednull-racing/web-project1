@@ -6,7 +6,7 @@
 
 根拠は [createItemEditingDraft 詳細設計](../../../../../docs/design/backend/detail/itemEditing/createItemEditingDraft.md)、特に「8. テスト設計」と、2026-10-13 時点の本番コード。本書はテスト実装前の設計であり、実行結果を示さない。詳細設計の契約と現行挙動を区別し、不一致をテストの期待値変更で隠さない。
 
-記述・分割・fixture・DB 検証は [usecases/AGENTS.md](../../AGENTS.md)、[updateConfirm/testArchitecture.md](../updateConfirm/testArchitecture.md)、同ディレクトリの `fixtures.ts`、`usecase.test.ts`、`services.test.ts`、`controller.test.ts`、`route.test.ts`、`databaseSetup.ts`、`databaseFixtures.ts`、`databaseConcurrency.test.ts` を参考にする。参照元の `testReport.md`、`afterFix.md` の過去報告は現行仕様と混同せず、2026-10-12 の修正後契約を区別する。
+記述・分割・fixture・DB 検証は [usecases/AGENTS.md](../../../usecases/AGENTS.md)、[updateConfirm/testArchitecture.md](../../../usecases/itemEditing/updateConfirm/testArchitecture.md)、同ディレクトリの `fixtures.ts`、`usecase.test.ts`、`services.test.ts`、`controller.test.ts`、`route.test.ts`、`databaseSetup.ts`、`databaseFixtures.ts`、`databaseConcurrency.test.ts` を参考にする。参照元の `testReport.md`、`afterFix.md` の過去報告は現行仕様と混同せず、2026-10-12 の修正後契約を区別する。
 
 今回編集するのは本書のみ。テストコード・fixture・報告書の作成、本番コード・詳細設計・設定・Todo の変更、DB 接続、migration 実行は対象外。フロント遷移、公開商品更新、S3 アップロード、動画変換も対象 usecase の責務ではない。
 
@@ -239,7 +239,7 @@ R では `express.json()` と実 Router を `/api/item-editing` に接続する�
 5. 結果は observer の新規 SELECT で取得する。rollback 前のインスタンスを判定に使わず、下書き・編集全列、JSON キー有無・配列順、非対象行を確認する。
 6. finally で処理回収後に、作成した ID だけを編集・下書き →Item→ ブランド別名・マスター → ユーザーの FK 依存順に削除し、残存なしを確認する。全 hook/spy・接続を終了し env を復元する。失敗時も既存行は削除しない。
 
-ガードの不一致・読込元不明は DB 処理を中断しユーザー判断へ委ねる（[usecases/AGENTS.md](../../AGENTS.md)「条件に違反したときの中断」）。秘密情報・接続 URL はログに出さず、読込元パス・DB 名・検査結果のみを記録する。未確認の接続へ後片付けの削除を行わない。
+ガードの不一致・読込元不明は DB 処理を中断しユーザー判断へ委ねる（[usecases/AGENTS.md](../../../usecases/AGENTS.md)「条件に違反したときの中断」）。秘密情報・接続 URL はログに出さず、読込元パス・DB 名・検査結果のみを記録する。未確認の接続へ後片付けの削除を行わない。
 
 ## 14. 詳細設計「8. テスト設計」との対応・差分確認
 
