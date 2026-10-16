@@ -31,7 +31,7 @@
 | `src/types/serviceType/{itemDraft,itemEditing,brands,brandAliases}.ts`、`src/types/itemAttributes.ts`             | service の引数・戻り値、保存する属性                                      |
 | `src/validators/body/itemDraft.ts`、`src/validators/body/utils/putItem.ts`                                        | body の型・数値境界・重複 uiId 拒否                                       |
 | `src/validators/params/id.ts`、`src/middleware/validate/{validateBody,validateParams}.ts`                         | params 検証、検証済み値の格納、AppError                                   |
-| `src/controllers/itemDraft.ts`、`src/routes/{itemDraft,index}.ts`                                                 | 認証情報と検証済み body の引渡し、200 応答、接続順、登録パス              |
+| `src/controllers/itemDraft/itemDraft.ts`、`src/routes/{itemDraft,index}.ts`                                                 | 認証情報と検証済み body の引渡し、200 応答、接続順、登録パス              |
 | `src/middleware/authMiddleware.ts`、`src/middleware/rateLimit/itemDraftRateLimit.ts`                              | JWT 認証、ユーザー別 10 分 5 回の制限                                     |
 | `src/errors.ts`、`src/middleware/errorHandler.ts`                                                                 | AppError の型と共通エラー処理との境界                                     |
 | `src/utils/{toNullableNumber,normalizeJapanese}.ts`、`src/utils/s3/{index,signedUrl,videoPresignedPost}.ts`       | Number 変換、名前正規化、外部署名の境界                                   |

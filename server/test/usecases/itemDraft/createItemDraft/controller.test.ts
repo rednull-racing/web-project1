@@ -4,7 +4,7 @@ import { AppError } from "../../../../src/errors.js";
 import { deferred, makeBody } from "./fixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
-import { createItemDraftController } from "../../../../src/controllers/itemDraft.js";
+import { createItemDraftController } from "../../../../src/controllers/itemDraft/itemDraft.js";
 const response = () => {
     const json = vi.fn(),
         status = vi.fn();

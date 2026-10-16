@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { watchHistoryDeleteByIdController } from "../controllers/watchHistory.js";
+import { watchHistoryDeleteByIdController } from "../controllers/watchHistory/watchHistory.js";
 import { authenticateToken } from "../middleware/index.js";
 import { deleteWatchHistoryRateLimit } from "../middleware/rateLimit/watchHistoryRateLimit.js";
 import { validateParams } from "../middleware/validate/validateParams.js";

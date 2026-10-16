@@ -5,7 +5,7 @@ import {
     itemLikeGetByIdStatusController,
     itemLikeGetByIdCountController,
     itemLikeGetByIdUserController,
-} from "../controllers/itemLike.js";
+} from "../controllers/itemLike/itemLike.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     addItemLikeRateLimit,

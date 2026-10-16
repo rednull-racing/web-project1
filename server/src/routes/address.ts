@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addressPatchByIdController, addressGetSearchController } from "../controllers/address.js";
+import { addressPatchByIdController, addressGetSearchController } from "../controllers/address/address.js";
 import { authenticateToken } from "../middleware/index.js";
 import { addressEditRateLimit, addressSearchRateLimit } from "../middleware/rateLimit/addressRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";

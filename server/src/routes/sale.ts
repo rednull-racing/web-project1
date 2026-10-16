@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { salePatchByIdEditController, salePatchByIdStopController } from "../controllers/sale.js";
+import { salePatchByIdEditController, salePatchByIdStopController } from "../controllers/sale/sale.js";
 import { authenticateToken } from "../middleware/index.js";
 import { saleRateLimit, saleStopRateLimit } from "../middleware/rateLimit/saleRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";

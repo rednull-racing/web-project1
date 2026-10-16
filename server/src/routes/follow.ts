@@ -5,7 +5,7 @@ import {
     followGetByIdStatusController,
     followGetByIdCountController,
     followGetByIdUserController,
-} from "../controllers/follow.js";
+} from "../controllers/follow/follow.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
     addFollowRateLimit,

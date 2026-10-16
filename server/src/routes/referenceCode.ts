@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { referenceCodePostOutputController } from "../controllers/referenceCode.js";
+import { referenceCodePostOutputController } from "../controllers/referenceCode/referenceCode.js";
 import { authenticateToken } from "../middleware/index.js";
 import { outputReferenceCodeRateLimit } from "../middleware/rateLimit/referenceCodeRateLimit.js";
 

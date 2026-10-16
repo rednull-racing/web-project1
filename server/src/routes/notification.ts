@@ -3,7 +3,7 @@ import {
     notificationPatchByIdReadFlagController,
     notificationGetUnreadCountController,
     notificationGetRootController,
-} from "../controllers/notification.js";
+} from "../controllers/notification/notification.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     getNotificationListRateLimit,

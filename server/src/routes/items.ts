@@ -16,7 +16,7 @@ import {
     publishItemController,
     restoreItemController,
     searchItemsController,
-} from "../controllers/items.js";
+} from "../controllers/items/items.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
     createItemRateLimit,

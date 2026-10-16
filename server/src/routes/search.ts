@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { searchGetHistoryController } from "../controllers/search.js";
+import { searchGetHistoryController } from "../controllers/search/search.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { getSearchHistoryRateLimit } from "../middleware/rateLimit/searchRateLimit.js";
 

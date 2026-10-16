@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { deliveryGetByIdAddressController, deliveryGetByIdNameController } from "../controllers/delivery.js";
+import { deliveryGetByIdAddressController, deliveryGetByIdNameController } from "../controllers/delivery/delivery.js";
 import { authenticateToken } from "../middleware/index.js";
 import { getAddressRateLimit, getNameRateLimit } from "../middleware/rateLimit/deliveryRateLimit.js";
 import { validateParams } from "../middleware/validate/validateParams.js";

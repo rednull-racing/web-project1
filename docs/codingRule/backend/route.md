@@ -38,7 +38,7 @@ export default router;
 
 ```ts
 import { Router } from "express";
-import { createItemController } from "../controllers/items.js";
+import { createItemController } from "../controllers/items/items.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { idParamSchema } from "../validators/params/id.js";

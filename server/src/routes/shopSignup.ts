@@ -16,7 +16,7 @@ import {
     updateShopSignupEditController,
     updateShopSignupOptionController,
     updateShopSignupRepNameController,
-} from "../controllers/shopSignup.js";
+} from "../controllers/shopSignup/shopSignup.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import {

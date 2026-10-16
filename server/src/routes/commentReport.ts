@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { commentReportPostByIdController, commentReportGetAllOptionsController } from "../controllers/commentReport.js";
+import { commentReportPostByIdController, commentReportGetAllOptionsController } from "../controllers/commentReport/commentReport.js";
 import { authenticateToken } from "../middleware/index.js";
 import { commentReportRateLimit, getCommentReportRateLimit } from "../middleware/rateLimit/commentReportRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";

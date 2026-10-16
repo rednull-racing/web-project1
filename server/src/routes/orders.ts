@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ordersGetRootController } from "../controllers/orders.js";
+import { ordersGetRootController } from "../controllers/orders/orders.js";
 import { authenticateToken } from "../middleware/index.js";
 import { getOrderListRateLimit } from "../middleware/rateLimit/ordersRateLimit.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";

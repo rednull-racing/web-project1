@@ -4,7 +4,7 @@ import {
     transferPostPointsController,
     transferGetHistoryController,
     transferGetByIdDetailController,
-} from "../controllers/transfer.js";
+} from "../controllers/transfer/transfer.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     transferDetailRateLimit,

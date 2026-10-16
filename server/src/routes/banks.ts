@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { banksGetSearchController } from "../controllers/banks.js";
+import { banksGetSearchController } from "../controllers/banks/banks.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";
 import { keywordQuerySchema } from "../validators/query/keyword.js";
 import { bankSearchRateLimit } from "../middleware/rateLimit/bankAccountRateLimit.js";

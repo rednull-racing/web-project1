@@ -1,0 +1,301 @@
+import type { NextFunction, Request, Response } from "express-serve-static-core";
+import { editShopOptionUseCase } from "../../usecases/shopInfo/edit/option.js";
+import { editShopPhoneNumberUseCase } from "../../usecases/shopInfo/edit/phoneNumber.js";
+import { getShopAddressUseCase } from "../../usecases/shopInfo/get/getAddress.js";
+import { getBankAccountUseCase } from "../../usecases/shopInfo/get/getBankAccount.js";
+import { getShopComFreeUseCase } from "../../usecases/shopInfo/get/getComFree.js";
+import { getCompanyNameUseCase } from "../../usecases/shopInfo/get/getCompanyName.js";
+import { getConNameUseCase } from "../../usecases/shopInfo/get/getConName.js";
+import { getShopFileUseCase } from "../../usecases/shopInfo/get/getFile.js";
+import { getMyShopIdUseCase } from "../../usecases/shopInfo/get/getMyShop.js";
+import { getShopOptionUseCase } from "../../usecases/shopInfo/get/getOption.js";
+import { getShopOtherUseCase } from "../../usecases/shopInfo/get/getOther.js";
+import { getShopPhoneNumberUseCase } from "../../usecases/shopInfo/get/getPhoneNumber.js";
+import { getRepNameUseCase } from "../../usecases/shopInfo/get/getRepName.js";
+import type { ShopOptionBody, ShopOtherBody } from "../../validators/body/shopInfo.js";
+import type { PhoneNumberBody } from "../../validators/body/users.js";
+import { editShopOtherUseCase } from "../../usecases/shopInfo/edit/other.js";
+
+// PATCH /shop-info/:id/phone-number
+// summary: 電話番号変更
+// page: /edit/phone-number/shop/[id]
+export const shopInfoPatchByIdPhoneNumberController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const body = req.validatedBody as PhoneNumberBody;
+        const phoneNumber = body.phoneNumber;
+
+        await editShopPhoneNumberUseCase({ shopId, userId, phoneNumber });
+
+        res.status(200).json({ message: "電話番号を更新しました。" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// PATCH /shop-info/:id/option
+// summary: オプション変更
+// page: /edit/shop/option/[id]
+export const shopInfoPatchByIdOptionController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const body = req.validatedBody as ShopOptionBody;
+        const { autoTrans, openInfo } = body;
+
+        await editShopOptionUseCase({ shopId, userId, autoTrans, openInfo });
+
+        res.status(200).json({ message: "オプションを更新しました。" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// PATCH /shop-info/:id/other
+// summary: その他ショップ情報更新
+// page: /edit/shop/other/[id]
+export const editShopOtherController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const body = req.validatedBody as ShopOtherBody;
+
+        await editShopOtherUseCase({ shopId, userId, body });
+
+        res.status(200).json({ message: "ショップ情報を更新しました。" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/my
+// summary: ショップのidを取得
+// page: /link/edit/shop
+export const shopInfoGetMyController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+
+        const shop = await getMyShopIdUseCase({ userId });
+
+        res.status(200).json({ shop });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/address
+// summary: 会社所在地取得
+// page: /edit/address/shop/[id]
+export const shopInfoGetByIdAddressController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const data = await getShopAddressUseCase({ shopId, userId });
+
+        res.status(200).json({ data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/bank-account
+// summary: ショップ口座情報取得
+// page: /edit/account/shop/[id]
+export const shopInfoGetByIdBankAccountController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const data = await getBankAccountUseCase({ shopId, userId });
+
+        res.status(200).json({ data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/rep-name
+// summary: 代表者氏名取得
+// page: /edit/name/shop/rep-name/[id]
+export const shopInfoGetByIdRepNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const { shop } = await getRepNameUseCase({ shopId, userId });
+
+        res.status(200).json({ shop });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/con-name
+// summary: 担当者氏名取得
+// page: /edit/name/shop/con-name/[id]
+export const shopInfoGetByIdConNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const name = await getConNameUseCase({ shopId, userId });
+
+        res.status(200).json({ name });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/phone-number
+// summary: 電話番号取得
+// page: /edit/phone-number/shop/[id]
+export const shopInfoGetByIdPhoneNumberController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const shop = await getShopPhoneNumberUseCase({ shopId, userId });
+
+        res.status(200).json({ shop });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/company-name
+// summary: 会社名取得
+// page: /edit/shop/company-name/[id]
+export const shopInfoGetByIdCompanyNameController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const shop = await getCompanyNameUseCase({ shopId, userId });
+
+        res.status(200).json({ shop });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/option
+// summary: オプション取得
+// page: /edit/shop/option/[id]
+export const shopInfoGetByIdOptionController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const shop = await getShopOptionUseCase({ shopId, userId });
+
+        res.status(200).json({ shop });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/other
+// summary: その他ショップ情報取得
+// page: /edit/shop/other/[id]
+export const getShopOtherController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const shop = await getShopOtherUseCase({ shopId, userId });
+
+        res.status(200).json({ shop });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:id/com-free
+// summary: 事業形態取得
+// page: /edit/shop/com-free/[id]
+export const shopInfoGetByIdComFreeController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const shopId = Number(req.params.id);
+        const userId = req.user!.id;
+
+        const { shop, comFree } = await getShopComFreeUseCase({ shopId, userId });
+
+        res.status(200).json({ shop, comFree });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /shop-info/:shopInfoId/files/:s3MetadataId
+// summary: 代表者氏名更新ページ 画像取得
+// page: /edit/name/shop/rep-name/[id]
+export const getShopFileController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const shopId = Number(req.params.shopInfoId);
+        const s3MetadataId = Number(req.params.s3MetadataId);
+
+        const file = await getShopFileUseCase({
+            shopId,
+            s3MetadataId,
+            userId,
+        });
+
+        if (file.contentType !== null) {
+            res.setHeader("Content-Type", file.contentType);
+        }
+
+        if (file.contentLength) {
+            res.setHeader("Content-Length", file.contentLength);
+        }
+
+        file.body.pipe(res);
+    } catch (err) {
+        next(err);
+    }
+};

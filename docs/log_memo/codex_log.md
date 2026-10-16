@@ -343,3 +343,11 @@
 - serverのlint・typecheck・git diff --check通過。移動したcontrollerテスト5件成功。
 - 既存Draft・updateConfirmのcontrollerテストはDB依存の初期化時にDATABASE_URL未設定で停止。対象外のモック不足としてTodoへ記録。
 - DB接続・migration実行なし。
+
+## 20261016_backend-architecture_controller直下ファイルのディレクトリ分割
+
+- refactor/controller-directoriesでcontrollers直下の36個のTSファイルを、拡張子を除いた同名フォルダへ移動。
+- 各フォルダにtest/.gitkeepを追加し、空のテスト用ディレクトリをGitで保持。
+- controller内の相対パス、Route・関連テスト・設計書・規約例の参照を更新。36ファイルの処理本体が変更されていないことを確認。
+- serverのlint・typecheck、関連controller・Routerテスト3ファイル29件、git diff --check通過。
+- HTTPテストはサンドボックスのlisten制限で初回停止し、許可後の再実行で全件成功。DB接続・migration実行なし。

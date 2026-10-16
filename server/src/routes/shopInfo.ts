@@ -14,7 +14,7 @@ import {
     shopInfoGetMyController,
     shopInfoPatchByIdOptionController,
     shopInfoPatchByIdPhoneNumberController,
-} from "../controllers/shopInfo.js";
+} from "../controllers/shopInfo/shopInfo.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     getShopAddressRateLimit,

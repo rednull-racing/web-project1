@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createItemDraftController } from "../controllers/itemDraft.js";
+import { createItemDraftController } from "../controllers/itemDraft/itemDraft.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { createItemDraftRateLimit } from "../middleware/rateLimit/itemDraftRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
