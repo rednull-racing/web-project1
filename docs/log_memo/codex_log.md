@@ -417,3 +417,10 @@
 - 変更TS14ファイルのパス以外の内容保持・相対参照先、lint・typecheck・テスト全体型検査・git diff --checkを確認。
 - CopyのHTTP統合テスト22件成功。初回はサンドボックスのlisten制限で停止し、許可後に再実行。
 - DB接続・実DBテスト・migrationは未実施。Draftの既存Routerテスト問題は既存Todoで継続管理。
+
+## 20261016_documents_テスト関連ディレクトリ構成の明文化
+
+- server/test/AGENTS.mdに単体テスト・結合テスト・fixture/setup・設計書・レポートの配置規則と例を記載。
+- 単体テストは本番コードに最も近いtest、結合テストは役割/大分類/小分類、fixtureは大分類/小分類に統一。
+- 設計書・レポートはarchitectureまたはreportの大分類/小分類.mdへ配置。設計・実施・コード・モックの手順は記載なし。
+- 記載内容と既存パス例、git diff --checkを確認。文書のみのためテスト実行なし。
