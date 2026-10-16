@@ -1,9 +1,9 @@
-import type { Request, Response } from "express";
+import type { Request, Response } from "express-serve-static-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "../../../../src/errors.js";
-import { validateBody } from "../../../../src/middleware/validate/validateBody.js";
-import { createItemEditingDraftBodySchema as schema } from "../../../../src/validators/body/itemEditing.js";
-import { invalidIds, makeBody } from "./fixtures.js";
+import { AppError } from "../../../errors.js";
+import { validateBody } from "../../../middleware/validate/validateBody.js";
+import { createItemEditingDraftBodySchema as schema } from "../itemEditing.js";
+import { invalidIds, makeBody } from "../../../usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 beforeEach(() => vi.spyOn(console, "error").mockImplementation(() => {}));
 afterEach(() => vi.restoreAllMocks());

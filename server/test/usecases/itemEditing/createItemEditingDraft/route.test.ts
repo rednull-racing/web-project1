@@ -4,7 +4,7 @@ import type { ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { invalidIds, makeBody } from "./fixtures.js";
+import { invalidIds, makeBody } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn(), observe: vi.fn() }));
 vi.mock("../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({

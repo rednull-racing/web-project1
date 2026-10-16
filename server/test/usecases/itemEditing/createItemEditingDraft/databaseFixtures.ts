@@ -17,8 +17,8 @@ import ShippingDayOption from "../../../../src/models/shipping_day_option.js";
 import ShippingServiceOption from "../../../../src/models/shipping_service_option.js";
 import TodouhukenOption from "../../../../src/models/todouhuken_option.js";
 import { createItemEditingDraftUseCase } from "../../../../src/usecases/itemEditing/createItemEditingDraft.js";
-import { copyColumns, makeData } from "./fixtures.js";
-import type { CopyData } from "./fixtures.js";
+import { copyColumns, makeData } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import type { CopyData } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 export { sequelize, ItemDraft, ItemEditing, Item, User, Brands, BrandAliases };
 assertEnvironment();

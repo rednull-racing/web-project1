@@ -17,7 +17,7 @@ import {
     expectUnchanged,
 } from "./databaseFixtures.js";
 import type { DbFixture } from "./databaseFixtures.js";
-import { copyVariants, expectAppError, makeBody } from "./fixtures.js";
+import { copyVariants, expectAppError, makeBody } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 beforeEach(async () => {

@@ -1,15 +1,16 @@
-import type { Request, Response } from "express";
+import type { Request, Response } from "express-serve-static-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "../../../../src/errors.js";
-import { deferred, makeBody } from "./fixtures.js";
+import { AppError } from "../../../errors.js";
+import { deferred, makeBody } from "../../../usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
+vi.mock("../../../usecases/itemEditing/createItemEditingDraft.js", () => ({
     createItemEditingDraftUseCase: mocks.create,
 }));
-vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
-import { createItemEditingDraftController } from "../../../../src/controllers/itemEditing/itemEditing.js";
+vi.mock("../../../usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: vi.fn() }));
+import { createItemEditingDraftController } from "../itemEditing.js";
 
 const request = () =>
     ({

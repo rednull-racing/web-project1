@@ -1,7 +1,7 @@
 import { expect } from "vitest";
-import { AppError } from "../../../../src/errors.js";
-import type { CreateItemEditingDraftParams } from "../../../../src/types/serviceType/itemEditing.js";
-import type { CreateItemEditingDraftBody } from "../../../../src/validators/body/itemEditing.js";
+import { AppError } from "../../../errors.js";
+import type { CreateItemEditingDraftParams } from "../../../types/serviceType/itemEditing.js";
+import type { CreateItemEditingDraftBody } from "../../../validators/body/itemEditing.js";
 
 export type CopyData = CreateItemEditingDraftParams["data"];
 export const copyColumns = [

@@ -20,7 +20,7 @@ import {
     protectedRows,
 } from "./databaseFixtures.js";
 import type { DbFixture } from "./databaseFixtures.js";
-import { deferred, expectAppError, waitForGate } from "./fixtures.js";
+import { deferred, expectAppError, waitForGate } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 const sql: string[] = [];

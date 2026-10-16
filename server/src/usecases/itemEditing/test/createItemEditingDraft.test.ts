@@ -1,9 +1,9 @@
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { getMyItemDraft } from "../../../../src/services/itemDraft/query.js";
-import type { createItemEditingDraft } from "../../../../src/services/itemEditing/command.js";
-import type { deleteItemDraft } from "../../../../src/services/itemDraft/command.js";
-import { copyVariants, deferred, expectAppError, makeData, makeDraft, waitForGate } from "./fixtures.js";
+import type { getMyItemDraft } from "../../../services/itemDraft/query.js";
+import type { createItemEditingDraft } from "../../../services/itemEditing/command.js";
+import type { deleteItemDraft } from "../../../services/itemDraft/command.js";
+import { copyVariants, deferred, expectAppError, makeData, makeDraft, waitForGate } from "./createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn<(callback: (t: Transaction) => Promise<number>) => Promise<number>>(),
@@ -11,11 +11,11 @@ const mocks = vi.hoisted(() => ({
     create: vi.fn<typeof createItemEditingDraft>(),
     delete: vi.fn<typeof deleteItemDraft>(),
 }));
-vi.mock("../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
-vi.mock("../../../../src/services/itemDraft/query.js", () => ({ getMyItemDraft: mocks.get }));
-vi.mock("../../../../src/services/itemDraft/command.js", () => ({ deleteItemDraft: mocks.delete }));
-vi.mock("../../../../src/services/itemEditing/command.js", () => ({ createItemEditingDraft: mocks.create }));
-import { createItemEditingDraftUseCase } from "../../../../src/usecases/itemEditing/createItemEditingDraft.js";
+vi.mock("../../../db.js", () => ({ default: { transaction: mocks.transaction } }));
+vi.mock("../../../services/itemDraft/query.js", () => ({ getMyItemDraft: mocks.get }));
+vi.mock("../../../services/itemDraft/command.js", () => ({ deleteItemDraft: mocks.delete }));
+vi.mock("../../../services/itemEditing/command.js", () => ({ createItemEditingDraft: mocks.create }));
+import { createItemEditingDraftUseCase } from "../createItemEditingDraft.js";
 
 const t = { LOCK: { UPDATE: "UPDATE" } } as Transaction;
 let draft: NonNullable<Awaited<ReturnType<typeof getMyItemDraft>>>;

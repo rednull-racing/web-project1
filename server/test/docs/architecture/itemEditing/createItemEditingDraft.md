@@ -48,6 +48,23 @@
 
 ## 3. テストレベル・構成・モック
 
+### 現在の配置（2026-10-16）
+
+以下は `server/` 基準。下表の旧ファイル名・過去の実行コマンドは初回設計時の記録として残す。
+
+| 旧ファイル | 現在の配置 |
+| --- | --- |
+| `usecase.test.ts` | `src/usecases/itemEditing/test/createItemEditingDraft.test.ts` |
+| `services.test.ts` | `src/services/itemDraft/test/createItemEditingDraft.test.ts`（取得・削除）、`src/services/itemEditing/test/createItemEditingDraft.test.ts`（作成） |
+| `validation.test.ts` | `src/validators/body/test/createItemEditingDraft.test.ts` |
+| `controller.test.ts` | `src/controllers/itemEditing/test/createItemEditingDraft.test.ts` |
+| `fixtures.ts` | `src/usecases/itemEditing/test/createItemEditingDraft.fixtures.ts`（単体・結合テスト共通） |
+| Router・DB テスト、DB fixture・setup | `test/usecases/itemEditing/createItemEditingDraft/` に維持 |
+
+単体テストは `npm run test:run -- src/usecases/itemEditing/test/createItemEditingDraft.test.ts src/services/itemDraft/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/validators/body/test/createItemEditingDraft.test.ts src/controllers/itemEditing/test/createItemEditingDraft.test.ts --maxWorkers=1` で実行する。
+本番コードの `npm run typecheck` が移動先の単体テストを含む。残る結合テストの型は `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` で確認する。
+
+
 下表は将来の実装構成。今回は各ファイルを作成しない。
 
 | 記号    | ファイル                                  | 実処理／モックと確認範囲                                                                                                          |

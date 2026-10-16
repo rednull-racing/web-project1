@@ -391,3 +391,11 @@
 - 初回報告とafterFix.mdの全内容をserver/test/docs/report/itemEditing/createItemEditingDraft.mdへ統合し、旧3ファイルを削除。
 - 移動後の相対リンクと初回・修正後の記録の区別を整理。Daft表記はDraftに統一。
 - 内容保持・リンク先・git diff --checkを確認。文書のみの変更のためテスト・DB接続は未実行。
+
+## 20261016_backend-test_createItemEditingDraft単体テストの配置変更
+
+- usecase・controller・validator単体テストを対応するsrc配下のtestへ移動し、serviceテストをitemDraft／itemEditingへ分割配置。
+- 共通fixtureをsrc/usecases/itemEditing/testへ移動し、単体・既存結合テストのimportとmockパス、設計書の配置・実行案内を更新。
+- controllerに他usecaseのDB読込みを防ぐモックを追加し、controller・validatorのExpress型importを既存単体テストと統一。
+- 単体テスト5ファイル103件、serverのlint・typecheck、test/tsconfigの型検査、相対参照85件とgit diff --checkを確認。
+- Router・DB結合テストは現配置を維持。結合テスト実行・DB接続・migrationは未実施。
