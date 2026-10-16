@@ -360,3 +360,10 @@
 - 移動したテストの相対importとrouteの旧usecaseモック先を更新。全参照先の存在と、パス以外のテスト内容が不変であることを確認。
 - serverのlint・typecheck・git diff --check通過（ルートの結合テストは検査対象外）。結合テスト・DB接続・migrationは未実行。
 - ルート配置に対応する実行・型検査環境を別Todoに記録し、設計書・既存Todoの配置情報を更新。
+
+## 20261016_backend-test_itemEditingテストの階層追加
+
+- refactor/item-editing-test-pathsで結合テストのdatabase・usecases配下にitemEditing階層を追加。
+- テスト設計書をtest/docs/architecture/itemEditing/createItemEditingCopy.mdへ移動。
+- 移動したテストの相対import、設計書のリンク、関連Todoの参照パスを更新。
+- 相対import先・Markdownリンク先の存在とgit diff --checkを確認。配置・参照修正のみのためテスト実行・DB接続なし。

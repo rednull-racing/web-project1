@@ -4,7 +4,7 @@
 
 対象は createItemEditingCopyUseCase。販売中かつ認証ユーザー所有の Item から、新しい ItemEditing をリクエストごとに作成する契約を検証する。正常系に加えて、所有権のすり抜け、コピー元の取り違え、在庫復元の漏れ、途中失敗、再試行、競合時の古いデータの利用を検出する。
 
-根拠は[詳細設計書](../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[usecase共通ルール](../../../server/test/usecases/AGENTS.md)および[updateConfirmの設計書](../../../server/test/usecases/itemEditing/updateConfirm/testArchitecture.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../../../server/test/usecases/itemEditing/updateConfirm/afterFix.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
+根拠は[詳細設計書](../../../../docs/design/backend/detail/itemEditing/createItemEditingCopy.md)の第2〜7節と、特に第8節「正常系・異常系・並行処理・境界値・条件分岐・状態遷移」。形式・検証方法は[usecase共通ルール](../../../../server/test/usecases/AGENTS.md)および[updateConfirmの設計書](../../../../server/test/usecases/itemEditing/updateConfirm/testArchitecture.md)に従う。参照先の2026-10-12の最新契約と[修正報告](../../../../server/test/usecases/itemEditing/updateConfirm/afterFix.md)を確認し、古い観測結果や別機能の制約を本機能へ移植しない。
 
 今回の成果物は本書のみ。テストコード、fixture、実装、設定、migration、Todo、Codexログは変更しない。以下のファイル構成・実行方法・期待結果は、後続のテスト実装に向けた設計であり、実装済み・実行済みの結果ではない。DB接続・反映済みスキーマも今回は未確認。
 
@@ -72,8 +72,8 @@ npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/con
 
 | 配置 | ファイル・分類理由 |
 | --- | --- |
-| `test/integration/backend/database/createItemEditingCopy/` | `database.test.ts`：永続化、モデル検証、実DB制約、所有権、逐次再実行 |
-| `test/integration/backend/usecases/createItemEditingCopy/` | `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`：usecaseのtransaction制御、失敗・再試行、競合時の業務結果 |
+| `test/integration/backend/database/itemEditing/createItemEditingCopy/` | `database.test.ts`：永続化、モデル検証、実DB制約、所有権、逐次再実行 |
+| `test/integration/backend/usecases/itemEditing/createItemEditingCopy/` | `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`：usecaseのtransaction制御、失敗・再試行、競合時の業務結果 |
 | 同上 | `databaseHttp.test.ts`、`route.test.ts`：バックエンド内のHTTP接続。前者は実usecase・DB、後者はusecaseをモック |
 | `test/integration/backend/services/` | 専用のservice結合テストは現状なし。空ディレクトリを保持 |
 | `test/integration/cross-layer/`、`test/fixtures/` | 今回は空ディレクトリを保持 |

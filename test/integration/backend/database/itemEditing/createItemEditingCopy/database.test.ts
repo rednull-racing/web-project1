@@ -1,18 +1,18 @@
-import "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseSetup.js";
+import "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseSetup.js";
 import { DatabaseError, ForeignKeyConstraintError, QueryTypes, ValidationError } from "sequelize";
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { CreateItemEditingCopyParams } from "../../../../../server/src/types/serviceType/itemEditing.js";
-import type { ItemAttributes } from "../../../../../server/src/types/itemAttributes.js";
-import { createItemEditingCopy } from "../../../../../server/src/services/itemEditing/command.js";
+import type { CreateItemEditingCopyParams } from "../../../../../../server/src/types/serviceType/itemEditing.js";
+import type { ItemAttributes } from "../../../../../../server/src/types/itemAttributes.js";
+import { createItemEditingCopy } from "../../../../../../server/src/services/itemEditing/command.js";
 import {
     seed, run, snapshot, protectedSnapshot, editingIds, expectedCopy, expectCopy, createdCounts,
     observer, sequelize, Item, ItemEditing,
-} from "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import type { DbFixture } from "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
-import { expectedAttributes, expectAppError, nullableItemKeys, videoKeys, shippingKeys } from "../../../../../server/test/usecases/itemEditing/createItemEditingCopy/fixtures.js";
-import { createItemEditingCopyBodySchema } from "../../../../../server/src/validators/body/itemEditing.js";
-import { AppError } from "../../../../../server/src/errors.js";
+} from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import type { DbFixture } from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.js";
+import { expectedAttributes, expectAppError, nullableItemKeys, videoKeys, shippingKeys } from "../../../../../../server/test/usecases/itemEditing/createItemEditingCopy/fixtures.js";
+import { createItemEditingCopyBodySchema } from "../../../../../../server/src/validators/body/itemEditing.js";
+import { AppError } from "../../../../../../server/src/errors.js";
 
 let f: DbFixture;
 beforeEach(async () => { f = await seed(); });

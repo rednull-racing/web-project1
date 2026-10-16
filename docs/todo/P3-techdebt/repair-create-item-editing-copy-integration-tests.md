@@ -7,12 +7,12 @@
 ## 原因・対象ファイル
 
 - `server/test/usecases/itemEditing/createItemEditingCopy/databaseFixtures.ts:13` は移動前のusecaseをimportし、TS2307になる。実ファイルは `server/src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.ts`。
-- `test/integration/backend/usecases/createItemEditingCopy/databaseConcurrency.test.ts:93,94,99,104` のコールバック引数でTS7006、225,226,239行の未確定PromiseでTS2345が出る。importエラーの波及と独立した型問題を切り分ける。
-- `test/integration/backend/usecases/createItemEditingCopy/route.test.ts` のusecaseモック先は結合テスト配置変更時に現配置へ修正済み。実行結果は未確認。
+- `test/integration/backend/usecases/itemEditing/createItemEditingCopy/databaseConcurrency.test.ts:93,94,99,104` のコールバック引数でTS7006、225,226,239行の未確定PromiseでTS2345が出る。importエラーの波及と独立した型問題を切り分ける。
+- `test/integration/backend/usecases/itemEditing/createItemEditingCopy/route.test.ts` のusecaseモック先は結合テスト配置変更時に現配置へ修正済み。実行結果は未確認。
 
 ## 修正方針・実装内容
 
-結合テストの作業再開時、上記ディレクトリのimport・モック先を現在のusecase配置へ合わせ、型検査をやり直す。残るエラーは実際のPromiseの生存期間と制御順序に沿って修正する。`httpFixtures.ts`、`databaseSetup.ts`、`databaseFixtures.ts` と `test/docs/architecture/createItemEditingCopy.md` を参照する。
+結合テストの作業再開時、上記ディレクトリのimport・モック先を現在のusecase配置へ合わせ、型検査をやり直す。残るエラーは実際のPromiseの生存期間と制御順序に沿って修正する。`httpFixtures.ts`、`databaseSetup.ts`、`databaseFixtures.ts` と `test/docs/architecture/itemEditing/createItemEditingCopy.md` を参照する。
 
 ## 実装時の注意事項
 

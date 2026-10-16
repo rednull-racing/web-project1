@@ -4,11 +4,11 @@
 
 ## 問題の概要・原因
 
-createItemEditingCopyの結合テスト5ファイルを `test/integration/backend/{database,usecases}/createItemEditingCopy/` へ移動した。現在の `server/package.json` のVitestコマンドはserverを基準とし、`server/test/tsconfig.json` はserver/testのみを対象とする。ルートのnode_modulesにはvitest・sequelize・supertestがなく、移動後のテストは既存コマンドの検査対象にならない。今回の依頼は配置変更のため実行環境の変更は行っていない。
+createItemEditingCopyの結合テスト5ファイルを `test/integration/backend/{database,usecases}/itemEditing/createItemEditingCopy/` へ移動した。現在の `server/package.json` のVitestコマンドはserverを基準とし、`server/test/tsconfig.json` はserver/testのみを対象とする。ルートのnode_modulesにはvitest・sequelize・supertestがなく、移動後のテストは既存コマンドの検査対象にならない。今回の依頼は配置変更のため実行環境の変更は行っていない。
 
 ## 修正方針・実装内容
 
-既存のserver側依存を利用し、新規ライブラリ追加なしでルート配置のテストを発見・実行・型検査できる設定とコマンドを整える。DBを使わないroute.test.tsと実DBテストは分けて実行できるようにする。実行手順を `test/docs/architecture/createItemEditingCopy.md` に記録する。
+既存のserver側依存を利用し、新規ライブラリ追加なしでルート配置のテストを発見・実行・型検査できる設定とコマンドを整える。DBを使わないroute.test.tsと実DBテストは分けて実行できるようにする。実行手順を `test/docs/architecture/itemEditing/createItemEditingCopy.md` に記録する。
 
 ## 対象・参照ファイル
 
