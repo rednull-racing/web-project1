@@ -21,7 +21,7 @@
 | 編集セッション生成           | `src/services/itemEditing/command.ts`：`createItemEditingDraft`                                                                                                       |
 | 元下書き削除                 | `src/services/itemDraft/command.ts`：`deleteItemDraft`                                                                                                                |
 | 入出力の型                   | `src/types/serviceType/{itemDraft,itemEditing}.ts`、`src/types/itemAttributes.ts`                                                                                     |
-| HTTP 接続                    | `src/controllers/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                                                  |
+| HTTP 接続                    | `src/controllers/itemEditing/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                                                  |
 | 入力検証                     | `src/validators/body/itemEditing.ts`：`createItemEditingDraftBodySchema`、`src/middleware/validate/validateBody.ts`                                                   |
 | 認証・制限・エラー           | `src/middleware/authMiddleware.ts`、`src/middleware/rateLimit/itemEditingRateLimit.ts`、`src/errors.ts`、`src/middleware/errorHandler.ts`                             |
 | モデル・関連付け             | `src/models/{item_draft,item_editing}.ts`、`src/models/index.ts`                                                                                                      |

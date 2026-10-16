@@ -1,11 +1,11 @@
-import { createItemEditingCopyController, createItemEditingDraftController } from "../controllers/itemEditing.js";
+import { createItemEditingCopyController, createItemEditingDraftController } from "../controllers/itemEditing/itemEditing.js";
 import {
     createItemEditingCopyRateLimit,
     createItemEditingDraftRateLimit,
 } from "../middleware/rateLimit/itemEditingRateLimit.js";
 import { createItemEditingCopyBodySchema, createItemEditingDraftBodySchema } from "../validators/body/itemEditing.js";
 import { Router } from "express";
-import { createItemEditingController, updateItemEditingConfirmController } from "../controllers/itemEditing.js";
+import { createItemEditingController, updateItemEditingConfirmController } from "../controllers/itemEditing/itemEditing.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import {
     createItemEditingRateLimit,

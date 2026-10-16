@@ -20,7 +20,7 @@
 | 入出力の型 | src/types/serviceType/items.ts、src/types/serviceType/itemEditing.ts、src/types/itemAttributes.ts |
 | 入力検証 | src/validators/body/itemEditing.ts：createItemEditingCopyBodySchema、src/middleware/validate/validateBody.ts |
 | 認証・レート制限 | src/middleware/authMiddleware.ts、src/middleware/rateLimit/itemEditingRateLimit.ts：createItemEditingCopyRateLimit |
-| controller・Router・実アプリの登録 | src/controllers/itemEditing.ts、src/routes/itemEditing.ts、src/routes/index.ts、src/app.ts |
+| controller・Router・実アプリの登録 | src/controllers/itemEditing/itemEditing.ts、src/routes/itemEditing.ts、src/routes/index.ts、src/app.ts |
 | エラー | src/errors.ts、src/middleware/errorHandler.ts |
 | モデル・接続 | src/models/{item,item_editing,video,sale,item_shipping_profile}.ts、src/models/index.ts、src/db.ts、src/config/config.ts |
 | DB定義資料 | migrations/20261005114144-create-item-editing.js、20261006044423-update-column-item-editing.js、20261002113520-add-column-item-relation.js、20261006021049-item-update-column-status.js、20260804100501-fix-item-relation-ondelete.js（すべてmigrations/配下） |
@@ -56,14 +56,14 @@
 - V: `src/validators/body/test/createItemEditingCopy.test.ts`
 - S（取得）: `src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts`
 - S（作成）: `src/services/itemEditing/test/createItemEditingCopy.test.ts`
-- C: `src/controllers/test/createItemEditingCopy.test.ts`
+- C: `src/controllers/itemEditing/test/createItemEditingCopy.test.ts`
 - 共通fixture: `src/usecases/itemEditing/createItemEditingCopy/test/fixtures.ts`。旧配置の `fixtures.ts` は結合テスト向けの再exportを維持する。
 - R/DとHTTP・DB用fixture: `test/usecases/itemEditing/createItemEditingCopy/` に保留。今回の移動・実行対象外。
 
 移動後の単体テストは server/ で次のコマンドを実行する。結合テストは含めない。
 
 ~~~bash
-npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/controllers/test/createItemEditingCopy.test.ts src/validators/body/test/createItemEditingCopy.test.ts src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts --maxWorkers=1
+npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/controllers/itemEditing/test/createItemEditingCopy.test.ts src/validators/body/test/createItemEditingCopy.test.ts src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts --maxWorkers=1
 ~~~
 
 以下は初回設計時の記録であり、今回の配置変更や検証結果はCodexログを参照する。

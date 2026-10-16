@@ -43,7 +43,7 @@
     - type: CreateItemEditingDraftBody
     - wrapper: /middleware/validate/validateBody.ts
         - validateBody
-- controller: /controllers/itemEditing.ts
+- controller: /controllers/itemEditing/itemEditing.ts
     - createItemEditingDraftController
 - usecase: /usecases/itemEditing/createItemEditingDraft.ts
     - createItemEditingDraftUseCase

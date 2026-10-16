@@ -42,7 +42,7 @@
 | 取得・更新                                     | `src/services/itemEditing/{query,command}.ts`                                                                                             |
 | マスター取得                                   | `src/services/{categories,itemConditionOption,shippingDayOption,shippingServiceOption,todouhuken}.ts`                                     |
 | ブランド取得・別名作成                         | `src/services/{brands,brandAliases}.ts`                                                                                                   |
-| controller・route                              | `src/controllers/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                      |
+| controller・route                              | `src/controllers/itemEditing/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                      |
 | 入力検証                                       | `src/middleware/validate/{validateBody,validateParams}.ts`、`src/validators/body/itemEditing.ts`、`src/validators/params/id.ts`           |
 | 認証・制限・エラー                             | `src/middleware/authMiddleware.ts`、`src/middleware/rateLimit/itemEditingRateLimit.ts`、`src/middleware/errorHandler.ts`、`src/errors.ts` |
 | 補助処理                                       | `src/utils/{toNullableNumber,normalizeJapanese}.ts`、`src/utils/s3/{signedUrl,videoPresignedPost}.ts`                                     |

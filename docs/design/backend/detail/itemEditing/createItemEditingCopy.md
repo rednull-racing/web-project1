@@ -33,7 +33,7 @@
     - type: CreateItemEditingCopyBody
     - wrapper: /middleware/validate/validateBody.ts
         - validateBody
-- controller: /controllers/itemEditing.ts
+- controller: /controllers/itemEditing/itemEditing.ts
     - createItemEditingCopyController
 - usecase: /usecases/itemEditing/createItemEditingCopy.ts
     - createItemEditingCopyUseCase

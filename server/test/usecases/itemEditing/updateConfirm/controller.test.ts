@@ -7,7 +7,7 @@ vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));
 vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-import { updateItemEditingConfirmController } from "../../../../src/controllers/itemEditing.js";
+import { updateItemEditingConfirmController } from "../../../../src/controllers/itemEditing/itemEditing.js";
 const response = () => {
     const json = vi.fn(),
         status = vi.fn();

@@ -9,7 +9,7 @@ vi.mock("../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => 
 }));
 vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
 vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
-import { createItemEditingDraftController } from "../../../../src/controllers/itemEditing.js";
+import { createItemEditingDraftController } from "../../../../src/controllers/itemEditing/itemEditing.js";
 
 const request = () =>
     ({

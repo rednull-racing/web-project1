@@ -335,3 +335,11 @@
 - 共通fixtureをusecaseのtestへ移動し、旧配置に結合テスト用の再exportを維持。Router・DB結合テスト本体は変更・実行なし。
 - 単体6ファイル173件成功。serverのlint・typecheck通過。
 - test/tsconfig.jsonの型検査は保留中の結合テストに既存8エラー。旧参照先・型エラーをP3-techdebtのTodoへ記録。DB接続・migration実行なし。
+
+## 20261016_backend-architecture_itemEditingControllerの配置変更
+
+- refactor/item-editing-controller-directoryでcontrollerをcontrollers/itemEditing/itemEditing.tsへ、既存testをcontrollers/itemEditing/testへ移動。
+- controller内部・Route・関連controllerテストのimportと、関連設計書の参照パスを更新。処理・期待値は変更なし。
+- serverのlint・typecheck・git diff --check通過。移動したcontrollerテスト5件成功。
+- 既存Draft・updateConfirmのcontrollerテストはDB依存の初期化時にDATABASE_URL未設定で停止。対象外のモック不足としてTodoへ記録。
+- DB接続・migration実行なし。
