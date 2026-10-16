@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CreateItemDraft } from "../../../../src/services/itemDraft/command.js";
-import { deferred, expectAppError, makeBody, makeItem } from "./fixtures.js";
+import type { CreateItemDraft } from "../../../services/itemDraft/command.js";
+import { deferred, expectAppError, makeBody, makeItem } from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn(),
@@ -12,23 +12,23 @@ const mocks = vi.hoisted(() => ({
     validateMaster: vi.fn(),
     resolveBrand: vi.fn(),
 }));
-vi.mock("../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
-vi.mock("../../../../src/services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
-vi.mock("../../../../src/services/itemDraft/command.js", () => ({
+vi.mock("../../../db.js", () => ({ default: { transaction: mocks.transaction } }));
+vi.mock("../../../services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
+vi.mock("../../../services/itemDraft/command.js", () => ({
     CreateItemDraft: mocks.CreateItemDraft,
     updateItemDraftImage: mocks.updateItemDraftImage,
 }));
-vi.mock("../../../../src/usecases/shared/buildSignedUrls.js", () => ({
+vi.mock("../../shared/buildSignedUrls.js", () => ({
     buildSignedUrls: mocks.buildSignedUrls,
 }));
-vi.mock("../../../../src/usecases/shared/validateNumber.js", () => ({
+vi.mock("../../shared/validateNumber.js", () => ({
     validateNumber: mocks.validateNumber,
 }));
-vi.mock("../../../../src/usecases/shared/validateMaster.js", () => ({
+vi.mock("../../shared/validateMaster.js", () => ({
     validateMaster: mocks.validateMaster,
 }));
-vi.mock("../../../../src/usecases/shared/resolveBrand.js", () => ({ resolveBrand: mocks.resolveBrand }));
-import { createItemDraftUseCase } from "../../../../src/usecases/itemDraft/createItemDraft.js";
+vi.mock("../../shared/resolveBrand.js", () => ({ resolveBrand: mocks.resolveBrand }));
+import { createItemDraftUseCase } from "../createItemDraft.js";
 
 const transaction = { id: "test-transaction" };
 const draft = { id: 101 } as Awaited<ReturnType<typeof CreateItemDraft>>;

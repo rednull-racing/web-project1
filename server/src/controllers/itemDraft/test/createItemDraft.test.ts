@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "../../../../src/errors.js";
-import { deferred, makeBody } from "./fixtures.js";
+import { AppError } from "../../../errors.js";
+import { deferred, makeBody } from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
-import { createItemDraftController } from "../../../../src/controllers/itemDraft/itemDraft.js";
+vi.mock("../../../usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
+import { createItemDraftController } from "../itemDraft.js";
 const response = () => {
     const json = vi.fn(),
         status = vi.fn();

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, expectAppError, makeBody, makeItem } from "./fixtures.js";
+import { deferred, expectAppError, makeBody, makeItem } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     randomUUID: vi.fn(),
@@ -20,33 +20,33 @@ const mocks = vi.hoisted(() => ({
     createVideoPresignedPost: vi.fn(),
 }));
 vi.mock("node:crypto", () => ({ randomUUID: mocks.randomUUID }));
-vi.mock("../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
-vi.mock("../../../../src/services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
-vi.mock("../../../../src/services/itemDraft/command.js", () => ({
+vi.mock("../../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
+vi.mock("../../../../../src/services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
+vi.mock("../../../../../src/services/itemDraft/command.js", () => ({
     CreateItemDraft: mocks.CreateItemDraft,
     updateItemDraftImage: mocks.updateItemDraftImage,
 }));
-vi.mock("../../../../src/services/categories.js", () => ({ getCategories: mocks.getCategories }));
-vi.mock("../../../../src/services/itemConditionOption.js", () => ({ getItemCondition: mocks.getItemCondition }));
-vi.mock("../../../../src/services/shippingDayOption.js", () => ({ getShippingDay: mocks.getShippingDay }));
-vi.mock("../../../../src/services/shippingServiceOption.js", () => ({ getShippingService: mocks.getShippingService }));
-vi.mock("../../../../src/services/todouhuken.js", () => ({ getTodouhuken: mocks.getTodouhuken }));
-vi.mock("../../../../src/services/brands.js", () => ({ getBrand: mocks.getBrand, getBrandOne: mocks.getBrandOne }));
-vi.mock("../../../../src/services/brandAliases.js", () => ({
+vi.mock("../../../../../src/services/categories.js", () => ({ getCategories: mocks.getCategories }));
+vi.mock("../../../../../src/services/itemConditionOption.js", () => ({ getItemCondition: mocks.getItemCondition }));
+vi.mock("../../../../../src/services/shippingDayOption.js", () => ({ getShippingDay: mocks.getShippingDay }));
+vi.mock("../../../../../src/services/shippingServiceOption.js", () => ({ getShippingService: mocks.getShippingService }));
+vi.mock("../../../../../src/services/todouhuken.js", () => ({ getTodouhuken: mocks.getTodouhuken }));
+vi.mock("../../../../../src/services/brands.js", () => ({ getBrand: mocks.getBrand, getBrandOne: mocks.getBrandOne }));
+vi.mock("../../../../../src/services/brandAliases.js", () => ({
     getAliasOne: mocks.getAliasOne,
     createAliases: mocks.createAliases,
 }));
-vi.mock("../../../../src/infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
-vi.mock("../../../../src/utils/s3/index.js", () => ({
+vi.mock("../../../../../src/infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
+vi.mock("../../../../../src/utils/s3/index.js", () => ({
     generateSignedUrl: mocks.generateSignedUrl,
     createVideoPresignedPost: mocks.createVideoPresignedPost,
 }));
-import { createItemDraftBodySchema as schema } from "../../../../src/validators/body/itemDraft.js";
-import { buildSignedUrls } from "../../../../src/usecases/shared/buildSignedUrls.js";
-import { validateNumber } from "../../../../src/usecases/shared/validateNumber.js";
-import { validateMaster } from "../../../../src/usecases/shared/validateMaster.js";
-import { resolveBrand } from "../../../../src/usecases/shared/resolveBrand.js";
-import { createItemDraftUseCase } from "../../../../src/usecases/itemDraft/createItemDraft.js";
+import { createItemDraftBodySchema as schema } from "../../../../../src/validators/body/itemDraft.js";
+import { buildSignedUrls } from "../../../../../src/usecases/shared/buildSignedUrls.js";
+import { validateNumber } from "../../../../../src/usecases/shared/validateNumber.js";
+import { validateMaster } from "../../../../../src/usecases/shared/validateMaster.js";
+import { resolveBrand } from "../../../../../src/usecases/shared/resolveBrand.js";
+import { createItemDraftUseCase } from "../../../../../src/usecases/itemDraft/createItemDraft.js";
 
 let body: ReturnType<typeof makeBody>;
 let item: ReturnType<typeof makeItem>;

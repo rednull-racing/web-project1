@@ -3,9 +3,9 @@ import express, { type ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeBody, makeDuplicateUiIdBody } from "./fixtures.js";
+import { makeBody, makeDuplicateUiIdBody } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
+vi.mock("../../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: ReturnType<typeof express>, secret: string;
 const token = (id = 7, expiresIn = 3600) =>
@@ -30,8 +30,8 @@ beforeEach(async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     secret = randomBytes(32).toString("hex");
     vi.stubEnv("NEXTAUTH_SECRET", secret);
-    const { default: router } = await import("../../../../src/routes/itemDraft.js");
-    const { AppError } = await import("../../../../src/errors.js");
+    const { default: router } = await import("../../../../../src/routes/itemDraft.js");
+    const { AppError } = await import("../../../../../src/errors.js");
     app = express();
     app.use(express.json());
     app.use("/api/item-draft", router);

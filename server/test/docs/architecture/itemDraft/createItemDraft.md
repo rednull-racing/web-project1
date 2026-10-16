@@ -1,5 +1,34 @@
 # 商品下書き作成：テストコード設計書
 
+## 現在の配置（2026-10-16）
+
+以下は `server/` 基準。本文の旧ファイル名・過去の実行コマンドは初回設計時の記録として残す。
+
+| 分類 | 旧ファイル | 現在の配置 |
+| --- | --- | --- |
+| 単体 | `usecase.test.ts` | `src/usecases/itemDraft/test/createItemDraft.test.ts` |
+| 単体 | `controller.test.ts` | `src/controllers/itemDraft/test/createItemDraft.test.ts` |
+| 単体 | `validation.test.ts` | `src/validators/body/test/createItemDraft.test.ts` |
+| 単体 | `signedUrls.test.ts` | `src/usecases/shared/test/createItemDraft.signedUrls.test.ts` |
+| 単体 | `videoPresignedPost.test.ts` | `src/utils/s3/test/createItemDraft.videoPresignedPost.test.ts` |
+| 単体 | `services.test.ts` | `src/services/itemDraft/test/createItemDraft.test.ts`（作成・画像保存6件）、`src/services/itemEditing/test/createItemDraft.test.ts`（取得5件）、`src/services/test/createItemDraft.test.ts`（各マスター取得・別名作成30件） |
+| 結合 | `masterBrand.test.ts`、`route.test.ts`、`databaseTransactions.test.ts`、`databaseConcurrency.test.ts` | `test/integration/usecases/itemDraft/createItemDraft/` |
+| 結合 | `database.test.ts` | `test/integration/database/itemDraft/createItemDraft/` |
+| fixture | `fixtures.ts`、`databaseFixtures.ts`、`databaseSetup.ts` | `test/fixtures/itemDraft/createItemDraft/` |
+| 設計書 | `testArchitecture.md` | `test/docs/architecture/itemDraft/createItemDraft.md` |
+| レポート | `testReport.md`、`afterFix.md` | `test/docs/report/itemDraft/createItemDraft.md` に統合 |
+
+実usecaseと複数helperを接続する `masterBrand.test.ts` は結合テストに分類した。複数マスターを共通のケース表で確認するserviceテストは、それらの本番コードに共通する `src/services/test/` に置く。ケースID・期待値・モック構成は変更しない。
+
+DB非接続の単体・結合テストの実行コマンド（server/で実行）：
+
+```bash
+npm run test:run -- src/usecases/itemDraft/test/createItemDraft.test.ts src/controllers/itemDraft/test/createItemDraft.test.ts src/validators/body/test/createItemDraft.test.ts src/usecases/shared/test/createItemDraft.signedUrls.test.ts src/utils/s3/test/createItemDraft.videoPresignedPost.test.ts src/services/itemDraft/test/createItemDraft.test.ts src/services/itemEditing/test/createItemDraft.test.ts src/services/test/createItemDraft.test.ts test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts test/integration/usecases/itemDraft/createItemDraft/route.test.ts --maxWorkers=1
+```
+
+本番コードの型は `npm run typecheck`、単体・結合テスト全体は `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` で確認する。実DBテストは第10節の接続ガード・安全条件を確認したうえで、`test/integration/database/itemDraft/createItemDraft/database.test.ts`、`test/integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts`、同 `databaseConcurrency.test.ts` を指定する。
+
+
 ## 1. 目的・対象・設計時点
 
 対象は `src/usecases/itemDraft/createItemDraft.ts` の `createItemDraftUseCase`。編集中の商品を参照して下書きを新規作成する処理について、入力・所有権・メディア・保存内容・失敗時の原子性を検証する。
@@ -8,7 +37,7 @@
 
 作成する成果物は本書だけ。既存コード、既存テスト、設定は変更しない。実 S3 へのアップロード、動画変換、商品公開、他 API の修正、負荷試験は対象外とする。
 
-基準は [usecase テスト共通ルール](../../AGENTS.md) と [updateConfirm の設計例](../../../docs/architecture/itemEditing/updateConfirm.md)。設計例の過去の観測を現在の仕様として転記しない。共通 helper の現在の実装を読み直し、この usecase 固有の作成処理・transaction 境界に合わせる。
+基準は [usecase テスト共通ルール](../../../usecases/AGENTS.md) と [updateConfirm の設計例](../itemEditing/updateConfirm.md)。設計例の過去の観測を現在の仕様として転記しない。共通 helper の現在の実装を読み直し、この usecase 固有の作成処理・transaction 境界に合わせる。
 
 ### 特に区別する現行挙動
 

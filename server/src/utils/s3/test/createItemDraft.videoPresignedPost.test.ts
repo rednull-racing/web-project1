@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { expectAppError } from "./fixtures.js";
+import { expectAppError } from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     createPresignedPost: vi.fn(),
@@ -7,8 +7,8 @@ const mocks = vi.hoisted(() => ({
     s3: {},
 }));
 vi.mock("@aws-sdk/s3-presigned-post", () => ({ createPresignedPost: mocks.createPresignedPost }));
-vi.mock("../../../../src/infra/aws/s3.js", () => ({ buckets: mocks.buckets, s3: mocks.s3 }));
-import { createVideoPresignedPost } from "../../../../src/utils/s3/videoPresignedPost.js";
+vi.mock("../../../infra/aws/s3.js", () => ({ buckets: mocks.buckets, s3: mocks.s3 }));
+import { createVideoPresignedPost } from "../videoPresignedPost.js";
 
 const params = { key: "video/original/7/test", contentType: "video/mp4", contentLengthRange: 500 * 1024 * 1024 };
 beforeEach(() => {

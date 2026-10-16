@@ -1,4 +1,4 @@
-import "./databaseSetup.js";
+import "../../../../fixtures/itemDraft/createItemDraft/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ValidationError } from "sequelize";
 import {
@@ -16,11 +16,11 @@ import {
     Item,
     Categories,
     BrandAliases,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { createItemDraftBodySchema as schema } from "../../../../src/validators/body/itemDraft.js";
-import { expectAppError } from "./fixtures.js";
-import * as command from "../../../../src/services/itemDraft/command.js";
+} from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
+import { createItemDraftBodySchema as schema } from "../../../../../src/validators/body/itemDraft.js";
+import { expectAppError } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
+import * as command from "../../../../../src/services/itemDraft/command.js";
 let f: DbFixture;
 beforeEach(async () => {
     f = await seed();

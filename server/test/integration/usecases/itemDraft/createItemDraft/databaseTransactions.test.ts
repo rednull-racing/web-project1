@@ -1,4 +1,4 @@
-import "./databaseSetup.js";
+import "../../../../fixtures/itemDraft/createItemDraft/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForeignKeyConstraintError, QueryTypes } from "sequelize";
 import {
@@ -12,13 +12,13 @@ import {
     observer,
     ItemDraft,
     BrandAliases,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import { deferred } from "./fixtures.js";
-import * as command from "../../../../src/services/itemDraft/command.js";
-import * as brands from "../../../../src/services/brands.js";
-import * as aliases from "../../../../src/services/brandAliases.js";
-import * as master from "../../../../src/usecases/shared/validateMaster.js";
+} from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
+import { deferred } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
+import * as command from "../../../../../src/services/itemDraft/command.js";
+import * as brands from "../../../../../src/services/brands.js";
+import * as aliases from "../../../../../src/services/brandAliases.js";
+import * as master from "../../../../../src/usecases/shared/validateMaster.js";
 let f: DbFixture;
 beforeEach(async () => {
     f = await seed();

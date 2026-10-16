@@ -1,4 +1,4 @@
-import "./databaseSetup.js";
+import "../../../../fixtures/itemDraft/createItemDraft/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForeignKeyConstraintError, QueryTypes } from "sequelize";
 import type { Transaction } from "sequelize";
@@ -14,14 +14,14 @@ import {
     sequelize,
     Item,
     BrandAliases,
-} from "./databaseFixtures.js";
-import type { DbFixture } from "./databaseFixtures.js";
-import type { CreateItemDraftBody } from "../../../../src/validators/body/itemDraft.js";
-import { deferred, expectAppError } from "./fixtures.js";
-import * as query from "../../../../src/services/itemEditing/query.js";
-import * as command from "../../../../src/services/itemDraft/command.js";
-import * as aliases from "../../../../src/services/brandAliases.js";
-import * as brandResolver from "../../../../src/usecases/shared/resolveBrand.js";
+} from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
+import type { CreateItemDraftBody } from "../../../../../src/validators/body/itemDraft.js";
+import { deferred, expectAppError } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
+import * as query from "../../../../../src/services/itemEditing/query.js";
+import * as command from "../../../../../src/services/itemDraft/command.js";
+import * as aliases from "../../../../../src/services/brandAliases.js";
+import * as brandResolver from "../../../../../src/usecases/shared/resolveBrand.js";
 
 let f: DbFixture;
 beforeEach(async () => {

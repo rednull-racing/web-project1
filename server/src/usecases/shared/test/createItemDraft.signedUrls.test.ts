@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, expectAppError, makeBody, makeItem } from "./fixtures.js";
+import { deferred, expectAppError, makeBody, makeItem } from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
 const mocks = vi.hoisted(() => ({
     generateSignedUrl: vi.fn(),
     createVideoPresignedPost: vi.fn(),
     randomUUID: vi.fn(),
 }));
 vi.mock("node:crypto", () => ({ randomUUID: mocks.randomUUID }));
-vi.mock("../../../../src/infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
-vi.mock("../../../../src/utils/s3/index.js", () => mocks);
-import { createItemDraftBodySchema as schema } from "../../../../src/validators/body/itemDraft.js";
-import { buildSignedUrls } from "../../../../src/usecases/shared/buildSignedUrls.js";
+vi.mock("../../../infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
+vi.mock("../../../utils/s3/index.js", () => mocks);
+import { createItemDraftBodySchema as schema } from "../../../validators/body/itemDraft.js";
+import { buildSignedUrls } from "../buildSignedUrls.js";
 
 let body: ReturnType<typeof makeBody>;
 let item: ReturnType<typeof makeItem>;
