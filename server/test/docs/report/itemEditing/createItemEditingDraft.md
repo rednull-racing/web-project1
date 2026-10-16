@@ -1,6 +1,30 @@
 # createItemEditingDraft テスト報告・修正記録
 
-初回報告と修正記録を統合した。各節の結果は当時の記録であり、最新の検証結果は後半の「6. 追加修正レポート（2026-10-13）」を参照する。
+初回報告と修正記録を統合した。以下が今回のRouter検証結果であり、後半の各節は当時の実行履歴として残す。
+
+<a id="route-db-isolation-20261016"></a>
+
+## RouterのDB設定依存解消（2026-10-16）
+
+- 対象：`test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts`。DB非接続1ファイル40件が成功、失敗・skip・todo・未処理例外0件。実DBテストは今回未実行。
+- 修正前：下記コマンドでbeforeEachのRouter読込み時に40件すべてが`DATABASE_URL is not set!`で停止。対象外の`createItemEditingCopy`がモックされず、controller経由で`src/db.ts`が読み込まれていた。
+- 環境調査：npm scriptで`NODE_ENV=test`は設定され、server/.env.testの`DATABASE_URL`も存在する（`DETABASE_URL`の誤記なし）。起動元processにはDATABASE_URLがない。db.tsは.env.testを読む前にprocess.envを検査するため、そこで停止する。さらに当テストは認証情報の読込みを防ぐためdotenv.configを無効化しており、DB用setupも使用しない。
+- 修正：`createItemEditingCopy/createItemEditingCopy.js`を実import先でモック。既存40件・期待値・本番コード・環境設定は変更なし。R01〜R08・AF-R01〜05と併記のC02/V01〜05は成功。実Router・認証・validator・レート制限・controller・共通errorHandlerとエラー観測middlewareを維持し、全usecaseとdotenvをモックする。
+- 修正後のサンドボックス内実行はHTTP待受けの`listen EPERM`で40件失敗・未処理例外40件。通信許可後に同じコマンドで全件成功した。DB接続エラーとは区別する。
+
+server/で実行：
+
+```bash
+npm run test:run -- test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts --maxWorkers=1
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+すべて成功。`--maxWorkers=1`は修正前Todoの再現条件を揃えるために維持した。通常lintの対象外である変更TSは、ESLint APIで`overrideConfigFile: true`とし、当該ファイルをfilesに指定して`@eslint/js`・`typescript-eslint`のrecommended設定で追加検査した（エラー0・警告0、共有設定変更なし）。
+
+本件の完了範囲はRouterのDB設定依存解消。DB保存・transaction・実アプリ登録・カバレッジは今回検証していない。DB初期化順序と上書き後の接続先検証は [別Todo](../../../../../docs/todo/P1-bug/validate-test-db-url-after-loading-env.md) に記録し、本番コードの修正やDB接続・migrationは行っていない。
+
 
 <a id="initial-report"></a>
 

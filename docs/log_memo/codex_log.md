@@ -464,3 +464,10 @@
 - service単体は移動前9/移動後15ファイルとも72件成功、全テスト名・成否一致。関連usecase6ファイル563件も成功。
 - lint・本番/テスト全体型検査、変更結合TS5ファイルの追加lint、パス以外の内容保持・参照先・git diff --checkを確認。
 - DB接続・実DBテスト・migrationは未実施。
+
+## 20261016_backend-test_createItemEditingDraftのRouterをDB設定から分離
+
+- 対象外createItemEditingCopyのモック漏れによる40件の初期化失敗を再現し、実import先へのモック追加で解消。
+- NODE_ENV=test・.env.testのDATABASE_URLの存在を確認。db.tsの読込み前検査と上書き後検査不足は別Todoへ記録。
+- Router40件はHTTP待受けの制限解除後に全件成功。lint・本番/テスト全体型検査・対象TS追加lintも成功。
+- 設計書・レポートを更新し、対象Todoをdoneへ移動。本番コード・環境設定の変更、DB接続・migration実行なし。

@@ -11,6 +11,9 @@ vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () 
     createItemEditingDraftUseCase: mocks.create,
 }));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
+    createItemEditingCopyUseCase: vi.fn(),
+}));
 vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 

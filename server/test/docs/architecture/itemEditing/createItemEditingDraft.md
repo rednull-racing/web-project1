@@ -68,7 +68,7 @@
 
 統合テストはファイル内のケースを分割せず、主な検証対象に従って配置した。専用のservice統合テストはないため、`integration/services` への移動はない。
 DB非接続のRouterテストは `npm run test:run -- test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts --maxWorkers=1` で実行する。
-2026-10-16の移動後確認ではlint・本番コードとテスト全体の型検査が成功。Routerテストは対象外usecaseのモック漏れによるDB設定読込みで40件とも検証前に停止し、実DBテストは未実行。対応は [Todo](../../../../../docs/todo/P3-techdebt/isolate-create-item-editing-draft-route-test-from-db.md) を参照。
+2026-10-16の移動後確認ではlint・本番コードとテスト全体の型検査が成功。Routerテストは対象外usecaseのモック漏れによるDB設定読込みで40件とも検証前に停止し、実DBテストは未実行。対応は [Todo](../../../../../docs/todo/done/isolate-create-item-editing-draft-route-test-from-db.md) を参照。
 
 全統合テストは `npm run test:run -- test/integration/database/itemEditing/createItemEditingDraft/ test/integration/usecases/itemEditing/createItemEditingDraft/ --maxWorkers=1` で実行する。実DBテストを含むため、第13節の接続ガード・安全条件を先に確認する。
 
@@ -328,3 +328,9 @@ npm run typecheck
 実装完了条件は、全確定観点のケースとテストファイルの対応、コピー全項目、後続未実行、await、別接続の commit/rollback、ロック待機と再評価、非対象行不変、後片付けの確認が追えること。未実装・未実行・環境制約・観測・仕様保留を成功と混ぜず、DB 非接続検査と DB 検査の結果を分ける。
 
 **今回の完了範囲は本設計書の作成、詳細設計 8 節との照合、リンク・ケース対応・編集範囲の確認のみ。テスト・lint・型検査の実行および DB 接続は行っていない。**
+
+## 2026-10-16 RouterのDB設定依存解消
+
+移動後確認で検出したモック漏れを修正済み。`createItemEditingCopy/createItemEditingCopy.js`を他の対象外usecaseと同様にモックし、dotenvの無効化を維持する。既存R01〜R08・AF-R01〜05等の40件の入力・期待値は変更しない。実Router・認証・validator・レート制限・controller・共通errorHandlerの検証範囲も維持する。
+
+検証結果は [最新レポート](../../report/itemEditing/createItemEditingDraft.md#route-db-isolation-20261016) を参照。
