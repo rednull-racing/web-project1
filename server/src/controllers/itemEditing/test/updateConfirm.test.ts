@@ -7,6 +7,10 @@ vi.mock("../../../usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));
 vi.mock("../../../usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
+    createItemEditingCopyUseCase: vi.fn(),
+}));
 import { updateItemEditingConfirmController } from "../itemEditing.js";
 const response = () => {
     const json = vi.fn(),

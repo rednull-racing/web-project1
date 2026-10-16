@@ -100,18 +100,16 @@ describe.each(numberTargets)("P0/P1: 数値変換 %s.%s → %s", (group, key, ou
         ["I02", "01", 1],
         ["I02", " 1 ", 1],
         ["I02", "1e2", 100],
-        ["I03", "0", 0],
-        ["I03", "  ", 0],
-        ["I04", "-1", -1],
-        ["I04", "1.5", 1.5],
-        ["I04", "Infinity", Infinity],
+        ["I02", "2147483646", 2147483646],
+        ["I02", "2147483647", 2147483647],
+        ["I03", "  ", null],
     ])("%s: %sを%sへ変換する", async (_id, input, expected) => {
         Object.assign(body[group], { [key]: input });
         // helperの宣言型は別API用。ここでは実際の呼出元と同じbodyを渡す。
         const result = await validateNumber({ body: body as unknown as Parameters<typeof validateNumber>[0]["body"] });
         expect(result[output]).toBe(expected);
     });
-    it.each(["abc", "NaN"])("E05 I05 T06: %sを拒否し署名発行後でも商品transactionを開始しない", async (value) => {
+    it.each(["abc", "NaN", "0", "-1", "1.5", "Infinity", "2147483648"])("E05 I03 I04 I05 T06: %sを拒否し署名発行後でも商品transactionを開始しない", async (value) => {
         Object.assign(body[group], { [key]: value });
         body.thumbnail = { name: "新画像", type: "image/png", uploaded: false };
         await expectAppError(run(), "INVALID_NUMBER");
@@ -154,17 +152,18 @@ describe("P1: マスター検証と実helperの接続", () => {
             masters.forEach((name, i) => expect(mocks[name]).toHaveBeenCalledTimes(i === index ? 0 : 1));
         });
     });
-    it("I03: ID=0を検索せず保存引数へ渡す（外部キー未検証）", async () => {
-        body.category.id = "0";
+    it("I03: 空白IDはnullとしてカテゴリ検索を省略し保存へ渡す", async () => {
+        body.category.id = "  ";
         await run();
         expect(mocks.getCategories).not.toHaveBeenCalled();
-        expect(mocks.updateConfirm.mock.calls[0][0].data.category_id).toBe(0);
+        expect(mocks.updateConfirm.mock.calls[0][0].data.category_id).toBeNull();
     });
-    it.each(["-1", "1.5", "Infinity"])("I04: 数値%sは取得serviceまで到達する", async (value) => {
+    it.each(["-1", "1.5", "Infinity", "2147483648"])("I04: 不正数値%sはマスター不在より先に400となる", async (value) => {
         body.category.id = value;
         mocks.getCategories.mockResolvedValue(null);
-        await expectAppError(run(), "CATEGORY_NOT_FOUND", 404);
-        expect(mocks.getCategories).toHaveBeenCalledWith({ categoryId: Number(value) });
+        await expectAppError(run(), "INVALID_NUMBER");
+        for (const name of masters) expect(mocks[name]).not.toHaveBeenCalled();
+        expect(mocks.getBrand).not.toHaveBeenCalled();
         noWrites();
     });
     it.each([

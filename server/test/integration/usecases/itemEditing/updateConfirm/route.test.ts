@@ -9,6 +9,10 @@ vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
+    createItemEditingCopyUseCase: vi.fn(),
+}));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: ReturnType<typeof express>;
 let secret: string;
@@ -42,6 +46,8 @@ beforeEach(async () => {
     app.use("/api/item-editing", router);
     // 実アプリ共通handlerとは独立した、Routerが渡した例外の観測用handler。
     const observeError: ErrorRequestHandler = (err, _req, res, _next) => {
+        void _req;
+        void _next;
         if (err instanceof AppError) res.status(err.statusCode).json({ code: err.code });
         else res.status(500).json({ code: "TEST_UNEXPECTED_ERROR" });
     };

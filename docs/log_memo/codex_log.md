@@ -478,3 +478,10 @@
 - NODE_ENV・ファイル由来URLとの一致・PostgreSQL・ホスト・test_dbをSequelize生成前に検査し、URLのパース例外を秘匿化。
 - DB非接続の単体22件、lint、本番/テスト全体型検査が成功。既存4種のDB setupとの互換性を調査。
 - 設計・検証結果を記録しTodoをdoneへ移動。development・production・fixtureの変更、実DB接続・migration実行なし。
+
+## 20261016_backend-test_itemEditing既存テストのDB分離と共有契約移行
+
+- P3-techdebtの2件を調査。Draft controllerは解消済み、updateConfirmのcontroller/Routerの対象外Draft・CopyをモックしてDB設定から分離。
+- e31f97a6と共有helper修正報告を根拠にS15・I03/I04等を移行し、署名欠落・ID上限境界・後続停止を確認。
+- 関連10ファイル542件、lint、本番/テスト全体型検査、変更結合TS追加lintが成功。RouterはHTTP待受け許可後に成功。
+- 設計・レポートへ根拠と結果を記録し、2件ともdoneへ移動。本番コード変更・DB接続・migration実行なし。

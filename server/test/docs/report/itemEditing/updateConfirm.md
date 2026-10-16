@@ -1,5 +1,56 @@
 # updateConfirm テスト報告・修正記録
 
+<a id="contracts-20261016"></a>
+
+## 2026-10-16 共有契約の移行・DB非接続境界の修正（最新）
+
+関連10ファイル・542件すべて成功（失敗・skip・todo・未処理例外0件）。updateConfirmは8ファイル533件、Draft/Copyのcontroller回帰は2ファイル9件。DB接続・migration・本番コード変更なし。以下の古い結果は当時の履歴として残す。
+
+### 原因と対応
+
+- 事前再現ではDraft/Copy/updateConfirmのcontrollerは4/5/5件成功した。ただしupdateConfirmは対象外Draft/Copyのモック漏れがあり、成功しても実DB設定を読み込む構成だった。Draftは既に対象外usecaseをモック済みで変更不要。旧Todoのtest/usecases配下のDraft/controllerは削除済みで、現配置のsrc/controllers/itemEditing/test/createItemEditingDraft.test.tsで確認した。
+- updateConfirmのRouterは22件すべて読込み時に失敗。dotenv.configを無効化しているのにCopy経由で実db.tsへ到達し、直近のDB初期化修正後は`undefined.error`のTypeErrorとなった。DB設定追加では分離できないため、controller/Routerに対象外Draft・Copyの実パスのモックを追加した。
+- signedUrlsのS15は1件、masterBrandのI03/I04等は34件失敗を再現。根拠は2026-10-12の`e31f97a6`と [createItemDraft修正報告](../itemDraft/createItemDraft.md) のF4/F5。共有helperの確定済み契約に移行し、本番コードは変更していない。
+- S15はundefined/nullをVIDEO_SIGNED_URL_UNAVAILABLE/500とし、後続画像署名の未実行も検証（1→2件）。masterBrandは空白=null、0/負数/小数/Infinity/上限超過の400拒否と後続停止へ移行し、INTEGER上限直前・一致を6種IDへ追加（152→171件）。有効IDの互換性・ブランド解決・transactionの既存期待値は維持した。
+
+### ケース対応と結果
+
+パスはserver/基準。
+
+| ファイル | 成功 | ケース・確認範囲 |
+| --- | ---: | --- |
+| src/usecases/itemEditing/test/updateConfirm.test.ts | 53 | usecase、所有権再確認、更新値、transaction引渡し・待機・例外 |
+| src/usecases/shared/test/updateConfirm.signedUrls.test.ts | 61 | S15の署名欠落拒否、既存S/AF-S/K系の署名・index・キー生成 |
+| src/validators/body/test/updateConfirm.test.ts | 211 | 既存V/AF-V系の入力境界 |
+| src/controllers/itemEditing/test/updateConfirm.test.ts | 5 | R01/R02/R08・AF-S06の引渡し・応答・例外伝播 |
+| src/services/itemEditing/test/updateConfirm.test.ts | 5 | 既存serviceの取得・ロック・保存引数 |
+| src/services/brandAliases/test/updateConfirm.brandAliases.test.ts | 5 | 既存別名作成・再利用の呼出し契約 |
+| test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts | 171 | I01〜I06・E05/E15/T06、既存B/AF-B等の実helper接続 |
+| test/integration/usecases/itemEditing/updateConfirm/route.test.ts | 22 | 既存R/AF-S/Q系の認証・validator・レート制限・controller接続 |
+| src/controllers/itemEditing/test/createItemEditingDraft.test.ts | 4 | C01〜C04等のcontroller回帰 |
+| src/controllers/itemEditing/test/createItemEditingCopy.test.ts | 5 | Copyのcontroller回帰 |
+| 合計 | 542 | 全件成功 |
+
+controllerは実処理で全usecaseをモック。Routerは実認証・validator・レート制限・controllerを使用し、全usecase・dotenvをモックする。Routerのエラーmiddlewareは例外観測用であり、実アプリ共通errorHandlerの検証ではない。署名テストはS3と時刻/UUID、実helper接続はDB service/transactionとS3をモック。実保存・commit/rollbackの成功は示さない。
+
+### 実行と検査
+
+server/で以下を実行した。1 workerはTodoの再現条件を維持するため。
+
+```bash
+npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usecases/shared/test/updateConfirm.signedUrls.test.ts src/validators/body/test/updateConfirm.test.ts src/controllers/itemEditing/test/updateConfirm.test.ts src/services/itemEditing/test/updateConfirm.test.ts src/services/brandAliases/test/updateConfirm.brandAliases.test.ts test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts test/integration/usecases/itemEditing/updateConfirm/route.test.ts src/controllers/itemEditing/test/createItemEditingDraft.test.ts src/controllers/itemEditing/test/createItemEditingCopy.test.ts --maxWorkers=1
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+すべて成功。修正後のサンドボックス内実行はRouter22件のみHTTP待受け制限（listen EPERMとport参照失敗）で失敗し、許可後の全体実行で542件成功。JSON結果は/tmp/item-editing-verified.jsonへ出力した。
+
+通常lint対象外の変更結合TS2ファイルは、ESLint APIのoverrideConfigFile:trueと対象files指定、@eslint/js・typescript-eslintのrecommended設定で追加検査。初回はRouterの既存未使用_nextが1件報告された。4引数を維持してvoid参照を加え、追加lintエラー0・警告0。変更後のRouter22件も再実行して成功した（542件へ重複加算しない）。共有lint設定は変更していない。
+
+実DBテスト106件、DB保存、実アプリへのRouter登録、実S3通信、カバレッジは今回未検証。DB結合テストの旧I03/I04観測は本件の実行・編集範囲に含めていない。
+
+
 ## 2026-10-16 service配置変更の補足
 
 service直下の単一TSを同名フォルダへ移動し、呼出し元・モックの参照を更新した。services共通testを対象コードのtestへ移動・分割した。以下の過去の実行表・コマンドは当時の配置と件数を示す。現配置は [設計書](../../architecture/itemEditing/updateConfirm.md) を参照する。
@@ -30,7 +81,7 @@ service単体テスト全体は移動前9ファイル・移動後15ファイル�
 
 比較結果は `/tmp/update-confirm-baseline-results.json`（移動前）と `/tmp/update-confirm-layout-results.json`（移動後）のVitest JSONから集計した。実行コマンドは [設計書の配置表と実行案内](../../architecture/itemEditing/updateConfirm.md) を参照。比較用に復元した元ファイルは実行後に削除した。
 
-lint・本番コードのtypecheck・単体/結合テスト全体の型検査とgit diff --checkは成功。全相対import・mock参照先と移動したテスト・fixture・文書の内容保持も確認した。実DBテスト106件・DB接続・migrationは未実施。対象外の既存不一致は [Todo](../../../../../docs/todo/P3-techdebt/reconcile-update-confirm-test-contracts.md) に記録し、今回修正していない。
+lint・本番コードのtypecheck・単体/結合テスト全体の型検査とgit diff --checkは成功。全相対import・mock参照先と移動したテスト・fixture・文書の内容保持も確認した。実DBテスト106件・DB接続・migrationは未実施。対象外の既存不一致は [Todo](../../../../../docs/todo/done/reconcile-update-confirm-test-contracts.md) に記録し、今回修正していない。
 
 ---
 

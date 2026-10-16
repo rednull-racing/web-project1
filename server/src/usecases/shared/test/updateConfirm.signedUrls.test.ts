@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, makeBody, makeItem } from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
+import { deferred, expectAppError, makeBody, makeItem } from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
 const mocks = vi.hoisted(() => ({
     generateSignedUrl: vi.fn(),
     createVideoPresignedPost: vi.fn(),
@@ -104,12 +104,13 @@ describe("P1: 動画・サムネイルの新規署名と再利用", () => {
         item.thumbnail_url = null;
         expect((await run()).thumbnailUrl).toBeNull();
     });
-    it("S15: 動画署名undefinedでも新規公開URLは組み立てる", async () => {
+    it.each([undefined, null])("S15: 動画署名%sは500となり後続の画像署名を行わない", async (value) => {
         body.video = { name: "new", type: "video/mp4", uploaded: false };
-        mocks.createVideoPresignedPost.mockResolvedValue(undefined);
-        const result = await run();
-        expect(result.videoSignedUrl).toBeNull();
-        expect(result.videoUrl).toBe(url("video/original"));
+        body.thumbnail = upload();
+        mocks.createVideoPresignedPost.mockResolvedValue(value);
+        await expectAppError(run(), "VIDEO_SIGNED_URL_UNAVAILABLE", 500);
+        expect(mocks.createVideoPresignedPost).toHaveBeenCalledOnce();
+        expect(mocks.generateSignedUrl).not.toHaveBeenCalled();
     });
     it("ST05: サムネイルだけ差し替え、動画と商品画像は引き継ぐ", async () => {
         item.converted_url = "converted";

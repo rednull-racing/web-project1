@@ -20,3 +20,9 @@ Router・controllerは対象外usecaseを現在の実ファイルパスでモッ
 ## 検証・注意事項
 
 server/で対象テスト、lint・typecheck、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` を確認し、件数とケースIDの対応を報告書へ追記する。実行対象の一覧は設計書冒頭にある。HTTP待受けがサンドボックスで拒否された場合は承認手順に従って再実行する。DB接続・migration・本番コードの変更を本Todoから拡大しない。
+
+## 解決結果（2026-10-16）
+
+DB初期化修正後もRouter22件と旧契約35件の失敗が残ることを再現。共有helperを修正したe31f97a6およびcreateItemDraft修正報告F4/F5を根拠に、S15の署名欠落拒否・I03/I04等の正整数範囲と空白null化へ期待値を移行した。数値上限境界・null署名・後続未実行も検証し、Router/controllerの対象外usecaseを実パスでモックした。
+
+updateConfirm8ファイル533件、Draft/Copy controller回帰9件の計542件が成功。lint・本番/テスト全体型検査・結合TS追加lintも成功。DB接続・migration・本番コード変更なし。詳細は [最新レポート](../../../server/test/docs/report/itemEditing/updateConfirm.md#contracts-20261016) を参照。

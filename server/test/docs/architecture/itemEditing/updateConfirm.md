@@ -29,6 +29,18 @@ npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usec
 実DBテストは `test/integration/database/itemEditing/updateConfirm/database.test.ts` と `test/integration/usecases/itemEditing/updateConfirm/database{Transactions,Concurrency}.test.ts` を指定する。実行前に既存の `.env.test`・test_db の安全条件を確認する。
 
 
+## 2026-10-16 共有helper契約・DB非接続境界の更新（以下の旧観測に優先）
+
+根拠は2026-10-12の`e31f97a6`（共有validateNumber/buildSignedUrlsの修正）と [createItemDraft修正報告](../../report/itemDraft/createItemDraft.md) のF4/F5。現行実装を通すための仕様変更ではなく、確定済みの共有契約をupdateConfirmへ反映する。本番コードは変更しない。
+
+- I01/I02：null・空文字はnull。1/01/空白付き1/1e2の互換性を維持し、2147483646/2147483647も受理する。
+- I03/I04/I05：空白だけはnull。0・負数・小数・Infinity・2147483648・非数値はINVALID_NUMBER/400。6種のIDごとに、署名発行後でもマスター・ブランド照合と商品transaction・保存を開始しないことを確認する。
+- I03の実helper接続：空白category.idはカテゴリ検索を省略しcategory_id=nullを保存へ渡す。I04は不正数値をCATEGORY_NOT_FOUNDより優先して拒否する。
+- S15：新規動画のPOST署名がundefined/nullならVIDEO_SIGNED_URL_UNAVAILABLE/500。後続画像署名は未実行。既存動画の署名null許容は別ケースとして維持する。
+- updateConfirmのcontroller/RouterはDraft・Copyを含む全対象外usecaseを実import先でモックする。Draftのcontrollerは既に分離済みであることを回帰確認する。成功するだけでなくDB設定を読み込まない境界を維持する。
+
+旧H/D観測のDB部分は過去の実行履歴。今回の対象はDB非接続テストのみで、実DBテストは実行・変更しない。最新結果は [レポート](../../report/itemEditing/updateConfirm.md#contracts-20261016) を参照。
+
 ## 2026-10-12 P02・P05・P08 修正後の契約（最新）
 
 先行する実装修正に合わせ、対象内のテストだけを移行する。
