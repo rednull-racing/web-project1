@@ -3,7 +3,6 @@ import {
     addItemSortNumberController,
     createItemController,
     decreaseItemSortNumberController,
-    deleteDraftItemController,
     deleteItemLogicallyController,
     deleteItemPerfectController,
     getItemFormDataController,
@@ -20,7 +19,6 @@ import {
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
     createItemRateLimit,
-    draftDeleteItemRateLimit,
     editSortItemRateLimit,
     getItemHighlightRateLimit,
     getItemListRateLimit,
@@ -120,17 +118,6 @@ router.delete(
     authenticateToken,
     validateParams(idParamSchema),
     deleteItemPerfectController,
-);
-
-// DELETE /items/:id/draft
-// summary: 下書き商品削除
-// page: /item/draft/[id]
-router.delete(
-    "/:id/draft",
-    authenticateToken,
-    draftDeleteItemRateLimit,
-    validateParams(idParamSchema),
-    deleteDraftItemController,
 );
 
 // GET /items?type=""&page=number&view=""&limit=number(&pageUserId=${id})

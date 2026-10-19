@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
-import { deleteDraftItemUseCase } from "../../usecases/items/delete/draftDelete.js";
 import { deleteItemLogicallyUseCase } from "../../usecases/items/delete/logicalDelete.js";
 import { deleteItemPerfectUseCase } from "../../usecases/items/delete/perfectDelete.js";
 import { getFormDataUseCase } from "../../usecases/items/formData/getFormData.js";
@@ -151,22 +150,6 @@ export const deleteItemPerfectController = async (req: Request, res: Response, n
         await deleteItemPerfectUseCase({ itemId, userId });
 
         res.status(200).json({ message: "商品削除が完了しました。" });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// DELETE /items/:id/draft
-// summary: 下書き商品削除
-// page: /item/draft/[id]
-export const deleteDraftItemController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const itemId = Number(req.params.id);
-        const userId = req.user!.id;
-
-        await deleteDraftItemUseCase({ itemId, userId });
-
-        res.status(200).json({ message: "下書き商品を削除しました" });
     } catch (err) {
         next(err);
     }
