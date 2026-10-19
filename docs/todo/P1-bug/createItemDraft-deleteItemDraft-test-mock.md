@@ -1,5 +1,9 @@
 # createItemDraftの既存テストで対象外deleteItemDraftUseCaseをモックする
 
+完了（2026-10-19）：F1に基づき対象2テストを修正。既存HTTP19件・controller5件と削除API208件、計232件が成功。
+本番コード・期待値・DBガードの変更なし。詳細は `server/test/docs/report/itemDraft/deleteItemDraft.md` の最新結果を参照。
+以下は対応前の依頼内容として残す。
+
 ## 問題
 
 deleteItemDraft実装後、既存createItemDraftのHTTPテスト19件がbeforeEachのRouter importで失敗する。

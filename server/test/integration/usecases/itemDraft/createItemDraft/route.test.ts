@@ -4,8 +4,10 @@ import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeBody, makeDuplicateUiIdBody } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
-const mocks = vi.hoisted(() => ({ create: vi.fn() }));
+const mocks = vi.hoisted(() => ({ create: vi.fn(), remove: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
+vi.mock("../../../../../src/usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
+vi.mock("../../../../../src/db.js", () => { throw new Error("AF-MOCK01: 作成HTTPテストからDBを初期化しない"); });
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: ReturnType<typeof express>, secret: string;
 const token = (id = 7, expiresIn = 3600) =>
@@ -37,6 +39,7 @@ beforeEach(async () => {
     app.use("/api/item-draft", router);
     // 共通errorHandlerの保証ではなく、Routerが渡す例外を観測する。
     const observe: ErrorRequestHandler = (err, _req, res, _next) => {
+        void _next;
         if (err instanceof AppError) res.status(err.statusCode).json({ code: err.code });
         else res.status(500).json({ code: "TEST_UNEXPECTED_ERROR" });
     };
@@ -47,6 +50,7 @@ afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
+    expect(mocks.remove, "AF-MOCK02: 作成要求から削除usecaseを呼ばない").not.toHaveBeenCalled();
 });
 describe("P0/P1: 実Routerの到達性と優先順位", () => {
     it.each(["なし", "Bearer不正", "署名不正", "期限切れ"])("R01 R06: トークン%sは401で停止", async (mode) => {

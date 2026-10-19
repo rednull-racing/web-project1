@@ -1,9 +1,11 @@
 import type { Request, Response } from "express";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../../../errors.js";
 import { deferred, makeBody } from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
-const mocks = vi.hoisted(() => ({ create: vi.fn() }));
+const mocks = vi.hoisted(() => ({ create: vi.fn(), remove: vi.fn() }));
 vi.mock("../../../usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
+vi.mock("../../../usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
+vi.mock("../../../db.js", () => { throw new Error("AF-MOCK01: controller単体からDBを初期化しない"); });
 import { createItemDraftController } from "../itemDraft.js";
 const response = () => {
     const json = vi.fn(),
@@ -27,6 +29,9 @@ const empty = {
 };
 beforeEach(() => {
     vi.resetAllMocks();
+});
+afterEach(() => {
+    expect(mocks.remove, "AF-MOCK02: 作成処理から削除usecaseを呼ばない").not.toHaveBeenCalled();
 });
 describe("P0: controllerの引渡し・応答", () => {
     it.each([

@@ -1,6 +1,56 @@
 # deleteItemDraft テスト実装・実行レポート
 
-## 1. 結果（2026-10-19）
+## 最新結果：F1修正・再検証（2026-10-19）
+
+**F1は修正済み。既存作成HTTP19件・controller単体5件が成功し、削除APIの208件もすべて成功した。** 合計13ファイル232件、失敗・skip・todo・未処理例外0件。以下の初回レポートにある19件失敗は修正前の履歴である。
+
+変更したテストは `src/controllers/itemDraft/test/createItemDraft.test.ts` と `test/integration/usecases/itemDraft/createItemDraft/route.test.ts` の2ファイル。
+
+- 対象外のdeleteItemDraftUseCaseを現在の相対import先で独立してモックし、作成usecaseモックと分離した。
+- 全24ケースのafterEachで削除usecaseの呼出し0回を確認する。DBモジュールのmock factoryはimportされたら失敗する形にして、DB初期化へ進まないことも確認した。
+- 追加lintで検出した既存の未使用 `_next` は `void _next` で明示した。Expressがエラーハンドラーとして認識する4引数を維持した。
+- 本番コード、db.tsの接続ガード、dotenvモック、既存のレスポンス・認証・入力・レート制限の期待値は変更していない。
+
+| 検証 | 成功 | 失敗/skip/todo | 結果 |
+| --- | ---: | --- | --- |
+| AF-MOCK01：既存controller | 5 | 0/0/0 | DB初期化なしでケース本体まで実行 |
+| AF-MOCK01：既存作成HTTP | 19 | 0/0/0 | beforeEachのimport失敗を解消、従来assertを維持 |
+| AF-MOCK01：削除API回帰 | 208 | 0/0/0 | 単体97、DBなし結合62、実DB49を維持 |
+| AF-MOCK02：作成/削除の分離 | 上記ケース内 | 0/0/0 | 作成24ケースの削除呼出し0回、削除C01/R01の作成呼出し0回 |
+
+実行ディレクトリは `server/`。
+
+```bash
+npm run test:run -- src/controllers/itemDraft/test/createItemDraft.test.ts test/integration/usecases/itemDraft/createItemDraft/route.test.ts src/validators/params/test/id.test.ts src/middleware/validate/test/deleteItemDraft.test.ts src/controllers/itemDraft/test/deleteItemDraft.test.ts src/usecases/itemDraft/test/deleteItemDraft.test.ts src/services/itemDraft/test/deleteItemDraft.test.ts test/integration/usecases/itemDraft/deleteItemDraft/ test/integration/database/itemDraft/deleteItemDraft/ --maxWorkers=1 --reporter=json --outputFile=/tmp/delete-draft-f1.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+全コマンド終了コード0。232件のうちDB非接続は183件、実DBは49件。実DBの.env.test/test_db限定ガード、全接続のDB名検査、作成ID限定cleanup・残存0件・closeも通過した。外部通信は前回と同じ境界モックで、実COMMIT通信障害O04等の未確認範囲を新たに保証するものではない。
+
+`void _next` 追加後は修正対象24件だけを `/tmp/delete-draft-f1-target.json` へ再実行し、24成功・失敗/skip/todo0を確認した。これは232件に重複加算しない。
+
+通常lint対象外のHTTPテストを含む修正2ファイルは、既存ESLint APIに `test/**/*.ts` のrecommended設定を追加指定して検査した。設定ファイルは変更していない。初回追加lintで既存 `_next` の未使用1件を検出し、修正後はerror/warning0。
+
+```bash
+node --input-type=module <<'JS'
+import { ESLint } from 'eslint';
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+const runner = new ESLint({ overrideConfig: tseslint.config({ files: ['test/**/*.ts'], extends: [eslint.configs.recommended, ...tseslint.configs.recommended] }) });
+const results = await runner.lintFiles(['src/controllers/itemDraft/test/createItemDraft.test.ts','test/integration/usecases/itemDraft/createItemDraft/route.test.ts']);
+process.stdout.write((await runner.loadFormatter('stylish')).format(results));
+const errors = results.reduce((sum, result) => sum + result.errorCount, 0);
+const warnings = results.reduce((sum, result) => sum + result.warningCount, 0);
+console.info(`Target lint: ${results.length} files, ${errors} errors, ${warnings} warnings`);
+process.exitCode = errors ? 1 : 0;
+JS
+```
+
+F1のTodoは完了を記録した。F2は依頼範囲外のため変更していない。初回の既存回帰759件全体は再実行せず、今回の変更に直接関係する24件と、指定の削除208件を再検証した。初回の740成功と今回の成功を足して「今回の全回帰結果」とはしない。
+
+## 1. 初回結果（2026-10-19、F1修正前の履歴）
 
 [テスト設計書](../../architecture/itemDraft/deleteItemDraft.md) に基づき、単体・HTTP・実DB・transaction・並行処理のテストを実装した。**追加した11テストファイル208件はすべて成功、失敗・skip・todo・未処理例外は0件**。本番コード・既存テスト・共有設定・モデル・migrationは変更していない。
 
@@ -255,7 +305,7 @@ JS
 
 ### F1：既存createItemDraftのHTTPテストが対象外削除usecaseを実importする
 
-**確認済みのテスト分離不備。未修正。** 元ケースは既存createItemDraftレポートのR系、新設側ではR01〜R12の依存遮断に関連する。
+**初回に確認したテスト分離不備。現在は修正・再検証済み（冒頭の最新結果参照）。** 以下は初回調査時の原因・修正案。元ケースは既存createItemDraftレポートのR系、新設側ではR01〜R12の依存遮断に関連する。
 
 - 再現：6節の既存DBなし回帰を実行。`createItemDraft/route.test.ts` の全19件でbeforeEach中のRouter importが失敗する。
 - 実際のエラー：`TypeError: Cannot read properties of undefined (reading 'error')`、`src/db.ts:10`。既存のdotenvモックがconfig()の結果を返さない状態で、追加されたdeleteItemDraftUseCase→db.tsへ進むため発生する。HTTP要求・削除SQLには到達していない。
@@ -286,7 +336,7 @@ JS
 - O04ではCOMMIT通信断時の成否不明が残る。U06のreject・T04のrollback・T09の送信境界失敗から、すべてのCOMMIT障害で行が保持されるとは結論しない。運用上の契約を広げる場合は別途設計する。
 - 実測した範囲では、所有権・削除範囲・transaction引渡し・await・ロールバック・並行排他について本番ロジックの誤りは検出していない。
 
-## 9. 残る範囲・完了判定
+## 9. 初回実装時の残る範囲・完了判定（履歴）
 
 単体・HTTP・実DBのテスト実装と実行、90設計IDの対応確認、結果・失敗原因・修正案の記録まで完了。追加テスト208件とlint/型検査は成功している。
 
