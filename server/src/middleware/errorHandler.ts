@@ -6,6 +6,17 @@ export const errorHandler: ErrorRequestHandler = (err: unknown, req, res, next) 
     void req;
     void next;
 
+    if (
+        err instanceof SyntaxError &&
+        "type" in err && err.type === "entity.parse.failed" &&
+        "status" in err && err.status === 400
+    ) {
+        return res.status(400).json({
+            code: "INVALID_JSON",
+            message: "JSONの形式を確認してください。",
+        });
+    }
+
     console.error(err);
 
     if (err instanceof AppError) {

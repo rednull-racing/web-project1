@@ -1,5 +1,9 @@
 # JSON構文エラーの公開応答方針を整理する
 
+完了（2026-10-19）：ユーザー指示で400/INVALID_JSONの方針を確定し、共有ErrorHandlerとして独立実装・検証した。
+独立55件と削除API209件・既存作成24件が成功。レポート本体は `server/test/docs/report/ErrorHandler/errorHandler.md`。
+以下は方針確定前の観測・提案として残す。
+
 ## 観測と原因
 
 deleteItemDraftのO03テストで、壊れたJSON bodyが認証前のexpress.json()で失敗し、共通errorHandlerで500になることを確認した。

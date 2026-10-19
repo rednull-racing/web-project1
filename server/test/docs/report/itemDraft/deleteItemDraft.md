@@ -1,6 +1,14 @@
 # deleteItemDraft テスト実装・実行レポート
 
-## 最新結果：F1修正・再検証（2026-10-19）
+## 最新結果：共有ErrorHandlerのF2対応完了（2026-10-19）
+
+F2は共通機能 `ErrorHandler` / `ErrorHandler` として独立実装・テストを完了した。**レポート本体は [ErrorHandlerの独立レポート](../ErrorHandler/errorHandler.md) に記載している。**
+
+deleteItemDraftのO03は新契約AF-JSON01へ更新し、正常/なし/不正JWT＋不正JSONがすべて400/INVALID_JSONとなり、作成・削除usecaseが呼ばれないことを確認した。通常ErrorのR06とDB失敗のH04は安全な500を維持している。
+
+削除APIはJWT不正ケース1件追加により旧208件から209件となり、全件成功。独立ErrorHandler55件・既存作成API24件を含め計288件が成功し、lint・本番/テスト型検査・追加lintも成功した。旧O03の500観測は以下の初回履歴として保持する。その他の未確認範囲は解消扱いにしない。
+
+## F1修正・再検証（2026-10-19、履歴）
 
 **F1は修正済み。既存作成HTTP19件・controller単体5件が成功し、削除APIの208件もすべて成功した。** 合計13ファイル232件、失敗・skip・todo・未処理例外0件。以下の初回レポートにある19件失敗は修正前の履歴である。
 
@@ -321,9 +329,9 @@ JS
 
 修正提案は [Todo](../../../../../docs/todo/P1-bug/createItemDraft-deleteItemDraft-test-mock.md) にも記録した。
 
-### F2：不正JSONが共通errorHandlerで500になる（要仕様判断）
+### F2：不正JSONが共通errorHandlerで500になる（初回観測・提案の履歴）
 
-**O03で観測済み、修正は未実施。** 削除APIはbody不要だが、壊れたJSONを送るとexpress.json()が認証より先にSyntaxErrorを発生させ、AppError以外を一律500にする現errorHandlerで500となる。JWTあり/なしとも同じ結果。削除usecase/DBには到達しない。
+**現在は共有ErrorHandlerとして修正・検証済み。[独立レポート](../ErrorHandler/errorHandler.md) を参照。以下は変更前の観測と提案。** 削除APIはbody不要だが、壊れたJSONを送るとexpress.json()が認証より先にSyntaxErrorを発生させ、AppError以外を一律500にする変更前のerrorHandlerで500となっていた。JWTあり/なしとも同じ結果。削除usecase/DBには到達しない。
 
 - 対象候補：`src/middleware/errorHandler.ts`、必要に応じその専用テスト。削除usecaseの修正ではない。
 - 修正案：共有APIの入力エラー方針を確定後、body-parserのJSON構文エラーを識別し、安全な400 JSONへ変換する。任意Errorのstatus値を無条件に信用する処理は追加しない。通常DB例外の500・内部情報非公開は維持する。

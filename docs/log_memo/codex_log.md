@@ -536,3 +536,9 @@
 - 作成APIの既存controller・HTTPテストで削除usecaseを独立モックし、DB初期化と削除呼出しを防ぐ検証を追加。
 - 既存24件と削除API208件の計232件が成功。lint・本番/テスト型検査・対象2ファイル追加lintも成功。
 - 同じレポートへ最新結果を追記しF1のTodoを完了記録。本番コード・期待値・DBガード・F2は変更なし。
+
+## 20261019_backend-coding_ErrorHandlerのJSON構文エラー400対応
+
+- 共有errorHandlerでbody-parserのJSON解析SyntaxErrorだけを固定400/INVALID_JSONへ変換し、通常Error/DB例外500とAppError規約を維持。
+- ErrorHandler/ErrorHandlerとして独立設計・単体35件・HTTP20件を追加。削除API209件・作成API24件と合わせ288件成功。
+- 独立errorHandler.mdへ本体レポートを作成し、deleteItemDraftレポートとF2のTodoに完了記録。lint・型検査・追加lint成功。

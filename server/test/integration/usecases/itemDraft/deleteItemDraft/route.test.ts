@@ -103,13 +103,15 @@ describe("P0/P1: 実Router・認証・params・共通エラー応答", () => {
         expect((await remove(id)).status).toBe(200);
         expect(mocks.remove).toHaveBeenCalledExactlyOnceWith({ itemDraftId: expected, userId: 7 });
     });
-    it.each([true, false])("O03: 不正JSONは認証より前に失敗する（JWT=%s）", async auth => {
+    it.each(["正常", "なし", "不正"])("AF-JSON01 O03: 不正JSONは認証より前に400（JWT=%s）", async auth => {
         const req = request(app).delete("/api/item-draft/101").set("Content-Type", "application/json");
-        if (auth) req.set("Authorization", `Bearer ${token()}`);
+        if (auth === "正常") req.set("Authorization", `Bearer ${token()}`);
+        if (auth === "不正") req.set("Authorization", "Bearer invalid-jwt");
         const result = await req.send('{"broken":');
-        expect(result.status).toBe(500);
-        expect(result.body).toEqual({ error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" });
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
         expect(mocks.remove).not.toHaveBeenCalled();
+        expect(mocks.create).not.toHaveBeenCalled();
     });
 });
 
