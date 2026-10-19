@@ -31,8 +31,8 @@ DB処理に失敗した場合はロールバックし、元の下書きを保持
     - deleteItemDraftRateLimit（新規）
 - 認証: /middleware/authMiddleware.ts
     - authenticateToken（既存）
-- paramバリデーション: /validators/params/itemDraft.ts
-    - deleteItemDraftParamsSchema（新規。既存 `/validators/params/id.ts` のidParamSchemaを拡張）
+- paramバリデーション: /validators/params/id.ts
+    - idParamSchema（既存。上限2147483647を追加予定）
     - wrapper: /middleware/validate/validateParams.ts
         - validateParams（既存）
 - controller: /controllers/itemDraft/itemDraft.ts
@@ -53,9 +53,9 @@ DB処理に失敗した場合はロールバックし、元の下書きを保持
 
 ### バリデーション
 
-- `validateParams(deleteItemDraftParamsSchema)` で `params.id` を検証し、数値化した値をitemDraftIdとして使用する。
+- `validateParams(idParamSchema)` で `params.id` を検証し、数値化した値をitemDraftIdとして使用する。
 - id: 1〜2147483647の整数、必須（DBのINTEGER範囲）。不正な値は400を返す。
-- 現行のidParamSchemaには上限検証がないため、削除API専用の拡張スキーマで上限を追加する。共通スキーマの仕様は変更しない。
+- 既存のidParamSchemaに上限検証を追加する。実装時は、この共通スキーマを利用する既存APIへの影響も確認する。
 
 ### レスポンス
 
