@@ -542,3 +542,9 @@
 - 共有errorHandlerでbody-parserのJSON解析SyntaxErrorだけを固定400/INVALID_JSONへ変換し、通常Error/DB例外500とAppError規約を維持。
 - ErrorHandler/ErrorHandlerとして独立設計・単体35件・HTTP20件を追加。削除API209件・作成API24件と合わせ288件成功。
 - 独立errorHandler.mdへ本体レポートを作成し、deleteItemDraftレポートとF2のTodoに完了記録。lint・型検査・追加lint成功。
+
+## 20261019_documents_createItem詳細設計補完
+
+- 基本設計・旧patchPublishUseCase・関連Modelを参照し、API・認可・フロー図・DBコピー・排他制御・エラー・テスト設計を補完。
+- 成功時の編集セッション削除、公開管理値・sort・検索文字列・コミット後通知を整理し、公開必須条件等の未確定部分を明記。
+- 設計書と作業ログのみ変更。参照先・差分・git diff --checkを確認し、実装・migration・テスト実行は行わない。
