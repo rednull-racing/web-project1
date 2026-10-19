@@ -152,10 +152,10 @@ describe("P0 正常コピー・全引渡し項目", () => {
         expect(await run()).toBe(456); expect(await run()).toBe(789);
         expect(mocks.get).toHaveBeenCalledTimes(2); expect(mocks.create).toHaveBeenCalledTimes(2);
     });
-    it("O05: activeでdeleted_atがあっても現行処理はstatusのみで判定する観測", async () => {
-        item.deleted_at = new Date("2020-01-01T00:00:00Z");
-        expect(await run()).toBe(456);
-        expect(mocks.create).toHaveBeenCalledTimes(1);
+    it("O05 AF-DEL01: 取得serviceが論理削除済み商品をnullで除外すると404", async () => {
+        mocks.get.mockResolvedValue(null);
+        await expectAppError(run());
+        expect(mocks.create).not.toHaveBeenCalled();
     });
 });
 

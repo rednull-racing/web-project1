@@ -498,3 +498,10 @@
 - docs/todo/P3-techdebt/.gitkeepを追加し、空フォルダをGitで保持。
 - 専用worktreeで作業し、他エージェントの未コミット変更を保護。
 - 差分と.gitkeepが空であることを確認。コード変更なし。
+
+## 20261019_backend-coding_createItemEditingCopy防御修正と再検証
+
+- レポートF1〜F3に対応し、保存済み在庫構造のAppError化・itemIdのINTEGER上限・コピー時の論理削除除外を実装。
+- F4の複合更新rollbackと論理削除競合、拒否後の再試行・HTTPのDB未開始を追加し、旧観測ケースを新契約へ移行。
+- 単体188件・結合155件（実DB129件）の計343件、lint・本番/テスト型検査・対象9ファイル追加lintが成功。
+- 同じレポートへ結果・残る範囲を追記し設計を更新。migration・共有取得のtransaction省略経路・接続ガードの変更なし。

@@ -57,7 +57,7 @@
 
 - validatedBody使用（既存関数）
     - validatedBody内でzodを適用
-- itemId: 正の整数、必須
+- itemId: 1〜2147483647の整数、必須（DBのINTEGER範囲）
 - 不正なリクエストは400を返す
 
 ### レスポンス
@@ -110,7 +110,7 @@ where: {
 4. DBトランザクション開始
 5. itemを行ロック付きで取得
 6. 存在確認・所有者認可を確認
-7. item.statusが"active"でない場合は404
+7. item.statusが"active"でない場合は404。コピー取得ではロック検索・関連再取得の両方でdeleted_at=nullを条件にし、論理削除済みも404
 8. item_editingの新規レコードを作成
 9. itemの対象データをitem_editingへコピー
 10. トランザクションをコミット
@@ -162,6 +162,7 @@ flowchart TD
 
 ### コピー仕様
 
+- 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で作成前に停止する。商品/色のinventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
 - seller_idは認証済みユーザーのIDを使用する
 - item_editing.idは新規採番する
 - createdAt、updatedAtは新規生成する
@@ -284,6 +285,7 @@ const item = await Item.findOne({
 | 不正なitemId     | 400  | INVALID_BODY                       |
 | Itemが存在しない | 404  | ITEM_NOT_FOUND                     |
 | DB操作失敗       | 500  | INTERNAL_SERVER_ERROR              |
+| 保存済み在庫構造が不正 | 500 | ITEM_ATTRIBUTES_INVALID |
 
 ※エラーコードは既存のAppError規約に合わせる。
 

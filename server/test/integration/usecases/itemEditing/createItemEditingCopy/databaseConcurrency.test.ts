@@ -177,10 +177,10 @@ describe("P2 同一商品・別商品の並行コピー", () => {
 });
 
 describe("P2 先行する更新・所有権変更・削除とロック後の再評価", () => {
-    const changes = ["商品と関連更新", "soldout", "所有者変更", "削除"] as const;
+    const changes = ["商品と関連更新", "soldout", "所有者変更", "削除", "論理削除", "複合変更"] as const;
     describe.each(changes)("%s", (change) => {
         it.each(["commit", "rollback"] as const)(
-            "P03 P04 P05 P06 P07: 先行変更の%s後のデータでコピーまたは404にする", async (outcome) => {
+            "P03 P04 P05 P06 P07 AF-DEL02 AF-DB01: 先行変更の%s後のデータでコピーまたは404にする", async (outcome) => {
                 const writerReady = deferred<number>(), writerRelease = deferred<void>();
                 const rollbackError = new Error("writer rollback");
                 const idsBefore = await editingIds(f), protectedBefore = await protectedSnapshot(f);
@@ -188,7 +188,7 @@ describe("P2 先行する更新・所有権変更・削除とロック後の再�
                     await observer.query("SELECT id FROM item WHERE id = :id FOR UPDATE", {
                         replacements: { id: f.item.id }, transaction,
                     });
-                    if (change === "商品と関連更新") {
+                    if (change === "商品と関連更新" || change === "複合変更") {
                         const video = await Video.create({
                             thumbnail_url: "fresh-thumb", title: "fresh-title", summary: "fresh-summary",
                             duration: 88, original_url: "fresh-original", converted_url: "fresh-converted", status: "fresh-status",
@@ -199,6 +199,7 @@ describe("P2 先行する更新・所有権変更・削除とロック後の再�
                             shipping_service_free_text: "fresh-shipping",
                         }, { transaction });
                         await Item.update({
+                            ...(change === "複合変更" ? { status: "soldout" as const } : {}),
                             name: "fresh-name", image_url: ["fresh-image"], video_id: video.id, sale_id: sale.id,
                             shipping_id: shipping.id,
                             attributes: { inventory: { initial: 45, current: 2, low_stock_ratio: 0.8 } },
@@ -207,6 +208,8 @@ describe("P2 先行する更新・所有権変更・削除とロック後の再�
                         await Item.update({ status: "soldout" }, { where: { id: f.item.id }, transaction });
                     } else if (change === "所有者変更") {
                         await Item.update({ seller_id: f.other.id }, { where: { id: f.item.id }, transaction });
+                    } else if (change === "論理削除") {
+                        await Item.update({ deleted_at: new Date("2020-01-01T00:00:00Z") }, { where: { id: f.item.id }, transaction });
                     } else {
                         await Item.destroy({ where: { id: f.item.id }, transaction });
                     }
@@ -232,7 +235,7 @@ describe("P2 先行する更新・所有権変更・削除とロック後の再�
                     if (fails) {
                         await copyRejection;
                         expect(gate.createSpy).not.toHaveBeenCalled();
-                        expect(gate.relatedReads[0]).toBe(change === "soldout" ? 1 : 0);
+                        expect(gate.relatedReads[0]).toBe(change === "soldout" || change === "複合変更" ? 1 : 0);
                         expect(await editingIds(f)).toEqual(idsAfterWriter);
                         expect(await protectedSnapshot(f)).toEqual(afterWriter);
                     } else {

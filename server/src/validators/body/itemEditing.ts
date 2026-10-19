@@ -77,7 +77,7 @@ export const createItemEditingDraftBodySchema = z.object({
 });
 
 export const createItemEditingCopyBodySchema = z.object({
-    itemId: z.number().int().positive(),
+    itemId: z.number().int().positive().max(2147483647),
 });
 
 export type ItemEditingConfirmBody = z.infer<typeof updateItemEditingConfirmBodySchema>;

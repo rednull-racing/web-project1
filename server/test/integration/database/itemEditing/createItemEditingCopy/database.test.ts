@@ -1,18 +1,17 @@
 import "../../../../fixtures/itemEditing/createItemEditingCopy/databaseSetup.js";
 import { DatabaseError, ForeignKeyConstraintError, QueryTypes, ValidationError } from "sequelize";
 import type { Transaction } from "sequelize";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CreateItemEditingCopyParams } from "../../../../../src/types/serviceType/itemEditing.js";
 import type { ItemAttributes } from "../../../../../src/types/itemAttributes.js";
 import { createItemEditingCopy } from "../../../../../src/services/itemEditing/command.js";
 import {
     seed, run, snapshot, protectedSnapshot, editingIds, expectedCopy, expectCopy, createdCounts,
-    observer, sequelize, Item, ItemEditing,
+    observer, sequelize, Item, ItemEditing, expectUnlocked,
 } from "../../../../fixtures/itemEditing/createItemEditingCopy/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingCopy/databaseFixtures.js";
 import { expectedAttributes, expectAppError, nullableItemKeys, videoKeys, shippingKeys } from "../../../../fixtures/itemEditing/createItemEditingCopy/fixtures.js";
 import { createItemEditingCopyBodySchema } from "../../../../../src/validators/body/itemEditing.js";
-import { AppError } from "../../../../../src/errors.js";
 
 let f: DbFixture;
 beforeEach(async () => { f = await seed(); });
@@ -291,25 +290,35 @@ describe("P2 逐次再実行と観測", () => {
         expect(await editingIds(f)).toEqual(ids); expect(await protectedSnapshot(f)).toEqual(before);
         expect(await snapshot("item_editing", first)).toEqual(copy);
     });
-    it.each([null, undefined])("O01: size.inventory=%sの破損JSONBで作成を打ち切る観測", async (inventory) => {
+    it.each([null, undefined])("O01 AF-INV01: size.inventory=%sはAppErrorでrollbackし修復後の再試行が成功する", async (inventory) => {
         await f.item.update({ attributes: { colorVariants: [{ sizes: [{ size: "M", inventory }] }] } as unknown as ItemAttributes });
         const before = await protectedSnapshot(f), ids = await editingIds(f);
-        await expect(run(f)).rejects.toBeInstanceOf(TypeError);
+        const create = vi.spyOn(ItemEditing, "create");
+        await expectAppError(run(f), "ITEM_ATTRIBUTES_INVALID", 500);
+        expect(create).not.toHaveBeenCalled();
         expect(await protectedSnapshot(f)).toEqual(before); expect(await editingIds(f)).toEqual(ids);
+        await expectUnlocked(f.item.id);
+        await f.item.update({ attributes: expectedAttributes() });
+        await verifyRun();
     });
-    it.each([2147483648, Number.MAX_SAFE_INTEGER])("O02: 範囲外の安全整数%sのDB結果を分類する観測", async (itemId) => {
+    it.each([2147483646, 2147483647])("AF-ID02: INTEGER上限付近%sは受理し不在なら404にする", async (itemId) => {
         expect(createItemEditingCopyBodySchema.parse({ itemId })).toEqual({ itemId });
         const before = await protectedSnapshot(f), ids = await editingIds(f);
-        const error: unknown = await run(f, itemId).catch((caught: unknown) => caught);
-        if (error instanceof AppError) expect(error).toMatchObject({ code: "ITEM_NOT_FOUND", statusCode: 404 });
-        else {
-            expect(error).toBeInstanceOf(DatabaseError);
-            expect(error).toHaveProperty("parent.code", "22003");
-        }
+        await expectAppError(run(f, itemId));
         expect(await protectedSnapshot(f)).toEqual(before); expect(await editingIds(f)).toEqual(ids);
     });
-    it("O05: activeとdeleted_at併存時の現行コピー挙動を観測する", async () => {
+    it("O05 AF-DEL01: 論理削除後は404で既存コピーを保持し復元後は再試行できる", async () => {
+        const first = await run(f), copied = await snapshot("item_editing", first);
         await f.item.update({ deleted_at: new Date("2020-01-01T00:00:00Z") });
-        await verifyRun();
+        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const create = vi.spyOn(ItemEditing, "create");
+        await expectAppError(run(f));
+        expect(create).not.toHaveBeenCalled();
+        expect(await protectedSnapshot(f)).toEqual(before); expect(await editingIds(f)).toEqual(ids);
+        await expectUnlocked(f.item.id);
+        await f.item.update({ deleted_at: null });
+        const { id } = await verifyRun();
+        expect(id).not.toBe(first);
+        expect(await snapshot("item_editing", first)).toEqual(copied);
     });
 });

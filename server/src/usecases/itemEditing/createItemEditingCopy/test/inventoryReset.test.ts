@@ -2,7 +2,7 @@ import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ItemAttributes } from "../../../../types/itemAttributes.js";
 import type { createItemEditingCopy } from "../../../../services/itemEditing/command.js";
-import { editingResult, expectedAttributes, freezeDeep, makeItem, sourceResult, transactionFixture } from "./fixtures.js";
+import { editingResult, expectedAttributes, expectAppError, freezeDeep, makeItem, sourceResult, transactionFixture } from "./fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn(), get: vi.fn(), create: vi.fn<typeof createItemEditingCopy>(),
@@ -128,10 +128,33 @@ describe("P0/P1 在庫復元と複製（実usecase経由）", () => {
         });
         expect(attributes.inventory.current).toBe(6);
     });
-    it.each([undefined, null])("O01: size.inventory=%sの破損JSONは例外となり作成しない", async (inventory) => {
+    it.each([undefined, null])("O01 AF-INV01: size.inventory=%sの破損JSONはAppErrorで作成前に停止する", async (inventory) => {
         // 型に反する保存済みJSONBを意図的に再現する。
         item.attributes = { colorVariants: [{ sizes: [{ size: "M", inventory }] }] } as unknown as ItemAttributes;
-        await expect(createItemEditingCopyUseCase({ userId: 7, itemId: 101 })).rejects.toBeInstanceOf(TypeError);
+        await expectAppError(createItemEditingCopyUseCase({ userId: 7, itemId: 101 }), "ITEM_ATTRIBUTES_INVALID", 500);
         expect(mocks.create).not.toHaveBeenCalled();
+    });
+});
+
+
+describe("P1 AF-INV01 保存済み在庫構造の防御", () => {
+    it.each([
+        ["属性null", null], ["属性配列", []], ["商品在庫null", { inventory: null }],
+        ["商品initial欠落", { inventory: { current: 1, low_stock_ratio: 0.2 } }],
+        ["商品initial文字列", { inventory: { initial: "3", current: 1, low_stock_ratio: 0.2 } }],
+        ["商品current不正", { inventory: { initial: 3, current: null, low_stock_ratio: 0.2 } }],
+        ["商品ratio不正", { inventory: { initial: 3, current: 1, low_stock_ratio: "0.2" } }],
+        ["商品initial非有限", { inventory: { initial: Infinity, current: 1, low_stock_ratio: 0.2 } }],
+        ["色配列不正", { colorVariants: {} }], ["色null", { colorVariants: [null] }],
+        ["色在庫不正", { colorVariants: [{ inventory: {} }] }],
+        ["サイズ配列不正", { colorVariants: [{ sizes: {} }] }],
+        ["サイズnull", { colorVariants: [{ sizes: [null] }] }],
+        ["サイズ在庫不正", { colorVariants: [{ sizes: [{ inventory: {} }] }] }],
+    ])("%sをAppErrorで拒否し元データも作成も変更しない", async (_label, attributes) => {
+        item.attributes = attributes as unknown as ItemAttributes;
+        const before = structuredClone(item.attributes);
+        await expectAppError(createItemEditingCopyUseCase({ userId: 7, itemId: 101 }), "ITEM_ATTRIBUTES_INVALID", 500);
+        expect(mocks.create).not.toHaveBeenCalled();
+        expect(item.attributes).toEqual(before);
     });
 });
