@@ -1,8 +1,8 @@
-import { CategoryIdParams, Level2Params } from "../../types/serviceType/categories.js";
+import type { CategoryIdParams, Level2Params } from "../../types/serviceType/categories.js";
 import { Categories } from "../../models/index.js";
 
-export const getCategories = ({ categoryId }: CategoryIdParams) => {
-    return Categories.findByPk(categoryId);
+export const getCategories = ({ categoryId, transaction }: CategoryIdParams) => {
+    return transaction ? Categories.findByPk(categoryId, { transaction }) : Categories.findByPk(categoryId);
 };
 
 export const getLevel2 = ({ parentId }: Level2Params) => {

@@ -44,6 +44,7 @@ export type UpdateSortNumberDecayParams = {
 
 export type UserIdParams = {
     userId: number;
+    transaction?: Transaction;
 };
 
 export type GetAllItemParams = {
@@ -102,9 +103,39 @@ export type UserIdTransactionParams = {
     transaction: Transaction;
 };
 
-export type CreateItemParams = UserIdTransactionParams & {
-    saleId: number;
-    videoId: number;
+export type CreateItemParams = {
+    data: Pick<
+        InstanceType<typeof ItemModel>,
+        | "name"
+        | "detail"
+        | "image_url"
+        | "price"
+        | "item_condition_id"
+        | "seller_id"
+        | "first_image_url"
+        | "gender_type"
+        | "age_type"
+        | "recommend"
+        | "category_id"
+        | "brand_id"
+        | "brand_aliases_id"
+        | "attributes"
+        | "views_count"
+        | "sort_number"
+        | "sort_buzz_number"
+        | "search_text"
+        | "video_id"
+        | "sale_id"
+        | "shipping_id"
+        | "status"
+        | "uploaded_at"
+        | "save_at"
+        | "early_sell"
+        | "deleted_at"
+        | "checked"
+        | "report_score"
+    >;
+    transaction: Transaction;
 };
 
 export type ItemTransactionParams = {

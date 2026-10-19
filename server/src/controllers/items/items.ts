@@ -11,9 +11,9 @@ import { patchItemLogsAccessUseCase } from "../../usecases/items/log/accessLogs.
 import { restoreItemUseCase } from "../../usecases/items/restore/restore.js";
 import { getSearchItemsUseCase } from "../../usecases/items/search/getSearchItems.js";
 import { patchSortNumberAddUseCase, patchSortNumberDecreaseUseCase } from "../../usecases/items/sortNumber/sortNumber.js";
-import { createItemsUseCase } from "../../usecases/items/upload/createItem.js";
-import { patchPublishUseCase } from "../../usecases/items/upload/publish.js";
+import { createItemUseCase } from "../../usecases/itemEditing/createItem.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
+import type { CreateItemBody } from "../../validators/body/items.js";
 import type {
     ItemListQuery,
     ItemPageQuery,
@@ -23,31 +23,16 @@ import type {
 } from "../../validators/query/items.js";
 
 // POST /items
-// summary: 商品データ作成
-// page: /upload/before
+// summary: 販売中商品作成
+// page: /item/confirm/[id]
 export const createItemController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = req.user!.id;
+        const { itemEditingId } = req.validatedBody as CreateItemBody;
 
-        const itemId = await createItemsUseCase({ userId });
+        const itemId = await createItemUseCase({ userId, itemEditingId });
 
-        res.status(200).json({ itemId });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// PATCH /items/:id/publish
-// summary: 商品公開
-// page: /item/confirm/[id]
-export const publishItemController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const itemId = Number(req.params.id);
-        const userId = req.user!.id;
-
-        await patchPublishUseCase({ itemId, userId });
-
-        res.status(200).json({ message: "出品成功！" });
+        res.status(201).json({ itemId });
     } catch (err) {
         next(err);
     }

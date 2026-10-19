@@ -1,9 +1,14 @@
 import { Op } from "sequelize";
-import type { Order, Transaction, WhereOptions } from "sequelize";
-import { User } from "../../models/index.js";
+import type { InferAttributes, Order, Transaction, WhereOptions } from "sequelize";
+import type { User } from "../../models/index.js";
 
 export type UserIdParams = {
     userId: number;
+};
+
+export type GetUserParams = UserIdParams & {
+    transaction?: Transaction;
+    attributes?: Array<keyof InferAttributes<InstanceType<typeof User>>>;
 };
 
 export type UserIdWhereParams = {

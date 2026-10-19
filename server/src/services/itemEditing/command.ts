@@ -2,6 +2,7 @@ import { ItemEditing } from "../../models/index.js";
 import type { CreateItemEditingCopyParams, CreateItemEditingDraftParams } from "../../types/serviceType/itemEditing.js";
 import type {
     CreateItemEditingParams,
+    ItemEditingTransactionParams,
     UpdateConfirmParams,
     UpdateItemEditingImageParams,
 } from "../../types/serviceType/itemEditing.js";
@@ -26,4 +27,8 @@ export const createItemEditingDraft = ({ data, transaction }: CreateItemEditingD
 
 export const createItemEditingCopy = ({ data, transaction }: CreateItemEditingCopyParams) => {
     return ItemEditing.create(data, { transaction });
+};
+
+export const deleteItemEditing = async ({ itemEditing, transaction }: ItemEditingTransactionParams): Promise<void> => {
+    await itemEditing.destroy({ transaction });
 };

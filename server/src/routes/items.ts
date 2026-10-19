@@ -12,7 +12,6 @@ import {
     getItemPageController,
     getRecommendItemsController,
     patchItemAccessLogsController,
-    publishItemController,
     restoreItemController,
     searchItemsController,
 } from "../controllers/items/items.js";
@@ -29,10 +28,11 @@ import {
     logicalDeleteItemRateLimit,
     perfectDeleteItemRateLimit,
     restoreItemRateLimit,
-    uploadPublishItemRateLimit,
 } from "../middleware/rateLimit/itemsRateLimit.js";
+import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";
+import { createItemBodySchema } from "../validators/body/items.js";
 import { idParamSchema } from "../validators/params/id.js";
 import {
     getItemPageQuerySchema,
@@ -45,20 +45,9 @@ import {
 const router = Router();
 
 // POST /items
-// summary: 商品データ作成
-// page: /upload/before
-router.post("/", authenticateToken, createItemRateLimit, createItemController);
-
-// PATCH /items/:id/publish
-// summary: 商品公開
+// summary: 販売中商品作成
 // page: /item/confirm/[id]
-router.patch(
-    "/:id/publish",
-    authenticateToken,
-    uploadPublishItemRateLimit,
-    validateParams(idParamSchema),
-    publishItemController,
-);
+router.post("/", authenticateToken, createItemRateLimit, validateBody(createItemBodySchema), createItemController);
 
 // PATCH /items/:id/sort-number/add?number=number
 // summary: sortNumber追加

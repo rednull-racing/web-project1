@@ -12,11 +12,12 @@ import {
     UriagekinLots,
     User,
 } from "../../models/index.js";
-import {
+import type {
     EmailParams,
     GetCronUserTrustScoreParams,
     GetMyPageParams,
     GetUserAllParams,
+    GetUserParams,
     UserIdParams,
     UserIdWhereParams,
 } from "../../types/serviceType/users.js";
@@ -30,8 +31,10 @@ export const getCronUserTrustScore = ({ createdBefore, reportTrustScore }: GetCr
     });
 };
 
-export const getUser = ({ userId }: UserIdParams) => {
-    return User.findByPk(userId);
+export const getUser = ({ userId, transaction, attributes }: GetUserParams) => {
+    return transaction || attributes
+        ? User.findByPk(userId, { transaction, attributes })
+        : User.findByPk(userId);
 };
 
 export const getUserAll = ({ where, limit }: GetUserAllParams) => {

@@ -1,5 +1,5 @@
-import { Transaction } from "sequelize";
-import { Video } from "../../models/index.js";
+import type { Transaction } from "sequelize";
+import type { Video } from "../../models/index.js";
 
 export type VideoIdParams = {
     videoId: number;
@@ -18,6 +18,10 @@ export type PlayCountParams = {
 };
 
 export type CreateVideoParams = {
+    data: Pick<
+        InstanceType<typeof Video>,
+        "thumbnail_url" | "title" | "summary" | "duration" | "play_count" | "original_url" | "converted_url" | "status"
+    >;
     transaction: Transaction;
 };
 

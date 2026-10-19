@@ -1,5 +1,5 @@
 import { Sale } from "../../models/index.js";
-import {
+import type {
     CreateSaleParams,
     LogicalDeleteUpdateParams,
     SaleIdParams,
@@ -11,8 +11,8 @@ export const getSale = ({ saleId }: SaleIdParams) => {
     return Sale.findByPk(saleId);
 };
 
-export const createSale = async ({ transaction }: CreateSaleParams) => {
-    return Sale.create({}, { transaction });
+export const createSale = async ({ data, transaction }: CreateSaleParams): Promise<InstanceType<typeof Sale>> => {
+    return Sale.create(data, { transaction });
 };
 
 export const updateLogicalDelete = async ({ sale, transaction }: LogicalDeleteUpdateParams) => {

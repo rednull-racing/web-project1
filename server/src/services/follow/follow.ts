@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { Follow, ShopInfo, User } from "../../models/index.js";
-import {
+import type {
     CountParams,
     DeleteFollowUserIdTransactionParams,
     DestroyParams,
@@ -92,8 +92,9 @@ export const countFollowBoth = async ({ userId }: CountParams) => {
     return { followCount, followerCount };
 };
 
-export const countFollower = async ({ userId }: CountParams) => {
+export const countFollower = async ({ userId, transaction }: CountParams) => {
     return Follow.count({
         where: { follower_user_id: userId },
+        ...(transaction ? { transaction } : {}),
     });
 };

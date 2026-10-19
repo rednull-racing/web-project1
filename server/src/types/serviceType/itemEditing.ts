@@ -7,6 +7,11 @@ export type ItemEditingUserIdParams = {
     userId: number;
 };
 
+export type ItemEditingTransactionParams = {
+    itemEditing: InstanceType<typeof ItemEditing>;
+    transaction: Transaction;
+};
+
 export type CreateItemEditingParams = {
     data: {
         seller_id: number;

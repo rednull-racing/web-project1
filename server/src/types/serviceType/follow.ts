@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import type { Transaction } from "sequelize";
 import { Follow, User } from "../../models/index.js";
 import { FollowType } from "../../validators/query/follow.js";
 
@@ -14,6 +14,7 @@ export type UserParams = {
 
 export type CountParams = {
     userId: number;
+    transaction?: Transaction;
 };
 
 export type ListParams = {

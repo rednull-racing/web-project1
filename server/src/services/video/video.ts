@@ -1,5 +1,5 @@
 import { Item, Video } from "../../models/index.js";
-import {
+import type {
     CreateVideoParams,
     PlayCountParams,
     UpdateStatusParams,
@@ -32,8 +32,8 @@ export const addPlayCount = async ({ video, data }: PlayCountParams) => {
     await video.update(data);
 };
 
-export const createVideo = async ({ transaction }: CreateVideoParams) => {
-    return Video.create({}, { transaction });
+export const createVideo = async ({ data, transaction }: CreateVideoParams): Promise<InstanceType<typeof Video>> => {
+    return Video.create(data, { transaction });
 };
 
 export const updateStatus = async ({ video, data }: UpdateStatusParams) => {
