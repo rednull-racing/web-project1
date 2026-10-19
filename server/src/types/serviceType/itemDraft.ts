@@ -81,5 +81,5 @@ export type ItemDraftUserIdParams = {
 
 export type ItemDraftTransactionParams = {
     itemDraft: InstanceType<typeof ItemDraft>;
-    transaction: Transaction;
+    transaction?: Transaction;
 };
