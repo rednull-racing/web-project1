@@ -492,3 +492,9 @@
 - .env.test/test_dbの全接続ガード、実commit/rollback、行ロック待機・競合後再判定、作成IDの残存0件・接続closeを確認。
 - 初回の通信制限と許可後の成功を区別し、100設計IDとの対応・未実施範囲・観測事項の修正案を記録。
 - lint・本番/テスト型検査・対象9ファイル追加lintが成功。本番/テストコード変更・migration実行なし。
+
+## 20261019_documents_P3-techdebtフォルダ復元
+
+- docs/todo/P3-techdebt/.gitkeepを追加し、空フォルダをGitで保持。
+- 専用worktreeで作業し、他エージェントの未コミット変更を保護。
+- 差分と.gitkeepが空であることを確認。コード変更なし。
