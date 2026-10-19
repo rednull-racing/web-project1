@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    seed, sequelize, editingIds, protectedSnapshot, expectedCopy, expectCopy,
+    seed, sequelize, editingIds, protectedSnapshot, expectedCopy, expectCopy, ItemEditing,
 } from "../../../../fixtures/itemEditing/createItemEditingCopy/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingCopy/databaseFixtures.js";
 import { makeHttpApp, postCopy } from "../../../../fixtures/itemEditing/createItemEditingCopy/httpFixtures.js";
@@ -77,4 +77,40 @@ describe("P1/P2 実HTTPと実usecase・DBの接続", () => {
         expect(await editingIds(f)).toHaveLength(initial.length + 6);
         expect(await protectedSnapshot(f)).toEqual(before);
     }, 30000);
+});
+
+
+describe("P1 修正後のHTTP・DB境界", () => {
+    it.each([2147483648, Number.MAX_SAFE_INTEGER])("O02 AF-ID01 AF-ID02: itemId=%sは400でDB未開始", async (itemId) => {
+        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const transaction = vi.spyOn(sequelize, "transaction");
+        const response = await post({ itemId });
+        expect(response.status).toBe(400);
+        expect(response.body).toEqual({ code: "INVALID_BODY", message: "INVALID_BODY" });
+        expect(transaction).not.toHaveBeenCalled();
+        expect(await editingIds(f)).toEqual(ids); expect(await protectedSnapshot(f)).toEqual(before);
+    });
+    it("O05 AF-DEL01: activeの論理削除済み商品は404で作成しない", async () => {
+        await f.item.update({ deleted_at: new Date("2020-01-01T00:00:00Z") });
+        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const create = vi.spyOn(ItemEditing, "create");
+        const response = await post();
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ code: "ITEM_NOT_FOUND", message: "ITEM_NOT_FOUND" });
+        expect(create).not.toHaveBeenCalled();
+        expect(await editingIds(f)).toEqual(ids); expect(await protectedSnapshot(f)).toEqual(before);
+    });
+    it("O01 AF-INV01: 破損した保存済みサイズ在庫は明示的な500で作成しない", async () => {
+        await f.item.update({ attributes: { colorVariants: [{ sizes: [{ size: "M" }] }] } as unknown as typeof f.item.attributes });
+        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const create = vi.spyOn(ItemEditing, "create");
+        const response = await post();
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({
+            code: "ITEM_ATTRIBUTES_INVALID",
+            message: "商品の在庫情報を確認できません。時間をおいてもう一度お試しください。",
+        });
+        expect(create).not.toHaveBeenCalled();
+        expect(await editingIds(f)).toEqual(ids); expect(await protectedSnapshot(f)).toEqual(before);
+    });
 });

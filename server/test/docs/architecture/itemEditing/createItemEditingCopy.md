@@ -1,5 +1,24 @@
 # createItemEditingCopy テスト設計書
 
+## 2026-10-19 修正後の契約（最新）
+
+初回レポートのF1〜F4に対する本番修正・再検証の依頼に基づく更新。以下と矛盾する後続の表・観測記述は修正前の履歴とし、今回の契約と[修正レポート](../../report/itemEditing/createItemEditingCopy.md#fix-20261019)を優先する。
+
+- F1/O01：保存済みattributesはオブジェクトであること。商品/色inventoryとcolorVariants/sizesは欠落を許容するが、存在する場合は在庫オブジェクト/配列でなければならない。各サイズのinventoryは必須。在庫のinitial/current/low_stock_ratioは有限のnumberとする。違反は作成前に `AppError("ITEM_ATTRIBUTES_INVALID", 500)` で停止し、元データや追加キーを補正しない。コピー対象外の属性キーを網羅するschemaは追加しない。
+- F2/V06/O02：HTTP itemIdは1〜2147483647の整数。2147483646/2147483647を受理、2147483648/MAX_SAFE_INTEGERは400・INVALID_BODYでusecase/transaction未開始。旧O02の404/22003を両方許容する観測から、AF-ID02の確定契約へ移行する。直接usecase呼出しへの入力検証追加は対象外。
+- F3/O05/S01/S02：transaction付きコピー取得は、ロック検索・関連再取得の両方でdeleted_at=nullを条件にする。論理削除済みは404・新規行なし。transactionなしの論理削除usecase向け取得は従来の条件を維持する。
+- F4/P07：名称・画像・在庫・status=soldout・3関連FKを同時変更するcommit/rollback対照を追加。論理削除のcommit/rollback対照も追加し、backend PIDとpg_blocking_pidsで実待機を確認する。
+
+| 追加ID | 元ID | 配置・期待結果 |
+| --- | --- | --- |
+| AF-INV01 | O01 | inventoryReset単体、DB、DB HTTP：破損構造の明示的500・作成未実行・行不変・ロック解放、修復後再試行成功。正常な任意階層欠落・追加キー保持の既存回帰を維持 |
+| AF-ID02 | V06/O02 | validator単体、Router、DB、DB HTTP：上限直前/一致の受理、超過の400・transaction未開始 |
+| AF-DEL01 | O05 | usecase/service単体、DB、DB HTTP：削除済みを404、初回コピー保持、復元後に別IDで再試行成功。単体のusecase側はserviceがnullを返す境界を模擬 |
+| AF-DEL02 | P03〜P07/O05 | databaseConcurrency：更新側が論理削除→コピー実待機→commitなら関連再取得/作成なしで404、rollbackなら旧値で成功 |
+| AF-DB01 | P07 | databaseConcurrency：複合更新→コピー実待機→rollbackなら元の全コピー値で成功、commit対照はsoldoutで404 |
+
+旧AF-ID01（範囲外整数のDB分岐記録）はAPI上限導入で通常HTTP経路から到達しなくなるため、DB HTTPでの400・DB未開始確認へ置換する。実COMMIT応答喪失のO04は未実施のまま残す。実行コマンドと件数は修正レポートに記録する。
+
 ## 1. 目的・根拠・作業範囲
 
 対象は createItemEditingCopyUseCase。販売中かつ認証ユーザー所有の Item から、新しい ItemEditing をリクエストごとに作成する契約を検証する。正常系に加えて、所有権のすり抜け、コピー元の取り違え、在庫復元の漏れ、途中失敗、再試行、競合時の古いデータの利用を検出する。

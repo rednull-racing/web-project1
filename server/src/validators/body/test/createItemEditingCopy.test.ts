@@ -8,14 +8,14 @@ beforeEach(() => { vi.spyOn(console, "error").mockImplementation(() => {}); });
 afterEach(() => vi.restoreAllMocks());
 
 describe("P0 入力schema・validateBody", () => {
-    it.each([1, 2, 2147483647, 2147483648, Number.MAX_SAFE_INTEGER])(
-        "V01 V06 O02: 正の安全整数%sを変換せず受理する", (itemId) => {
+    it.each([1, 2, 2147483646, 2147483647])(
+        "V01 V06 AF-ID02: INTEGER範囲内の%sを変換せず受理する", (itemId) => {
             expect(schema.parse({ itemId })).toEqual({ itemId });
         },
     );
     it.each([
         -1, 0, -0, 0.5, 1.5, "1", "", " ", "1e2", true, false, null, undefined,
-        NaN, Infinity, -Infinity, [], {}, Number.MAX_SAFE_INTEGER + 1,
+        NaN, Infinity, -Infinity, [], {}, 2147483648, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER + 1,
     ].map((itemId) => ({ itemId })))("V01 V02 V03 V06: itemId=$itemIdを拒否しitemIdへissueを付ける", ({ itemId }) => {
         const parsed = schema.safeParse({ itemId });
         expect(parsed.success).toBe(false);

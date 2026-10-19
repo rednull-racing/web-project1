@@ -104,7 +104,7 @@ export async function getMyItemWithVideoSaleShipping({
         // 関連の外部結合をロックせず、ロック待機後のデータでコピーするため、先にitemだけをロックする。
         const item = await Item.findOne({
             attributes: ["id"],
-            where: { id: itemId, seller_id: userId },
+            where: { id: itemId, seller_id: userId, deleted_at: null },
             transaction,
             lock: transaction.LOCK.UPDATE,
         });
@@ -115,6 +115,8 @@ export async function getMyItemWithVideoSaleShipping({
         where: {
             id: itemId,
             seller_id: userId,
+            // transaction付きのコピー取得では、論理削除済み商品を除外する。
+            ...(transaction ? { deleted_at: null } : {}),
         },
         attributes: transaction
             ? [

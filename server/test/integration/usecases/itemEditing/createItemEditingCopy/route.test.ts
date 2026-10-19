@@ -47,7 +47,8 @@ describe("P1 実Router・認証・validator・共通errorHandler", () => {
         });
         expect(mocks.copy).not.toHaveBeenCalled();
     });
-    it.each([{}, { itemId: 0 }, { itemId: "101" }, { itemId: 1.5 }, { itemId: null }])(
+    it.each([{}, { itemId: 0 }, { itemId: "101" }, { itemId: 1.5 }, { itemId: null },
+        { itemId: 2147483648 }, { itemId: Number.MAX_SAFE_INTEGER }])(
         "R03 V01 V02 V04: body=%jは400でusecase未実行", async (body) => {
             const result = await post(body);
             expect(result.status).toBe(400);
@@ -116,4 +117,12 @@ describe("P2 実レート制限・優先順位", () => {
         expect((await request(app).post("/api/item-editing/copy").send({})).status).toBe(401);
         expect(mocks.copy).toHaveBeenCalledTimes(5);
     });
+});
+
+
+it.each([2147483646, 2147483647])("AF-ID02: INTEGER上限付近%sはHTTPでも受理する", async (itemId) => {
+    const result = await post({ itemId });
+    expect(result.status).toBe(201);
+    expect(result.body).toEqual({ itemEditingId: 456 });
+    expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId });
 });

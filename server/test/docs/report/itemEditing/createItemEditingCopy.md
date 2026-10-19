@@ -1,5 +1,7 @@
 # createItemEditingCopy 結合テストレポート
 
+**最新：2026-10-19 修正後は11ファイル・343件すべて成功。** 本番コードのF1〜F3とテスト補完F4を実装した。詳細は末尾の[修正・再検証レポート](#fix-20261019)を参照。以下の初回143件と未実装修正案は当時の履歴として保持する。
+
 ## 2026-10-19 実行結果
 
 **5ファイル・143件成功、失敗・skip・todoは各0件。** 実DBを使う4ファイル121件と、DB非接続のRouterテスト1ファイル22件を実行した。最終実行の終了コードは0で、未処理例外の報告もなかった。通常契約に対するテスト失敗・確定したロジックの誤りは確認されなかった。
@@ -158,3 +160,87 @@ HTTPは最小Expressアプリに実Routerと共通errorHandlerを登録した。
 既存の通常契約テストは維持する。O01/O05は仕様が決まり修正が実装された場合だけ新契約へ移行し、今回の旧挙動は履歴として残す。O02はまず観測記録を補い、API上限の変更が承認された場合のみV06等の期待値を更新する。P07は既存8通りのcommit/rollback対照を残して複合ケースを追加する。
 
 結合テスト143件と静的検査は完了した。単体テストの再実行、設計表の全入力組合せ、P07の複合条件、O02の実分岐特定、O04の実通信障害、上記修正案の実装・再検証は完了範囲に含めない。
+
+---
+
+<a id="fix-20261019"></a>
+
+## 2026-10-19 F1〜F4 修正・再検証レポート（最新）
+
+**11ファイル・343件すべて成功。失敗・skip・todoは各0件、終了コード0、未処理例外の報告なし。** 内訳は結合155件（実DB129件、DB非接続Router26件）と単体188件。初回143件へ再実行分を重複加算した件数ではなく、今回の最終JSONからの集計である。
+
+### 変更の根拠と実装済みの契約
+
+今回の「先ほどのレポートをもとに本番コードを修正」の依頼を根拠に、F1〜F3の提案を本機能の契約へ反映した。[テスト設計書の最新契約](../../architecture/itemEditing/createItemEditingCopy.md)と詳細設計も更新した。本番変更は3ファイルで、依存追加・モデル変更・migrationはない。
+
+| 修正 | 修正前の入力・結果 | 実装・検証した修正後の契約 |
+| --- | --- | --- |
+| F1 / O01 | 保存済みsize.inventoryがnull/欠落だとTypeError | `src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.ts` に在庫構造の検査を追加。attributesがオブジェクト、任意階層が正しい配列/オブジェクト、各在庫のinitial/current/low_stock_ratioが有限数値であることを確認。サイズ在庫は必須。不正ならITEM_ATTRIBUTES_INVALID・500で作成前に停止。商品/色在庫やcolorVariants/sizesの正常な欠落は引き続き許容し、初期値0・追加キー・配列順を保持 |
+| F2 / V06・O02 | schemaが2147483648/MAX_SAFE_INTEGERを受理。DB側の404/22003は旧テストが双方を許容 | `src/validators/body/itemEditing.ts` のcopy用schemaだけにmax(2147483647)を追加。超過は400・INVALID_BODY、usecase/transaction未開始。上限直前2147483646・一致2147483647は数値のまま受理 |
+| F3 / O05 | activeかつdeleted_atありでもコピー成功 | `src/services/items/query/relation.ts` のtransaction付きコピー取得で、ロック検索と関連再取得の両方にdeleted_at=nullを追加。削除済みは404・作成未実行。transactionなしで呼ぶ論理削除usecaseの取得条件は維持し、S07で完全一致を確認 |
+| F4 / P07 | 名称/在庫/status/関連FKを同時変更してrollbackする条件が未実装 | 実DBの競合テストに複合変更と論理削除を追加し、いずれもcommit/rollback対照を実行。旧P03〜P09の各条件も維持 |
+
+在庫検査は保存済みデータの整合性確認であり、リクエストbodyを再検証する処理ではない。材料・分類など在庫以外の構造検査や在庫数値への新たな上下限は追加していない。エラー応答のmessageは「商品の在庫情報を確認できません。時間をおいてもう一度お試しください。」とし、保存内容やSQLは含めない。
+
+### ファイル別の最終集計
+
+パスはserver/基準。全行で失敗・skip・todoは0件。
+
+| ファイル | 成功 | 今回確認した範囲 |
+| --- | ---: | --- |
+| `test/integration/database/itemEditing/createItemEditingCopy/database.test.ts` | 94 | 既存DB回帰、O01のAppError化・修復後再試行、上限直前/一致のDB取得、論理削除拒否・復元後再試行 |
+| `test/integration/usecases/itemEditing/createItemEditingCopy/databaseTransactions.test.ts` | 7 | commit可視性、保存前/後の失敗、実rollback、再試行、ロック解放 |
+| `test/integration/usecases/itemEditing/createItemEditingCopy/databaseConcurrency.test.ts` | 20 | 既存16件と、論理削除・複合変更それぞれのcommit/rollbackの4件 |
+| `test/integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts` | 8 | 既存4件、上限超過2値、論理削除404、在庫構造不正500 |
+| 実DB小計 | **129** | 4ファイル |
+| `test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts` | 26 | 既存HTTP回帰、上限超過2値でusecase未実行、上限直前/一致の受理 |
+| 結合小計 | **155** | 5ファイル |
+| `src/usecases/itemEditing/createItemEditingCopy/test/usecase.test.ts` | 89 | N/E/A/Q/B系の引数・例外・待機・コピー値。O05はserviceがnullを返す境界へ移行 |
+| `src/usecases/itemEditing/createItemEditingCopy/test/inventoryReset.test.ts` | 48 | I01〜I10、null/欠落サイズ在庫のAppError化、14種類の構造/数値不正で元データ不変・作成停止 |
+| `src/validators/body/test/createItemEditingCopy.test.ts` | 36 | V01〜V08、INTEGER上限、未知キー除去・middleware成功/失敗 |
+| `src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts` | 8 | S01〜S07、両SELECTのdeleted_at条件とtransaction省略時の条件維持 |
+| `src/services/itemEditing/test/createItemEditingCopy.test.ts` | 2 | S08/S09、data/transaction同一参照、例外伝播 |
+| `src/controllers/itemEditing/test/createItemEditingCopy.test.ts` | 5 | C01〜C03、認証/検証済み値、201、例外と待機 |
+| 単体小計 | **188** | 6ファイル |
+| 全体 | **343** | 実DB129件、DB非接続214件 |
+
+実行ディレクトリは `/home/conta/project/server`。最終結果は `/tmp/createItemEditingCopy-fix-results.json`、実行ログは `/tmp/createItemEditingCopy-fix-results.log`。Vitest 4.1.11で下記を実行した。前回確認済みの接続/HTTP待受制限のため、テストは通信許可のもとで実行し、安全ガードは維持した。今回の修正後テスト実行に収集/setup/ケース本体の失敗はない。
+
+```bash
+npm run test:run -- src/usecases/itemEditing/createItemEditingCopy/test/ src/controllers/itemEditing/test/createItemEditingCopy.test.ts src/validators/body/test/createItemEditingCopy.test.ts src/services/items/query/test/getMyItemWithVideoSaleShipping.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts test/integration/database/itemEditing/createItemEditingCopy/ test/integration/usecases/itemEditing/createItemEditingCopy/ --maxWorkers=1 --reporter=json --outputFile=/tmp/createItemEditingCopy-fix-results.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+lint、本番typecheck、単体/結合全体を含むテスト型検査はいずれも終了コード0。test配下の結合・fixture計9ファイルは初回に記載した既存ESLint APIの追加lintでもエラー0・警告0。`git diff --check` と文書の相対リンクも確認した。カバレッジは取得していない。
+
+### 追加ケース・移行・実DBの証跡
+
+| ケースID | 判定と対応 | 実行した入力・順序・結果 |
+| --- | --- | --- |
+| AF-INV01 / O01 | 成功：inventoryReset、database、databaseHttp | null/欠落のサイズ在庫をAppError・500で拒否し、ItemEditing.create未実行、元/関連/既存編集不変・追加なし。DBではNOWAIT再ロック成功後、保存済みattributesを正常値へ修復して同じ商品で再試行成功。HTTPも明示的なcode/messageを確認。単体はnull属性・配列・不正配列要素・在庫項目欠落/文字列/非有限値など14条件も拒否 |
+| AF-ID02 / V06・O02 | 成功：validator、route、database、databaseHttp | 上限直前/一致はschema/HTTPで受理し、実DBでは不在としてITEM_NOT_FOUND・404。超過2147483648/MAX_SAFE_INTEGERは実HTTPで400・INVALID_BODY、transaction spy0回、編集行追加なし・非対象行不変 |
+| AF-ID01 / O02 | 新契約へ移行：databaseHttp | 旧「範囲外整数をDBへ渡し404/22003を分類」は、API上限追加により「超過は400でDB未開始」の確定assertionへ置換。修正前のDB内部でどちらの分岐だったかは未特定のままで、旧挙動を今回の観測結果として断定しない |
+| AF-DEL01 / O05 | 成功：usecase/service単体、database、databaseHttp | 初回コピー成功→元Itemをactiveのまま論理削除→404・作成未実行・全保護対象不変・初回コピー保持→ロック解放確認→deleted_at=nullへ復元→別IDで成功。実HTTPも削除済みの404を確認。service単体は両SELECTの条件とtransaction省略時の従来条件を完全一致で確認 |
+| AF-DEL02 / O05・P03〜P07 | 成功：databaseConcurrency | 更新側がItemロック→deleted_at設定→コピー開始→backend PID/pg_blocking_pidsで実待機確認→更新側commitならロック検索からnullとなり、関連再取得/作成0回で404。rollback対照は元の全コピー値で1行commit |
+| AF-DB01 / P07 | 成功：databaseConcurrency | 更新側が名称・画像・在庫・status=soldout・Video/Sale/配送の新規FKを同時変更して保留→コピー実待機・関連再取得/作成未実行→更新側rollback→コピーは元の名称/在庫initial/旧関連値を全項目一致で保存。commit対照はsoldoutで404、作成なし |
+
+旧O01のTypeError期待、旧O05の削除済みでも成功の期待、V06/O02の範囲外整数受理は、実装した新契約へ更新した。その他の正常・異常・境界・在庫深い複製・価格・レート制限・transaction・並行処理のassertionを弱めず、skip/todo化もしていない。設計の100ケースIDは単体/結合の責務を含み、今回の343実行件数とは別である。初回未実行だったU/I/V/S/C単体6ファイルも今回実行した。
+
+DBの読込元は引き続き `/home/conta/project/server/.env.test`。アプリ・モデル初期化・observerの3接続で設定DB名/実DB名が `test_db`、分離レベルがREAD COMMITTEDであることをガードで確認し、すべて通過した。スキーマの自動補正なし。コピーのcommit/rollback結果はobserverの新規SELECTで確認し、変更前後の対象外行も比較した。
+
+新しい競合ケースも任意sleepで判定せず、backend PIDの実待機を照会し、deferredで解放順を制御した。rollbackした複合変更で新規作成した関連行も追跡IDに含め、fixtureを外部キー順で削除し、各ケースで残存0件のassertionが成功。hook解除、保留Promise/transactionの回収、3接続closeにも失敗なし。実DB・モック・障害注入の境界は初回記載を維持し、実INSERT後の例外によるrollback回帰も今回再実行した。
+
+### 残る範囲・再修正案
+
+今回の修正・再検証で新たなテスト失敗や、再修正が必要なロジックの問題は確認されなかった。F1〜F4と上記回帰の範囲は完了。追加の本番修正案はない。
+
+- O04の実COMMIT送信後の応答喪失は未実施。E08の完了Promise拒否やT04のcallback例外から「通信障害でも必ずrollback」とは保証しない。
+- O03は今回も成功したが、関連だけの独立更新をItemロックで排他する契約へ変更していない。
+- 保存済み在庫以外のJSONB全項目の検査・既存破損データの一括修復、usecase直接呼出しのitemId検証、実アプリ全体/フロントエンド/本番Redis/AWS通信は対象外。今回の有限数値検査を全属性の業務妥当性保証とは扱わない。
+- 設計表の全入力組合せや実通信障害まで網羅した意味での全体完了ではない。将来の別仕様を今回の修正案として追加しない。
+
+### 変更ファイル
+
+本番3ファイル（usecase、取得service、body validator）、単体4ファイル（usecase/inventoryReset/取得service/validator）、結合4ファイル（database/databaseConcurrency/databaseHttp/route）、本レポート、テスト設計書、詳細設計書、Codexログを変更した。controller・作成service・transactionテスト・fixture・接続ガードは変更せず、そのまま回帰確認した。
