@@ -9,7 +9,8 @@ describe("D 実PostgreSQL保存と所有権", () => {
         expect(item).not.toBeNull();
         for (const key of ["name", "detail", "image_url", "price", "item_condition_id", "seller_id", "first_image_url", "gender_type", "age_type", "recommend", "category_id", "brand_id", "brand_aliases_id"] as const)
             expect(item![key]).toEqual(f.editing[key]);
-        expect(item).toMatchObject({ attributes: expectedAttributes(), status: "active", views_count: 0, early_sell: true, checked: false, report_score: 0, search_text: "testかたかなvideoてすとしゃつtopsuser" });
+        expect(item).toMatchObject({ attributes: expectedAttributes(), status: "active", views_count: 0, early_sell: true, checked: false, search_text: "testかたかなvideoてすとしゃつtopsuser" });
+        expect(Number(item!.report_score)).toBe(0);
         expect(Number(item!.sort_number)).toBe(6255);
         expect(Number(item!.sort_buzz_number)).toBe(6255);
         expect(item!.uploaded_at).toEqual(item!.save_at);

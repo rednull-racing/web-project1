@@ -598,3 +598,11 @@
 - 関連19ファイル474件成功、lint・本番typecheck・追加lint成功。F1対応完了をレポート末尾へ追記。
 - DB72件はitem.deleted_at残存で本体未実行、テスト用型検査は既存refreshToken.tsエラー。末尾に修正案を記録。
 - DB・migration・対象外の本番コードは変更なし。
+
+## 20261020_backend-test_createItem_F2解消後のDB検証
+
+- 元のDB72件を実行・成功し、任意値/JSONB/障害注入/HTTP確定順序を補完。最新DB266件は265成功・1失敗。
+- テストのsequelize/QueryTypes参照とDECIMAL比較を修正。本番コード・DBスキーマ・migrationは変更なし。
+- 実commit/rollback・行ロック競合・4行整合性・ID限定cleanupを検証し、非DB回帰474件成功。
+- uploaded_atのModel必須とDB NULL可の差分をF4として残し、レポート末尾とTodoへ修正案を記録。
+- lint・本番typecheck・追加lint成功。テスト用型検査は既存refreshToken.tsのエラーのみ残存。

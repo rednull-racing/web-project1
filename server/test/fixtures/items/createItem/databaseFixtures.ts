@@ -7,7 +7,6 @@ import db from "../../../../src/models/index.js";
 import sequelize from "../../../../src/db.js";
 import { makeEditing, makeAttributes } from "./fixtures.js";
 import { createItemUseCase } from "../../../../src/usecases/itemEditing/createItem.js";
-export { sequelize, QueryTypes };
 export const { ItemEditing, Item, ItemDraft, Video, Sale, ItemShippingProfile, User, Categories, Brands, BrandAliases, ItemConditionOption, ShippingDayOption, ShippingServiceOption, TodouhukenOption, Follow } = db;
 const notification = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 vi.mock("../../../../src/services/notification/notification.js", () => ({ createNotification: notification }));
@@ -26,6 +25,8 @@ beforeAll(async () => {
         }>("SELECT current_database() AS name", { type: QueryTypes.SELECT });
         if (row.name !== "test_db")
             throw new Error("DB_TEST_STOP: actual database is not test_db");
+        const [isolation] = await connection.query<{ transaction_isolation: string }>("SHOW transaction_isolation", { type: QueryTypes.SELECT });
+        if (isolation.transaction_isolation !== "read committed") throw new Error("DB_TEST_STOP: concurrency tests require READ COMMITTED");
     }
     // 旧カラムが残る環境をテスト側で自動補正しない。
     const columns = await observer.query<{
@@ -117,4 +118,19 @@ export const assertRolledBack = async (f: Fixture, before: unknown) => {
     await observer.transaction(async (t) => { await observer.query("SELECT id FROM item_editing WHERE id=:id FOR UPDATE NOWAIT", { replacements: { id: f.editing.id }, transaction: t }); });
     await assertProtected(f);
     expect(notification).not.toHaveBeenCalled();
+};
+
+export const assertPublishedCount = async (f: Fixture, expected: number) => {
+    for (const [model, table] of [[Item, "item"], [Video, "video"], [Sale, "sale"], [ItemShippingProfile, "item_shipping_profile"]] as const) {
+        const protectedIds = f.protectedRows.filter(row => row.table === table).map(row => row.id);
+        const rows = await Promise.all(ids(model).filter(id => !protectedIds.includes(id)).map(id => snapshot(table, id)));
+        expect(rows.filter(row => row !== null), table).toHaveLength(expected);
+    }
+};
+export const assertPublishedRelations = async (itemId: number) => {
+    const item = await snapshot("item", itemId);
+    expect(item).not.toBeNull();
+    for (const [table, key] of [["video", "video_id"], ["sale", "sale_id"], ["item_shipping_profile", "shipping_id"]]) {
+        expect(await snapshot(table, Number(item![key])), table).not.toBeNull();
+    }
 };

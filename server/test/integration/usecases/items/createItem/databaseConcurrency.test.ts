@@ -1,7 +1,10 @@
+import "../../../../fixtures/items/createItem/databaseSetup.js";
+import { QueryTypes } from "sequelize";
+import sequelize from "../../../../../src/db.js";
 import { describe, expect, it, vi } from "vitest";
 import type { Transaction } from "sequelize";
-import { seed, run, snapshot, assertProtected, notification, sequelize, observer, QueryTypes, ItemEditing, Item, ids, Follow } from "../../../../fixtures/items/createItem/databaseFixtures.js";
-import { boundary, deferred, requiredIdFields } from "../../../../fixtures/items/createItem/fixtures.js";
+import { seed, run, snapshot, assertProtected, assertPublishedCount, notification, observer, ItemEditing, Item, ids, Follow } from "../../../../fixtures/items/createItem/databaseFixtures.js";
+import { boundary, deferred, requiredIdFields, expectedAttributes } from "../../../../fixtures/items/createItem/fixtures.js";
 import * as query from "../../../../../src/services/itemEditing/query.js";
 import * as followService from "../../../../../src/services/follow/follow.js";
 import * as command from "../../../../../src/services/itemEditing/command.js";
@@ -93,6 +96,7 @@ describe("P 実PostgreSQL行ロック・状態再評価", () => {
             expect(notification).toHaveBeenCalledTimes(1);
             const published = await Item.findAll({ where: { id: ids(Item).filter(id => id !== f.existing.id) } });
             expect(published).toHaveLength(1);
+            await assertPublishedCount(f, 1);
             await assertProtected(f);
         }
         finally {
@@ -104,7 +108,7 @@ describe("P 実PostgreSQL行ロック・状態再評価", () => {
         ...["commit", "rollback"].flatMap(outcome => ["delete", "owner"].map(action => ({ action, outcome, field: "" }))),
         ...requiredIdFields.flatMap(field => ["commit", "rollback"].map(outcome => ({ action: "null-id", outcome, field }))),
     ];
-    it.each(cases)("P03 P04 P05 P06 AF-ID03: $action $field $outcome後に再評価", async ({ action, outcome, field }) => {
+    it.each(cases)("P05 P06 AF-ID03: $action $field $outcome後に再評価", async ({ action, outcome, field }) => {
         const f = await seed();
         const holder = await sequelize.transaction();
         let pending: Promise<{
@@ -185,15 +189,27 @@ describe("P 実PostgreSQL行ロック・状態再評価", () => {
                 await deleting.rollback();
         }
     });
-    it.each([false, true])("P09: 別セッション・別ユーザー=%sの並行公開は値を混ぜない", async (differentOwner) => {
-        const f = await seed();
-        const target = differentOwner ? f.otherEditing : f.ownEditing;
-        const results = await Promise.all([run(f), run(f, target.id, differentOwner ? f.other.id : f.owner.id)]);
-        expect(new Set(results).size).toBe(2);
+    it.each([false, true])("P09: 別セッション・別ユーザー=%sの実ロック取得後に両公開を解放", async differentOwner => {
+        const f = await seed(); const target = differentOwner ? f.otherEditing : f.ownEditing;
+        await target.update({ image_url: ["https://media.test/other-image"], first_image_url: "https://media.test/other-image", attributes: { inventory: { initial: 3, current: 0, low_stock_ratio: 0.7 } } });
+        const bothRead = deferred<void>(), release = deferred<void>(); const original = query.getMyItemEditing; let readCount = 0;
+        vi.spyOn(query, "getMyItemEditing").mockImplementation(async args => { const row = await original(args); if (++readCount === 2) bothRead.resolve(); await release.promise; return row; });
+        const pending = Promise.all([run(f), run(f, target.id, differentOwner ? f.other.id : f.owner.id)]);
+        try { await boundary(bothRead.promise, pending); expect(notification).not.toHaveBeenCalled(); }
+        finally { release.resolve(); await pending; }
+        const results = await pending; expect(new Set(results).size).toBe(2);
         const items = await Promise.all(results.map(id => snapshot("item", id)));
-        expect(items.map(i => i!.name)).toEqual([f.editing.name, target.name]);
-        expect(items.map(i => i!.seller_id)).toEqual([f.owner.id, differentOwner ? f.other.id : f.owner.id]);
-        expect(notification).toHaveBeenCalledTimes(2);
+        expect(items.map(row => row!.name)).toEqual([f.editing.name, target.name]);
+        expect(items.map(row => row!.seller_id)).toEqual([f.owner.id, differentOwner ? f.other.id : f.owner.id]);
+        expect(items[0]!.attributes).toEqual(expectedAttributes()); expect(items[1]!.attributes).toEqual({ inventory: { initial: 3, current: 3, low_stock_ratio: 0.7 } });
+        expect(items[1]!.image_url).toEqual(["https://media.test/other-image"]);
+        await assertPublishedCount(f, 2);
+        expect(notification.mock.calls.map(call => call[0].data).sort((a, b) => a.url.localeCompare(b.url))).toEqual(results.map((id, index) => ({
+            read_user_id: index === 0 ? f.owner.id : differentOwner ? f.other.id : f.owner.id, url: `/item/${id}`,
+            message_image: index === 0 ? f.editing.first_image_url : target.first_image_url,
+            message: `商品「${index === 0 ? f.editing.name : target.name}」を出品いただき誠にありがとうございます。商品の詳細はこちらの商品ページからご確認ください。`, type: "ITEM",
+        })).sort((a, b) => a.url.localeCompare(b.url)));
+        for (const row of f.protectedRows.filter(row => row.table !== "item_editing" || row.id !== target.id)) expect(await snapshot(row.table, row.id)).toEqual(row.value);
     });
     it("P11: 前提エラー後の正常保存だけがセッションを消費", async () => { const f = await seed(); await f.editing.update({ original_url: null }); await expect(run(f)).rejects.toMatchObject({ code: "VIDEO_URL_NULL" }); expect(await snapshot("item_editing", f.editing.id)).not.toBeNull(); await f.editing.update({ original_url: "https://media.test/repaired" }); expect(await run(f)).toBeTypeOf("number"); expect(notification).toHaveBeenCalledTimes(1); });
 });
@@ -227,6 +243,10 @@ describe("P 確認画面保存usecaseとの競合・集計時点", () => {
             expect(item!.image_url).toEqual(rollback ? f.editing.image_url : ["https://media.test/saved-image"]);
             const video = await snapshot("video", Number(item!.video_id));
             expect(video!.original_url).toBe(rollback ? f.editing.original_url : "https://media.test/saved-video");
+            expect(item!.first_image_url).toBe(rollback ? f.editing.first_image_url : "https://media.test/saved-image");
+            expect(item!.attributes).toEqual(rollback ? expectedAttributes() : { inventory: { initial: 12, current: 12, low_stock_ratio: 0.2 }, body_category: "top", lifestyle_category: "casual", layer: "middle" });
+            expect(video!.title).toBe(rollback ? f.editing.title : "保存後タイトル");
+            expect(video!.summary).toBe(rollback ? f.editing.summary : "保存後説明");
             await assertProtected(f);
         }
         finally {
