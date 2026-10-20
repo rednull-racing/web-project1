@@ -606,3 +606,11 @@
 - 実commit/rollback・行ロック競合・4行整合性・ID限定cleanupを検証し、非DB回帰474件成功。
 - uploaded_atのModel必須とDB NULL可の差分をF4として残し、レポート末尾とTodoへ修正案を記録。
 - lint・本番typecheck・追加lint成功。テスト用型検査は既存refreshToken.tsのエラーのみ残存。
+
+## 20261020_backend-migration_item_uploaded_at_NOT_NULL適用
+
+- ESM/up/down付きの新規migrationで、NULLのcreatedAt補完とNOT NULL化を同一transactionに実装。
+- 補完方針をユーザーへ確認し、実DB neondbのID13・27を指定どおり補完。test_dbともに適用済み。
+- 両DBでNOT NULL・NULL0件・適用履歴を確認し、実DB2行の補完日時一致も検証。
+- F4を含むDB6ファイル266件成功、構文検査・lint・本番typecheck成功。レポートとTodoを解消済みへ更新。
+- downはNULL制約のみ解除し補完日時は保持する。既存migration・Model・本番usecaseは変更なし。

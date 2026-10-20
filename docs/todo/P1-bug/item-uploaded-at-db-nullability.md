@@ -1,4 +1,13 @@
-# item.uploaded_atのモデルとDBのNULL制約を照合する
+# item.uploaded_atのモデルとDBのNULL制約を照合する（解消済み）
+
+## 2026-10-20 対応完了
+
+- ユーザーがModelどおりNOT NULLとする方針と、既存NULL行のcreatedAt補完を指定。
+- 新規migration `20261020150923-enforce-item-uploaded-at-not-null.js` をneondb/test_dbへ適用し、NOT NULL・NULL0件・適用履歴を確認。
+- 実DBのID13・27は各createdAtと一致。F4を含むDB6ファイル266件すべて成功。
+- 以下は初回調査時の記録。現行の未確定事項・未修正問題ではない。
+
+## 初回調査
 
 - 優先度: P1-bug
 - 対象: `server/src/models/item.ts`、反映済みDBの`item.uploaded_at`、必要と判断された場合の新規migration。

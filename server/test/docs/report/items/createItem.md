@@ -1,6 +1,12 @@
 # createItem テストレポート
 
-## 最新結果：2026-10-20（F2解消後の実DB検証）
+## 最新結果：2026-10-20（F4のNOT NULL migrationを両DBへ適用）
+
+ユーザー指示によりitem.uploaded_atをモデルどおりNOT NULLへ変更する新規migrationを作成し、実DB neondb（server/.env）とtest_db（server/.env.test）へ適用した。実DBに残るNULL2行（ID13・27）は、ユーザーが選択したcreatedAtで補完した。両DBのNOT NULL、NULL0件、適用履歴、補完2行の一致を確認済み。**F4は解消・完了。**
+
+今回再実行した実DBテストは6ファイル266件すべて成功、失敗/skip/todo 0。前回の非DB474件は今回再実行しておらず、今回の件数へ混ぜない。既存F3のテスト用型検査は本件では修正していない。適用・検証の詳細はレポート末尾を参照。
+
+## 前回結果：2026-10-20（F2解消後の実DB検証）
 
 F2で停止していた元の72件はすべて実行・成功。未実装だった永続化・障害注入を補完し、最新の実DB6ファイルは266件中265成功・1失敗、skip/todo 0。別集計の非DB回帰19ファイル474件はすべて成功。全体740件中739成功・1失敗。
 
@@ -463,3 +469,58 @@ npm run typecheck
 - **記録先**：`docs/todo/P1-bug/item-uploaded-at-db-nullability.md`。今回DBスキーマ・モデル・migrationは変更していない。
 
 F2による旧カラム残存の停止は解消し、未実施だったDB検証を実行した。F4と既存F3の修正は未実施であり、全成功・全型検査完了とはしない。
+
+## 2026-10-20 F4：uploaded_at NOT NULL migrationの作成・両DB適用完了
+
+### 作成したmigrationと方針
+
+`server/migrations/20261020150923-enforce-item-uploaded-at-not-null.js` をESM形式で新規作成し、up/downを実装した。既存migration・Model・本番usecaseは変更していない。
+
+- up：同一transaction内でuploaded_at IS NULLの行だけをcreatedAtで補完し、ALTER COLUMN uploaded_at SET NOT NULLを実行する。データ型（timestamp with time zone）とdefault（なし）は維持する。createdAtもNULLなら制約設定が失敗し、補完とDDLの両方をrollbackする。
+- 補完はユーザー確認済み。実DBのNULL2行のIDと既存日時だけを提示したところ、createdAtでの補完が選択された。現在時刻やsave_atによる補完は行っていない。
+- down：transaction内でDROP NOT NULLを実行し、NULL許容へ戻す。補完済みの日時は保持する。downを実DB・テストDBで実行して一度解除する操作はしていない。
+
+### 適用先と事前・事後確認
+
+接続URL全体・認証情報は記録しない。既存のconfig/config.cjsはtestでも.envを読むため、実行時だけ一時設定 `/tmp/item-uploaded-at-db-config.cjs` を明示指定した。同設定は対象に応じて.env/.env.testを直接parseし、期待DB名とcurrent_database()を照合、カラム型/default/NULL件数/補完不能件数を確認する。実DBは.envのDB_SSL=falseどおりローカル非SSL接続を使用した。
+
+| 対象 | 読込元・設定DB名・実DB名 | 適用前 | 適用後 |
+| --- | --- | --- | --- |
+| 実DB | server/.env、neondb、neondb | uploaded_at is_nullable=YES、NULL2件、createdAt欠落0件 | is_nullable=NO、NULL0件、適用履歴1件 |
+| テストDB | server/.env.test、test_db、test_db | uploaded_at is_nullable=YES、NULL0件 | is_nullable=NO、NULL0件、適用履歴1件 |
+
+実DBのID13・27はそれぞれuploaded_at = createdAtがtrueで、2行とも一致した。非NULL行の日時はUPDATE条件の対象外。両DBとも型とdefaultは変更前後で一致した。実DBに対してテストfixtureの作成やテスト実行はしていない。
+
+### 実行手順と成否
+
+server/を実行ディレクトリとし、test_dbへ先に適用→F4を含むTX14件成功→実DBへ適用→両DBの制約・適用履歴確認→test_dbで全6ファイルを検証した。今回対象のmigration名だけを指定し、過去の未記録migrationを一括実行していない。
+
+```bash
+ITEM_UPLOADED_AT_TARGET=test NODE_ENV=test ./node_modules/.bin/sequelize-cli db:migrate --name 20261020150923-enforce-item-uploaded-at-not-null.js --env test --config /tmp/item-uploaded-at-db-config.cjs
+npm run test:run -- test/integration/usecases/items/createItem/databaseTransactions.test.ts --maxWorkers=1 --reporter=json --outputFile=/tmp/create-item-f4-migration-tx.json
+ITEM_UPLOADED_AT_TARGET=application NODE_ENV=development ./node_modules/.bin/sequelize-cli db:migrate --name 20261020150923-enforce-item-uploaded-at-not-null.js --env development --config /tmp/item-uploaded-at-db-config.cjs
+npm run test:run -- test/integration/database/items/createItem/database.test.ts test/integration/database/items/createItem/databaseValues.test.ts test/integration/usecases/items/createItem/databaseTransactions.test.ts test/integration/usecases/items/createItem/databaseReadFailures.test.ts test/integration/usecases/items/createItem/databaseConcurrency.test.ts test/integration/usecases/items/createItem/databaseHttp.test.ts --maxWorkers=1 --reporter=json --outputFile=/tmp/create-item-f4-migration-final.json
+node --check migrations/20261020150923-enforce-item-uploaded-at-not-null.js
+npm run lint
+npm run typecheck
+```
+
+両migrationコマンド、構文検査、lint、本番typecheckはexit 0。通信と.git書込みはサンドボックス制約のため承認された制限外で実施した。一時接続設定はリポジトリに追加していない。
+
+### テスト再検証結果
+
+`/tmp/create-item-f4-migration-final.json` の実ランナー結果から集計した。テストコード・期待値を弱めず、前回失敗したF4が実DBのNOT NULL拒否（23502）とrollbackまで成功することを確認した。実FK、実gender_type NOT NULL、Model validationの区別も維持した。
+
+| server基準のテストファイル | 成功 | 失敗 | skip | todo |
+| --- | ---: | ---: | ---: | ---: |
+| `test/integration/database/items/createItem/database.test.ts` | 24 | 0 | 0 | 0 |
+| `test/integration/database/items/createItem/databaseValues.test.ts` | 173 | 0 | 0 | 0 |
+| `test/integration/usecases/items/createItem/databaseConcurrency.test.ts` | 24 | 0 | 0 | 0 |
+| `test/integration/usecases/items/createItem/databaseHttp.test.ts` | 21 | 0 | 0 | 0 |
+| `test/integration/usecases/items/createItem/databaseReadFailures.test.ts` | 10 | 0 | 0 | 0 |
+| `test/integration/usecases/items/createItem/databaseTransactions.test.ts` | 14 | 0 | 0 | 0 |
+| 合計 | 266 | 0 | 0 | 0 |
+
+D01〜D10、T05〜T07/T09/T12、P01〜P11、AF-ID01〜03、AF-BR02等の実DB回帰が成功した。接続ガードは.env.test/test_dbを維持し、READ COMMITTED、作成ID限定cleanup・残存0、接続closeも従来どおり確認した。実S3・通知レコード永続化・実COMMIT応答喪失は今回の範囲外。
+
+F4のModel/DB制約差分はユーザーがModelどおり必須と確定し、migrationと両DBへの反映・実DBテストまで完了した。Todoも解消済みへ更新した。既存F3（refreshToken.tsのテスト用型検査）は未修正で、今回再実行していない。
