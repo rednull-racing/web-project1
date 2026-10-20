@@ -2,7 +2,9 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
-参照実装: `server/src/usecases/items/upload/publish.ts` の `patchPublishUseCase`。以下は新APIの実装予定仕様であり、旧APIの実装済み動作とは区別する。
+参照実装: `server/src/usecases/itemEditing/createItem.ts` の `createItemUseCase`。旧patchPublishUseCaseと旧公開ルートは削除済みで、server/srcに残存しないことを確認した。
+
+2026-10-20のユーザー指示で、item_editing.item_idはnull・非nullとも受理し、新item.idは必ず新規採番すること、category/condition/day/service/place/brand/aliasのIDはnullなら400とすることを確定した。cronEditingDeleteUseCaseは今回の対象外。以下の未決定事項のうち、この確定内容と重なる旧記述は更新している。
 
 ## 1. 概要
 
@@ -21,14 +23,14 @@
 - 認証: 必須
 - 認可: 商品編集セッション（ItemEditing）所有者のみ（item_editing.seller_idが認証済みuserIdと一致すること）
 - Content-Type: application/json
-- レート制限: 認証ユーザー単位で10分間に5回（既存の10回から変更予定）。超過時は429。
+- レート制限: 認証ユーザー単位で10分間に5回。超過時は429。
 - 順序: authenticateToken → createItemRateLimit → validateBody(createItemBodySchema) → createItemController
 - 不正なbodyも回数に含める。認証・レート制限・body検証で拒否した場合はトランザクションを開始しない。
 - JSON構文エラーは共通JSONパーサーで先に拒否されるため、この回数計上の対象外。
 
 ### ファイル・関数名
 
-以下のパスは `server/src` 基準。上書き・新規・拡張の記載はすべて実装時の予定。
+以下のパスは `server/src` 基準。上書き・新規・拡張の記載は初回設計時の区分であり、新公開APIは実装済み。今回の仕様確定ではusecaseの公開前提検証を変更する。
 
 - route: /routes/items.ts
 - rateLimit: /middleware/rateLimit/itemsRateLimit.ts
@@ -134,7 +136,7 @@ where: {
 }
 ```
 
-ItemEditingにはstatus・deleted_atがないため、それらの取得条件は追加しない。item_idが設定された既存商品編集セッションの扱いは9章で確認する。
+ItemEditingにはstatus・deleted_atがないため、それらの取得条件は追加しない。item_idはnull・非nullとも受理し、公開可否の判定には使用しない。非nullでもその既存商品を更新せず、新規商品を作成する。
 
 ## 4. 処理フロー
 
@@ -192,7 +194,7 @@ flowchart TD
 
 - item_editing: `id = itemEditingId AND seller_id = userId`。更新用行ロックを取得する。
 - user: `id = userId`。user_name・user_introduction・penalty_pointsを使用する。
-- categories: `id = itemEditing.category_id`、親は取得したカテゴリーのparent_idで取得する。category_idまたはparent_idがnullなら該当取得を省略する。
+- categories: `id = itemEditing.category_id`、親は取得したカテゴリーのparent_idで取得する。category_id=nullは参照開始前に400で拒否し、parent_id=nullの場合だけ親取得を省略する。
 - follow: `follower_user_id = userId` の件数（countFollower）。
 - item: `seller_id = userId AND status IN ('active', 'soldout')` の件数（countSellItem）。現行serviceにはdeleted_at除外条件がない。計数対象は9章で確認する。
 
@@ -213,15 +215,18 @@ flowchart TD
 
 - bodyのID検証とは別に、ロック済みの保存データをusecaseで確認し、作成serviceの呼び出し前に停止する。
 - 既存の確認画面保存処理ではoriginal_url・thumbnail_urlが必須、image_urlは1枚以上、priceは整数300〜1000000で検証される。公開時にも保存済み値を確認する。
+- category_id・item_condition_id・shipping_day_id・shipping_service_id・shipping_place_id・brand_id・brand_aliases_idの7種類はすべて必須。いずれかがnull、整数以外、1未満、2147483647超なら400 / INVALID_NUMBERとする。元行をロックして取得した後、user取得・属性複製・各作成serviceより前に拒否する。bodyの未知キーで補完しない。
+- 公開前提の判定順はoriginal_url → thumbnail_url → image_urlの欠落・枚数超過 → 必須7種類のID → name/title/first_image_url/price。複数不備では先に成立したエラーを返す。item_idのnull・非nullは判定しない。
+- 7種類のIDが正常なら、category・condition・day・service・placeは同一transactionのvalidateMasterで存在確認する。不在は既存の各404コード。brand・aliasは既存IDをコピーし、今回新たな検索・解決・組合せ検証は追加しない。
 - Modelはname・price・動画・配送等でnullを許容するため、DB制約だけを公開必須チェックの代用にしない。
-- 基本設計の「公開必須項目がすべて存在する」「video等の必須関連データが存在する」は維持する。具体的な文字列の空値、配送・カテゴリーの必須条件、動画変換の完了条件、公開時のマスター再検証範囲は9章で確定する。
+- 基本設計の「公開必須項目がすべて存在する」「video等の必須関連データが存在する」は維持する。7種類のIDの必須条件は上記で確定済み。具体的な文字列の空値、配送自由記入の必須条件、動画変換の完了条件、マスターの追加再検証範囲は9章で区別する。
 - video・sale・item_shipping_profileはitem_editingの直下カラムから新規生成する。元の関連レコードIDやVideoインスタンスの存在を要求しない。
 
 ### コピー仕様
 
 - 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で作成前に停止する。商品/色のinventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
 - seller_idは認証済みユーザーのIDを使用する
-- item.idは新規採番する
+- item.idは新規採番する。item_editing.item_idがnullでも非nullでも、その値を新itemのidや関連作成dataに使用しない。既存itemとその関連は変更しない。
 - createdAt、updatedAtは新規生成する
 - 商品入力データはitem_editingから引き継ぐ
 - attributesの在庫情報は、コピー時に以下の各inventory.currentを同じinventory内のinitialに戻す
@@ -312,7 +317,7 @@ itemのuploaded_at・save_atにはusecase内で生成した同じ公開日時を
 
 ### sort・search_text
 
-旧patchPublishUseCaseの計算を継承し、動画項目の参照だけをitem_editing直下へ変更する。
+旧公開APIの算式を継承し、動画項目はitem_editing直下を参照する。削除済みの旧usecaseには依存しない。
 
 ```ts
 let sort =
@@ -378,7 +383,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 - 同一itemEditingIdの公開は更新用行ロックで直列化する。トランザクション開始だけでは重複防止にならない。
 - 後続リクエストはロック待機後、存在・所有者と公開前提条件を再判定する。先行がコミットして削除済みなら404で追加生成しない。先行がロールバックしたら保持された行から再試行できる。
-- 確認画面保存（updateConfirm）や削除・期限切れ削除との競合では、先にロックを取得した処理の結果に従う。更新後なら更新済みデータを公開し、削除後・所有者変更後なら404にする。公開が先なら元行の更新・削除側は公開後の不存在を扱う。
+- 確認画面保存（updateConfirm）や元行削除との競合では、先にロックを取得した処理の結果に従う。更新後なら更新済みデータを公開し、削除後・所有者変更後なら404にする。公開が先なら元行の更新・削除側は公開後の不存在を扱う。cronEditingDeleteUseCaseは対象外。
 - ロック後に取得した行のみをコピーし、同じセッションからの重複公開を禁止する。異なるセッションからの出品は許容する。
 - 集計元のfollow・他item全体はロックしない。別セッションの同時出品やフォロー変更を含む件数の厳密な直列化は保証しない。
 
@@ -390,6 +395,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 | 10分間の6回目以降 | 429 | 既存express-rate-limitの応答・ヘッダーを使用（固定codeなし） |
 | JSON構文不正 | 400 | INVALID_JSON（共通JSONパーサー・errorHandler） |
 | itemEditingIdの未指定・型不正・範囲外 | 400 | INVALID_BODY |
+| 保存済みcategory/condition/day/service/place/brand/aliasのIDがnull・非整数・範囲外 | 400 | INVALID_NUMBER |
 | セッション不存在・所有者不一致・消費済み | 404 | ITEM_EDITING_NOT_FOUND |
 | original_url欠落 | 400 | VIDEO_URL_NULL（既存コードを利用予定） |
 | thumbnail_url欠落 | 400 | THUMBNAIL_URL_NULL（既存コードを利用予定） |
@@ -418,6 +424,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 - 所有者のセッションから201 / `{ itemId }` が返り、item・video・sale・item_shipping_profileが各1件生成され、元セッションが削除される。
 - 5章の全カラム対応、認証済みseller_id、新規ID・日時、公開status、公開日時・管理初期値、関連IDの参照方向を確認する。
+- item_editing.item_idがnull・非nullの両方で新規公開し、元の商品IDを使わず新item.idを採番する。非nullの元商品・関連は不変で、編集セッションだけを削除する。
 - セール入力値が存在してもdiscount_rate・discount_amountはnull、sale_flagはfalseとなり、before_priceのみ引き継ぐ。
 - 商品・色・サイズのinventory.currentだけがinitialへ戻り、initial・low_stock_ratio・その他JSONが保持される。元オブジェクトを変更しない。
 - 任意inventory・colorVariants・sizesの欠落、空オブジェクト・空配列、任意カラムのnullを許容する範囲で確認する。
@@ -428,6 +435,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 ### 入力・認証・境界値
 
 - itemEditingIdの1・2147483647を受付可能とし、0・負数・2147483648・小数・文字列・null・未指定・不正bodyを400とする。上限IDに行がなければ404となる。
+- 保存済みの必須7種類のIDを1種類ずつnull、全部null、型不正・範囲外にし、400 / INVALID_NUMBERとuser取得以降の未実行、4テーブル追加0・元行保持・rollbackを確認する。不足IDを修復した同じ元行からの再試行は成功する。
 - JSON構文不正を400 / INVALID_JSONとし、DBを開始しない。正常JSONの不正IDはレート制限回数へ含める。
 - 未認証・無効／期限切れトークンは401、他人・不存在・消費済みは同じ404で、作成・通知を行わない。
 - 同一ユーザーは5回まで受付、6回目は429、別ユーザーは独立し、期間終了後に再受付できる。429とbody検証失敗ではDBを開始しない。
@@ -444,7 +452,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 - 同じセッションの同時公開は先行のみ成功し、待機後の後続は404、4テーブル各1件・通知開始1回となる。成功後の再送も追加生成しない。
 - 先行ロールバック後は後続が保持されたセッションから生成でき、失敗後の再試行も成功する。
-- 確認画面保存との競合ではロック後の最新データをコピーする。削除・期限切れ削除・所有者変更との競合ではロック後の存在・所有者に従い、古いデータで生成しない。
+- 確認画面保存との競合ではロック後の最新データをコピーする。先行更新で必須IDがnullになってcommitされた場合は400、rollbackされた場合は正常な旧IDで公開できる。元行削除・所有者変更との競合ではロック後の存在・所有者に従い、古いデータで生成しない。cronEditingDeleteUseCaseのテストは含めない。
 - 公開が先の場合、待機中の更新・削除で公開商品や関連行が変更されないことを確認する。
 - 異なるセッションの公開はそれぞれ成功する。集計値の同時変更について厳密な件数直列化を期待しない。
 
@@ -452,13 +460,12 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 ## 9. 未決定事項
 
-- 公開必須項目の最終定義。name・title・detail・summaryの空文字可否、category_id・item_condition_id・配送各ID・自由記入の必須条件、在庫0の公開可否、動画のduration・converted_url・video_statusとアップロード実体確認の要否を確定する。既存保存APIやModelのnull許容だけで公開可と判断しない。
-- 公開時のマスター再検証範囲と、価格・その他公開前提条件不成立時のHTTP・AppErrorコード／案内文。未確定部分を実装時に推測で補わない。
-- item_editing.item_idが非nullの既存商品編集セッションを新規出品APIで受け付けるか。基本設計は既存商品更新との区別を定義していないため、対象範囲と拒否時応答を確認する。
+- 公開必須項目の残る定義。name・title・detail・summaryの空文字可否、配送自由記入の必須条件、動画のduration・converted_url・video_statusとアップロード実体確認の要否。category/condition/day/service/place/brand/aliasの7種類のIDは必須・nullは400と確定済み。item_editing.item_idはnull・非nullとも受付、新item.idを新規採番すると確定済み。
+- ブランド・別名の対応関係など、現在の5種類のマスター存在確認を超える再検証の要否。今回のID必須化だけを根拠に追加しない。価格や在庫initial等の現行判定はテスト設計書に明示し、未確定の空値条件と混同しない。
 - countSellItemの新商品自身の扱い。旧APIは既存itemを公開するため、その行が集計対象に含まれる場合がある。新APIは作成前集計となるため、同値にするための1件加算の要否を確認する。deleted_at非null行を含める現行serviceの条件を変更するかも確認し、独断で変更しない。
 - モデル・migrationは参照済みだが、実DBの反映状態は未確認。実装時に反映後DBを正として制約を照合する。本作業ではmigrationを作成・実行しない。
 
-### 旧APIの置き換え予定（実装時のみ）
+### 旧APIの置き換え状況
 
 - usecase: createItemsUseCase
 - usecase: patchPublishUseCase
@@ -467,4 +474,4 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 - route: patch("/:id/publish")
 - rateLimit: uploadPublishItemRateLimit
 
-POST /itemsはURL自体を削除せず、旧「空の商品作成」handlerを新しい編集セッションからの公開handlerへ置き換える。PATCH /items/:id/publishは廃止予定。呼び出し側・export・旧型の参照確認は実装時に行う。本作業では旧APIの削除・変更は行わない。
+POST /itemsはURLを維持し、新しい編集セッションからの公開handlerに置き換え済み。上記の旧usecase・controller・rateLimitとPATCH /items/:id/publishはserver/srcから削除済みで、今回の残存確認でも旧公開usecaseの定義・import/export・接続は見つからなかった。cronEditingDeleteUseCaseは今回の対象に含めない。

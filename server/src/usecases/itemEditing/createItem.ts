@@ -69,9 +69,6 @@ const resetInventory = (source: ItemAttributes): ItemAttributes => {
 };
 
 const validatePublishData = (itemEditing: InstanceType<typeof ItemEditing>): void => {
-    if (itemEditing.item_id !== null) {
-        throw new AppError("ITEM_EDITING_NOT_NEW", 400, "この編集データからは新しく出品できません。新規出品からやり直してください。");
-    }
     if (!itemEditing.original_url) throw new AppError("VIDEO_URL_NULL", 400);
     if (!itemEditing.thumbnail_url) throw new AppError("THUMBNAIL_URL_NULL", 400);
     if (!itemEditing.image_url || itemEditing.image_url.length === 0) {
@@ -86,8 +83,10 @@ const validatePublishData = (itemEditing: InstanceType<typeof ItemEditing>): voi
         itemEditing.shipping_day_id,
         itemEditing.shipping_service_id,
         itemEditing.shipping_place_id,
+        itemEditing.brand_id,
+        itemEditing.brand_aliases_id,
     ];
-    if (ids.some((id) => id !== null && (!Number.isInteger(id) || id < 1 || id > 2147483647))) {
+    if (ids.some((id) => id === null || !Number.isInteger(id) || id < 1 || id > 2147483647)) {
         throw new AppError("INVALID_NUMBER", 400);
     }
     if (

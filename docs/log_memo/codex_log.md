@@ -554,3 +554,10 @@
 - POST /itemsを編集セッションからの公開へ変更し、行ロック・関連4テーブル作成・元セッション削除・コミット後通知と旧公開API廃止を実装。
 - ユーザー確認済み方針に従い、既存確認画面保存相当の検証、item_id非null拒否、作成前の商品数集計（加算・削除条件変更なし）を採用。
 - lint・本番/既存テスト型検査・既存関連334テスト・git diff --check成功。新規テスト設計/コード、実DB検証、Model・migration・フロント変更は行わない。
+
+## 20261020_backend-coding_createItem公開必須IDと新規採番の仕様確定
+
+- category/condition/day/service/place/brand/aliasのIDを公開時必須とし、null・不正整数を400/INVALID_NUMBERで拒否。
+- item_editing.item_idのnull・非nullを問わず新item.idを採番するよう非null拒否を削除。旧patchPublishUseCaseの本番参照は残存なし。
+- 詳細設計とテスト設計の期待値を更新し、null拒否・修復後再試行・競合後再判定を追加。cron・Model・migration・共有helperは変更なし。
+- lint・本番型検査・既存テスト型検査成功。テストコード実装・テスト実行・実DB操作は未実施。

@@ -4,9 +4,15 @@
 
 対象は `src/usecases/itemEditing/createItem.ts` の `createItemUseCase` と `POST /api/items`。所有者の編集セッションから商品・動画・セール・配送情報を原子的に生成し、成功時だけ元セッションを消費する契約を検証する。コピー漏れ、所有権のすり抜け、不正な保存データ、途中失敗、同時公開による重複生成を検出する。
 
-根拠は[詳細設計書](../../../../../docs/design/backend/detail/items/createItem.md)の第2〜8章、本番コード、および[実装時の方針記録](../../../../../docs/log_memo/codex_log.md#20261019_backend-coding_createItem本番実装)。設計形式は[共通ルール](../AGENTS.md)、[配置規則](../../../AGENTS.md)、既存の [createItemEditingCopy](../itemEditing/createItemEditingCopy.md)、[createItemDraft](../itemDraft/createItemDraft.md)、[updateConfirm](../itemEditing/updateConfirm.md) を参考にする。他機能の過去の観測やケース数を本機能の保証へ流用しない。
+根拠は[詳細設計書](../../../../../docs/design/backend/detail/items/createItem.md)の第2〜8章、本番コード、2026-10-20のユーザーによる仕様確定。変更していない契約は[初回実装時の方針記録](../../../../../docs/log_memo/codex_log.md#20261019_backend-coding_createItem本番実装)も参照する。設計形式は[共通ルール](../AGENTS.md)、[配置規則](../../../AGENTS.md)、既存の [createItemEditingCopy](../itemEditing/createItemEditingCopy.md)、[createItemDraft](../itemDraft/createItemDraft.md)、[updateConfirm](../itemEditing/updateConfirm.md) を参考にする。他機能の過去の観測やケース数を本機能の保証へ流用しない。
 
-2026-10-20時点のコードを調査した設計であり、本書の期待結果は実行結果ではない。今回作成するのは本書のみ。テストコード・fixture・設定・本番コード・詳細設計書・migration・Todo・作業ログは変更せず、テスト・lint・型検査・DB接続・migrationも実行しない。後述の配置とコマンドは将来の実装用である。
+初回は2026-10-20に文書だけを作成した。その後、同日の仕様確定依頼に基づいて本番usecase・本書・対応する詳細設計書を更新する。本書の期待結果はテスト実行結果ではない。テストコード・fixture・設定・Model・migrationは変更せず、テスト・DB接続・migrationは実行しない。後述のテスト配置とコマンドは将来の実装用であり、本番コードのlint・型検査と区別する。
+
+### 2026-10-20 仕様確定による変更履歴
+
+- 旧B01/D07の「item_id非nullは400」を撤回し、null・非nullとも受理して新item.idを採番する契約へ更新。元の商品・関連を更新せず、編集セッションだけを消費する。
+- 旧B08/M03/O03の「関連IDがnullでも公開可能」を撤回。category/condition/day/service/place/brand/aliasの7種類は必須で、nullは400・INVALID_NUMBER。旧ケースは本文の期待値を更新し、AF-ID01〜AF-ID03で停止・再試行・競合後の判定を補う。
+- patchPublishUseCaseおよび旧公開ルートはserver/srcに残存しないことを確認。cronEditingDeleteUseCaseは指示により対象外とし、旧O05の調査ケースを廃止する。独立した元行DELETEとの競合はP05/P08として維持する。
 
 以下のパスは特記しない限り **`server/` 基準**。API記述の `/items` は実アプリで `/api/items` に登録される。テスト文書・結合テスト・fixtureの大分類は依頼に合わせて `items/createItem`、usecase単体は本番コードに近い `src/usecases/itemEditing/test/` とする。
 
@@ -14,18 +20,18 @@
 
 ### 詳細設計と現行コードの対応
 
-詳細設計は「実装予定仕様」を含む。未決定事項を解決済みと書き換えず、以下の根拠ごとに扱う。明示された契約と異なる結果が出た場合は期待値を緩めず、不一致として報告する。
+詳細設計のうち今回確定した項目は以下の契約を使用する。それ以外の未決定事項は観測として分ける。明示された契約と異なる結果が出た場合は期待値を緩めず、不一致として報告する。
 
 | 論点 | 調査時点の根拠・扱い | 対応ケース |
 | --- | --- | --- |
-| 新公開APIの接続 | 新usecase・body schema・controller・10分5回の制限・POST接続が存在。旧 `patchPublishUseCase` は現行のテスト対象にしない | N01、V01〜V06、R01〜R13 |
-| `item_id` 非null | 詳細設計9章では未決定。方針記録はユーザー確認済みの拒否を記載し、実装は400・`ITEM_EDITING_NOT_NEW` | B01、B10、D07 |
-| 価格・公開データ | 方針記録は確認画面保存相当の検証を採用。実装はname/titleの型、first_image_url、整数価格300〜1000000、5種類の任意IDの整数範囲を確認 | B02〜B10 |
+| 新公開APIの接続 | 新usecase・body schema・controller・10分5回の制限・POST接続が存在。旧patchPublishUseCaseの定義・import/export・ルート接続はserver/srcにない | N01、V01〜V06、R01〜R13 |
+| 元item_id・新規採番 | 今回の確認回答により、item_editing.item_idはnull・非nullとも受理する。元item_idを作成先へ渡さずitem.idを新規採番。video/sale/配送にitem_id列を追加しない | B01、D07、N02 |
+| 価格・公開データ | name/titleの型、first_image_url、整数価格300〜1000000を確認。今回7種類のIDを必須化し、各1〜2147483647の整数、nullを含む不正値は400・INVALID_NUMBER | B02〜B10、AF-ID01〜AF-ID03 |
 | 在庫の構造と業務条件 | 詳細設計の構造不正500に加え、実装は各initialの負数・小数を400・`ITEM_PUBLISH_DATA_INVALID`とする。0は受理。current/ratioの値域や在庫合計の整合性は検証しない | I01〜I12、O02 |
-| マスター再検証 | 実装はcategory/condition/day/service/placeを `validateMaster` で再検証。nullは省略。brand/aliasは再解決しない | M01〜M07、O03 |
+| マスター再検証 | 公開前提で7種類のIDを検証後、category/condition/day/service/placeをvalidateMasterで再検証。brand/aliasは再解決せず既存FKをコピーする。共有helperのnull省略は公開成功条件にしない | M01〜M07、O03 |
 | 出品商品数 | 方針記録は作成前集計・1件加算なし・deleted_at条件変更なし。実装も一致 | N07、S05、D05 |
-| 文字列・配送・動画完了の最終要件 | name/titleは空文字を拒否しない。任意IDのnull、converted_url/duration/video_statusのnullも処理可能。最終的な公開業務要件の確定を意味しない | N04、B08、O01、O03 |
-| 削除・期限切れとの競合 | 対象行DELETEとの排他を検証する。現行 `cronEditingDeleteUseCase` はItemを削除する処理であり、ItemEditing期限切れ削除APIの接続実績にはしない | P05〜P08、O05 |
+| 文字列・動画完了の最終要件 | name/titleは空文字を拒否しない。converted_url/duration/video_statusのnullも処理可能。7種類のID必須化と、これら未確定の公開業務要件を分ける | N04、B08、O01、O03 |
+| 削除との競合 | 対象行DELETEとの排他を検証する。cronEditingDeleteUseCaseは調査・修正・テスト対象外 | P05〜P08 |
 | DB反映状態 | モデル・migrationを参照しただけで実DBは未確認 | 第11節、D系、P系 |
 
 ## 2. 調査対象と責務
@@ -43,7 +49,7 @@
 | 型 | `src/types/itemAttributes.ts`、`src/types/serviceType/{items,itemEditing,video,sale,itemShippingProfile,users,categories,follow}.ts` |
 | モデル・接続 | `src/models/{item,item_editing,video,sale,item_shipping_profile,categories,follow}.ts`、`src/db.ts`、`src/config/config.ts`。モデル初期化・親fixtureは既存databaseFixturesも参照 |
 | DB定義資料 | `migrations/20261005062153-delete-column-item-id.js`、`migrations/20261006044423-update-column-item-editing.js`：関連側item_id等の削除、元行item_idのnullable化 |
-| 競合する保存・削除 | `src/usecases/itemEditing/updateConfirm.ts`、`src/usecases/items/cron/cronEditingDelete.ts`、`src/services/items/command/delete.ts` |
+| 競合する保存 | `src/usecases/itemEditing/updateConfirm.ts`。削除競合は自作fixtureの元行を独立transactionでDELETEして用意し、cronは使用しない |
 | 既存単体・結合・fixture | `src/usecases/itemEditing/createItemEditingCopy/test/inventoryReset.test.ts`、`src/services/itemEditing/test/updateConfirm.test.ts`、`test/integration/usecases/itemEditing/updateConfirm/databaseConcurrency.test.ts`、`test/fixtures/itemEditing/createItemEditingCopy/{databaseSetup,databaseFixtures}.ts` |
 | 既存レポート・実行設定 | `test/docs/report/itemEditing/createItemEditingCopy.md`、`package.json`、`tsconfig.json`、`test/tsconfig.json`、`eslint.config.mjs` |
 
@@ -54,7 +60,7 @@
 1. 共通JSON parser → RouterのauthenticateToken → createItemRateLimit → validateBody(createItemBodySchema) → createItemController。JSON構文不正は認証・制限より先に停止する。
 2. controllerは `req.user.id` と `req.validatedBody.itemEditingId` だけをusecaseへ渡す。params/query/bodyの所有者情報を使用しない。
 3. managed transaction開始 → `getMyItemEditing({ itemEditingId, userId, transaction: t })`。serviceは `where: { id, seller_id }` と `lock: t.LOCK.UPDATE` を指定する。ItemEditingにはstatus/deleted_at条件やVideoのincludeを追加しない。
-4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後は `item_id` → original_url → thumbnail_url → image_urlの欠落/空/超過 → 5種類のID範囲 → name/title/first_image_url/priceの順に判定する。
+4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後はoriginal_url → thumbnail_url → image_urlの欠落/空/超過 → 7種類のIDのnull/整数範囲 → name/title/first_image_url/priceの順に判定する。item_idは公開可否の判定にもコピー先のIDにも使わない。
 5. attributes全体の構造検証 → structuredClone → 商品・各色・各サイズのinitial業務検証とcurrent復元。構造不正は500、有限数値でもinitialが負数・小数なら400。途中で失敗してもコピー元を変更しない。
 6. getUser（必要な4列のみ）→ validateMaster（category→condition→day→service→place）→ parent_idがあれば親カテゴリー → countFollower → countSellItem。すべて同じt。出品者欠落はUSER_NOT_FOUND・500。
 7. sort計算 → createVideo → createSale → createShipping → 公開日時生成・search_text正規化 → createItem → ロック済みModelのdeleteItemEditing。各書込みに同じt。
@@ -126,13 +132,13 @@ Routerは現行のimport経路で対象外usecaseもモックし、controllerの
 | N01 | U/D/R | 標準fixtureで公開 | video→sale→shipping→item→元行削除を各1回。usecaseは数値456、HTTPはcommit後に201・`{ itemId: 456 }`。実DBは4テーブル各1件増・元行なし |
 | N02 | U/D | 全コピー項目を識別できる値にする | 対応表の全値、関連参照方向、禁止キーを確認。新規行の採番・作成日時を使用し、既存商品/下書き/他セッションを変更しない |
 | N03 | U/D | 割引設定あり／割引なし、before_priceが価格と異なる／null | before_priceだけ維持し、割引2値は必ずnull、flag=false。before_priceをpriceへ置換しない |
-| N04 | U/D | 許容される任意列を個別null：detail/summary/duration/converted_url/video_status/recommend/brand/alias/配送自由文 | 保存値はnullを保持し、detail/summaryだけ算出時に長さ0。公開必須のname/title/画像URL/priceをnull許容へ混ぜない |
+| N04 | U/D | 許容される任意列を個別null：detail/summary/duration/converted_url/video_status/recommend/配送自由文 | 保存値はnullを保持し、detail/summaryだけ算出時に長さ0。公開必須の7種類のID/name/title/画像URL/priceをnull許容へ混ぜない |
 | N05 | U/D | 男女区分/年齢区分の各Model列挙値、recommend=true/false | 値を維持。取得した元データにないdefaultへの置換なし |
 | N06 | U | 標準値からpenalty_pointsを4/5/6に変更。数値文字列"5"/"6"も別条件にする | 4/5/"5"は6295、6/"6"は1295。Number変換と5の境界を確認する |
 | N07 | U/D | follower/sell各0/1/複数、片方だけ増加 | 各件数差1でsortが10増える。作成前countを使用し、新商品の1件を独自加算しない。両sort一致 |
 | N08 | U | price=301、detail/summary/紹介文をnull/空文字/絵文字へ個別変更 | 小数sortを切り捨てない。文字列長はJSのUTF-16 length（例：絵文字1つは2）で加算。null/空は0 |
-| N09 | U/D | 標準の全半角/大文字/カタカナ/空白混在。別条件でname=` ＴＥＳＴ ｶﾞ `、title=` Ａ カ `、categoryなし・user_nameなし、タブ/改行/全角空白も混入 | 標準のsearch_text、別条件の `testがaか` に完全一致。半角濁点もNFKCで正規化。summary/detail/ブランド名を検索文字列へ勝手に追加しない |
-| N10 | U/H | categoryなし／親なし／親取得null、user_name=null | 該当部分だけ空文字となる。categoryなしは子/親検索なし、親なしは親検索なし。親取得nullをCATEGORY_NOT_FOUNDへ変換しない |
+| N09 | U/D | 標準の全半角/大文字/カタカナ/空白混在。別条件でname=` ＴＥＳＴ ｶﾞ `、title=` Ａ カ `、子名=` ｼｬﾂ `、parent_id=null・user_nameなし、タブ/改行/全角空白も混入。他の必須IDは正常 | 標準のsearch_text、別条件の `testがaかしゃつ` に完全一致。半角濁点もNFKCで正規化。summary/detail/ブランド名を検索文字列へ勝手に追加しない |
+| N10 | U/H | 子カテゴリーは存在し、親なし／親取得null、user_name=null | 該当部分だけ空文字となる。親なしは親検索なし。親取得nullをCATEGORY_NOT_FOUNDへ変換しない。category_id=nullはAF-ID01、不存在はM02の拒否であり本ケースに混ぜない |
 | N11 | U/D | 商品画像・色画像・動画URLを複数用意 | URL文字列、配列順、uiIdとの対応を維持。S3コピー/削除/署名発行/動画変換処理なし |
 | N12 | U | createItem前に時刻を固定し元日時は過去にする | uploaded_at/save_atは同じ公開日時。作成dataに元createdAt/updatedAt/idなし |
 
@@ -156,16 +162,16 @@ Vはschema単体と実validateBodyの双方で確認する。schema単体のsafe
 | ID | レベル | 条件／入力／手順 | 期待結果 |
 | --- | --- | --- | --- |
 | E01 | U/D | 不存在/他人所有/seller_id=null/先行で消費済みの元セッション。Uでは取得serviceがnullを返す境界、Dでは実whereによる未取得を確認 | いずれも404・ITEM_EDITING_NOT_FOUND、元行の内容を返さない。transaction開始済みでrollbackし、公開前提検証・属性複製・user取得以降・全作成/削除/通知なし |
-| B01 | U/D | `item_id` が既存商品ID（Uでは0も独立確認） | 400・ITEM_EDITING_NOT_NEW。新規作成も既存商品更新も行わない |
+| B01 | U/D | 同じ正常データでitem_id=null／既存商品IDを個別指定（Uでは0も独立確認） | どちらも新規公開へ進む。itemのcreate dataにid/item_idなし。元item_idを戻り値や関連の作成dataへ使わない。既存商品を更新しない |
 | B02 | U/D | original_url=null/空文字 | 400・VIDEO_URL_NULL |
 | B03 | U/D | thumbnail_url=null/空文字 | 400・THUMBNAIL_URL_NULL |
 | B04 | U/D | image_url=null/[]、1枚/10枚/11枚 | null/0枚はITEM_IMAGE_NULL、11枚はITEM_IMAGE_LIMIT_EXCEEDED、各400。1/10枚は後続へ進む。11枚のDはModel配列validatorとDB保存可能性を区別する |
 | B05 | U/D | price=null/299/300/1000000/1000001、小数/数値文字列/NaN/Infinity（後者はU） | 300/1000000受理。他は400・ITEM_PUBLISH_DATA_INVALID |
 | B06 | U/D | nameまたはtitle=null、Uではnumber/object等も注入 | 400・ITEM_PUBLISH_DATA_INVALID。空文字の扱いはO01 |
 | B07 | U/D | first_image_url=null/空文字 | 400・ITEM_PUBLISH_DATA_INVALID。image_urlから自動補完しない |
-| B08 | U/H | category/condition/day/service/placeを各null、1、2147483647にする | nullはマスター検索省略。範囲内IDはマスター検証へ進む。存在しなければM02の404であり、ID範囲エラーではない |
-| B09 | U | 5種類のIDを各0/-1/2147483648/1.5/"1"/undefined/NaN/Infinityにする | 400・INVALID_NUMBER。helperが0検索を省くことを公開APIの受理仕様にしない。getUser/validateMaster未実行 |
-| B10 | U | 複数不備を対で投入：item_id+URL、original+thumbnail、thumbnail+画像、画像0/11+不正ID、不正ID+price、price+属性不正 | 第3節の最初の判定のエラー。後の判定のエラーで上書きしない。画像null/空と枚数超過は別入力にする |
+| B08 | U/H | 必須7種類のIDを各1/2147483647にする | 範囲判定を通過。category/condition/day/service/placeはマスター検証へ進み、不存在ならM02の404。brand/aliasは再検索せずコピーし、実DBで存在しないFKはD08で区別。nullはAF-ID01 |
+| B09 | U | 必須7種類のIDを各0/-1/2147483648/1.5/"1"/undefined/NaN/Infinityにする | 400・INVALID_NUMBER。helperが0検索を省くことを公開APIの受理仕様にしない。getUser/validateMaster/集計/作成/削除/通知未実行 |
+| B10 | U | 複数不備を対で投入：original+thumbnail、thumbnail+画像、画像0/11+null/不正ID、null/不正ID+price、price+属性不正。正常なitem_id非nullとURL欠落の組合せも追加 | 第3節の最初の判定のエラー。item_id非nullはエラー原因にしない。後の判定のエラーで上書きしない。画像null/空と枚数超過は別入力にする |
 
 ## 9. attributes・在庫の敵対的入力
 
@@ -192,7 +198,7 @@ Iは実usecase内の変換を実行する。全異常系でgetUser以降が未�
 | --- | --- | --- | --- |
 | M01 | H | 5種類すべて存在、親カテゴリーあり | category→condition→day→service→placeへ対応IDと同一t。返された子のparent_idで親を取得後に集計/作成。bodyの別IDは使わない |
 | M02 | H | 5種類を1種類ずつ不存在にする | 順にCATEGORY_NOT_FOUND / ITEM_CONDITION_NOT_FOUND / SHIPPING_DAY_NOT_FOUND / SHIPPING_SERVICE_NOT_FOUND / PLACE_NOT_FOUND、各404。後続マスター/親/集計/作成/削除/通知なし |
-| M03 | H | 5種類を個別null／全部null、子のparent_id=null | 該当検索のみ省略。全部nullならマスター検索なし、親なし、他が正常なら公開可能。最終必須要件はO03 |
+| M03 | H | 必須7種類のIDは正常で、子のparent_id=null | 5種類のマスター検索は実行し、親検索だけ省略して公開成功。旧null-ID受理条件はAF-ID01の拒否へ移行。共有helper単独のnull省略分岐は本公開APIの契約に含めない |
 | M04 | H | 各マスター検索、親検索が通常Errorでreject | 同一Errorを伝播、後続処理なし。親不存在のnullはN10と区別 |
 | M05 | U/H | getUser=null | AppError・USER_NOT_FOUND・500。マスター/集計/作成以降なし。userIdだけから名前等を補完しない |
 | M06 | H | 子と親の分類/名称を元attributesと異なる値にする | 検索文字列には取得名称を使用。元attributesの分類を新マスターから再構築しない |
@@ -253,7 +259,7 @@ TのUはmanaged transactionをモックし、callbackの完了とtransaction外�
 | D04 | D/T | 途中失敗→元行が保持されることを確認→障害を外して同じIDで再試行 | 後続は1組だけ生成して成功、元行削除、通知開始は成功回だけ1回。失敗で消費されたsequence値を巻き戻さない |
 | D05 | D | count対象としてAのactive/soldout・deleted_at非nullとBの行、両方向followを用意 | 第10節の条件で集計し新商品の自己加算なし。sortを独立した件数から照合。既存行のstatus等は変更しない |
 | D06 | D | 成功後同じセッションIDで再送、消費済み/不存在/他人IDも比較 | 各404・ITEM_EDITING_NOT_FOUND、本文も同一。追加4行0・通知0、最初の公開商品は維持 |
-| D07 | D/R | 既存item_idを持つ編集セッションから公開 | 400・ITEM_EDITING_NOT_NEW、既存item/関連/元行/下書き不変 |
+| D07 | D/R | 既存item_idを持つ編集セッションから公開（nullのD01と対照） | 201で新itemと3関連が各1件。新item.idは既存item_idとは別の新規採番、既存item/関連/下書き不変、元セッションだけ削除。新IDを通知/応答へ使用し、再送は404 |
 | D08 | D/T | モデルvalidation失敗／実DBのFK・NOT NULL等の制約失敗を作成段階へ注入 | 通常Error500、全rollback・元行保持。実serviceに渡すdataだけをspyで壊す等の注入範囲を明記。既存制約を削除しない。Model拒否とDBが拒否したケースを区別 |
 | D09 | D/R | 正常・不存在・URL欠落・属性構造破損・途中作成失敗・通知失敗の代表条件 | HTTPとDBの双方がN/B/I/Tの契約に一致。エラー応答は開始済みtransactionのrollback後、正常応答はcommit後。モックだけのRと別集計 |
 | D10 | D/R | 実usecaseを接続したHTTPで401/429/INVALID_BODY/INVALID_JSONを個別発生させる。429は同一ユーザーの不正body5回で枠を消費して準備 | 対象公開用sequelize.transactionの呼出し0、4テーブル追加0・元行と保護対象不変・通知0。fixture準備のDB処理を呼出し数に含めず、リクエスト直前に観測を開始 |
@@ -276,7 +282,7 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 | P10 | D/P | A公開の集計前後に別セッションの公開・followのcommitを制御 | 当該クエリ時点で読んだ件数を算式に使用。follow/他item全体をロックする保証や全参照の同時点スナップショットを要求しない |
 | P11 | D/P | 同じセッションで片方が公開前提エラー→rollback、内容を正常に保存→再公開 | エラー回は追加0・元行保持。正常保存後の再公開だけ成功。失敗を消費済み扱いにしない |
 
-元行の有効期限自体はcreateItemで判定されない。古いcreatedAtだけで拒否するテストは追加しない。期限切れ削除との競合は同じ対象行DELETEとしてP05/P08で検証し、現行cronがItemEditingを削除する前提のテストを作らない。
+元行の有効期限自体はcreateItemで判定されない。古いcreatedAtだけで拒否するテストは追加しない。削除競合は同じ対象行DELETEとしてP05/P08で検証する。cronEditingDeleteUseCaseはユーザー指示により対象外。
 
 ## 14. Controller・HTTP・レート制限
 
@@ -305,16 +311,27 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 
 ## 15. 観測・仕様確認を要する項目
 
-以下はコード上の挙動を将来観測するケース。望ましい公開要件の確定・不具合修正済み・実行済みという意味ではない。今回の依頼は本書だけなので、範囲外のTodo/実装修正へ広げず、実装と契約が食い違う項目を本書と報告へ残す。
+以下はコード上の挙動を将来観測するケース。望ましい公開要件の確定・不具合修正済み・実行済みという意味ではない。今回確定したID必須化と新規採番以外の仕様を独断変更せず、実装と契約が食い違う項目を本書と報告へ残す。
 
 | ID | レベル | 条件／入力／手順 | 観測内容・固定しない保証 |
 | --- | --- | --- | --- |
 | O01 | U/D | name/titleが空文字/空白、URLが空白、first_image_urlとimage_url[0]不一致、画像要素が空文字/重複 | 現行の型/falsy/枚数判定でどこまで通るかと保存結果を記録。文字列trim、URL形式/所有S3キー/先頭画像一致/画像実体確認を行う保証はない。業務上許容する最終要件は未確定 |
 | O02 | I/D | currentが負数/小数、ratioが負数/1超、在庫階層の合計不一致、非在庫属性の不正な追加値 | 有限numberならcurrentはinitialに戻りratioは維持。全属性schemaや階層合計の検証はない。initialの負数/小数拒否と混同しない |
-| O03 | U/H/D | 任意マスター全null、動画未変換、brand/aliasの組合せ不整合 | 現行が受理する範囲を記録。配送必須/動画変換完了/ブランド対応関係の再検証を勝手に成功条件へ追加しない。存在しないFKは実DB制約に従いD08として分離 |
+| O03 | U/H/D | 必須7種類のIDをすべて有効にし、動画未変換、brand/aliasの組合せ不整合 | 現行が受理する範囲を記録。動画変換完了/ブランド対応関係の再検証は今回追加しない。IDのnull拒否は確定契約AF-ID01、存在しないFKは実DB制約に従いD08として分離 |
 | O04 | U／将来の障害検証 | COMMIT送信後の応答喪失、commit後のHTTP接続切断 | モックの外側rejectはT08に限定。実通信障害は今回は未実施で、成否不明をrollback成功にしない。既にcommit済みなら元行消費済み・再送404となり得る。公開済みDBをHTTP失敗で巻き戻せる保証なし |
-| O05 | コード確認／D/P | ItemEditingの期限切れ削除との接続を調査 | 現行cronはItemを対象とするため、P05/P08は独立DELETEとの競合まで。期限切れ削除APIの不存在時応答・実cron接続は未確認として残す |
 | O06 | I | 疎配列、明示undefined、JSONではないオブジェクトを直接注入 | 構造検証やstructuredCloneの実挙動を記録する防御観測。通常JSONBでは表現できない値について一律ITEM_ATTRIBUTES_INVALIDやHTTP受理を保証しない。productionの型やexportをテスト都合で変更しない |
+
+### 仕様確定後の追加ケース
+
+| ID | 元ID | レベル | 条件／入力／手順 | 修正後の期待結果 |
+| --- | --- | --- | --- | --- |
+| AF-ID01 | B08/B09/M03/O03 | U/H/D/R | category/condition/day/service/place/brand/aliasを1種類ずつnull、さらに7種類全部null。他の公開データは正常。HTTPはbodyではなく保存済み元行を変更する | 400・INVALID_NUMBER。getUser/validateMaster/親/両集計/全作成/削除/通知は未実行。Dは4テーブル追加0・元行と保護対象不変・rollback完了・ロック解放 |
+| AF-ID02 | AF-ID01/D04 | D/R | null-IDで拒否→同じ元行の不足IDを有効な既存IDに保存→再公開 | 初回は400・元行保持、修復後だけ201・1組生成・元行削除・通知開始1回。初回失敗を消費済み扱いにしない |
+| AF-ID03 | P03/P04 | D/P | 別transactionが元行をロックし必須IDを1種類nullへ変更→公開を実待機→更新commit/rollback。各7種類を独立展開 | commitなら最新行のnullを再判定して400・追加0・通知0・更新済み元行保持。rollbackなら正常な旧IDで公開成功。古い正常データでの公開を許さない |
+
+B01/D07の新規採番、N/Mの有効IDありの正常系、他の異常系を維持する。旧ITEM_EDITING_NOT_NEWとnull-ID受理の期待値は履歴欄にのみ残し、成功するようassertを弱める形にしない。
+
+AF-ID01のR単独はusecaseが返す400の応答形式までとし、保存済みnullの実判定・rollbackは実DB HTTPで確認する。共有validateMasterは他APIでも使うためnull省略の実装を変更せず、本公開usecaseの事前検証で停止することを確認する。
 
 ## 16. 詳細設計8章との対応・実装優先度・完了条件
 
@@ -326,6 +343,7 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 | 通知内容・commit後開始・失敗許容 | T03/T11〜T13、D06、P01/P02 |
 | ID上下限・不正body・JSON・認証・所有権・制限 | V01〜V06、E01、S01、C01〜C03、R01〜R13、D06/D09/D10 |
 | 価格・画像枚数・URL・その他保存データ | B01〜B10、M02/M05、I05〜I11、O01/O03 |
+| 必須7種類のID・null拒否・修復後再試行・競合後の再判定 | B08/B09、AF-ID01〜AF-ID03 |
 | 各DB依存の失敗・全rollback・非対象不変・再試行 | T04〜T10、D03/D04/D08/D09 |
 | 開始/commit失敗・成否不明・応答喪失 | T04/T08/T09、O04 |
 | 同一セッション重複/先行rollback/保存・削除・所有者変更との競合 | D06、P01〜P08/P11 |
@@ -333,13 +351,13 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 
 優先度は次の順とする。Pは並行ケースのID接頭辞であり、優先度P0/P1/P2とは区別する。
 
-1. **P0**：N01〜N03/N06/N09、V全件、E01、B全件、I01/I02/I05〜I11、M05、T01〜T10/T13、D01〜D04/D06〜D10。所有権404・公開の原子性・入力境界・異常時停止を先に確認する。
+1. **P0**：N01〜N03/N06/N09、V全件、E01、B全件、I01/I02/I05〜I11、M05、T01〜T10/T13、D01〜D04/D06〜D10、AF-ID01/AF-ID02。所有権404・公開の原子性・入力境界・異常時停止を先に確認する。
 2. **P1**：残るN/I、M全件、S全件、C/R全件、T11/T12、D05。helper実接続、各層の引渡し、通知契約を確認する。既存テスト再利用時も対象IDと残る範囲を明記する。
-3. **P2**：P全件、O全件。順序を制御した実ロック・重複・再試行・仕様未確定の観測を確認する。重要なP01/P02も完了条件から除外しない。
+3. **P2**：P全件、O全件、AF-ID03。順序を制御した実ロック・重複・再試行・仕様未確定の観測を確認する。重要なP01/P02も完了条件から除外しない。
 
 ### 将来の実行方法
 
-現在は未作成のファイル案を含む。テスト実装後、`server/` で対象を明示して実行する。DB非接続と実DBは別集計とし、Dの前に第11節のガードを満たす。今回は以下を実行しない。
+現在は未作成のファイル案を含む。テスト実装後、`server/` で対象を明示して実行する。DB非接続と実DBは別集計とし、Dの前に第11節のガードを満たす。今回Vitestは実行しない。本番修正のlint・型検査は下記テスト計画とは別に実行し、作業ログへ記録する。
 
 ```bash
 # 単体の代表（Sは第4節で実装した各対象ファイルも個別指定する）
