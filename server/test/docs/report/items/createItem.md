@@ -1,6 +1,12 @@
 # createItem テストレポート
 
-## 最新結果：2026-10-20（F4のNOT NULL migrationを両DBへ適用）
+## 最新結果：2026-10-20（F3のrefreshToken JWT payload型エラー解消）
+
+F3のJWT payload検証を実装し、単体42件・実JWT接続14件の計56件が成功（失敗/skip/todo 0）。本番lint・本番typecheck・テスト用tsconfigの型検査・追加lintもすべて成功した。**F3は解消・完了。** Todoは`docs/todo/done/refreshToken-jwt-payload-typecheck.md`へ移動した。
+
+今回の実行対象はrefreshTokenであり、createItemのDB266件や非DB474件は今回再実行していない。以下のF3未解消・TS2339の記述は過去の履歴。変更契約・モック境界・コマンドは末尾のF3完了記録を参照。
+
+## 前回結果：2026-10-20（F4のNOT NULL migrationを両DBへ適用）
 
 ユーザー指示によりitem.uploaded_atをモデルどおりNOT NULLへ変更する新規migrationを作成し、実DB neondb（server/.env）とtest_db（server/.env.test）へ適用した。実DBに残るNULL2行（ID13・27）は、ユーザーが選択したcreatedAtで補完した。両DBのNOT NULL、NULL0件、適用履歴、補完2行の一致を確認済み。**F4は解消・完了。**
 
@@ -524,3 +530,55 @@ npm run typecheck
 D01〜D10、T05〜T07/T09/T12、P01〜P11、AF-ID01〜03、AF-BR02等の実DB回帰が成功した。接続ガードは.env.test/test_dbを維持し、READ COMMITTED、作成ID限定cleanup・残存0、接続closeも従来どおり確認した。実S3・通知レコード永続化・実COMMIT応答喪失は今回の範囲外。
 
 F4のModel/DB制約差分はユーザーがModelどおり必須と確定し、migrationと両DBへの反映・実DBテストまで完了した。Todoも解消済みへ更新した。既存F3（refreshToken.tsのテスト用型検査）は未修正で、今回再実行していない。
+
+## 2026-10-20 F3：refreshToken JWT payloadの実行時検証・型エラー解消完了
+
+### 変更と契約
+
+`server/src/usecases/auth/refreshToken.ts`を修正した。jwt.verifyの返値をそのままdecoded.idとして使わず、非null・非配列のオブジェクトの場合だけidをunknownとして取り出す。実行時検証で型を絞ったuserIdだけをgetUserへ渡すため、元のTS2339は解消した。この取得に型アサーションを追加して回避していない。
+
+- user.idのINTEGER型に合わせ、数値IDは整数1〜2147483647を要求する。
+- 既存jwtHelperのid:number|stringという契約を維持し、数字だけの文字列IDも数値へ変換する。"0007"は7へ変換する。
+- 文字列payload、id欠落/null、0/負数/小数/範囲超過/非有限値、空白/空文字/指数・小数字符列、boolean/配列/オブジェクトIDは既存AppError INVALID_DECODE_TOKEN・401でgetUser/生成処理より前に停止する。
+- 不正payload時は従来のdestroyStoredRefreshTokenを同じModel参照で呼び、削除失敗をcatchする。意図的な非awaitの副作用は維持した。
+- 保存済みトークン不在のINVALID_TOKEN・401、DB保存期限のEXPIRED_TOKEN・401、user不在のUSER_NOT_FOUND・404、verify/依存処理がthrowする同一Errorの伝播、既存レスポンス項目は維持した。署名・JWT期限の例外を今回新しいHTTP応答へ変換していない。
+- 今回はid構造を検証し、type/email claimを新たな必須条件へ追加していない。route/controller・トークン生成helper・service・DB・Modelは変更していない。
+
+### テストファイル・結果・境界
+
+| ファイル（server基準） | 成功 | 失敗 | skip | todo |
+| --- | ---: | ---: | ---: | ---: |
+| src/usecases/auth/test/refreshToken.test.ts | 42 | 0 | 0 | 0 |
+| test/integration/usecases/auth/refreshToken/jwt.test.ts | 14 | 0 | 0 | 0 |
+| 合計 | 56 | 0 | 0 | 0 |
+
+Vitest JSON `/tmp/refresh-token-f3.json` のassertionResultsから集計した。fixtureは`test/fixtures/auth/refreshToken/fixtures.ts`に追加し、入力・stored token・user・deferredをケースごとに新規生成した。F3の検査を別APIのテスト件数へ加算していない。
+
+| ケースID | 観点・確認内容 | 結果 |
+| --- | --- | --- |
+| F3-U01 | number/数字stringの上下限、先頭0、getUserへのnumber、既存応答と生成引数、id以外のclaimを今回必須化しない | 成功 |
+| F3-U02 | 文字列payload・id欠落・不正id、401と同じstored tokenの削除・ユーザー検索/生成/デコードの未実行 | 成功 |
+| F3-U03 | 保存tokenなし、期限切れと等時刻境界、userなし、同一Error伝播、削除未完了でも401・削除失敗のcatch | 成功 |
+| F3-H01 | 実generateRefreshToken→実jwt.verify→usecase→実generateAccessToken、number/string/先頭0 ID、15分expとclaims | 成功 |
+| F3-H02 | テスト専用鍵で署名が有効な文字列/欠落・不正id payloadを401で拒否、ユーザー検索前に停止 | 成功 |
+| F3-H03 | 実ライブラリの署名不正・JWT期限切れを同じ例外種で伝播、ユーザー検索なし | 成功 |
+
+Uは実usecaseを呼び、verify/decode・生成helper・DB serviceをモックした。NaN/Infinity、root null/配列/undefinedはverify境界への防御注入であり、HTTPや通常JWTがそれを返す保証ではない。
+
+Hは実jsonwebtokenと実JWT生成helperを接続し、DB serviceのみモックした。テスト専用鍵を生成してstubEnvで設定し、dotenvを分離して実.envを読まない。Dateを制御し、タイマー・spy・環境変数は復元した。実tokenや認証情報はログへ出していない。HTTP経路・DB保存・削除の永続化は今回未検証で、実DB接続・migrationは行っていない。
+
+### 再現コマンドと最終検査
+
+実行ディレクトリは`/home/conta/project/server`。
+
+```bash
+npm run test:run -- src/usecases/auth/test/refreshToken.test.ts test/integration/usecases/auth/refreshToken/jwt.test.ts --maxWorkers=1 --reporter=json --outputFile=/tmp/refresh-token-f3.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+./node_modules/.bin/eslint --config /tmp/create-item-eslint.config.mjs test/fixtures/auth/refreshToken test/integration/usecases/auth/refreshToken
+```
+
+上記はすべてexit 0。追加lintの一時設定は前掲の既存ESLint/typescript-eslint recommendedと同じ。共有lint/tsconfigやライブラリの変更はしていない。テスト用tsconfig全体が成功し、createItem検証を妨げていた既知エラーF3も解消した。作業中に新たな失敗・型エラーは検出していない。
+
+Todoへ完了内容を追記し、ユーザー指定どおりP1-bugからdoneへ移動した。初回に存在したF4 Todoの移動に関する担当外変更は編集・ステージしていない。

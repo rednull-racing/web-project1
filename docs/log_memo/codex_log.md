@@ -614,3 +614,10 @@
 - 両DBでNOT NULL・NULL0件・適用履歴を確認し、実DB2行の補完日時一致も検証。
 - F4を含むDB6ファイル266件成功、構文検査・lint・本番typecheck成功。レポートとTodoを解消済みへ更新。
 - downはNULL制約のみ解除し補完日時は保持する。既存migration・Model・本番usecaseは変更なし。
+
+## 20261020_backend-coding_refreshToken_JWT_payload型エラー解消
+
+- JWT payloadとidを実行時検証し、getUserへ正のINTEGER numberだけを渡すよう修正。数字stringの互換性を維持。
+- 不正payloadは既存401と失敗許容の保存token削除、既存の例外伝播・レスポンスを維持。
+- 単体42件・実JWT接続14件成功、lint・本番/テスト用型検査・追加lint成功。F3完了をレポートへ追記。
+- 指定Todoへ完了記録を追加しP1-bugからdoneへ移動。DB接続・migration・対象外コードの変更なし。

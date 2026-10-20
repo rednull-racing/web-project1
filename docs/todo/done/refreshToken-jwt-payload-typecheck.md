@@ -1,4 +1,13 @@
-# refreshTokenのJWT payload型エラーを解消する
+# refreshTokenのJWT payload型エラーを解消する（完了）
+
+## 2026-10-20 対応完了
+
+- payloadを非null・非配列のオブジェクトに限定し、idをunknownから実行時検証してgetUserへnumberを渡すよう修正。
+- 数値/数字stringの正のINTEGER IDを受理し、文字列payload・id欠落・不正idを既存INVALID_DECODE_TOKEN/401で拒否。
+- 単体42件・実JWT接続14件の56件成功、lint・本番/テスト用型検査・追加lint成功。
+- 詳細はserver/test/docs/report/items/createItem.md末尾のF3完了記録。以下は初回調査時の記録。
+
+## 初回調査
 
 - 優先度: P1-bug
 - 対象: `server/src/usecases/auth/refreshToken.ts:43`

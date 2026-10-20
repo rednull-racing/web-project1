@@ -30,8 +30,12 @@ export const refreshTokenUseCase = async ({ refreshToken }: Params) => {
 
     // デコード
     const decoded = jwt.verify(refreshToken, process.env.NEXTAUTH_SECRET!);
+    const payloadId: unknown = typeof decoded === "object" && decoded !== null && !Array.isArray(decoded)
+        ? decoded.id
+        : undefined;
+    const userId = typeof payloadId === "string" && /^\d+$/.test(payloadId) ? Number(payloadId) : payloadId;
 
-    if (!decoded) {
+    if (typeof userId !== "number" || !Number.isInteger(userId) || userId < 1 || userId > 2147483647) {
         destroyStoredRefreshToken({ storedToken }).catch((err) => {
             console.error("service destroyRefreshToken error:", err);
         });
@@ -40,7 +44,7 @@ export const refreshTokenUseCase = async ({ refreshToken }: Params) => {
     }
 
     // ユーザー取得
-    const user = await getUser({ userId: decoded.id });
+    const user = await getUser({ userId });
 
     if (!user) throw new AppError("USER_NOT_FOUND", 404);
 
