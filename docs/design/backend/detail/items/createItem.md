@@ -4,7 +4,7 @@
 
 参照実装: `server/src/usecases/itemEditing/createItem.ts` の `createItemUseCase`。旧patchPublishUseCaseと旧公開ルートは削除済みで、server/srcに残存しないことを確認した。
 
-2026-10-20のユーザー指示で、新item.idの新規採番とcategory/condition/day/service/place/brand/aliasのIDのnull拒否（400）を確定した。その後Model・DBからitem.deleted_at、item_editing/item_draft.item_idを削除済みと確認し、本書も追従する。旧item_idのnull・非null受理の記述はカラム削除により廃止。cronEditingDeleteUseCaseは対象外。
+2026-10-20のユーザー指示で、新item.idの新規採番を確定した。同日の仕様訂正により、category/condition/day/service/placeの5種類のIDは必須、brand_id・brand_aliases_idはそれぞれnull許容（両方nullも許容）とする。またModel・DBからitem.deleted_at、item_editing/item_draft.item_idを削除済みと確認し、本書も追従する。旧item_idのnull・非null受理の記述はカラム削除により廃止。cronEditingDeleteUseCaseは対象外。
 
 ## 1. 概要
 
@@ -215,11 +215,13 @@ flowchart TD
 
 - bodyのID検証とは別に、ロック済みの保存データをusecaseで確認し、作成serviceの呼び出し前に停止する。
 - 既存の確認画面保存処理ではoriginal_url・thumbnail_urlが必須、image_urlは1枚以上、priceは整数300〜1000000で検証される。公開時にも保存済み値を確認する。
-- category_id・item_condition_id・shipping_day_id・shipping_service_id・shipping_place_id・brand_id・brand_aliases_idの7種類はすべて必須。いずれかがnull、整数以外、1未満、2147483647超なら400 / INVALID_NUMBERとする。元行をロックして取得した後、user取得・属性複製・各作成serviceより前に拒否する。bodyの未知キーで補完しない。
-- 公開前提の判定順はoriginal_url → thumbnail_url → image_urlの欠落・枚数超過 → 必須7種類のID → name/title/first_image_url/price。複数不備では先に成立したエラーを返す。削除済みのitem_idは参照しない。
-- 7種類のIDが正常なら、category・condition・day・service・placeは同一transactionのvalidateMasterで存在確認する。不在は既存の各404コード。brand・aliasは既存IDをコピーし、今回新たな検索・解決・組合せ検証は追加しない。
+- category_id・item_condition_id・shipping_day_id・shipping_service_id・shipping_place_idの5種類は必須。いずれかがnull、整数以外、1未満、2147483647超なら400 / INVALID_NUMBERとする。
+- brand_id・brand_aliases_idはそれぞれnullを許容し、片方だけnull・両方nullも公開可能とする。非nullなら整数1〜2147483647を要求し、undefined・文字列・小数・範囲外・非有限数値は400 / INVALID_NUMBERとする。片方のnullによって他方や必須5種類の検証を省略しない。
+- ID検証は元行をロックして取得した後、user取得・属性複製・各作成serviceより前に行う。bodyの未知キーで補完しない。
+- 公開前提の判定順はoriginal_url → thumbnail_url → image_urlの欠落・枚数超過 → 必須5種類のID → 任意brand/aliasの非null値 → name/title/first_image_url/price。複数不備では先に成立したエラーを返す。削除済みのitem_idは参照しない。
+- 必須5種類と任意brand/aliasのID検証が正常なら、category・condition・day・service・placeは同一transactionのvalidateMasterで存在確認する。不在は既存の各404コード。brand・aliasはnullも含め保存済み値をそのままコピーし、今回新たな検索・解決・組合せ検証は追加しない。
 - Modelはname・price・動画・配送等でnullを許容するため、DB制約だけを公開必須チェックの代用にしない。
-- 基本設計の「公開必須項目がすべて存在する」「video等の必須関連データが存在する」は維持する。7種類のIDの必須条件は上記で確定済み。具体的な文字列の空値、配送自由記入の必須条件、動画変換の完了条件、マスターの追加再検証範囲は9章で区別する。
+- 基本設計の「公開必須項目がすべて存在する」「video等の必須関連データが存在する」は維持する。必須5種類と任意brand/aliasの条件は上記で確定済み。具体的な文字列の空値、配送自由記入の必須条件、動画変換の完了条件、マスターの追加再検証範囲は9章で区別する。
 - video・sale・item_shipping_profileはitem_editingの直下カラムから新規生成する。元の関連レコードIDやVideoインスタンスの存在を要求しない。
 
 ### コピー仕様
@@ -394,7 +396,8 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 | 10分間の6回目以降 | 429 | 既存express-rate-limitの応答・ヘッダーを使用（固定codeなし） |
 | JSON構文不正 | 400 | INVALID_JSON（共通JSONパーサー・errorHandler） |
 | itemEditingIdの未指定・型不正・範囲外 | 400 | INVALID_BODY |
-| 保存済みcategory/condition/day/service/place/brand/aliasのIDがnull・非整数・範囲外 | 400 | INVALID_NUMBER |
+| 保存済みcategory/condition/day/service/placeのIDがnull・非整数・範囲外 | 400 | INVALID_NUMBER |
+| 保存済みbrand/aliasのIDが非nullで非整数・範囲外（null自体は許容） | 400 | INVALID_NUMBER |
 | セッション不存在・所有者不一致・消費済み | 404 | ITEM_EDITING_NOT_FOUND |
 | original_url欠落 | 400 | VIDEO_URL_NULL（既存コードを利用予定） |
 | thumbnail_url欠落 | 400 | THUMBNAIL_URL_NULL（既存コードを利用予定） |
@@ -434,7 +437,8 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 ### 入力・認証・境界値
 
 - itemEditingIdの1・2147483647を受付可能とし、0・負数・2147483648・小数・文字列・null・未指定・不正bodyを400とする。上限IDに行がなければ404となる。
-- 保存済みの必須7種類のIDを1種類ずつnull、全部null、型不正・範囲外にし、400 / INVALID_NUMBERとuser取得以降の未実行、4テーブル追加0・元行保持・rollbackを確認する。不足IDを修復した同じ元行からの再試行は成功する。
+- 保存済みの必須5種類のIDを1種類ずつnull、全部null、型不正・範囲外にし、400 / INVALID_NUMBERとuser取得以降の未実行、4テーブル追加0・元行保持・rollbackを確認する。不足IDを修復した同じ元行からの再試行は成功する。
+- brand_idだけnull、brand_aliases_idだけnull、両方nullを個別に公開し、nullのコピー・新規4行生成・元行消費・通知を確認する。片方null＋他方の有効ID（1・2147483647）は受理し、片方null＋他方の型不正・範囲外・undefinedは400とする。両ブランドIDがnullでも必須5種類のnullは拒否する。実resolveBrandが既存ブランド選択でalias=nullを返した場合も公開できる。
 - JSON構文不正を400 / INVALID_JSONとし、DBを開始しない。正常JSONの不正IDはレート制限回数へ含める。
 - 未認証・無効／期限切れトークンは401、他人・不存在・消費済みは同じ404で、作成・通知を行わない。
 - 同一ユーザーは5回まで受付、6回目は429、別ユーザーは独立し、期間終了後に再受付できる。429とbody検証失敗ではDBを開始しない。
@@ -459,10 +463,10 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 ## 9. 未決定事項
 
-- 公開必須項目の残る定義。name・title・detail・summaryの空文字可否、配送自由記入の必須条件、動画のduration・converted_url・video_statusとアップロード実体確認の要否。category/condition/day/service/place/brand/aliasの7種類のIDは必須・nullは400と確定済み。item_editing.item_idは削除済みで、新item.idは新規採番すると確定済み。
+- 公開必須項目の残る定義。name・title・detail・summaryの空文字可否、配送自由記入の必須条件、動画のduration・converted_url・video_statusとアップロード実体確認の要否。category/condition/day/service/placeの5種類のIDは必須・nullは400、brand_id・brand_aliases_idはそれぞれnull許容（両方nullも許容）と確定済み。item_editing.item_idは削除済みで、新item.idは新規採番すると確定済み。
 - ブランド・別名の対応関係など、現在の5種類のマスター存在確認を超える再検証の要否。今回のID必須化だけを根拠に追加しない。価格や在庫initial等の現行判定はテスト設計書に明示し、未確定の空値条件と混同しない。
 - countSellItemの新商品自身の扱い。旧APIは既存itemを公開するため、その行が集計対象に含まれる場合がある。新APIは作成前集計となるため、同値にするための1件加算の要否を確認する。item.deleted_atは削除済みであり、削除日時による条件は設けない。
-- ユーザーより3カラムのModel・DB削除済みと確認。今回はDBに接続せず、将来のDBテスト前に反映後DBの制約を照合する。本作業ではmigrationを作成・実行しない。
+- 仕様上は3カラムのModel・DB削除済みとされるが、2026-10-20のtest_db照合でitem.deleted_at残存を確認した。反映差分が解消されるまで実DB結合検証は未完了。詳しくは[テストレポート](../../../../../server/test/docs/report/items/createItem.md)を参照する。本作業ではmigrationを作成・実行しない。
 
 ### 旧APIの置き換え状況
 

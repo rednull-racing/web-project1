@@ -344,7 +344,7 @@ B01/D07の新規採番、N/Mの有効IDありの正常系、他の異常系を�
 
 | ID | 元ID | レベル | 条件 | 期待結果 |
 | --- | --- | --- | --- | --- |
-| AF-BR01 | B08/B09/N04/O03 | U | brandのみnull、aliasのみnull、両方nullを独立展開。他は正常 | 成功456。nullを補完せずcreateItemへコピーし通知開始 |
+| AF-BR01 | B08/B09/N04/O03 | U | brandのみnull、aliasのみnull、両方null。片方null＋他方の1/2147483647・不正値も独立展開。両方null＋必須5種類のnullも各検証 | 正常は456、nullを補完せずコピー。不正な非null値・必須IDのnullは400・INVALID_NUMBERで後続なし |
 | AF-BR02 | AF-BR01/D01/D09 | D/R | 保存済みbrand/aliasをnullにして実公開 | 201・新規4行・nullの永続化・元行消費・保護行不変 |
 | AF-BR03 | AF-BR01/M01/O03 | H | 実resolveBrandで既存brand選択→alias=nullの結果を保存境界へ反映して公開 | 公開成功。alias生成や再解決を公開側に追加しない |
 

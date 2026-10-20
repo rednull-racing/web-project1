@@ -1,6 +1,6 @@
 import { mocks, setup, transaction } from "../../../../test/fixtures/items/createItem/usecaseMocks.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, expectedAttributes, idFields, nullableBrandCases, freezeDeep } from "../../../../test/fixtures/items/createItem/fixtures.js";
+import { deferred, expectedAttributes, idFields, requiredIdFields, nullableBrandCases, freezeDeep } from "../../../../test/fixtures/items/createItem/fixtures.js";
 import { AppError } from "../../../errors.js";
 import { createItemUseCase } from "../createItem.js";
 vi.mock("../../shared/validateMaster.js", () => ({ validateMaster: mocks.validateMaster }));
@@ -284,6 +284,29 @@ describe("AF-BR 確定仕様: brand/aliasのnull許容",()=>{
         expect(mocks.createNotification).toHaveBeenCalledTimes(1);
     });
 });
-it.each([{brand_id:null,brand_aliases_id:0},{brand_id:0,brand_aliases_id:null}])("AF-BR01 B09: 片方nullでも他方の不正値%jを拒否",async patch=>{
-    Object.assign(editing,patch);await error("INVALID_NUMBER",400);
+describe("AF-BR01: 任意IDと必須IDの独立した検証", () => {
+    const brandFields = ["brand_id", "brand_aliases_id"] as const;
+    it.each(brandFields.flatMap(nullField => [0, -1, 2147483648, 1.5, "1", undefined, NaN, Infinity, -Infinity].map(value => ({
+        nullField,
+        invalidField: nullField === "brand_id" ? "brand_aliases_id" : "brand_id",
+        value,
+        label: String(value),
+    }))))("AF-BR01 B09: $nullField=nullでも$invalidField=$labelは拒否", async ({ nullField, invalidField, value }) => {
+        Object.assign(editing, { [nullField]: null, [invalidField]: value });
+        await error("INVALID_NUMBER", 400);
+    });
+    it.each(brandFields.flatMap(nullField => [1, 2147483647].map(value => ({
+        nullField,
+        otherField: nullField === "brand_id" ? "brand_aliases_id" : "brand_id",
+        value,
+    }))))("AF-BR01 B08: $nullField=nullと$otherField=$valueは受理", async ({ nullField, otherField, value }) => {
+        Object.assign(editing, { [nullField]: null, [otherField]: value });
+        expect(await run()).toBe(456);
+        expect(mocks.createItem.mock.calls[0][0].data[nullField]).toBeNull();
+        expect(mocks.createItem.mock.calls[0][0].data[otherField]).toBe(value);
+    });
+    it.each(requiredIdFields)("AF-BR01 AF-ID01: brand/alias両方nullでも%sのnullは拒否", async field => {
+        Object.assign(editing, { brand_id: null, brand_aliases_id: null, [field]: null });
+        await error("INVALID_NUMBER", 400);
+    });
 });

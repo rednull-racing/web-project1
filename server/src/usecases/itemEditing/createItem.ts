@@ -77,18 +77,18 @@ const validatePublishData = (itemEditing: InstanceType<typeof ItemEditing>): voi
     if (itemEditing.image_url.length > 10) {
         throw new AppError("ITEM_IMAGE_LIMIT_EXCEEDED", 400, "商品画像は10枚以内にしてください。");
     }
-    const ids = [
+    const requiredIds = [
         itemEditing.category_id,
         itemEditing.item_condition_id,
         itemEditing.shipping_day_id,
         itemEditing.shipping_service_id,
         itemEditing.shipping_place_id,
     ];
-    if (ids.some((id) => id === null || !Number.isInteger(id) || id < 1 || id > 2147483647)) {
+    if (requiredIds.some((id) => id === null || !Number.isInteger(id) || id < 1 || id > 2147483647)) {
         throw new AppError("INVALID_NUMBER", 400);
     }
-    const brandIds = [itemEditing.brand_id, itemEditing.brand_aliases_id];
-    if (brandIds.some((id) => id !== null && (!Number.isInteger(id) || id < 1 || id > 2147483647))) {
+    const nullableBrandIds = [itemEditing.brand_id, itemEditing.brand_aliases_id];
+    if (nullableBrandIds.some((id) => id !== null && (!Number.isInteger(id) || id < 1 || id > 2147483647))) {
         throw new AppError("INVALID_NUMBER", 400);
     }
     if (

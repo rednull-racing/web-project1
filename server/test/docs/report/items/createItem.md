@@ -1,6 +1,12 @@
 # createItem テストレポート
 
-## 最新結果：2026-10-20（brand/alias null許容修正後）
+## 最新結果：2026-10-20（F1の方針を本番・詳細設計・テストへ統一）
+
+F1の実装・詳細設計・テスト修正と非DB検証は完了。関連19ファイル474件すべて成功（失敗・skip・todo各0）。本番lint・本番型検査・test配下追加lintも成功。詳細とファイル別件数、残る問題の修正案は末尾の再検証記録を参照。
+
+実DBの72件は今回も4 suiteがスキーマ検査で停止し、本体未実行。テスト用型検査は既存refreshToken.tsのTS2339が残る。実DBを含む全検証完了とはしない。以下の449件は前回履歴であり、今回の件数へ合算しない。
+
+## 前回結果：2026-10-20（初回のbrand/alias null許容修正後）
 
 単体・DB非接続結合は **449件成功、失敗0、skip 0、todo 0（19ファイル）**。実DBは **4 suiteがsetup失敗、72件はケース本体未実行**。ランナーは72件をskipped/pendingと表示するが、成功・通常の意図的skipとは分ける。全設計の実DB検証完了ではない。
 
@@ -262,3 +268,66 @@ export default tseslint.config({files:['**/*.ts'],extends:[eslint.configs.recomm
 2. null許容のユーザー訂正を反映した修正前実行：447件中443成功・4失敗、skip/todo 0。4失敗はいずれもINVALID_NUMBERで、AF-BR01の3条件とAF-BR03。これがF1の再現結果。
 3. 本番変更の明示許可後にF1を修正。片方null＋他方0の拒否2件を追加し、最新449件すべて成功。実DBは最新72件が全件setup停止、4 suite失敗。
 4. 最終lint・本番typecheck・追加lint成功。テスト用typecheckはF3のみ残存。実DB、実COMMIT応答喪失、別API全体の回帰は完了扱いにしていない。
+
+## 2026-10-20 F1 方針統一・再検証と完了範囲
+
+ユーザー依頼に基づき、本番コード・`docs/design/backend/detail/items/createItem.md`・テストを「brand_idとbrand_aliases_idは個別にnull可、両方nullも可」に統一した。**F1の実装・詳細設計・テスト修正、および非DB検証は完了**。新たなF1のロジック不一致は検出していない。実DB検証には下記の未達が残る。
+
+### 今回の変更
+
+- 本番 `server/src/usecases/itemEditing/createItem.ts`：前回修正済みのnull許容と非null値の整数範囲検証を維持。配列名をrequiredIdsとnullableBrandIdsに揃え、必須5種類と任意2種類を明確にした。IDの補完・alias生成・共有helper変更は行っていない。
+- 詳細設計書：冒頭・公開前提・判定順序・コピー・エラー・テスト・未決定事項に残る「7種類すべて必須」を訂正。必須5種類はnull不可、任意2種類はnull可、非nullは整数1〜2147483647とする。どちらかのnullによって他のID検証を省略しない。
+- 単体 `server/src/usecases/itemEditing/test/createItem.test.ts`：既存の片方/両方nullの成功3条件を維持。片方null＋他方不正値を両方向18条件へ拡張（0/-1/2147483648/1.5/"1"/undefined/NaN/±Infinity）。片方null＋他方の整数上下限4条件、両方null＋必須5種類のnull5条件を追加。拒否時はgetUser・helper・集計・作成・削除・通知の未実行を確認した。
+- テスト設計書のAF-BR01も上記へ更新。レポートとCodexログ以外の変更範囲はこの4ファイル。DB・モデル・migration・対象外APIは変更していない。
+
+### 最新実行結果
+
+実行ディレクトリは`/home/conta/project/server`。前掲の対象選択コマンドと同じ19ファイルを明示して実行した。今回のJSON出力先は`/tmp/create-item-f1-unit.json`と`/tmp/create-item-f1-db.json`。VitestのassertionResultsから集計し、前回結果と混ぜていない。
+
+| ファイル（server基準） | 成功 | 失敗 | skip/pending | todo |
+| --- | ---: | ---: | ---: | ---: |
+| `src/controllers/items/test/createItem.test.ts` | 4 | 0 | 0 | 0 |
+| `src/services/categories/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/follow/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/itemConditionOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/itemEditing/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
+| `src/services/itemShippingProfile/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/items/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/sale/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/shippingDayOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/shippingServiceOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/todouhuken/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/video/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `src/services/users/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
+| `src/usecases/itemEditing/test/createItem.test.ts` | 365 | 0 | 0 | 0 |
+| `src/validators/body/test/createItem.test.ts` | 28 | 0 | 0 | 0 |
+| `src/services/items/command/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
+| `test/integration/usecases/items/createItem/master.test.ts` | 15 | 0 | 0 | 0 |
+| `test/integration/usecases/items/createItem/registration.test.ts` | 1 | 0 | 0 | 0 |
+| `test/integration/usecases/items/createItem/route.test.ts` | 33 | 0 | 0 | 0 |
+| `test/integration/database/items/createItem/database.test.ts` | 0 | 0 | 24 | 0 |
+| `test/integration/usecases/items/createItem/databaseConcurrency.test.ts` | 0 | 0 | 24 | 0 |
+| `test/integration/usecases/items/createItem/databaseHttp.test.ts` | 0 | 0 | 13 | 0 |
+| `test/integration/usecases/items/createItem/databaseTransactions.test.ts` | 0 | 0 | 11 | 0 |
+| 非DB合計（19ファイル） | 474 | 0 | 0 | 0 |
+| 実DB合計（4ファイル・setup失敗） | 0 | 0 | 72 | 0 |
+
+72件のskip/pendingはスキーマ検査で本体に到達していないため、意図的skipや成功として扱わない。総登録件数546件と設計ケースID数117件は別の値。
+
+| 確認 | 結果 |
+| --- | --- |
+| 関連単体・非DB結合 | exit 0。474件成功 |
+| 実DB4ファイル | exit 1。全suiteでDB_TEST_SCHEMA_MISMATCH: item.deleted_at remains |
+| npm run lint | exit 0 |
+| npm run typecheck | exit 0 |
+| tsc --noEmit -p test/tsconfig.json | exit 2。既存refreshToken.ts:43のTS2339のみ |
+| test配下の追加lint | 前掲の一時ESLint設定と同じコマンドでexit 0 |
+
+AF-BR01/B08/B09/AF-ID01の追加条件と既存の非DB対応IDを再検証した。AF-BR03は実resolveBrandと公開usecaseの接続で成功。実DBのAF-BR02、D/T/Pによる保存・rollback・ロック・HTTP DBは未確認。モック境界は前掲と同じで、今回の非DB成功をDBの永続化成功へ拡大しない。
+
+### 残る問題と修正案（未実施）
+
+1. **F2：test_dbのスキーマ不一致。** 今回も`.env.test`由来の設定・NODE_ENV=test・設定上DB名test_dbをガードし、アプリ/モデルindex/observerの実接続でcurrent_database()=test_dbを確認した。その後、item.deleted_at残存でfixture作成前に停止。今回作成行0・cleanup DELETEなし、接続close済み。修正案は、DB担当の手順で削除済み仕様との反映差分を確認し、必要なスキーマ反映を別作業で行った後、同じガードで実DB72件を再実行すること。テストからmigration/sync/全件削除を行わず、旧カラム検査を緩和しない。実DB検証の完了判定は再実行後に行う。
+2. **F3：既存のテスト用型検査エラー。** refreshToken.ts:43のstring | JwtPayloadからのid取得に型絞り込みがない。既存Todo `docs/todo/P1-bug/refreshToken-jwt-payload-typecheck.md` の方針に従い、期待するJWT payload構造とidを実行時確認してから使うよう別作業で修正する。今回の追加テストに起因する診断は0件。本番コードのF1以外は変更していない。
+
+F1のnull許容対応は完了。実DBを含む検証全体はF2、テスト用型検査全体はF3が残るため未完了とする。

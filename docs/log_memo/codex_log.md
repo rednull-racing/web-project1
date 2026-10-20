@@ -590,3 +590,11 @@
 - 最終非DBテスト19ファイル449件成功。修正前のnull拒否4失敗はレポートへ履歴保存。
 - DBはtest_dbを確認後、item.deleted_at残存のスキーマ検査で4 suite停止・72件本体未実行。DB変更・migration実行なし。
 - lint・本番typecheck・test配下追加lint成功。テスト用型検査は既存refreshToken.tsのTS2339のみ残り、Todoへ記録。
+
+## 20261020_backend-test_createItem_F1方針統一と再検証
+
+- brand/aliasの片方・両方null許容に本番のID区分名、詳細設計、テスト設計と単体ケースを統一。
+- 片方nullでも他方の不正値・必須5種類のnullを拒否する回帰ケースを拡充。
+- 関連19ファイル474件成功、lint・本番typecheck・追加lint成功。F1対応完了をレポート末尾へ追記。
+- DB72件はitem.deleted_at残存で本体未実行、テスト用型検査は既存refreshToken.tsエラー。末尾に修正案を記録。
+- DB・migration・対象外の本番コードは変更なし。
