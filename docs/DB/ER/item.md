@@ -88,6 +88,19 @@ item_editing {
     number shipping_place_id FK
 }
 
+item_trash {
+    number id PK
+    number item_id FK
+    number seller_id FK
+    number item_condition_id FK
+    number category_id FK
+    number brand_id FK
+    number brand_aliases_id FK
+    number shipping_day_id FK
+    number shipping_service_id FK
+    number shipping_place_id FK
+}
+
 cart {
     number id PK
     number item_id FK
@@ -127,11 +140,15 @@ user o|--o{ item : "1人のuserは出品者として0以上のitemを持つ"
 
 user o|--o{ item_draft : "1人のuserは出品者として0以上のitem_draftを持つ"
 
+user o|--o{ item_trash : "1人のuserは出品者として0以上のitem_trashを持つ"
+
 user o|--o{ item_editing : "1人のuserは出品者として0以上のitem_editingを持つ"
 
 item_condition_option o|--o{ item : "1つのitem_condition_optionは0以上のitemで使用される"
 
 item_condition_option o|--o{ item_draft : "1つのitem_condition_optionは0以上のitem_draftで使用される"
+
+item_condition_option o|--o{ item_trash : "1つのitem_condition_optionは0以上のitem_trashで使用される"
 
 item_condition_option o|--o{ item_editing : "1つのitem_condition_optionは0以上のitem_editingで使用される"
 
@@ -139,11 +156,15 @@ categories o|--o{ item : "1つのcategoriesは0以上のitemで使用される"
 
 categories o|--o{ item_draft : "1つのcategoriesは0以上のitem_draftで使用される"
 
+categories o|--o{ item_trash : "1つのcategoriesは0以上のitem_trashで使用される"
+
 categories o|--o{ item_editing : "1つのcategoriesは0以上のitem_editingで使用される"
 
 brands o|--o{ item : "1つのbrandsは0以上のitemで使用される"
 
 brands o|--o{ item_draft : "1つのbrandsは0以上のitem_draftで使用される"
+
+brands o|--o{ item_trash : "1つのbrandsは0以上のitem_trashで使用される"
 
 brands o|--o{ item_editing : "1つのbrandsは0以上のitem_editingで使用される"
 
@@ -151,11 +172,15 @@ brand_aliases o|--o{ item : "1つのbrand_aliasesは0以上のitemで使用さ�
 
 brand_aliases o|--o{ item_draft : "1つのbrand_aliasesは0以上のitem_draftで使用される"
 
+brand_aliases o|--o{ item_trash : "1つのbrand_aliasesは0以上のitem_trashで使用される"
+
 brand_aliases o|--o{ item_editing : "1つのbrand_aliasesは0以上のitem_editingで使用される"
 
 shipping_day_option o|--o{ item_shipping_profile : "1つのshipping_day_optionは0以上のitem_shipping_profileで使用される"
 
 shipping_day_option o|--o{ item_draft : "1つのshipping_day_optionは0以上のitem_draftで使用される"
+
+shipping_day_option o|--o{ item_trash : "1つのshipping_day_optionは0以上のitem_trashで使用される"
 
 shipping_day_option o|--o{ item_editing : "1つのshipping_day_optionは0以上のitem_editingで使用される"
 
@@ -163,11 +188,15 @@ shipping_service_option o|--o{ item_shipping_profile : "1つのshipping_service_
 
 shipping_service_option o|--o{ item_draft : "1つのshipping_service_optionは0以上のitem_draftで使用される"
 
+shipping_service_option o|--o{ item_trash : "1つのshipping_service_optionは0以上のitem_trashで使用される"
+
 shipping_service_option o|--o{ item_editing : "1つのshipping_service_optionは0以上のitem_editingで使用される"
 
 todouhuken_option o|--o{ item_shipping_profile : "1つのtodouhuken_optionは0以上のitem_shipping_profileで発送元として使用される"
 
 todouhuken_option o|--o{ item_draft : "1つのtodouhuken_optionは0以上のitem_draftで発送元として使用される"
+
+todouhuken_option o|--o{ item_trash : "1つのtodouhuken_optionは0以上のitem_trashで発送元として使用される"
 
 todouhuken_option o|--o{ item_editing : "1つのtodouhuken_optionは0以上のitem_editingで発送元として使用される"
 
@@ -178,6 +207,8 @@ sale o|--o| item : "1つのsaleは0または1つのitemで使用される"
 item_shipping_profile o|--o| item : "1つのitem_shipping_profileは0または1つのitemで使用される"
 
 item o|--o{ item_draft : "1つのitemは0以上のitem_draftを持つ"
+
+item o|--o{ item_trash : "1つのitemは0以上のitem_trashを持つ"
 
 item ||--o{ item_editing : "1つのitemは0以上のitem_editingを持つ"
 
