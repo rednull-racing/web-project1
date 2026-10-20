@@ -125,7 +125,7 @@ describe("P0 DB保存・状態遷移", () => {
         newMedia(f.body);
         const result = await run(f);
         const saved = (await ItemEditing.findByPk(f.editing.id))!;
-        expect(saved.item_id).toBeNull();
+        expect(saved.get()).not.toHaveProperty("item_id");
         expect(saved.name).toBe(f.body.itemMeta.name);
         expect(saved.original_url).toMatch(/^https:\/\/media.test\/video\/original\//);
         expect(saved.thumbnail_url).toMatch(/^https:\/\/media.test\/thumbnail\//);

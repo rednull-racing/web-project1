@@ -567,3 +567,10 @@
 - item.deleted_at、item_editing.item_id、item_draft.item_idを同一transactionで削除するESM migrationを追加。
 - downは逆順で現在のModelと同じ型・NULL制約・外部キーを復元。削除された値は復元不可。
 - lint・typecheck・node --check成功。migration未実行、Model未変更のため適用時はModel・参照処理との整合が必要。
+
+## 20261020_backend-model_商品関連3カラム削除反映
+
+- 明示依頼に基づきdevelopment DBへ20261020120909 migrationを適用し、3カラム不在・履歴登録を実DBで確認。
+- Modelの3カラムと対応リレーションを削除。依存する作成用型・コピー値・既存テスト期待値を最小限追従。
+- lint・本番/テスト型検査・関連単体192件・diffチェック成功。DB結合テストは未実行。
+- Serviceの旧カラム取得・where・削除/復元/cron処理が残存。業務仕様変更を伴う修正は行わずP1 Todoへ記録。

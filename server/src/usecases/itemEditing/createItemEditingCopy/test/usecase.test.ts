@@ -124,7 +124,7 @@ describe("P0 正常コピー・全引渡し項目", () => {
         for (const key of ["id", "createdAt", "updatedAt", "status", "video_id", "sale_id", "shipping_id", "views_count"]) {
             expect(data()).not.toHaveProperty(key);
         }
-        expect(data().item_id).toBeNull();
+        expect(data()).not.toHaveProperty("item_id");
     });
     describe.each([null, "", "processing", "ready"])("N11: video_status=%s", (status) => {
         it.each([null, "https://media.test/converted"])("converted_url=%sで再変換しない", async (converted) => {

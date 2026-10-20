@@ -212,7 +212,6 @@ export const seed = async () => {
     });
     const values = makeData({
         seller_id: owner.id,
-        item_id: item.id,
         category_id: category.id,
         item_condition_id: condition.id,
         brand_id: brand.id,

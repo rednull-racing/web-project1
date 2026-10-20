@@ -5,7 +5,6 @@ import type { CreateItemEditingDraftBody } from "../../../validators/body/itemEd
 
 export type CopyData = CreateItemEditingDraftParams["data"];
 export const copyColumns = [
-    "item_id",
     "name",
     "detail",
     "image_url",
@@ -39,7 +38,6 @@ export const copyColumns = [
 export const makeBody = (itemDraftId = 11): CreateItemEditingDraftBody => ({ itemDraftId });
 export const makeData = (overrides: Partial<CopyData> = {}): CopyData => ({
     seller_id: 7,
-    item_id: 101,
     name: "下書きの商品名",
     detail: "下書きの説明",
     image_url: ["https://media.test/image-a", "https://media.test/image-b", "https://media.test/image-c"],
@@ -102,7 +100,6 @@ export const makeDraft = (overrides: Partial<CopyData> = {}) => ({
 });
 
 export const nullableData: Partial<CopyData> = {
-    item_id: null,
     name: null,
     detail: null,
     image_url: null,

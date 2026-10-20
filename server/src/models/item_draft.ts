@@ -5,7 +5,6 @@ import type { ItemAttributes } from "../types/itemAttributes.js";
 import BrandAliases from "./brand_aliases.js";
 import Brands from "./brands.js";
 import Categories from "./categories.js";
-import Item from "./item.js";
 import ItemConditionOption from "./item_condition_option.js";
 import ShippingDayOption from "./shipping_day_option.js";
 import ShippingServiceOption from "./shipping_service_option.js";
@@ -14,7 +13,6 @@ import User from "./user.js";
 
 export class ItemDraft extends Model {
     declare id: number;
-    declare item_id: number | null;
     declare name: string | null;
     declare detail: string | null;
     declare image_url: string[] | null;
@@ -52,9 +50,6 @@ export class ItemDraft extends Model {
     declare updatedAt: Date;
 
     static associate() {
-        ItemDraft.belongsTo(Item, {
-            foreignKey: "item_id",
-        });
         ItemDraft.belongsTo(User, {
             foreignKey: "seller_id",
         });
@@ -84,7 +79,6 @@ export class ItemDraft extends Model {
     }
 
     static associations: {
-        Item: Association<ItemDraft, Item>;
         User: Association<ItemDraft, User>;
         ItemConditionOption: Association<ItemDraft, ItemConditionOption>;
         Categories: Association<ItemDraft, Categories>;
@@ -103,16 +97,6 @@ ItemDraft.init(
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
-        },
-        item_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            references: {
-                model: "item",
-                key: "id",
-            },
-            onUpdate: "NO ACTION",
-            onDelete: "CASCADE",
         },
         name: {
             type: DataTypes.STRING(255),

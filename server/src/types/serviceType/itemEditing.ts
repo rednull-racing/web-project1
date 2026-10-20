@@ -93,7 +93,6 @@ export type UpdateItemEditingImageParams = {
 export type CreateItemEditingDraftParams = {
     data: Pick<
         InstanceType<typeof ItemEditing>,
-        | "item_id"
         | "name"
         | "detail"
         | "image_url"
@@ -128,7 +127,6 @@ export type CreateItemEditingDraftParams = {
 
 export type CreateItemEditingCopyParams = {
     data: CreateItemEditingDraftParams["data"] & {
-        item_id: null;
         discount_rate: null;
         discount_amount: null;
         sale_flag: false;

@@ -10,7 +10,6 @@ import Categories from "./categories.js";
 import Comment from "./comment.js";
 import CouponItem from "./coupon_item.js";
 import ItemConditionOption from "./item_condition_option.js";
-import ItemEditing from "./item_editing.js";
 import ItemLike from "./item_like.js";
 import ItemReport from "./item_report.js";
 import ItemShippingProfile from "./item_shipping_profile.js";
@@ -37,7 +36,6 @@ export class Item extends Model {
     declare uploaded_at: Date | null;
     declare search_text: string | null;
     declare sort_buzz_number: number | null;
-    declare deleted_at: Date | null;
     declare first_image_url: string | null;
     declare save_at: Date | null;
     declare gender_type: "men" | "women" | "unisex";
@@ -105,9 +103,6 @@ export class Item extends Model {
         Item.hasMany(CouponItem, {
             foreignKey: "item_id",
         });
-        Item.hasMany(ItemEditing, {
-            foreignKey: "item_id",
-        });
     }
 
     static associations: {
@@ -126,7 +121,6 @@ export class Item extends Model {
         WatchHistory: Association<Item, WatchHistory>;
         PurchaseSession: Association<Item, PurchaseSession>;
         CouponItem: Association<Item, CouponItem>;
-        ItemEditing: Association<Item, ItemEditing>;
     };
 }
 
@@ -219,10 +213,6 @@ Item.init(
                 // getterで明示的にNumberに変換
                 return Number(this.getDataValue("sort_buzz_number"));
             },
-        },
-        deleted_at: {
-            type: DataTypes.DATE,
-            allowNull: true,
         },
         first_image_url: {
             type: DataTypes.TEXT,

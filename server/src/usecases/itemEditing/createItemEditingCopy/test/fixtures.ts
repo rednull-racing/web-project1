@@ -90,7 +90,7 @@ export const editingResult = (id = 456): ItemEditing => ({ id }) as ItemEditing;
 export const transactionFixture = (): Transaction => ({ LOCK: { UPDATE: "UPDATE" } }) as Transaction;
 
 export const expectedData = (): CreateItemEditingCopyParams["data"] => ({
-    item_id: null, seller_id: 7, name: "公開商品", detail: "商品説明\n日本語",
+    seller_id: 7, name: "公開商品", detail: "商品説明\n日本語",
     image_url: ["https://media.test/image0", "https://media.test/image1", "https://media.test/image2"],
     item_condition_id: 31, first_image_url: "https://media.test/independent-first",
     gender_type: "unisex", age_type: "both", recommend: true, category_id: 21, brand_id: 61, brand_aliases_id: 71,

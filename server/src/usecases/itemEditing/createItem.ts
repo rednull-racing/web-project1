@@ -210,7 +210,6 @@ export const createItemUseCase = async ({ userId, itemEditingId }: Params): Prom
                 uploaded_at: now,
                 save_at: now,
                 early_sell: true,
-                deleted_at: null,
                 checked: false,
                 report_score: 0,
             },

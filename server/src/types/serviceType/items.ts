@@ -131,7 +131,6 @@ export type CreateItemParams = {
         | "uploaded_at"
         | "save_at"
         | "early_sell"
-        | "deleted_at"
         | "checked"
         | "report_score"
     >;
