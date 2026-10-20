@@ -8,6 +8,10 @@
 
 初回は2026-10-20に文書だけを作成し、同日の仕様確定依頼で本番usecase・本書・詳細設計書を更新した。今回のカラム削除追従では本番の残存参照と既存単体テスト・fixtureも修正し、関連単体テスト・lint・型検査を行う。Model・migrationは変更せず、DB接続・migrationは実行しない。本書の期待結果はcreateItemテストの実行結果ではない。後述のテスト配置とコマンドは将来の実装用。
 
+### 2026-10-20 テスト実装中の仕様訂正（最新）
+
+ユーザーの追加指示により、`brand_id` と `brand_aliases_id` はそれぞれnullを許容し、両方nullも許容する。必須IDはcategory/condition/day/service/placeの5種類。brand/aliasが非nullの場合は従来の整数範囲を維持する。過去の「7種類すべて必須」の記録より本訂正を優先する。最初は本番コード変更禁止としてnull拒否による失敗を記録した。その後ユーザーが本番コードのnull拒否修正を明示的に許可したため、公開前提検証だけを修正し再検証する。修正前後はレポートで区別する。
+
 ### 2026-10-20 カラム削除への追従
 
 - ユーザーがModel・DBから `item.deleted_at`、`item_editing.item_id`、`item_draft.item_id` を削除済みと確認。これを現行契約とし、旧item_idのnull・非nullを用意するケースを廃止する。B01/D07は元セッションIDと新商品IDの分離・既存データ不変の確認へ更新する。
@@ -33,11 +37,11 @@
 | --- | --- | --- |
 | 新公開APIの接続 | 新usecase・body schema・controller・10分5回の制限・POST接続が存在。旧patchPublishUseCaseの定義・import/export・ルート接続はserver/srcにない | N01、V01〜V06、R01〜R13 |
 | 編集セッションと新規採番 | item_editing/item_draftにitem_idは存在しない。item.idを新規採番し、セッションのidを作成先へ渡さない。video/sale/配送にitem_id列を追加しない | B01、D07、N02 |
-| 価格・公開データ | name/titleの型、first_image_url、整数価格300〜1000000を確認。今回7種類のIDを必須化し、各1〜2147483647の整数、nullを含む不正値は400・INVALID_NUMBER | B02〜B10、AF-ID01〜AF-ID03 |
+| 価格・公開データ | name/titleの型、first_image_url、整数価格300〜1000000を確認。必須5種類はnull不可、brand/aliasはnull可。非nullの7種類は各1〜2147483647の整数とし、不正値は400・INVALID_NUMBER | B02〜B10、AF-ID01〜AF-ID03 |
 | 在庫の構造と業務条件 | 詳細設計の構造不正500に加え、実装は各initialの負数・小数を400・`ITEM_PUBLISH_DATA_INVALID`とする。0は受理。current/ratioの値域や在庫合計の整合性は検証しない | I01〜I12、O02 |
-| マスター再検証 | 公開前提で7種類のIDを検証後、category/condition/day/service/placeをvalidateMasterで再検証。brand/aliasは再解決せず既存FKをコピーする。共有helperのnull省略は公開成功条件にしない | M01〜M07、O03 |
+| マスター再検証 | 公開前提で必須5種類と任意brand/aliasの非null値を検証後、category/condition/day/service/placeをvalidateMasterで再検証。brand/aliasは再解決せず既存FKをコピーする。共有helperのnull省略は公開成功条件にしない | M01〜M07、O03 |
 | 出品商品数 | 作成前集計・1件加算なし。seller_idとstatus IN active/soldoutだけを条件とし、削除済みのdeleted_atを参照しない | N07、S05、D05 |
-| 文字列・動画完了の最終要件 | name/titleは空文字を拒否しない。converted_url/duration/video_statusのnullも処理可能。7種類のID必須化と、これら未確定の公開業務要件を分ける | N04、B08、O01、O03 |
+| 文字列・動画完了の最終要件 | name/titleは空文字を拒否しない。converted_url/duration/video_statusのnullも処理可能。必須5種類と任意brand/aliasの区別と、これら未確定の公開業務要件を分ける | N04、B08、O01、O03 |
 | 削除との競合 | 対象行DELETEとの排他を検証する。cronEditingDeleteUseCaseは調査・修正・テスト対象外 | P05〜P08 |
 | DB反映状態 | モデル・migrationを参照しただけで実DBは未確認 | 第11節、D系、P系 |
 
@@ -67,7 +71,7 @@
 1. 共通JSON parser → RouterのauthenticateToken → createItemRateLimit → validateBody(createItemBodySchema) → createItemController。JSON構文不正は認証・制限より先に停止する。
 2. controllerは `req.user.id` と `req.validatedBody.itemEditingId` だけをusecaseへ渡す。params/query/bodyの所有者情報を使用しない。
 3. managed transaction開始 → `getMyItemEditing({ itemEditingId, userId, transaction: t })`。serviceは `where: { id, seller_id }` と `lock: t.LOCK.UPDATE` を指定する。ItemEditingにはstatus/deleted_at条件やVideoのincludeを追加しない。
-4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後はoriginal_url → thumbnail_url → image_urlの欠落/空/超過 → 7種類のIDのnull/整数範囲 → name/title/first_image_url/priceの順に判定する。編集セッションにitem_idは存在せず、セッションidはコピー先のIDに使わない。
+4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後はoriginal_url → thumbnail_url → image_urlの欠落/空/超過 → 必須5種類のnull/整数範囲・brand/aliasの非null整数範囲 → name/title/first_image_url/priceの順に判定する。編集セッションにitem_idは存在せず、セッションidはコピー先のIDに使わない。
 5. attributes全体の構造検証 → structuredClone → 商品・各色・各サイズのinitial業務検証とcurrent復元。構造不正は500、有限数値でもinitialが負数・小数なら400。途中で失敗してもコピー元を変更しない。
 6. getUser（必要な4列のみ）→ validateMaster（category→condition→day→service→place）→ parent_idがあれば親カテゴリー → countFollower → countSellItem。すべて同じt。出品者欠落はUSER_NOT_FOUND・500。
 7. sort計算 → createVideo → createSale → createShipping → 公開日時生成・search_text正規化 → createItem → ロック済みModelのdeleteItemEditing。各書込みに同じt。
@@ -139,7 +143,7 @@ Routerは現行のimport経路で対象外usecaseもモックし、controllerの
 | N01 | U/D/R | 標準fixtureで公開 | video→sale→shipping→item→元行削除を各1回。usecaseは数値456、HTTPはcommit後に201・`{ itemId: 456 }`。実DBは4テーブル各1件増・元行なし |
 | N02 | U/D | 全コピー項目を識別できる値にする | 対応表の全値、関連参照方向、禁止キーを確認。新規行の採番・作成日時を使用し、既存商品/下書き/他セッションを変更しない |
 | N03 | U/D | 割引設定あり／割引なし、before_priceが価格と異なる／null | before_priceだけ維持し、割引2値は必ずnull、flag=false。before_priceをpriceへ置換しない |
-| N04 | U/D | 許容される任意列を個別null：detail/summary/duration/converted_url/video_status/recommend/配送自由文 | 保存値はnullを保持し、detail/summaryだけ算出時に長さ0。公開必須の7種類のID/name/title/画像URL/priceをnull許容へ混ぜない |
+| N04 | U/D | 許容される任意列を個別null：detail/summary/duration/converted_url/video_status/recommend/配送自由文 | 保存値はnullを保持し、detail/summaryだけ算出時に長さ0。brand/aliasのnullも保持。公開必須の5種類のID/name/title/画像URL/priceはnull不可 |
 | N05 | U/D | 男女区分/年齢区分の各Model列挙値、recommend=true/false | 値を維持。取得した元データにないdefaultへの置換なし |
 | N06 | U | 標準値からpenalty_pointsを4/5/6に変更。数値文字列"5"/"6"も別条件にする | 4/5/"5"は6295、6/"6"は1295。Number変換と5の境界を確認する |
 | N07 | U/D | follower/sell各0/1/複数、片方だけ増加 | 各件数差1でsortが10増える。作成前countを使用し、新商品の1件を独自加算しない。両sort一致 |
@@ -176,8 +180,8 @@ B01は正常系であり、削除済みカラムをfixtureへ追加しない。�
 | B05 | U/D | price=null/299/300/1000000/1000001、小数/数値文字列/NaN/Infinity（後者はU） | 300/1000000受理。他は400・ITEM_PUBLISH_DATA_INVALID |
 | B06 | U/D | nameまたはtitle=null、Uではnumber/object等も注入 | 400・ITEM_PUBLISH_DATA_INVALID。空文字の扱いはO01 |
 | B07 | U/D | first_image_url=null/空文字 | 400・ITEM_PUBLISH_DATA_INVALID。image_urlから自動補完しない |
-| B08 | U/H | 必須7種類のIDを各1/2147483647にする | 範囲判定を通過。category/condition/day/service/placeはマスター検証へ進み、不存在ならM02の404。brand/aliasは再検索せずコピーし、実DBで存在しないFKはD08で区別。nullはAF-ID01 |
-| B09 | U | 必須7種類のIDを各0/-1/2147483648/1.5/"1"/undefined/NaN/Infinityにする | 400・INVALID_NUMBER。helperが0検索を省くことを公開APIの受理仕様にしない。getUser/validateMaster/集計/作成/削除/通知未実行 |
+| B08 | U/H | 7種類のIDの非null値を各1/2147483647にする | 範囲判定を通過。category/condition/day/service/placeはマスター検証へ進み、不存在ならM02の404。brand/aliasは再検索せずコピーし、実DBで存在しないFKはD08で区別。必須IDのnullはAF-ID01、brand/aliasのnullはAF-BR01〜03 |
+| B09 | U | 7種類のIDの非null不正値を各0/-1/2147483648/1.5/"1"/undefined/NaN/Infinityにする | 400・INVALID_NUMBER。helperが0検索を省くことを公開APIの受理仕様にしない。getUser/validateMaster/集計/作成/削除/通知未実行 |
 | B10 | U | 複数不備を対で投入：original+thumbnail、thumbnail+画像、画像0/11+null/不正ID、null/不正ID+price、price+属性不正 | 第3節の最初の判定のエラー。後の判定のエラーで上書きしない。画像null/空と枚数超過は別入力にする |
 
 ## 9. attributes・在庫の敵対的入力
@@ -205,7 +209,7 @@ Iは実usecase内の変換を実行する。全異常系でgetUser以降が未�
 | --- | --- | --- | --- |
 | M01 | H | 5種類すべて存在、親カテゴリーあり | category→condition→day→service→placeへ対応IDと同一t。返された子のparent_idで親を取得後に集計/作成。bodyの別IDは使わない |
 | M02 | H | 5種類を1種類ずつ不存在にする | 順にCATEGORY_NOT_FOUND / ITEM_CONDITION_NOT_FOUND / SHIPPING_DAY_NOT_FOUND / SHIPPING_SERVICE_NOT_FOUND / PLACE_NOT_FOUND、各404。後続マスター/親/集計/作成/削除/通知なし |
-| M03 | H | 必須7種類のIDは正常で、子のparent_id=null | 5種類のマスター検索は実行し、親検索だけ省略して公開成功。旧null-ID受理条件はAF-ID01の拒否へ移行。共有helper単独のnull省略分岐は本公開APIの契約に含めない |
+| M03 | H | 必須5種類と非nullのbrand/alias IDは正常で、子のparent_id=null | 5種類のマスター検索は実行し、親検索だけ省略して公開成功。旧null-ID受理条件はAF-ID01の拒否へ移行。共有helper単独のnull省略分岐は本公開APIの契約に含めない |
 | M04 | H | 各マスター検索、親検索が通常Errorでreject | 同一Errorを伝播、後続処理なし。親不存在のnullはN10と区別 |
 | M05 | U/H | getUser=null | AppError・USER_NOT_FOUND・500。マスター/集計/作成以降なし。userIdだけから名前等を補完しない |
 | M06 | H | 子と親の分類/名称を元attributesと異なる値にする | 検索文字列には取得名称を使用。元attributesの分類を新マスターから再構築しない |
@@ -324,7 +328,7 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 | --- | --- | --- | --- |
 | O01 | U/D | name/titleが空文字/空白、URLが空白、first_image_urlとimage_url[0]不一致、画像要素が空文字/重複 | 現行の型/falsy/枚数判定でどこまで通るかと保存結果を記録。文字列trim、URL形式/所有S3キー/先頭画像一致/画像実体確認を行う保証はない。業務上許容する最終要件は未確定 |
 | O02 | I/D | currentが負数/小数、ratioが負数/1超、在庫階層の合計不一致、非在庫属性の不正な追加値 | 有限numberならcurrentはinitialに戻りratioは維持。全属性schemaや階層合計の検証はない。initialの負数/小数拒否と混同しない |
-| O03 | U/H/D | 必須7種類のIDをすべて有効にし、動画未変換、brand/aliasの組合せ不整合 | 現行が受理する範囲を記録。動画変換完了/ブランド対応関係の再検証は今回追加しない。IDのnull拒否は確定契約AF-ID01、存在しないFKは実DB制約に従いD08として分離 |
+| O03 | U/H/D | 必須5種類と非nullのbrand/alias IDを有効にし、動画未変換、brand/aliasの組合せ不整合 | 現行が受理する範囲を記録。動画変換完了/ブランド対応関係の再検証は今回追加しない。必須5種類のnull拒否はAF-ID01、brand/aliasのnull許容はAF-BR01〜03、存在しないFKは実DB制約に従いD08として分離 |
 | O04 | U／将来の障害検証 | COMMIT送信後の応答喪失、commit後のHTTP接続切断 | モックの外側rejectはT08に限定。実通信障害は今回は未実施で、成否不明をrollback成功にしない。既にcommit済みなら元行消費済み・再送404となり得る。公開済みDBをHTTP失敗で巻き戻せる保証なし |
 | O06 | I | 疎配列、明示undefined、JSONではないオブジェクトを直接注入 | 構造検証やstructuredCloneの実挙動を記録する防御観測。通常JSONBでは表現できない値について一律ITEM_ATTRIBUTES_INVALIDやHTTP受理を保証しない。productionの型やexportをテスト都合で変更しない |
 
@@ -332,11 +336,17 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 
 | ID | 元ID | レベル | 条件／入力／手順 | 修正後の期待結果 |
 | --- | --- | --- | --- | --- |
-| AF-ID01 | B08/B09/M03/O03 | U/H/D/R | category/condition/day/service/place/brand/aliasを1種類ずつnull、さらに7種類全部null。他の公開データは正常。HTTPはbodyではなく保存済み元行を変更する | 400・INVALID_NUMBER。getUser/validateMaster/親/両集計/全作成/削除/通知は未実行。Dは4テーブル追加0・元行と保護対象不変・rollback完了・ロック解放 |
+| AF-ID01 | B08/B09/M03/O03 | U/H/D/R | category/condition/day/service/placeを1種類ずつnull、さらに5種類全部null。他の公開データは正常。HTTPはbodyではなく保存済み元行を変更する | 400・INVALID_NUMBER。getUser/validateMaster/親/両集計/全作成/削除/通知は未実行。Dは4テーブル追加0・元行と保護対象不変・rollback完了・ロック解放 |
 | AF-ID02 | AF-ID01/D04 | D/R | null-IDで拒否→同じ元行の不足IDを有効な既存IDに保存→再公開 | 初回は400・元行保持、修復後だけ201・1組生成・元行削除・通知開始1回。初回失敗を消費済み扱いにしない |
-| AF-ID03 | P03/P04 | D/P | 別transactionが元行をロックし必須IDを1種類nullへ変更→公開を実待機→更新commit/rollback。各7種類を独立展開 | commitなら最新行のnullを再判定して400・追加0・通知0・更新済み元行保持。rollbackなら正常な旧IDで公開成功。古い正常データでの公開を許さない |
+| AF-ID03 | P03/P04 | D/P | 別transactionが元行をロックし必須IDを1種類nullへ変更→公開を実待機→更新commit/rollback。必須の各5種類を独立展開 | commitなら最新行のnullを再判定して400・追加0・通知0・更新済み元行保持。rollbackなら正常な旧IDで公開成功。古い正常データでの公開を許さない |
 
 B01/D07の新規採番、N/Mの有効IDありの正常系、他の異常系を維持する。旧ITEM_EDITING_NOT_NEWとnull-ID受理の期待値は履歴欄にのみ残し、成功するようassertを弱める形にしない。
+
+| ID | 元ID | レベル | 条件 | 期待結果 |
+| --- | --- | --- | --- | --- |
+| AF-BR01 | B08/B09/N04/O03 | U | brandのみnull、aliasのみnull、両方nullを独立展開。他は正常 | 成功456。nullを補完せずcreateItemへコピーし通知開始 |
+| AF-BR02 | AF-BR01/D01/D09 | D/R | 保存済みbrand/aliasをnullにして実公開 | 201・新規4行・nullの永続化・元行消費・保護行不変 |
+| AF-BR03 | AF-BR01/M01/O03 | H | 実resolveBrandで既存brand選択→alias=nullの結果を保存境界へ反映して公開 | 公開成功。alias生成や再解決を公開側に追加しない |
 
 AF-ID01のR単独はusecaseが返す400の応答形式までとし、保存済みnullの実判定・rollbackは実DB HTTPで確認する。共有validateMasterは他APIでも使うためnull省略の実装を変更せず、本公開usecaseの事前検証で停止することを確認する。
 
@@ -350,7 +360,7 @@ AF-ID01のR単独はusecaseが返す400の応答形式までとし、保存済�
 | 通知内容・commit後開始・失敗許容 | T03/T11〜T13、D06、P01/P02 |
 | ID上下限・不正body・JSON・認証・所有権・制限 | V01〜V06、E01、S01、C01〜C03、R01〜R13、D06/D09/D10 |
 | 価格・画像枚数・URL・その他保存データ | B01〜B10、M02/M05、I05〜I11、O01/O03 |
-| 必須7種類のID・null拒否・修復後再試行・競合後の再判定 | B08/B09、AF-ID01〜AF-ID03 |
+| 必須5種類のID・null拒否・修復後再試行・競合後の再判定 | B08/B09、AF-ID01〜AF-ID03 |
 | 各DB依存の失敗・全rollback・非対象不変・再試行 | T04〜T10、D03/D04/D08/D09 |
 | 開始/commit失敗・成否不明・応答喪失 | T04/T08/T09、O04 |
 | 同一セッション重複/先行rollback/保存・削除・所有者変更との競合 | D06、P01〜P08/P11 |
@@ -385,4 +395,4 @@ test配下のTSは現行lint対象外のため、将来実装時は既存ESLint/
 - 設計書作成の完了：指定パス、参照先、ケースID、処理順序、期待値の根拠、異常時の停止点、詳細設計8章の対応、変更範囲を確認する。本書の作成をテスト成功として報告しない。
 - 将来のテスト実装の完了：各表の複数条件を独立テストへ展開し、IDで追跡できること。実行件数は表の行数と区別し、実ランナー出力から集計する。U/H/SだけでD/T/Pの保存・rollback・ロックを完了扱いにしない。
 - 新規SELECTで全コピー・非対象不変・孤立関連なし・元行の消費/復元を確認し、P01/P02では実待機とcommit/rollback後の結果を確認する。開始した全処理の回収・接続終了・自作fixture残存0も確認する。
-- 観測ケース、仕様未確定、環境不備、実DB未実施、実COMMIT応答喪失未実施は成功に混ぜず、実行後は `test/docs/report/items/createItem.md` にケースID・実処理/モック範囲・根拠・残る範囲を記録する。今回レポートは作成しない。
+- 観測ケース、仕様未確定、環境不備、実DB未実施、実COMMIT応答喪失未実施は成功に混ぜず、実行後は `test/docs/report/items/createItem.md` にケースID・実処理/モック範囲・根拠・残る範囲を記録する。実行結果は同レポートに記録する。

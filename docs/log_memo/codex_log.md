@@ -582,3 +582,11 @@
 - createItemのテスト設計・詳細設計をカラム不在、新規採番、出品数集計に合わせて更新。
 - lint・本番/テスト型検査成功。関連単体4ファイル152件成功、停止usecaseの503確認2件成功、diffチェック成功。
 - DB接続・migration実行なし。createItem専用テスト・DB結合テストは未実施。
+
+## 20261020_backend-test_createItemテスト実装とbrandIDのnull許容
+
+- createItemの単体・helper/HTTP結合・DB保存/transaction/競合テストを追加し、指定レポートへケース対応と修正案を記録。
+- ユーザーの仕様訂正と本番変更許可によりbrand_id/brand_aliases_idのnullを許容。必須5種類と非null不正値の拒否は維持。
+- 最終非DBテスト19ファイル449件成功。修正前のnull拒否4失敗はレポートへ履歴保存。
+- DBはtest_dbを確認後、item.deleted_at残存のスキーマ検査で4 suite停止・72件本体未実行。DB変更・migration実行なし。
+- lint・本番typecheck・test配下追加lint成功。テスト用型検査は既存refreshToken.tsのTS2339のみ残り、Todoへ記録。

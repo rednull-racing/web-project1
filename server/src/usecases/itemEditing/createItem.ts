@@ -83,10 +83,12 @@ const validatePublishData = (itemEditing: InstanceType<typeof ItemEditing>): voi
         itemEditing.shipping_day_id,
         itemEditing.shipping_service_id,
         itemEditing.shipping_place_id,
-        itemEditing.brand_id,
-        itemEditing.brand_aliases_id,
     ];
     if (ids.some((id) => id === null || !Number.isInteger(id) || id < 1 || id > 2147483647)) {
+        throw new AppError("INVALID_NUMBER", 400);
+    }
+    const brandIds = [itemEditing.brand_id, itemEditing.brand_aliases_id];
+    if (brandIds.some((id) => id !== null && (!Number.isInteger(id) || id < 1 || id > 2147483647))) {
         throw new AppError("INVALID_NUMBER", 400);
     }
     if (
