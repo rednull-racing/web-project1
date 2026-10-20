@@ -561,3 +561,9 @@
 - item_editing.item_idのnull・非nullを問わず新item.idを採番するよう非null拒否を削除。旧patchPublishUseCaseの本番参照は残存なし。
 - 詳細設計とテスト設計の期待値を更新し、null拒否・修復後再試行・競合後再判定を追加。cron・Model・migration・共有helperは変更なし。
 - lint・本番型検査・既存テスト型検査成功。テストコード実装・テスト実行・実DB操作は未実施。
+
+## 20261020_backend-migration_商品関連3カラム削除
+
+- item.deleted_at、item_editing.item_id、item_draft.item_idを同一transactionで削除するESM migrationを追加。
+- downは逆順で現在のModelと同じ型・NULL制約・外部キーを復元。削除された値は復元不可。
+- lint・typecheck・node --check成功。migration未実行、Model未変更のため適用時はModel・参照処理との整合が必要。
