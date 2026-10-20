@@ -4,7 +4,7 @@
 
 参照実装: `server/src/usecases/itemEditing/createItem.ts` の `createItemUseCase`。旧patchPublishUseCaseと旧公開ルートは削除済みで、server/srcに残存しないことを確認した。
 
-2026-10-20のユーザー指示で、item_editing.item_idはnull・非nullとも受理し、新item.idは必ず新規採番すること、category/condition/day/service/place/brand/aliasのIDはnullなら400とすることを確定した。cronEditingDeleteUseCaseは今回の対象外。以下の未決定事項のうち、この確定内容と重なる旧記述は更新している。
+2026-10-20のユーザー指示で、新item.idの新規採番とcategory/condition/day/service/place/brand/aliasのIDのnull拒否（400）を確定した。その後Model・DBからitem.deleted_at、item_editing/item_draft.item_idを削除済みと確認し、本書も追従する。旧item_idのnull・非null受理の記述はカラム削除により廃止。cronEditingDeleteUseCaseは対象外。
 
 ## 1. 概要
 
@@ -136,7 +136,7 @@ where: {
 }
 ```
 
-ItemEditingにはstatus・deleted_atがないため、それらの取得条件は追加しない。item_idはnull・非nullとも受理し、公開可否の判定には使用しない。非nullでもその既存商品を更新せず、新規商品を作成する。
+ItemEditingにはstatus・deleted_atがないため、それらの取得条件は追加しない。item_editing.item_idは存在しない。編集セッションのidを新商品のidに流用せず、新規商品を作成する。
 
 ## 4. 処理フロー
 
@@ -196,7 +196,7 @@ flowchart TD
 - user: `id = userId`。user_name・user_introduction・penalty_pointsを使用する。
 - categories: `id = itemEditing.category_id`、親は取得したカテゴリーのparent_idで取得する。category_id=nullは参照開始前に400で拒否し、parent_id=nullの場合だけ親取得を省略する。
 - follow: `follower_user_id = userId` の件数（countFollower）。
-- item: `seller_id = userId AND status IN ('active', 'soldout')` の件数（countSellItem）。現行serviceにはdeleted_at除外条件がない。計数対象は9章で確認する。
+- item: `seller_id = userId AND status IN ('active', 'soldout')` の件数（countSellItem）。deleted_atは削除済みで、集計条件に使用しない。計数対象は9章で確認する。
 
 出品者・カテゴリー等は別クエリで取得し、nullableな関連への外部結合全体をFOR UPDATEする設計にはしない。ItemEditingにVideo関連はなく、動画情報は直下カラムを使う。
 
@@ -216,7 +216,7 @@ flowchart TD
 - bodyのID検証とは別に、ロック済みの保存データをusecaseで確認し、作成serviceの呼び出し前に停止する。
 - 既存の確認画面保存処理ではoriginal_url・thumbnail_urlが必須、image_urlは1枚以上、priceは整数300〜1000000で検証される。公開時にも保存済み値を確認する。
 - category_id・item_condition_id・shipping_day_id・shipping_service_id・shipping_place_id・brand_id・brand_aliases_idの7種類はすべて必須。いずれかがnull、整数以外、1未満、2147483647超なら400 / INVALID_NUMBERとする。元行をロックして取得した後、user取得・属性複製・各作成serviceより前に拒否する。bodyの未知キーで補完しない。
-- 公開前提の判定順はoriginal_url → thumbnail_url → image_urlの欠落・枚数超過 → 必須7種類のID → name/title/first_image_url/price。複数不備では先に成立したエラーを返す。item_idのnull・非nullは判定しない。
+- 公開前提の判定順はoriginal_url → thumbnail_url → image_urlの欠落・枚数超過 → 必須7種類のID → name/title/first_image_url/price。複数不備では先に成立したエラーを返す。削除済みのitem_idは参照しない。
 - 7種類のIDが正常なら、category・condition・day・service・placeは同一transactionのvalidateMasterで存在確認する。不在は既存の各404コード。brand・aliasは既存IDをコピーし、今回新たな検索・解決・組合せ検証は追加しない。
 - Modelはname・price・動画・配送等でnullを許容するため、DB制約だけを公開必須チェックの代用にしない。
 - 基本設計の「公開必須項目がすべて存在する」「video等の必須関連データが存在する」は維持する。7種類のIDの必須条件は上記で確定済み。具体的な文字列の空値、配送自由記入の必須条件、動画変換の完了条件、マスターの追加再検証範囲は9章で区別する。
@@ -226,7 +226,7 @@ flowchart TD
 
 - 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で作成前に停止する。商品/色のinventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
 - seller_idは認証済みユーザーのIDを使用する
-- item.idは新規採番する。item_editing.item_idがnullでも非nullでも、その値を新itemのidや関連作成dataに使用しない。既存itemとその関連は変更しない。
+- item.idは新規採番する。item_editingにitem_idは存在せず、編集セッションのidを新itemや関連作成dataのidに使用しない。既存itemとその関連は変更しない。
 - createdAt、updatedAtは新規生成する
 - 商品入力データはitem_editingから引き継ぐ
 - attributesの在庫情報は、コピー時に以下の各inventory.currentを同じinventory内のinitialに戻す
@@ -270,13 +270,12 @@ flowchart TD
     uploaded_at: now,
     save_at: now,
     early_sell: true,
-    deleted_at: null,
     checked: false,
     report_score: 0,
 }
 ```
 
-itemのuploaded_at・save_atにはusecase内で生成した同じ公開日時を渡す（旧updatePublishItemの動作を継承）。createdAt・updatedAtは各新規レコードの作成日時とする。item_editing.item_id・id・createdAt・updatedAtはコピーしない。関連への参照方向以外の既存Model制約・associate定義は維持する。
+itemのuploaded_at・save_atにはusecase内で生成した同じ公開日時を渡す（旧updatePublishItemの動作を継承）。createdAt・updatedAtは各新規レコードの作成日時とする。item_editingのid・createdAt・updatedAtはコピーしない。item_editing/item_draftにitem_idはなく、itemにdeleted_atは保存しない。関連への参照方向以外の既存Model制約・associate定義は維持する。
 
 - item_editing → video
 
@@ -424,7 +423,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 - 所有者のセッションから201 / `{ itemId }` が返り、item・video・sale・item_shipping_profileが各1件生成され、元セッションが削除される。
 - 5章の全カラム対応、認証済みseller_id、新規ID・日時、公開status、公開日時・管理初期値、関連IDの参照方向を確認する。
-- item_editing.item_idがnull・非nullの両方で新規公開し、元の商品IDを使わず新item.idを採番する。非nullの元商品・関連は不変で、編集セッションだけを削除する。
+- item_idを持たない編集セッションから新item.idを採番する。別の既存商品・関連・下書きは不変で、編集セッションだけを削除する。
 - セール入力値が存在してもdiscount_rate・discount_amountはnull、sale_flagはfalseとなり、before_priceのみ引き継ぐ。
 - 商品・色・サイズのinventory.currentだけがinitialへ戻り、initial・low_stock_ratio・その他JSONが保持される。元オブジェクトを変更しない。
 - 任意inventory・colorVariants・sizesの欠落、空オブジェクト・空配列、任意カラムのnullを許容する範囲で確認する。
@@ -460,10 +459,10 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 ## 9. 未決定事項
 
-- 公開必須項目の残る定義。name・title・detail・summaryの空文字可否、配送自由記入の必須条件、動画のduration・converted_url・video_statusとアップロード実体確認の要否。category/condition/day/service/place/brand/aliasの7種類のIDは必須・nullは400と確定済み。item_editing.item_idはnull・非nullとも受付、新item.idを新規採番すると確定済み。
+- 公開必須項目の残る定義。name・title・detail・summaryの空文字可否、配送自由記入の必須条件、動画のduration・converted_url・video_statusとアップロード実体確認の要否。category/condition/day/service/place/brand/aliasの7種類のIDは必須・nullは400と確定済み。item_editing.item_idは削除済みで、新item.idは新規採番すると確定済み。
 - ブランド・別名の対応関係など、現在の5種類のマスター存在確認を超える再検証の要否。今回のID必須化だけを根拠に追加しない。価格や在庫initial等の現行判定はテスト設計書に明示し、未確定の空値条件と混同しない。
-- countSellItemの新商品自身の扱い。旧APIは既存itemを公開するため、その行が集計対象に含まれる場合がある。新APIは作成前集計となるため、同値にするための1件加算の要否を確認する。deleted_at非null行を含める現行serviceの条件を変更するかも確認し、独断で変更しない。
-- モデル・migrationは参照済みだが、実DBの反映状態は未確認。実装時に反映後DBを正として制約を照合する。本作業ではmigrationを作成・実行しない。
+- countSellItemの新商品自身の扱い。旧APIは既存itemを公開するため、その行が集計対象に含まれる場合がある。新APIは作成前集計となるため、同値にするための1件加算の要否を確認する。item.deleted_atは削除済みであり、削除日時による条件は設けない。
+- ユーザーより3カラムのModel・DB削除済みと確認。今回はDBに接続せず、将来のDBテスト前に反映後DBの制約を照合する。本作業ではmigrationを作成・実行しない。
 
 ### 旧APIの置き換え状況
 

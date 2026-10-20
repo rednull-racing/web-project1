@@ -1,6 +1,5 @@
 import type {
     CountUpdateParams,
-    ItemDataParams,
     PublishUpdateParams,
     SortUpdateParams,
     UpdateSortBuzzNumberDecayParams,
@@ -24,16 +23,6 @@ export const updateSortNumber = async ({ item, data }: SortUpdateParams) => {
 
 export const addViewsCount = async ({ item, data }: CountUpdateParams) => {
     await item.update(data);
-};
-
-export const updateRestoreItem = async ({ item }: ItemDataParams) => {
-    const nowDate = new Date();
-
-    await item.update({
-        uploaded_at: nowDate,
-        status: "active",
-        deleted_at: null,
-    });
 };
 
 export const updatePublishItem = async ({ item, data }: PublishUpdateParams) => {

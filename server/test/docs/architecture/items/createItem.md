@@ -6,7 +6,14 @@
 
 根拠は[詳細設計書](../../../../../docs/design/backend/detail/items/createItem.md)の第2〜8章、本番コード、2026-10-20のユーザーによる仕様確定。変更していない契約は[初回実装時の方針記録](../../../../../docs/log_memo/codex_log.md#20261019_backend-coding_createItem本番実装)も参照する。設計形式は[共通ルール](../AGENTS.md)、[配置規則](../../../AGENTS.md)、既存の [createItemEditingCopy](../itemEditing/createItemEditingCopy.md)、[createItemDraft](../itemDraft/createItemDraft.md)、[updateConfirm](../itemEditing/updateConfirm.md) を参考にする。他機能の過去の観測やケース数を本機能の保証へ流用しない。
 
-初回は2026-10-20に文書だけを作成した。その後、同日の仕様確定依頼に基づいて本番usecase・本書・対応する詳細設計書を更新する。本書の期待結果はテスト実行結果ではない。テストコード・fixture・設定・Model・migrationは変更せず、テスト・DB接続・migrationは実行しない。後述のテスト配置とコマンドは将来の実装用であり、本番コードのlint・型検査と区別する。
+初回は2026-10-20に文書だけを作成し、同日の仕様確定依頼で本番usecase・本書・詳細設計書を更新した。今回のカラム削除追従では本番の残存参照と既存単体テスト・fixtureも修正し、関連単体テスト・lint・型検査を行う。Model・migrationは変更せず、DB接続・migrationは実行しない。本書の期待結果はcreateItemテストの実行結果ではない。後述のテスト配置とコマンドは将来の実装用。
+
+### 2026-10-20 カラム削除への追従
+
+- ユーザーがModel・DBから `item.deleted_at`、`item_editing.item_id`、`item_draft.item_id` を削除済みと確認。これを現行契約とし、旧item_idのnull・非nullを用意するケースを廃止する。B01/D07は元セッションIDと新商品IDの分離・既存データ不変の確認へ更新する。
+- 出品数集計はseller_idとactive/soldoutのみ。削除日時を持つ商品fixtureは作らない。作成値にもdeleted_atを含めない。
+- server/src全体の残存参照を除去。ユーザー回答により旧論理削除・復元APIは503・ITEM_ARCHIVE_UNAVAILABLEで停止し、30日削除cronは登録・旧実装を削除する。item_trash移行は別対応。本公開処理の行DELETE競合ケースは維持する。
+- 以下の旧仕様確定履歴は経緯であり、カラム削除後のfixture・期待値には適用しない。
 
 ### 2026-10-20 仕様確定による変更履歴
 
@@ -25,11 +32,11 @@
 | 論点 | 調査時点の根拠・扱い | 対応ケース |
 | --- | --- | --- |
 | 新公開APIの接続 | 新usecase・body schema・controller・10分5回の制限・POST接続が存在。旧patchPublishUseCaseの定義・import/export・ルート接続はserver/srcにない | N01、V01〜V06、R01〜R13 |
-| 元item_id・新規採番 | 今回の確認回答により、item_editing.item_idはnull・非nullとも受理する。元item_idを作成先へ渡さずitem.idを新規採番。video/sale/配送にitem_id列を追加しない | B01、D07、N02 |
+| 編集セッションと新規採番 | item_editing/item_draftにitem_idは存在しない。item.idを新規採番し、セッションのidを作成先へ渡さない。video/sale/配送にitem_id列を追加しない | B01、D07、N02 |
 | 価格・公開データ | name/titleの型、first_image_url、整数価格300〜1000000を確認。今回7種類のIDを必須化し、各1〜2147483647の整数、nullを含む不正値は400・INVALID_NUMBER | B02〜B10、AF-ID01〜AF-ID03 |
 | 在庫の構造と業務条件 | 詳細設計の構造不正500に加え、実装は各initialの負数・小数を400・`ITEM_PUBLISH_DATA_INVALID`とする。0は受理。current/ratioの値域や在庫合計の整合性は検証しない | I01〜I12、O02 |
 | マスター再検証 | 公開前提で7種類のIDを検証後、category/condition/day/service/placeをvalidateMasterで再検証。brand/aliasは再解決せず既存FKをコピーする。共有helperのnull省略は公開成功条件にしない | M01〜M07、O03 |
-| 出品商品数 | 方針記録は作成前集計・1件加算なし・deleted_at条件変更なし。実装も一致 | N07、S05、D05 |
+| 出品商品数 | 作成前集計・1件加算なし。seller_idとstatus IN active/soldoutだけを条件とし、削除済みのdeleted_atを参照しない | N07、S05、D05 |
 | 文字列・動画完了の最終要件 | name/titleは空文字を拒否しない。converted_url/duration/video_statusのnullも処理可能。7種類のID必須化と、これら未確定の公開業務要件を分ける | N04、B08、O01、O03 |
 | 削除との競合 | 対象行DELETEとの排他を検証する。cronEditingDeleteUseCaseは調査・修正・テスト対象外 | P05〜P08 |
 | DB反映状態 | モデル・migrationを参照しただけで実DBは未確認 | 第11節、D系、P系 |
@@ -48,7 +55,7 @@
 | 認証・制限・エラー | `src/middleware/authMiddleware.ts`、`src/middleware/rateLimit/itemsRateLimit.ts`、`src/errors.ts`、`src/middleware/errorHandler.ts` |
 | 型 | `src/types/itemAttributes.ts`、`src/types/serviceType/{items,itemEditing,video,sale,itemShippingProfile,users,categories,follow}.ts` |
 | モデル・接続 | `src/models/{item,item_editing,video,sale,item_shipping_profile,categories,follow}.ts`、`src/db.ts`、`src/config/config.ts`。モデル初期化・親fixtureは既存databaseFixturesも参照 |
-| DB定義資料 | `migrations/20261005062153-delete-column-item-id.js`、`migrations/20261006044423-update-column-item-editing.js`：関連側item_id等の削除、元行item_idのnullable化 |
+| DB定義資料 | `migrations/20261020120909-remove-item-deleted-at-and-session-item-id.js`：item.deleted_at、item_editing/item_draft.item_idの削除。旧関連側カラム削除は `migrations/20261005062153-delete-column-item-id.js` 参照 |
 | 競合する保存 | `src/usecases/itemEditing/updateConfirm.ts`。削除競合は自作fixtureの元行を独立transactionでDELETEして用意し、cronは使用しない |
 | 既存単体・結合・fixture | `src/usecases/itemEditing/createItemEditingCopy/test/inventoryReset.test.ts`、`src/services/itemEditing/test/updateConfirm.test.ts`、`test/integration/usecases/itemEditing/updateConfirm/databaseConcurrency.test.ts`、`test/fixtures/itemEditing/createItemEditingCopy/{databaseSetup,databaseFixtures}.ts` |
 | 既存レポート・実行設定 | `test/docs/report/itemEditing/createItemEditingCopy.md`、`package.json`、`tsconfig.json`、`test/tsconfig.json`、`eslint.config.mjs` |
@@ -60,7 +67,7 @@
 1. 共通JSON parser → RouterのauthenticateToken → createItemRateLimit → validateBody(createItemBodySchema) → createItemController。JSON構文不正は認証・制限より先に停止する。
 2. controllerは `req.user.id` と `req.validatedBody.itemEditingId` だけをusecaseへ渡す。params/query/bodyの所有者情報を使用しない。
 3. managed transaction開始 → `getMyItemEditing({ itemEditingId, userId, transaction: t })`。serviceは `where: { id, seller_id }` と `lock: t.LOCK.UPDATE` を指定する。ItemEditingにはstatus/deleted_at条件やVideoのincludeを追加しない。
-4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後はoriginal_url → thumbnail_url → image_urlの欠落/空/超過 → 7種類のIDのnull/整数範囲 → name/title/first_image_url/priceの順に判定する。item_idは公開可否の判定にもコピー先のIDにも使わない。
+4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後はoriginal_url → thumbnail_url → image_urlの欠落/空/超過 → 7種類のIDのnull/整数範囲 → name/title/first_image_url/priceの順に判定する。編集セッションにitem_idは存在せず、セッションidはコピー先のIDに使わない。
 5. attributes全体の構造検証 → structuredClone → 商品・各色・各サイズのinitial業務検証とcurrent復元。構造不正は500、有限数値でもinitialが負数・小数なら400。途中で失敗してもコピー元を変更しない。
 6. getUser（必要な4列のみ）→ validateMaster（category→condition→day→service→place）→ parent_idがあれば親カテゴリー → countFollower → countSellItem。すべて同じt。出品者欠落はUSER_NOT_FOUND・500。
 7. sort計算 → createVideo → createSale → createShipping → 公開日時生成・search_text正規化 → createItem → ロック済みModelのdeleteItemEditing。各書込みに同じt。
@@ -97,7 +104,7 @@ Routerは現行のimport経路で対象外usecaseもモックし、controllerの
 
 ## 5. 標準fixture・共通アサーション
 
-- Uの標準は `userId=7`、`itemEditingId=11`、`item_id=null`。作成結果はvideo.id=101、sale.id=202、shipping.id=303、createItem戻り値=456とし、IDの取り違えを検出する。Dでは実採番を使い、固定IDやIDの連続性に依存しない。
+- Uの標準は `userId=7`、`itemEditingId=11`。元行にitem_idは用意しない。作成結果はvideo.id=101、sale.id=202、shipping.id=303、createItem戻り値=456とし、IDの取り違えを検出する。Dでは実採番を使い、固定IDやIDの連続性に依存しない。
 - 所有者A、別ユーザーB、Aの新規セッション、Bのセッション、Aの別セッション、既存公開商品とその3関連、既存ItemDraftを用意する。非対象行のbefore snapshotを保存する。Dの集計fixtureは作成対象とは分ける。
 - 商品名 ` ＴｅＳＴ カタカナ `、動画title ` ＶＩＤＥＯ テスト `、子カテゴリー名 ` シャツ `、親名 ` ＴＯＰＳ `、user_name ` ＵＳＥＲ `。detail=`説明AB`（4）、summary=`動画C`（3）、user_introduction=`紹介DE`（4）、price=12340、penalty_points=5、followerCount=2、sellItemCount=3。期待sortは両方6295、search_textは `testかたかなvideoてすとしゃつtopsuser`。本番関数で期待値を生成しない。
 - original/converted/thumbnail/商品先頭/商品2枚目/色画像のURLを識別可能にする。画像順序も固定。category/condition/day/service/place/brand/aliasはそれぞれ別ID。sale入力はbefore_price=15000、discount_rate=20、discount_amount=1000、sale_flag=trueとしてリセットを検出する。
@@ -120,11 +127,11 @@ Routerは現行のimport経路で対象外usecaseもモックし、controllerの
 | item.seller_id | 認証済みuserId。body内seller_id/userIdは使用しない |
 | item.attributes | e.attributesの深いコピー。存在する各inventory.currentだけを同じinventory.initialへ戻す |
 | itemの算出・関連 | `sort_number=sort_buzz_number=sort`、`search_text=normalizedSearchText`、`video_id=video.id, sale_id=sale.id, shipping_id=shipping.id` |
-| itemの公開管理値 | `status="active", views_count=0, early_sell=true, deleted_at=null, checked=false, report_score=0`、`uploaded_at=save_at=now` |
+| itemの公開管理値 | `status="active", views_count=0, early_sell=true, checked=false, report_score=0`、`uploaded_at=save_at=now` |
 | video | eの `thumbnail_url, title, summary, duration, original_url, converted_url`、`status=e.video_status, play_count=0` |
 | sale | `before_price=e.before_price, discount_rate=null, discount_amount=null, sale_flag=false` |
 | item_shipping_profile | eの `shipping_day_id, shipping_service_id, shipping_place_id, shipping_service_free_text` |
-| コピーしない項目 | eの `id, item_id, createdAt, updatedAt`。関連のdataへ `item_id, user_id` を追加しない。関連IDはitem側にのみ設定 |
+| コピーしない項目 | eの `id, createdAt, updatedAt`。関連のdataへ `item_id, user_id` を追加しない。関連IDはitem側にのみ設定 |
 | 削除対象 | getMyItemEditingが返した同じModelだけを同じtでdeleteItemEditingへ渡す |
 
 | ID | レベル | 条件／入力／手順 | 期待結果 |
@@ -157,12 +164,12 @@ Vはschema単体と実validateBodyの双方で確認する。schema単体のsafe
 
 ## 8. 保存済み公開データ・エラー優先順位
 
-各行は標準の保存データから該当列だけを変更する。B01〜B10の失敗はtransaction開始済み・元行取得後であり、公開用の参照/集計/作成/削除/通知へ進まない。属性変換より前に止まる。整数列の小数・不正型などDBで保存できない値はUで注入し、通常の保存fixtureで作れたことにしない。
+B01は正常系であり、削除済みカラムをfixtureへ追加しない。他の各行は標準の保存データから該当列だけを変更する。B02〜B10の失敗はtransaction開始済み・元行取得後であり、公開用の参照/集計/作成/削除/通知へ進まない。属性変換より前に止まる。整数列の小数・不正型などDBで保存できない値はUで注入し、通常の保存fixtureで作れたことにしない。
 
 | ID | レベル | 条件／入力／手順 | 期待結果 |
 | --- | --- | --- | --- |
 | E01 | U/D | 不存在/他人所有/seller_id=null/先行で消費済みの元セッション。Uでは取得serviceがnullを返す境界、Dでは実whereによる未取得を確認 | いずれも404・ITEM_EDITING_NOT_FOUND、元行の内容を返さない。transaction開始済みでrollbackし、公開前提検証・属性複製・user取得以降・全作成/削除/通知なし |
-| B01 | U/D | 同じ正常データでitem_id=null／既存商品IDを個別指定（Uでは0も独立確認） | どちらも新規公開へ進む。itemのcreate dataにid/item_idなし。元item_idを戻り値や関連の作成dataへ使わない。既存商品を更新しない |
+| B01 | U/D | item_idを持たない正常な編集セッションと、別の既存商品・下書きを用意 | 新規公開へ進む。itemのcreate dataにid/item_id/deleted_atなし。セッションidを新商品・関連のIDへ流用せず、既存商品を更新しない |
 | B02 | U/D | original_url=null/空文字 | 400・VIDEO_URL_NULL |
 | B03 | U/D | thumbnail_url=null/空文字 | 400・THUMBNAIL_URL_NULL |
 | B04 | U/D | image_url=null/[]、1枚/10枚/11枚 | null/0枚はITEM_IMAGE_NULL、11枚はITEM_IMAGE_LIMIT_EXCEEDED、各400。1/10枚は後続へ進む。11枚のDはModel配列validatorとDB保存可能性を区別する |
@@ -171,7 +178,7 @@ Vはschema単体と実validateBodyの双方で確認する。schema単体のsafe
 | B07 | U/D | first_image_url=null/空文字 | 400・ITEM_PUBLISH_DATA_INVALID。image_urlから自動補完しない |
 | B08 | U/H | 必須7種類のIDを各1/2147483647にする | 範囲判定を通過。category/condition/day/service/placeはマスター検証へ進み、不存在ならM02の404。brand/aliasは再検索せずコピーし、実DBで存在しないFKはD08で区別。nullはAF-ID01 |
 | B09 | U | 必須7種類のIDを各0/-1/2147483648/1.5/"1"/undefined/NaN/Infinityにする | 400・INVALID_NUMBER。helperが0検索を省くことを公開APIの受理仕様にしない。getUser/validateMaster/集計/作成/削除/通知未実行 |
-| B10 | U | 複数不備を対で投入：original+thumbnail、thumbnail+画像、画像0/11+null/不正ID、null/不正ID+price、price+属性不正。正常なitem_id非nullとURL欠落の組合せも追加 | 第3節の最初の判定のエラー。item_id非nullはエラー原因にしない。後の判定のエラーで上書きしない。画像null/空と枚数超過は別入力にする |
+| B10 | U | 複数不備を対で投入：original+thumbnail、thumbnail+画像、画像0/11+null/不正ID、null/不正ID+price、price+属性不正 | 第3節の最初の判定のエラー。後の判定のエラーで上書きしない。画像null/空と枚数超過は別入力にする |
 
 ## 9. attributes・在庫の敵対的入力
 
@@ -207,7 +214,7 @@ Iは実usecase内の変換を実行する。全異常系でgetUser以降が未�
 | S02 | S | transaction省略で同service | whereは維持しlock/t指定なし。既存呼出し互換の検証であり、公開usecaseがtを省くことは許容しない |
 | S03 | S | deleteItemEditingにロック済みModelとt、成功/reject | そのModel.destroyへ `{ transaction:t }` を1回。再検索/別ID削除/別transactionの補償処理なし。同一Error伝播 |
 | S04 | S | createVideo/createSale/createShipping/createItemを個別に実行 | 各Model.create(data,{ transaction:t })にdata/t同一参照。前三者は作成Model、createItemはitem.idのnumber。rejectは同一Error、service自身はtransaction開始/終了しない |
-| S05 | S/D | countSellItem、所有者A/B、active/soldout、deleted_atあり/なしを用意 | seller_id=Aかつstatus IN active/soldout。deleted_at条件なし。別所有者除外。現行ENUMにないstatusをDBfixtureに作らずSでwhereを完全一致検証 |
+| S05 | S/D | countSellItem、所有者A/B、active/soldoutを用意 | seller_id=Aかつstatus IN active/soldout。deleted_at条件なし。別所有者除外。現行ENUMにないstatusをDBfixtureに作らずSでwhereを完全一致検証 |
 | S06 | S/D | countFollowerでAをフォローする行とAがフォローする行を区別 | `follower_user_id=A`を数える。follow_user_idへ反転しない。同じtを渡す |
 | S07 | S | getUserへ列指定とt、カテゴリー/各マスターへIDとt | getUserは `id,user_name,user_introduction,penalty_points` の列指定、各findByPkへ同じt。参照系は不要なFOR UPDATEなし |
 | S08 | S | 任意t対応の参照/集計をtあり/なしで個別実行 | tありは必ず伝達。tなしの既存呼出し形式を維持し、返値/null/rejectを伝播。これは公開処理のt必須検証とは分離 |
@@ -219,7 +226,7 @@ Iは実usecase内の変換を実行する。全異常系でgetUser以降が未�
 1. `server/` を実行ディレクトリとし、DB関連importより前に `server/.env.test` 由来の設定、NODE_ENV=test、PostgreSQLのDB名=test_dbを検査する。src/db.tsに加え、モデル初期化・observer・competitorの全接続を対象に、設定DB名と接続後の `SELECT current_database()` を照合してからfixtureを書き込む。
 2. 引数なしdotenv.config、別envの明示読込、接続URL差替え、ガード後の変更を検出する。別env/test_db以外/読込元・接続先不明では中断してユーザー判断を待つ。値を黙って差し替えず、接続URL/認証情報をログへ出さない。接続不明のまま後片付けのDELETEもしない。
 3. 用意済みの反映済みスキーマを検査する。item_editing、item、video、sale、item_shipping_profile、user、categories、follow、item_draft、5種類のマスター・ブランド/別名などfixtureの親行が必要。カテゴリのpath/layer等のNOT NULLも満たす。自動DB作成/migration/sync/truncate/全件削除は行わない。
-4. itemのvideo_id/sale_id/shipping_idが各関連を参照し、関連側に旧item_idやvideo.user_idがないこと、元行item_idのnull許容、JSONB/配列/ENUM/整数、外部キーと削除動作を実DBで照合する。現在のModelではitemの3関連FKはON DELETE SET NULL、ItemEditing.item_idはON DELETE CASCADE。逆方向の連鎖削除を想定してcleanupを省略しない。差があれば環境不一致を報告し、期待値を合わせない。
+4. itemのvideo_id/sale_id/shipping_idが各関連を参照し、関連側に旧item_idやvideo.user_idがないこと、item.deleted_atおよびitem_editing/item_draft.item_idが存在しないこと、JSONB/配列/ENUM/整数、外部キーと削除動作を実DBで照合する。現在のModelではitemの3関連FKはON DELETE SET NULL。編集セッション・下書きからitemへの旧FKは存在しない。逆方向の連鎖削除を想定してcleanupを省略しない。差があれば環境不一致を報告し、期待値を合わせない。
 5. 実接続のisolationを確認し、Pの「待機後に更新/削除済み行を再判定」はREAD COMMITTEDで検証する。別isolationでserialization failure等が出た場合に404と同一視しない。集計元全体のスナップショット固定を要求しない。
 6. fixtureと本処理が作ったIDを追跡する。失敗してrollbackされた関連IDも控え、observerの新規SELECTで残存0を確認する。通知は原則モックし、公開結果の検査と非同期通知のcleanup競合を避ける。既存商品・下書き・別セッションのsnapshotと行数差分も比較する。
 7. rollback/commitの検査を外側のrollback専用テストtransactionで包まない。usecase自身のtransactionと独立したobserverで、commit前後/rollback後を読む。処理したインスタンスだけで保存成功を判定しない。DECIMALのraw取得は文字列になり得るため比較時の表現を統一する。
@@ -257,9 +264,9 @@ TのUはmanaged transactionをモックし、callbackの完了とtransaction外�
 | D02 | D/T | 実item作成と元行削除後、callback終了直前で保留 | observerは新4行を見ず元行を参照可能。同じt内では新行あり・元行なし。解放commit後に反転し、その後HTTP成功 |
 | D03 | D/T | T06/T07の各失敗後にobserverでSELECT | 全追加0、元行保持、既存4種/下書き/他セッション不変。NOWAITの再ロック等でロック解放も確認 |
 | D04 | D/T | 途中失敗→元行が保持されることを確認→障害を外して同じIDで再試行 | 後続は1組だけ生成して成功、元行削除、通知開始は成功回だけ1回。失敗で消費されたsequence値を巻き戻さない |
-| D05 | D | count対象としてAのactive/soldout・deleted_at非nullとBの行、両方向followを用意 | 第10節の条件で集計し新商品の自己加算なし。sortを独立した件数から照合。既存行のstatus等は変更しない |
+| D05 | D | count対象としてAのactive/soldoutとBの行、両方向followを用意 | 第10節の条件で集計し新商品の自己加算なし。sortを独立した件数から照合。既存行のstatus等は変更しない |
 | D06 | D | 成功後同じセッションIDで再送、消費済み/不存在/他人IDも比較 | 各404・ITEM_EDITING_NOT_FOUND、本文も同一。追加4行0・通知0、最初の公開商品は維持 |
-| D07 | D/R | 既存item_idを持つ編集セッションから公開（nullのD01と対照） | 201で新itemと3関連が各1件。新item.idは既存item_idとは別の新規採番、既存item/関連/下書き不変、元セッションだけ削除。新IDを通知/応答へ使用し、再送は404 |
+| D07 | D/R | item_idを持たない編集セッションと、別の既存item・関連・下書きを用意して公開 | 201で新itemと3関連が各1件。新item.idは新規採番、既存item/関連/下書き不変、元セッションだけ削除。セッションidとの数値の不一致自体は要求せず、独立した採番を確認する。新IDを通知/応答へ使用し、再送は404 |
 | D08 | D/T | モデルvalidation失敗／実DBのFK・NOT NULL等の制約失敗を作成段階へ注入 | 通常Error500、全rollback・元行保持。実serviceに渡すdataだけをspyで壊す等の注入範囲を明記。既存制約を削除しない。Model拒否とDBが拒否したケースを区別 |
 | D09 | D/R | 正常・不存在・URL欠落・属性構造破損・途中作成失敗・通知失敗の代表条件 | HTTPとDBの双方がN/B/I/Tの契約に一致。エラー応答は開始済みtransactionのrollback後、正常応答はcommit後。モックだけのRと別集計 |
 | D10 | D/R | 実usecaseを接続したHTTPで401/429/INVALID_BODY/INVALID_JSONを個別発生させる。429は同一ユーザーの不正body5回で枠を消費して準備 | 対象公開用sequelize.transactionの呼出し0、4テーブル追加0・元行と保護対象不変・通知0。fixture準備のDB処理を呼出し数に含めず、リクエスト直前に観測を開始 |
@@ -311,7 +318,7 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 
 ## 15. 観測・仕様確認を要する項目
 
-以下はコード上の挙動を将来観測するケース。望ましい公開要件の確定・不具合修正済み・実行済みという意味ではない。今回確定したID必須化と新規採番以外の仕様を独断変更せず、実装と契約が食い違う項目を本書と報告へ残す。
+以下はコード上の挙動を将来観測するケース。望ましい公開要件の確定・不具合修正済み・実行済みという意味ではない。今回確定したID必須化・新規採番・3カラム削除以外の仕様を独断変更せず、実装と契約が食い違う項目を本書と報告へ残す。
 
 | ID | レベル | 条件／入力／手順 | 観測内容・固定しない保証 |
 | --- | --- | --- | --- |
@@ -357,7 +364,7 @@ AF-ID01のR単独はusecaseが返す400の応答形式までとし、保存済�
 
 ### 将来の実行方法
 
-現在は未作成のファイル案を含む。テスト実装後、`server/` で対象を明示して実行する。DB非接続と実DBは別集計とし、Dの前に第11節のガードを満たす。今回Vitestは実行しない。本番修正のlint・型検査は下記テスト計画とは別に実行し、作業ログへ記録する。
+現在は未作成のファイル案を含む。テスト実装後、`server/` で対象を明示して実行する。DB非接続と実DBは別集計とし、Dの前に第11節のガードを満たす。createItem専用のVitestは未実装・未実行。カラム削除に伴う既存単体テストの回帰実行とlint・型検査は下記テスト計画とは別に行い、作業ログへ記録する。
 
 ```bash
 # 単体の代表（Sは第4節で実装した各対象ファイルも個別指定する）

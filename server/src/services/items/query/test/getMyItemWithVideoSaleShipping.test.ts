@@ -14,10 +14,10 @@ import { getMyItemWithVideoSaleShipping } from "../relation.js";
 let transaction: Transaction;
 const params = () => ({ userId: 7, itemId: 101, transaction });
 const lockOptions = () => ({
-    attributes: ["id"], where: { id: 101, seller_id: 7, deleted_at: null }, transaction, lock: transaction.LOCK.UPDATE,
+    attributes: ["id"], where: { id: 101, seller_id: 7 }, transaction, lock: transaction.LOCK.UPDATE,
 });
 const readOptions = () => ({
-    where: { id: 101, seller_id: 7, deleted_at: null },
+    where: { id: 101, seller_id: 7 },
     attributes: [
         "id", "seller_id", "status", "name", "detail", "image_url", "item_condition_id",
         "first_image_url", "gender_type", "age_type", "recommend", "category_id",

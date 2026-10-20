@@ -5,7 +5,6 @@ export const getMyItemDraft = ({ itemDraftId, userId, transaction }: ItemDraftUs
     return ItemDraft.findOne({
         attributes: [
             "id",
-            "item_id",
             "name",
             "detail",
             "image_url",

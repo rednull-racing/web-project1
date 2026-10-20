@@ -78,7 +78,6 @@ export const makeItem = () => ({
         shipping_place_id: number | null; shipping_service_free_text: string | null;
     } | null | undefined,
     video_id: 201, sale_id: 202, shipping_id: 203, views_count: 999,
-    deleted_at: null as Date | null,
     createdAt: new Date("2020-01-01T00:00:00Z"), updatedAt: new Date("2020-02-01T00:00:00Z"),
 });
 export type SourceFixture = ReturnType<typeof makeItem>;

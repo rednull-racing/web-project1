@@ -12,10 +12,6 @@ export type ItemIdParams = {
     itemId: number;
 };
 
-export type CronPerfectDeleteItemsParams = {
-    deletedBefore: Date;
-};
-
 export type CronEditingDeleteParams = {
     createdBefore: Date;
 };
@@ -190,12 +186,4 @@ export type UpdateReportScoreParams = {
 
 export type ItemDataParams = {
     item: InstanceType<typeof Item>;
-};
-
-export type LogicalDeleteParams = {
-    item: InstanceType<typeof Item>;
-    data: {
-        price: number;
-    };
-    transaction: Transaction;
 };
