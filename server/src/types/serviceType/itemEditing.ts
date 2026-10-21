@@ -73,6 +73,7 @@ export type UpdateConfirmParams = {
         summary: string;
         thumbnail_url: string;
         original_url: string | null;
+        video_status: "original";
 
         before_price: number;
 

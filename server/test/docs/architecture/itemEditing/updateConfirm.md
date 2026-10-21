@@ -1,5 +1,11 @@
 # 商品編集中データの確定更新：テストコード設計書
 
+## 2026-10-21 動画状態の更新契約
+
+ユーザー指示により、serviceのupdateConfirmへ渡すdataに`video_status: "original"`を常に設定する。
+ST06はnull/original/pending/completedからoriginalへの更新を単体・実DBで確認し、converted_url・duration等の非更新項目は維持する。
+以下のvideo_statusを変更しないという記載は変更前の履歴とし、この契約を優先する。結果は[レポート](../../report/itemEditing/updateConfirm.md)を参照。
+
 ## 現在の配置（2026-10-16）
 
 以下は `server/` 基準。旧ファイル名と過去の実行コマンドは当時の記録として残す。

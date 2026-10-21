@@ -146,6 +146,7 @@ describe("P0: usecaseの更新と処理順序", () => {
                 summary: "動画説明",
                 original_url: "https://media.test/new-video",
                 thumbnail_url: "https://media.test/new-thumbnail",
+                video_status: "original",
                 shipping_day_id: 41,
                 shipping_service_id: 51,
                 shipping_place_id: 13,
@@ -254,13 +255,13 @@ describe("P0: usecaseの更新と処理順序", () => {
         expect(data().attributes.colorVariants?.[0].inventory).toEqual(inventory(1));
         expect(data().attributes.colorVariants?.[0].sizes?.[0].inventory).toEqual(inventory(1));
     });
-    it.each([null, "pending", "completed"])("ST06: video_status=%sによる分岐や動画状態の更新がない", async (status) => {
+    it.each([null, "original", "pending", "completed"])("ST06: video_status=%sでもoriginalへ更新する", async (status) => {
         item.video_status = status;
         await run();
+        expect(data().video_status).toBe("original");
         for (const key of [
             "seller_id",
             "item_id",
-            "video_status",
             "converted_url",
             "duration",
             "sale_flag",

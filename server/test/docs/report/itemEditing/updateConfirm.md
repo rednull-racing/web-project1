@@ -1,8 +1,18 @@
 # updateConfirm テスト報告・修正記録
 
+## 2026-10-21 video_statusをoriginalへ更新（最新）
+
+- ユーザー指示でusecaseの更新dataとservice引数型へ`video_status: "original"`を追加。N01/N02の完全一致とST06の単体・実DB期待値を更新し、null/original/pending/completedからの更新を検証。
+- `server/`で`npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/services/itemEditing/test/updateConfirm.test.ts src/usecases/shared/test/updateConfirm.signedUrls.test.ts test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts`：4ファイル291件成功。service・transaction・署名等をモックする単体と、実helper接続を含むDB非接続結合の結果。
+- `npm run test:run -- test/integration/database/itemEditing/updateConfirm/database.test.ts`：92件中63件成功・29件失敗。初回EPERM後に制限外で実行。動画状態変更に伴う完全一致期待値を修正して再実行し、ST06の4件と全保存項目のケースは成功。
+- 残る失敗はI03/I04の旧数値契約（0・空白・負数・小数・Infinity）。今回変更前のvalidateNumberによる正整数拒否・空白null化と期待値が不一致。今回は修正せず[Todo](../../../../../docs/todo/P3-techdebt/reconcile-update-confirm-database-number-contracts.md)へ記録。
+- `.env.test`読込元と接続後の`test_db`検査、自作IDのcleanup・残存確認、接続終了hookを含む既存fixtureで実行。S3はモック。migration実行なし。他の実DBテストは今回未実行。
+- `npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`成功。通常lint対象外の変更DBテストもESLint APIから既存recommended設定で追加検査し成功。
+- 以下は過去の実行履歴で、video_status維持の旧期待値は[最新設計](../../architecture/itemEditing/updateConfirm.md)冒頭の契約へ移行。
+
 <a id="contracts-20261016"></a>
 
-## 2026-10-16 共有契約の移行・DB非接続境界の修正（最新）
+## 2026-10-16 共有契約の移行・DB非接続境界の修正（履歴）
 
 関連10ファイル・542件すべて成功（失敗・skip・todo・未処理例外0件）。updateConfirmは8ファイル533件、Draft/Copyのcontroller回帰は2ファイル9件。DB接続・migration・本番コード変更なし。以下の古い結果は当時の履歴として残す。
 

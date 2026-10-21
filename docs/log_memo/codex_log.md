@@ -827,3 +827,10 @@
 - 詳細設計・controller・関連テスト/fixture・文書の参照パスを更新。処理内容は変更なし。
 - 関連5ファイル418件、lint、本番/テスト型検査、差分検査が成功。HTTP待受制限は制限外で再検証。
 - 既存のdocs/design/backend/itemUpload.mdの未コミット変更は保持し、コミット対象外。
+
+## 20261021_backend-coding_updateConfirm動画状態更新
+
+- updateConfirm呼出しのdataとservice引数型にvideo_status: "original"を追加し、単体・実DBテストの期待値を更新。
+- DB非接続291件、lint、本番/テスト型検査、変更DBテストの追加lintが成功。
+- 実DBは63/92件成功。ST06全4件と全保存項目が成功し、対象外の旧数値契約29件の失敗はTodoへ記録。
+- テスト設計・レポートを更新。既存の未追跡convertItemEditingVideo.mdは変更・コミット対象外。

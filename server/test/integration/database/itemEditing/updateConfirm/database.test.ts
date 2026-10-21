@@ -67,6 +67,7 @@ describe("P0 DB保存・状態遷移", () => {
             before_price: 300,
             title: "動画タイトル",
             summary: "動画説明",
+            video_status: "original",
             category_id: f.category.id,
             item_condition_id: f.condition.id,
             gender_type: "unisex",
@@ -209,12 +210,12 @@ describe("P0 DB保存・状態遷移", () => {
         });
     });
 
-    it.each([null, "pending", "completed"])("ST06: video_status=%sでも更新し変換関連値を維持", async (status) => {
+    it.each([null, "original", "pending", "completed"])("ST06: video_status=%sをoriginalへ更新し変換関連値を維持", async (status) => {
         await f.editing.update({ video_status: status, converted_url: "https://media.test/converted" });
         await run(f);
         expect(await snapshot(f.editing.id)).toMatchObject({
             name: "商品名",
-            video_status: status,
+            video_status: "original",
             converted_url: "https://media.test/converted",
             duration: 20,
         });
