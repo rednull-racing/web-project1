@@ -1,5 +1,5 @@
 export { getItemFormData } from "./form.js";
-export { getCronPerfectDeleteItems, getItemsSortBuzzNumberDecayCron, getItemsSortNumberDecayCron } from "./cron.js";
+export { getItemsSortBuzzNumberDecayCron, getItemsSortNumberDecayCron } from "./cron.js";
 export { getAllItems } from "./list/allItems.js";
 export {
     getIndexItemsWithCount,
@@ -14,7 +14,9 @@ export { getMetadata } from "./meta.js";
 export { getAdminItemPage, getItemPageData } from "./page.js";
 export {
     getItem,
+    getItemByVideoId,
     getMyItem,
+    getMyItemBySaleId,
     getItemHighlight,
     getItemWithCategory,
     getItemWithVideoCategoriesUser,

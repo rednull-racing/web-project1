@@ -36,7 +36,7 @@
 
 ## コーディング規約
 
-/docs/rule/backend/coding_rule/route.md
+/docs/codingRule/backend/route.md
 
 ## 例外
 

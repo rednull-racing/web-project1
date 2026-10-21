@@ -1,8 +1,8 @@
 import { col, Op, Order, where as sequelizeWhere } from "sequelize";
 import { AppError } from "../../../errors.js";
 import { countSellItem, countSoldItem } from "../../../services/items/index.js";
-import { countUnread } from "../../../services/notification.js";
-import { countReferenceOutput } from "../../../services/referenceCode.js";
+import { countUnread } from "../../../services/notification/notification.js";
+import { countReferenceOutput } from "../../../services/referenceCode/referenceCode.js";
 import { getMeMypage } from "../../../services/users/query.js";
 
 type Params = {

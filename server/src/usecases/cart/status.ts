@@ -1,4 +1,4 @@
-import { getCartOne } from "../../services/cart.js";
+import { getCartOne } from "../../services/cart/cart.js";
 
 type Params = {
     itemId: number;

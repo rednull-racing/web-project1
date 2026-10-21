@@ -39,10 +39,6 @@ export default async function Page({ params }: Props) {
         redirect("/item-list/draft");
     }
 
-    if (item.status !== "draft") {
-        redirect(`/item/${id}`);
-    }
-
     return (
         <Form
             itemId={id}

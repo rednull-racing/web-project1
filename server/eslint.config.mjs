@@ -14,15 +14,14 @@ export default tseslint.config(
             "tmp/**",
             "eslint.config.mjs",
             "scripts/**",
+            "src/maintenance/**",
+            "src/prototype/**",
         ],
     },
 
     {
         files: ["src/**/*.ts"],
         extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
-        rules: {
-            "@typescript-eslint/no-explicit-any": "off",
-        },
     },
 
     {

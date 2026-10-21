@@ -1,6 +1,6 @@
 import { InferAttributes, Op, WhereOptions } from "sequelize";
 import Transfer from "../../models/transfer.js";
-import { getTransferHistory } from "../../services/transfer.js";
+import { getTransferHistory } from "../../services/transfer/transfer.js";
 
 type Params = {
     userId: number;

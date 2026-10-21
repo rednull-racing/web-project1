@@ -1,4 +1,4 @@
-import { getSearchHistoryAll } from "../../services/search.js";
+import { getSearchHistoryAll } from "../../services/search/search.js";
 
 type Params = {
     userId: number;
@@ -12,7 +12,7 @@ export const getSearchHistoryUseCase = async ({ userId }: Params) => {
     const searchHistory = await getSearchHistoryAll({ userId });
 
     // 並べ替え
-    const sortedData = searchHistory.sort((a: any, b: any) => b.createdAt - a.createdAt);
+    const sortedData = searchHistory.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return sortedData;
 };

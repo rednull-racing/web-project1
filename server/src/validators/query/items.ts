@@ -1,14 +1,12 @@
 import { z } from "zod";
 
 const itemPageModes = ["normal", "draft", "confirm", "deleted"] as const;
-const uploadModes = ["main", "draft"] as const;
 const itemListTypes = ["video", "item"] as const;
 const itemListViews = ["index", "profile"] as const;
 const recommendItemsViews = ["recommend", "cart", "itemPage"] as const;
 const searchItemSort = ["popular", "new", "priceAsc", "priceDesc"] as const;
 
 export type ItemPageMode = (typeof itemPageModes)[number];
-export type UploadMode = (typeof uploadModes)[number];
 export type ItemListType = (typeof itemListTypes)[number];
 export type ItemListView = (typeof itemListViews)[number];
 export type RecommendItemsview = (typeof recommendItemsViews)[number];
@@ -16,10 +14,6 @@ export type SearchItemSort = (typeof searchItemSort)[number];
 
 export const getItemPageQuerySchema = z.object({
     mode: z.enum(itemPageModes),
-});
-
-export const putItemUploadQuerySchema = z.object({
-    mode: z.enum(uploadModes),
 });
 
 export const itemSortNumberQuerySchema = z.object({
@@ -48,7 +42,6 @@ export const searchItemsQuerySchema = z.object({
 });
 
 export type ItemPageQuery = z.infer<typeof getItemPageQuerySchema>;
-export type ItemUploadQuery = z.infer<typeof putItemUploadQuerySchema>;
 export type ItemSortNumberQuery = z.infer<typeof itemSortNumberQuerySchema>;
 export type ItemListQuery = z.infer<typeof itemListQuerySchema>;
 export type RecommendItemsQuery = z.infer<typeof recommendItemsQuerySchema>;

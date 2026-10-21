@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { getComment, updateSortNumber } from "../../services/comment.js";
+import { getComment, updateSortNumber } from "../../services/comment/comment.js";
 
 type Params = {
     commentId: number;

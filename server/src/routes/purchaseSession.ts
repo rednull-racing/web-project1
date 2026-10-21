@@ -3,7 +3,7 @@ import {
     getPurchaseSessionAddressController,
     getPurchaseSessionNameController,
     purchaseSessionPostByItemIdController,
-} from "../controllers/purchaseSession.js";
+} from "../controllers/purchaseSession/purchaseSession.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     createPurchaseSessionRateLimit,

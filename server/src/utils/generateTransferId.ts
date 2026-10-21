@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { getTransferIdExistingOne } from "../services/transfer.js";
+import { getTransferIdExistingOne } from "../services/transfer/transfer.js";
 
 export const generateTransferId = async (): Promise<string> => {
     for (let i = 0; i < 5; i++) {

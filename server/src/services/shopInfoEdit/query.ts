@@ -57,10 +57,12 @@ export const getMyShopEditHasShop = ({ shopEditId, userId }: ShopEditUserIdParam
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],
@@ -361,7 +363,7 @@ export const getMyShopEditHasS3Data = ({
     shopEditId,
     userId,
 }: ShopEditUserIdParams): Promise<ShopEditWithS3Data | null> => {
-    return ShopInfo.findOne({
+    return ShopInfoEdit.findOne({
         where: {
             id: shopEditId,
             user_id: userId,
@@ -385,10 +387,12 @@ export const getMyShopEditHasS3Data = ({
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],

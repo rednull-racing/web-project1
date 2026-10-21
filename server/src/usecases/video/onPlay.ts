@@ -1,6 +1,6 @@
 import { AppError } from "../../errors.js";
-import { getItem, updateSortNumber } from "../../services/items/index.js";
-import { addPlayCount, getVideo } from "../../services/video.js";
+import { getItemByVideoId, updateSortNumber } from "../../services/items/index.js";
+import { addPlayCount, getVideo } from "../../services/video/video.js";
 
 type Params = {
     videoId: number;
@@ -22,14 +22,14 @@ export const onPlayVideoUseCase = async ({ videoId, userId }: Params) => {
     await addPlayCount({ video, data: { play_count: newPlayCount } });
 
     // item取得
-    const item = await getItem({ itemId: video.item_id });
+    const item = await getItemByVideoId({ videoId: video.id });
 
     if (!item) throw new AppError("ITEM_NOT_FOUND", 404);
 
     // sort_number更新
     if (userId && item.status === "active") {
-        const newSortNumber = item.sort_number + 15;
-        const newSortBuzzNumber = item.sort_buzz_number + 70;
+        const newSortNumber = Number(item.sort_number) + 15;
+        const newSortBuzzNumber = Number(item.sort_buzz_number) + 70;
 
         await updateSortNumber({
             item,

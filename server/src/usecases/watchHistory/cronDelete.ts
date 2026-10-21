@@ -1,4 +1,4 @@
-import { deleteCronWatchHistory } from "../../services/watchHistory.js";
+import { deleteCronWatchHistory } from "../../services/watchHistory/watchHistory.js";
 
 // 90日経過WatchHistory削除
 export const watchHistoryCronDeleteUseCase = () => {

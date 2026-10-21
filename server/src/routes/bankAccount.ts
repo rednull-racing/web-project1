@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { bankAccountPatchByIdController } from "../controllers/bankAccount.js";
+import { bankAccountPatchByIdController } from "../controllers/bankAccount/bankAccount.js";
 import { authenticateToken } from "../middleware/index.js";
 import { bankEditRateLimit } from "../middleware/rateLimit/bankAccountRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";

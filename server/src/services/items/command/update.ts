@@ -1,12 +1,10 @@
 import type {
     CountUpdateParams,
-    ItemDataParams,
     PublishUpdateParams,
     SortUpdateParams,
     UpdateSortBuzzNumberDecayParams,
     UpdateSortNumberDecayParams,
     UpdateItemImageParams,
-    UpdateItemParams,
     UpdatePriceParams,
     UpdateReportScoreParams,
 } from "../../../types/serviceType/items.js";
@@ -27,16 +25,6 @@ export const addViewsCount = async ({ item, data }: CountUpdateParams) => {
     await item.update(data);
 };
 
-export const updateRestoreItem = async ({ item }: ItemDataParams) => {
-    const nowDate = new Date();
-
-    await item.update({
-        uploaded_at: nowDate,
-        status: "active",
-        deleted_at: null,
-    });
-};
-
 export const updatePublishItem = async ({ item, data }: PublishUpdateParams) => {
     const nowDate = new Date();
 
@@ -47,18 +35,6 @@ export const updatePublishItem = async ({ item, data }: PublishUpdateParams) => 
         early_sell: true,
         ...data,
     });
-};
-
-export const updateItem = async ({ item, data, transaction }: UpdateItemParams) => {
-    const nowDate = new Date();
-
-    await item.update(
-        {
-            save_at: nowDate,
-            ...data,
-        },
-        { transaction },
-    );
 };
 
 export const updateImage = async ({ item, urls, transaction }: UpdateItemImageParams) => {

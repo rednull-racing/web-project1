@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { suggestWordsGetRootController } from "../controllers/suggestWords.js";
+import { suggestWordsGetRootController } from "../controllers/suggestWords/suggestWords.js";
 import { getSuggestWordsRateLimit } from "../middleware/rateLimit/suggestWordsRateLimit.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";
 import { keywordOptionalQuerySchema } from "../validators/query/keyword.js";

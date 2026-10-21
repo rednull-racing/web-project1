@@ -1,54 +1,9 @@
 import rateLimit from "express-rate-limit";
-import { AuthUser } from "../authMiddleware.js";
+import type { AuthUser } from "../authMiddleware.js";
 
 export const createItemRateLimit = rateLimit({
     windowMs: 1000 * 60 * 10,
-    limit: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-
-    keyGenerator: (req) => {
-        const authReq = req as unknown as {
-            user: AuthUser;
-        };
-
-        return `admin:${authReq.user.id}`;
-    },
-});
-
-export const createItemCopyRateLimit = rateLimit({
-    windowMs: 1000 * 60 * 15,
     limit: 5,
-    standardHeaders: true,
-    legacyHeaders: false,
-
-    keyGenerator: (req) => {
-        const authReq = req as unknown as {
-            user: AuthUser;
-        };
-
-        return `admin:${authReq.user.id}`;
-    },
-});
-
-export const uploadItemRateLimit = rateLimit({
-    windowMs: 1000 * 60 * 10,
-    limit: 3,
-    standardHeaders: true,
-    legacyHeaders: false,
-
-    keyGenerator: (req) => {
-        const authReq = req as unknown as {
-            user: AuthUser;
-        };
-
-        return `admin:${authReq.user.id}`;
-    },
-});
-
-export const uploadPublishItemRateLimit = rateLimit({
-    windowMs: 1000 * 60 * 15,
-    limit: 10,
     standardHeaders: true,
     legacyHeaders: false,
 
@@ -108,21 +63,6 @@ export const logicalDeleteItemRateLimit = rateLimit({
 export const perfectDeleteItemRateLimit = rateLimit({
     windowMs: 1000 * 60 * 10,
     limit: 5,
-    standardHeaders: true,
-    legacyHeaders: false,
-
-    keyGenerator: (req) => {
-        const authReq = req as unknown as {
-            user: AuthUser;
-        };
-
-        return `admin:${authReq.user.id}`;
-    },
-});
-
-export const draftDeleteItemRateLimit = rateLimit({
-    windowMs: 1000 * 60 * 10,
-    limit: 20,
     standardHeaders: true,
     legacyHeaders: false,
 

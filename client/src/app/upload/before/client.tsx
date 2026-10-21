@@ -19,7 +19,7 @@ export const Client = () => {
                 return;
             }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/items`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/item-editing`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -34,10 +34,10 @@ export const Client = () => {
                 return;
             }
 
-            const itemId = data.itemId;
+            const itemEditingId = data.itemEditingId;
 
-            router.push(`/upload/${itemId}`);
-        } catch (err) {
+            router.push(`/upload/${itemEditingId}`);
+        } catch {
             alert("システムエラーが発生しました。時間をおいて再試行してください");
         }
     };

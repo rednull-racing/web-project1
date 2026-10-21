@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 import type { PurchaseSnapshot } from "../types/purchaseSnapshot.js";
 
@@ -33,6 +34,9 @@ export class Orders extends Model {
     declare status: "pending" | "paid" | "shipped" | "completed" | "cancelled" | "returned";
     declare purchase_snapshot: PurchaseSnapshot;
     declare coupon_user_id: number | null;
+
+    declare Delivery?: NonAttribute<Delivery | null>;
+    declare Item?: NonAttribute<Item | null>;
 
     static associate() {
         Orders.belongsTo(PaymentMethodOption, {

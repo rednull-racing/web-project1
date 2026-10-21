@@ -3,29 +3,36 @@ import crypto from "crypto";
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
 import { Item } from "../../../models/index.js";
-import { upsertCancel } from "../../../services/cancel.js";
-import { deleteCartUserLogical } from "../../../services/cart.js";
-import { deleteCommentUserLogical } from "../../../services/comment.js";
-import { deleteCommentLikeUserLogical } from "../../../services/commentLike.js";
-import { updateDeliveryCancel } from "../../../services/delivery.js";
-import { deleteFollowerUserLogical, deleteFollowUserLogical } from "../../../services/follow.js";
-import { bulkCreateItemDeleted } from "../../../services/itemDeleted.js";
-import { bulkCreateItemDeleteLogs } from "../../../services/itemDeleteLogs.js";
-import { deleteItemLikeUserLogical } from "../../../services/itemLike.js";
+import { upsertCancel } from "../../../services/cancel/cancel.js";
+import { deleteCartUserLogical } from "../../../services/cart/cart.js";
+import { deleteCommentUserLogical } from "../../../services/comment/comment.js";
+import { deleteCommentLikeUserLogical } from "../../../services/commentLike/commentLike.js";
+import { updateDeliveryCancel } from "../../../services/delivery/delivery.js";
+import { deleteFollowerUserLogical, deleteFollowUserLogical } from "../../../services/follow/follow.js";
+import { bulkCreateItemDeleted } from "../../../services/itemDeleted/itemDeleted.js";
+import { bulkCreateItemDeleteLogs } from "../../../services/itemDeleteLogs/itemDeleteLogs.js";
+import { deleteItemLikeUserLogical } from "../../../services/itemLike/itemLike.js";
 import { destroyPerfectItem, getMyItemsWithVideoAll } from "../../../services/items/index.js";
-import { createJournal } from "../../../services/journal.js";
-import { createNotification, deleteNotificationUserLogical } from "../../../services/notification.js";
-import { bulkCreateOrderDeleted } from "../../../services/orderDeleted.js";
-import { getTradingOrdersAll, updateOrdersStatus } from "../../../services/orders.js";
-import { updatePointLots } from "../../../services/pointLots.js";
-import { createOverConfiscated } from "../../../services/pointsUriageOver.js";
-import { deleteInputCodeUserLogical, deleteOutputCodeUserLogical } from "../../../services/referenceCode.js";
-import { createTransfer, deleteTransferUserLogical, sumTransferNotFinishUser } from "../../../services/transfer.js";
-import { updateUsedUriagekin } from "../../../services/uriagekinLots.js";
-import { createUserDeleteLogs } from "../../../services/userDeleteLogs.js";
+import { createJournal } from "../../../services/journal/journal.js";
+import { createNotification, deleteNotificationUserLogical } from "../../../services/notification/notification.js";
+import { bulkCreateOrderDeleted } from "../../../services/orderDeleted/orderDeleted.js";
+import { getTradingOrdersAll, updateOrdersStatus } from "../../../services/orders/orders.js";
+import { updatePointLots } from "../../../services/pointLots/pointLots.js";
+import { createOverConfiscated } from "../../../services/pointsUriageOver/pointsUriageOver.js";
+import {
+    deleteInputCodeUserLogical,
+    deleteOutputCodeUserLogical,
+} from "../../../services/referenceCode/referenceCode.js";
+import {
+    createTransfer,
+    deleteTransferUserLogical,
+    sumTransferNotFinishUser,
+} from "../../../services/transfer/transfer.js";
+import { updateUsedUriagekin } from "../../../services/uriagekinLots/uriagekinLots.js";
+import { createUserDeleteLogs } from "../../../services/userDeleteLogs/userDeleteLogs.js";
 import { updateUserLogicalDelete } from "../../../services/users/command.js";
 import { getUserHasBankAccount, getUserHasUriagekinPointBank } from "../../../services/users/query.js";
-import { deleteWatchHistoryUserLogical } from "../../../services/watchHistory.js";
+import { deleteWatchHistoryUserLogical } from "../../../services/watchHistory/watchHistory.js";
 import { DeleteOrderType } from "../../../types/deleteOrderType.js";
 import { moveToGlacier } from "../../../utils/moveToGlacier.js";
 import { createBuyerRefundBankSnapshot, createBuyerRefundNotificationMessage } from "./deleteUserRefund.js";
@@ -40,7 +47,7 @@ type DeleteItemDataType = {
     item_id: number;
     seller_id: number;
     item_name: string;
-    explain: string;
+    detail: string;
     price: number;
     image_url: string[];
     video_url: string | null;
@@ -75,8 +82,8 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
     // 売上金・ポイント・未振込金回収
     const transferMoney = await sumTransferNotFinishUser({ userId: pageUserId });
 
-    const uriagekinAll = user.uriagekin;
-    const pointsAll = user.points;
+    const uriagekinAll = Number(user.uriagekin);
+    const pointsAll = Number(user.points);
 
     let deleteUriage = uriagekinAll;
     let deletePoints = pointsAll;
@@ -237,21 +244,21 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
                             data: {
                                 orders_id: order.id,
                                 cancel_reason: "商品削除",
-                                return_amount: order.total_amount,
-                                item_count: order.item_count,
+                                return_amount: Number(order.total_amount),
+                                item_count: Number(order.item_count),
                                 cancel_flag: true,
                                 cancel_fee_return_id: 2,
                             },
                             transaction: t,
                         });
 
-                        const buyer = await getUserHasBankAccount({ userId: order.buyer_user_id });
+                        const buyer = await getUserHasBankAccount({ userId: Number(order.buyer_user_id) });
 
                         if (!buyer) throw new AppError("USER_NOT_FOUND", 404);
 
                         const buyerAccount = buyer.BankAccount;
                         const message = createBuyerRefundNotificationMessage({
-                            itemName: item.name,
+                            itemName: String(item.name),
                             buyerHasAccount: !!buyerAccount,
                         });
 
@@ -269,9 +276,9 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
 
                         await createTransfer({
                             data: {
-                                request_money: order.total_amount,
+                                request_money: Number(order.total_amount),
                                 handling_charge: 0,
-                                trans_money: order.total_amount,
+                                trans_money: Number(order.total_amount),
                                 trans_reason_id: 2,
                                 trans_schedule_date: twoWeeksLater,
                                 user_id: buyer.id,
@@ -283,11 +290,11 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
 
                         deleteOrder.push({
                             orders_id: order.id,
-                            delivery_id: order.Delivery.id,
+                            delivery_id: Number(order.Delivery?.id),
                             cancel_reason: "出品者削除",
                             refund_status: "未返金",
                             refund_method: "口座振込",
-                            refund_amount: order.total_amount,
+                            refund_amount: Number(order.total_amount),
                             deleted_by: adminId,
                         });
 
@@ -300,11 +307,13 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
                     });
                 }
 
-                let newImages = [];
+                let newImages: string[] = [];
                 if (item.image_url && item.image_url.length > 0) {
-                    newImages = await Promise.all(
-                        item.image_url.map((url: string) => moveToGlacier({ userId: pageUserId, url })),
-                    );
+                    newImages = (
+                        await Promise.all(
+                            item.image_url.map((url: string) => moveToGlacier({ userId: pageUserId, url })),
+                        )
+                    ).filter((url): url is string => url !== null);
                 }
 
                 let newVideoUrl = null;
@@ -327,10 +336,10 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
                 // 商品削除ログ作成
                 deleteItemsData.push({
                     item_id: item.id,
-                    seller_id: item.seller_id,
-                    item_name: item.name,
-                    explain: item.explain,
-                    price: item.price,
+                    seller_id: Number(item.seller_id),
+                    item_name: String(item.name),
+                    detail: String(item.detail),
+                    price: Number(item.price),
                     image_url: newImages,
                     video_url: newVideoUrl,
                     thumbnail_url: newThumbnailUrl,

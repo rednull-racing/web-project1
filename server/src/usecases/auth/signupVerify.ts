@@ -1,12 +1,15 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
-import { createAddressFirst } from "../../services/address.js";
-import { createBankAccountFirst } from "../../services/bankAccount.js";
-import { createIdCardFirst } from "../../services/idCard.js";
-import { createNameFirst } from "../../services/name.js";
-import { createInputCode } from "../../services/referenceCode.js";
-import { createRefreshToken } from "../../services/refreshTokens.js";
-import { destroyToken, getTokenVerificationOne } from "../../services/tokenSignupVerificationCode.js";
+import { createAddressFirst } from "../../services/address/address.js";
+import { createBankAccountFirst } from "../../services/bankAccount/bankAccount.js";
+import { createIdCardFirst } from "../../services/idCard/idCard.js";
+import { createNameFirst } from "../../services/name/name.js";
+import { createInputCode } from "../../services/referenceCode/referenceCode.js";
+import { createRefreshToken } from "../../services/refreshTokens/refreshTokens.js";
+import {
+    destroyToken,
+    getTokenVerificationOne,
+} from "../../services/tokenSignupVerificationCode/tokenSignupVerificationCode.js";
 import { emailVerifyUser } from "../../services/users/command.js";
 import { getUser } from "../../services/users/query.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/jwtHelper.js";

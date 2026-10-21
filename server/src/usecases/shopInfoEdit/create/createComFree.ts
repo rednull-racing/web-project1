@@ -1,8 +1,8 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { createAddressAllowNull } from "../../../services/address.js";
-import { createBankAccountAllowNull } from "../../../services/bankAccount.js";
-import { createNameShopAllowNull } from "../../../services/name.js";
+import { createAddressAllowNull } from "../../../services/address/address.js";
+import { createBankAccountAllowNull } from "../../../services/bankAccount/bankAccount.js";
+import { createNameShopAllowNull } from "../../../services/name/name.js";
 import { getMyShopHasAddressNameBank } from "../../../services/shopInfo/query.js";
 import { createShopEditComFree } from "../../../services/shopInfoEdit/command.js";
 
@@ -70,7 +70,7 @@ export const createShopEditComFreeUseCase = async ({ shopId, userId, comFreeId }
                 bank_code: bank?.bank_code ?? null,
                 branch: bank?.branch ?? null,
                 branch_code: bank?.branch_code ?? null,
-                account_type: bank?.account_type ?? null,
+                account_type: bank?.account_type ?? "ordinary",
                 account_number: bank?.account_number ?? null,
                 meigi: bank?.meigi ?? null,
             },

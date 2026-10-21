@@ -1,8 +1,8 @@
-import { Model, DataTypes, Association } from "sequelize";
+import { Association, DataTypes, Model } from "sequelize";
 import sequelize from "../db.js";
 
-import User from "./user.js";
 import Delivery from "./delivery.js";
+import User from "./user.js";
 
 export class ItemDeleted extends Model {
     declare id: number;

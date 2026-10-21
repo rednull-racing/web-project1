@@ -1,7 +1,7 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
-import { getMyItem, updatePrice } from "../../services/items/index.js";
-import { getSale, updateSaleEdit } from "../../services/sale.js";
+import { getMyItemBySaleId, updatePrice } from "../../services/items/index.js";
+import { getSale, updateSaleEdit } from "../../services/sale/sale.js";
 
 type Params = {
     saleId: number;
@@ -24,7 +24,7 @@ export const saleStopUseCase = async ({ saleId, userId }: Params) => {
     }
 
     // item取得
-    const item = await getMyItem({ itemId: sale.item_id, userId });
+    const item = await getMyItemBySaleId({ saleId: sale.id, userId });
 
     if (!item) throw new AppError("ITEM_NOT_FOUND", 404);
 

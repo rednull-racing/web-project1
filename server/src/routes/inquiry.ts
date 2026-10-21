@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { inquiryPostRootController } from "../controllers/inquiry.js";
+import { inquiryPostRootController } from "../controllers/inquiry/inquiry.js";
 import { authenticateOptional } from "../middleware/authOptional.js";
 import { createInquiryRateLimit } from "../middleware/rateLimit/inquiryRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";

@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import S3Metadata from "./s3_metadata.js";
@@ -26,9 +27,12 @@ export class Permit extends Model {
     declare createdAt: Date;
     declare updatedAt: Date;
 
+    declare S3Metadata?: NonAttribute<S3Metadata | null>;
+
     static associate() {
         Permit.belongsTo(S3Metadata, {
             foreignKey: "s3_metadata_id",
+            as: "S3Metadata",
         });
         Permit.belongsTo(ShopInfo, {
             foreignKey: "shop_info_id",

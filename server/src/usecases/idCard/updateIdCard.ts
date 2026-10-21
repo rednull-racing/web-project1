@@ -6,8 +6,8 @@ import { deleteS3Object } from "../../infra/aws/deleteS3Object.js";
 import { getS3Object } from "../../infra/aws/getS3Object.js";
 import { verificationDocumentsBucket } from "../../infra/aws/s3.js";
 import { uploadS3Object } from "../../infra/aws/uploadS3Object.js";
-import { getMyIdCard, updateIdCard } from "../../services/idCard.js";
-import { createS3Metadata } from "../../services/s3Metadata.js";
+import { getMyIdCard, updateIdCard } from "../../services/idCard/idCard.js";
+import { createS3Metadata } from "../../services/s3Metadata/s3Metadata.js";
 import { UpdateIdCardBody } from "../../validators/body/idCard.js";
 
 type Params = {

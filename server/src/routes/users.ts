@@ -22,7 +22,7 @@ import {
     usersPatchHonninController,
     usersPatchPhoneNumberController,
     usersPatchProfileController,
-} from "../controllers/users.js";
+} from "../controllers/users/users.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import {

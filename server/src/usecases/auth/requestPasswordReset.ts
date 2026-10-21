@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { AppError } from "../../errors.js";
-import { createTokenResetPW } from "../../services/tokenPasswordReset.js";
+import { createTokenResetPW } from "../../services/tokenPasswordReset/tokenPasswordReset.js";
 import { getUserEmailOne } from "../../services/users/query.js";
 
 type Params = {

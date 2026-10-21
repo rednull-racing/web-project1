@@ -21,12 +21,12 @@
 
 ## 対象ファイル
 
-- `/docs/rule/backend/coding_rule/controller.md`
+- `/docs/codingRule/backend/controller.md`
 
 ## 参照すべきファイル
 
-- `/docs/rule/backend/coding_rule/AGENTS.md`
-- `/docs/rule/backend/coding_rule/usecase.md`
+- `/docs/codingRule/backend/AGENTS.md`
+- `/docs/codingRule/backend/usecase.md`
 - `/server/src/controllers/items.ts`
 - `/server/src/controllers/users/me/items.ts`
 - `/server/src/controllers/comment.ts`

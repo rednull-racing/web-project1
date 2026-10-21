@@ -1,5 +1,5 @@
 import { Banks } from "../../models/index.js";
-import { getBanksAll } from "../../services/banks.js";
+import { getBanksAll } from "../../services/banks/banks.js";
 
 type Params = {
     kw: string;
@@ -31,7 +31,7 @@ export const searchBanksUseCase = async ({ kw }: Params) => {
                 nHira.includes(kw)
             );
         })
-        .map((bank: typeof Banks) => ({
+        .map((bank: InstanceType<typeof Banks>) => ({
             code: bank.code,
             name: bank.normalize?.name || bank.name,
             kana: bank.kana,

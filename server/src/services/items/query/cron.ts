@@ -1,10 +1,6 @@
 import { Op } from "sequelize";
 import { Item } from "../../../models/index.js";
-import type {
-    CronPerfectDeleteItemsParams,
-    GetItemsReportScoreCronParams,
-    GetItemsSortDecayCronParams,
-} from "../../../types/serviceType/items.js";
+import type { GetItemsReportScoreCronParams, GetItemsSortDecayCronParams } from "../../../types/serviceType/items.js";
 
 export const getItemsReportScoreCron = ({ minReportScore }: GetItemsReportScoreCronParams) => {
     return Item.findAll({
@@ -17,7 +13,7 @@ export const getItemsReportScoreCron = ({ minReportScore }: GetItemsReportScoreC
 export const getItemsSortBuzzNumberDecayCron = ({ minSortNumber }: GetItemsSortDecayCronParams) => {
     return Item.findAll({
         where: {
-            status: { [Op.in]: ["active", "hidden"] },
+            status: { [Op.in]: ["active"] },
             sort_buzz_number: { [Op.gt]: minSortNumber },
         },
     });
@@ -26,17 +22,8 @@ export const getItemsSortBuzzNumberDecayCron = ({ minSortNumber }: GetItemsSortD
 export const getItemsSortNumberDecayCron = ({ minSortNumber }: GetItemsSortDecayCronParams) => {
     return Item.findAll({
         where: {
-            status: { [Op.in]: ["active", "hidden"] },
+            status: { [Op.in]: ["active"] },
             sort_number: { [Op.gt]: minSortNumber },
-        },
-    });
-};
-
-export const getCronPerfectDeleteItems = ({ deletedBefore }: CronPerfectDeleteItemsParams) => {
-    return Item.findAll({
-        where: {
-            status: "deleted",
-            deleted_at: { [Op.lt]: deletedBefore },
         },
     });
 };

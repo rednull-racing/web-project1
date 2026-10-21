@@ -8,7 +8,6 @@ import TodouhukenOption from "./todouhuken_option.js";
 
 export class ItemShippingProfile extends Model {
     declare id: number;
-    declare item_id: number;
     declare shipping_day_id: number | null;
     declare shipping_service_id: number | null;
     declare shipping_place_id: number | null;
@@ -26,8 +25,8 @@ export class ItemShippingProfile extends Model {
         ItemShippingProfile.belongsTo(TodouhukenOption, {
             foreignKey: "shipping_place_id",
         });
-        ItemShippingProfile.belongsTo(Item, {
-            foreignKey: "item_id",
+        ItemShippingProfile.hasOne(Item, {
+            foreignKey: "shipping_id",
         });
     }
 
@@ -46,17 +45,6 @@ ItemShippingProfile.init(
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
-        },
-        item_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true,
-            references: {
-                model: "item",
-                key: "id",
-            },
-            onUpdate: "NO ACTION",
-            onDelete: "CASCADE",
         },
         shipping_day_id: {
             type: DataTypes.INTEGER,

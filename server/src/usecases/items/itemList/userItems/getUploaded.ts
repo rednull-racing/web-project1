@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import { getUserItemsUploadedList } from "../../../../services/items/index.js";
+import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {
     page: number;
@@ -15,16 +16,16 @@ export const getUploadedItemsUseCase = async ({ page, userId, status, keyword }:
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const where: any = {
+    const where: ItemWhere = {
         seller_id: userId,
     };
 
     // status分岐
-    if (status) {
+    if (status === "active" || status === "soldout") {
         where.status = status;
     } else {
         // デフォルト
-        where.status = { [Op.in]: ["active", "hidden", "soldout"] };
+        where.status = { [Op.in]: ["active", "soldout"] };
     }
 
     if (keyword) {

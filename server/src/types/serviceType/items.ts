@@ -1,13 +1,15 @@
-import { InferAttributes, Op, Order, Transaction, WhereOptions } from "sequelize";
-import { Item } from "../../models/index.js";
-import { BodyCategory, ItemAttributes, Layer, LifeStyleCategory } from "../itemAttributes.js";
+import { Op } from "sequelize";
+import type { InferAttributes, Order, Transaction, WhereOptions } from "sequelize";
+import type { Item } from "../../models/index.js";
+import type ItemModel from "../../models/item.js";
+import type ItemShippingProfile from "../../models/item_shipping_profile.js";
+import type Sale from "../../models/sale.js";
+import type Video from "../../models/video.js";
+
+export type ItemWhere = WhereOptions<InferAttributes<ItemModel>>;
 
 export type ItemIdParams = {
     itemId: number;
-};
-
-export type CronPerfectDeleteItemsParams = {
-    deletedBefore: Date;
 };
 
 export type CronEditingDeleteParams = {
@@ -38,6 +40,7 @@ export type UpdateSortNumberDecayParams = {
 
 export type UserIdParams = {
     userId: number;
+    transaction?: Transaction;
 };
 
 export type GetAllItemParams = {
@@ -54,30 +57,79 @@ export type UserItemIdParams = {
     itemId: number;
 };
 
+export type UserSaleIdParams = {
+    userId: number;
+    saleId: number;
+};
+
+export type GetMyItemWithVideoSaleShippingParams = UserItemIdParams & {
+    transaction?: Transaction;
+};
+
+export type ItemWithVideoSaleShipping = InstanceType<typeof ItemModel> & {
+    Video: InstanceType<typeof Video> | null;
+    Sale: InstanceType<typeof Sale> | null;
+    ItemShippingProfile: InstanceType<typeof ItemShippingProfile> | null;
+};
+
 export type ItemListParams = {
-    where: any;
+    where: ItemWhere;
     limit: number;
     offset: number;
 };
 
 export type RecommendParams = {
-    where: any;
+    where: ItemWhere;
 };
 
 export type ItemPageRecommendParams = {
-    where: any;
+    where: ItemWhere;
     targetParentId: number;
     categoryRequired: boolean;
 };
 
 export type SearchItemParams = {
     limit: number;
-    where: WhereOptions<InferAttributes<typeof Item>>;
+    where: ItemWhere;
     order: Order;
 };
 
 export type UserIdTransactionParams = {
     userId: number;
+    transaction: Transaction;
+};
+
+export type CreateItemParams = {
+    data: Pick<
+        InstanceType<typeof ItemModel>,
+        | "name"
+        | "detail"
+        | "image_url"
+        | "price"
+        | "item_condition_id"
+        | "seller_id"
+        | "first_image_url"
+        | "gender_type"
+        | "age_type"
+        | "recommend"
+        | "category_id"
+        | "brand_id"
+        | "brand_aliases_id"
+        | "attributes"
+        | "views_count"
+        | "sort_number"
+        | "sort_buzz_number"
+        | "search_text"
+        | "video_id"
+        | "sale_id"
+        | "shipping_id"
+        | "status"
+        | "uploaded_at"
+        | "save_at"
+        | "early_sell"
+        | "checked"
+        | "report_score"
+    >;
     transaction: Transaction;
 };
 
@@ -110,63 +162,6 @@ export type PublishUpdateParams = {
     };
 };
 
-export type UpdateItemParams = {
-    item: InstanceType<typeof Item>;
-    data: {
-        name: string;
-        detail: string;
-
-        category_id: number | null;
-        gender_type: string | null;
-        age_type: string | null;
-        brand_id: number | null;
-        brand_aliases_id: number | null;
-        item_condition_id: number | null;
-
-        attributes: {
-            inventory?: {
-                initial: number;
-                current: number;
-                low_stock_ratio: number;
-            };
-
-            colorVariants?: Array<{
-                uiId?: string;
-                color?: string;
-                image_url?: string;
-                inventory?: {
-                    initial: number;
-                    current: number;
-                    low_stock_ratio: number;
-                };
-
-                sizes?: Array<{
-                    size: string;
-                    inventory: {
-                        initial: number;
-                        current: number;
-                        low_stock_ratio: number;
-                    };
-                }>;
-            }>;
-
-            materials?: Array<{
-                name: string;
-                ratio: number;
-            }>;
-
-            body_category?: BodyCategory;
-            lifestyle_category?: LifeStyleCategory;
-            layer?: Layer;
-        };
-
-        price: number;
-        first_image_url: string;
-        status: "editing" | "draft";
-    };
-    transaction: Transaction;
-};
-
 export type UpdateItemImageParams = {
     item: InstanceType<typeof Item>;
     urls: string[];
@@ -191,31 +186,4 @@ export type UpdateReportScoreParams = {
 
 export type ItemDataParams = {
     item: InstanceType<typeof Item>;
-};
-
-export type LogicalDeleteParams = {
-    item: InstanceType<typeof Item>;
-    data: {
-        price: number;
-    };
-    transaction: Transaction;
-};
-
-export type CreateItemCopyUploadParams = {
-    data: {
-        name: string;
-        detail: string;
-        price: number;
-        item_condition_id: number;
-        seller_id: number;
-        search_text: string;
-        image_url: string | string[];
-        first_image_url: string;
-        gender_type: string;
-        age_type: string;
-        category_id: number;
-        brand_id: number | null;
-        attributes: ItemAttributes;
-    };
-    transaction: Transaction;
 };

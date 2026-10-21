@@ -1,7 +1,7 @@
 import { AppError } from "../../../errors.js";
-import { countItemPageComment } from "../../../services/comment.js";
-import { countItemLike } from "../../../services/itemLike.js";
-import { countItemReport } from "../../../services/itemReport.js";
+import { countItemPageComment } from "../../../services/comment/comment.js";
+import { countItemLike } from "../../../services/itemLike/itemLike.js";
+import { countItemReport } from "../../../services/itemReport/itemReport.js";
 import { getAdminItemPage } from "../../../services/items/index.js";
 import { getMeHighlight } from "../../../services/users/query.js";
 

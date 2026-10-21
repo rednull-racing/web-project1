@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { categoriesGetByIdLevel2Controller } from "../controllers/categories.js";
+import { categoriesGetByIdLevel2Controller } from "../controllers/categories/categories.js";
 import { getLevel2RateLimit } from "../middleware/rateLimit/categoriesRateLimit.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { idParamSchema } from "../validators/params/id.js";

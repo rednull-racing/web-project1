@@ -38,10 +38,6 @@ export default async function Page({ params }: Props) {
         redirect("/upload/before");
     }
 
-    if (item.status !== "editing") {
-        redirect("/upload/before");
-    }
-
     return (
         <Form
             itemId={id}

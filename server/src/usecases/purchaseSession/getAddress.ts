@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { getMyPurchaseSessionHasAddress } from "../../services/purchaseSession.js";
+import { getMyPurchaseSessionHasAddress } from "../../services/purchaseSession/purchaseSession.js";
 
 type Params = {
     purchaseSessionId: number;

@@ -1,13 +1,13 @@
 import { Transaction } from "sequelize";
 
 import { deleteS3Object } from "../../../../infra/aws/deleteS3Object.js";
-import { S3Metadata, ShopSignup } from "../../../../models/index.js";
-import { deleteAddress } from "../../../../services/address.js";
-import { deleteBankAccount } from "../../../../services/bankAccount.js";
-import { deleteIdCard } from "../../../../services/idCard.js";
-import { deleteName } from "../../../../services/name.js";
-import { deletePermit } from "../../../../services/permit.js";
-import { deleteS3Metadata } from "../../../../services/s3Metadata.js";
+import { ShopSignup } from "../../../../models/index.js";
+import { deleteAddress } from "../../../../services/address/address.js";
+import { deleteBankAccount } from "../../../../services/bankAccount/bankAccount.js";
+import { deleteIdCard } from "../../../../services/idCard/idCard.js";
+import { deleteName } from "../../../../services/name/name.js";
+import { deletePermit } from "../../../../services/permit/permit.js";
+import { deleteS3Metadata } from "../../../../services/s3Metadata/s3Metadata.js";
 
 type Params = {
     oldShopSignup: InstanceType<typeof ShopSignup>[];
@@ -66,26 +66,23 @@ export const deleteOldShopSignup = async ({ oldShopSignup, transaction }: Params
                 await deleteIdCard({ idCard, transaction });
             }
 
-            if (oldData.Permit) {
-                const permit = oldData.Permit;
-                const s3MetadataList = permit.S3Metadata;
+            await Promise.all(
+                (oldData.Permit ?? []).map(async (permit) => {
+                    const s3Metadata = permit.S3Metadata;
 
-                if (s3MetadataList.length > 0) {
-                    await Promise.all(
-                        s3MetadataList.map(async (s3Metadata: InstanceType<typeof S3Metadata>) => {
-                            deleteS3Object({
-                                bucketName: s3Metadata.bucket_name,
-                                objectKey: s3Metadata.object_key,
-                                versionId: s3Metadata.version_id,
-                            });
+                    if (s3Metadata) {
+                        deleteS3Object({
+                            bucketName: s3Metadata.bucket_name,
+                            objectKey: s3Metadata.object_key,
+                            versionId: s3Metadata.version_id,
+                        });
 
-                            await deleteS3Metadata({ s3Metadata, transaction });
-                        }),
-                    );
-                }
+                        await deleteS3Metadata({ s3Metadata, transaction });
+                    }
 
-                await deletePermit({ permit, transaction });
-            }
+                    await deletePermit({ permit, transaction });
+                }),
+            );
         }),
     );
 };

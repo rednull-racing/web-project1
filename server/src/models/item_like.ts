@@ -1,4 +1,5 @@
 import { Model, DataTypes, Association } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import User from "./user.js";
@@ -10,6 +11,8 @@ export class ItemLike extends Model {
     declare user_id: number;
     declare createdAt: Date;
     declare updatedAt: Date;
+
+    declare Item?: NonAttribute<Item | null>;
 
     static associate() {
         ItemLike.belongsTo(Item, {

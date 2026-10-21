@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { pointsHistoryGetRootController } from "../controllers/pointsHistory.js";
+import { pointsHistoryGetRootController } from "../controllers/pointsHistory/pointsHistory.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { getPointsHistoryRateLimit } from "../middleware/rateLimit/pointsHistoryRateLimit.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";

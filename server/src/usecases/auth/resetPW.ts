@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { AppError } from "../../errors.js";
-import { deleteTokenRecord, getTokenOne } from "../../services/tokenPasswordReset.js";
+import { deleteTokenRecord, getTokenOne } from "../../services/tokenPasswordReset/tokenPasswordReset.js";
 import { updatePasswordUser } from "../../services/users/command.js";
 import { getUser } from "../../services/users/query.js";
 
@@ -17,7 +17,7 @@ export const resetPWUseCase = async ({ token, password }: Params) => {
     const resetRecord = await getTokenOne({ token });
 
     if (!resetRecord) throw new AppError("TOKEN_NOT_FOUND", 404);
-    if (resetRecord.expires_at < Date.now()) throw new AppError("EXPIRED_TOKEN", 401);
+    if (resetRecord.expires_at.getTime() < Date.now()) throw new AppError("EXPIRED_TOKEN", 401);
 
     // ユーザー取得
     const user = await getUser({ userId: resetRecord.user_id });

@@ -1,8 +1,8 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { createBankAccount } from "../../../services/bankAccount.js";
-import { getBankOne } from "../../../services/banks.js";
-import { getBranchOne } from "../../../services/branches.js";
+import { createBankAccount } from "../../../services/bankAccount/bankAccount.js";
+import { getBankOne } from "../../../services/banks/banks.js";
+import { getBranchOne } from "../../../services/branches/branches.js";
 import { updateShopSignupBankAccount } from "../../../services/shopSignup/command.js";
 import { getMyShopSignup } from "../../../services/shopSignup/query.js";
 import { BankBody } from "../../../validators/body/bankAccount.js";

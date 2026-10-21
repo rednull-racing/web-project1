@@ -4,14 +4,14 @@
 
 ## 作業範囲
 
-- /docs/rule/backend/coding_rule のみ変更してください。
+- /docs/codingRule/backend のみ変更してください。
 - それ以外のファイルは変更しないでください。
 
 ## 参考
 
 既存の
 
-/docs/rule/backend/coding_rule/model.md
+/docs/codingRule/backend/model.md
 
 の構成・見出し・文体・粒度を参考にしてください。
 
@@ -32,7 +32,7 @@
 
 作成ファイル
 
-/docs/rule/backend/coding_rule/controller.md
+/docs/codingRule/backend/controller.md
 
 ---
 
@@ -50,7 +50,7 @@
 
 作成ファイル
 
-/docs/rule/backend/coding_rule/route.md
+/docs/codingRule/backend/route.md
 
 ---
 

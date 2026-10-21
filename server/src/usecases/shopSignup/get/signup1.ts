@@ -1,5 +1,5 @@
 import { AppError } from "../../../errors.js";
-import { getComFreeOptionAll } from "../../../services/comOrFreeOption.js";
+import { getComFreeOptionAll } from "../../../services/comOrFreeOption/comOrFreeOption.js";
 import { getShopSignup1One, getUserShopSignup1 } from "../../../services/shopSignup/query.js";
 
 type Props = {
@@ -13,7 +13,7 @@ export const getShopSignup1UseCase = async ({ userId }: Props) => {
     // shopSignup取得（無くても可）
     const shopSignup = await getShopSignup1One({ userId });
 
-    if (shopSignup.user_id && shopSignup.user_id !== userId) {
+    if (shopSignup?.user_id && shopSignup?.user_id !== userId) {
         throw new AppError("FORBIDDEN", 403);
     }
 

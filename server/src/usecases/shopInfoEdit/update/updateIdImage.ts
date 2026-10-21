@@ -3,10 +3,10 @@ import { AppError } from "../../../errors.js";
 import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
 import { verificationDocumentsBucket } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
-import { createIdCard } from "../../../services/idCard.js";
-import { createNotification } from "../../../services/notification.js";
-import { createPermit } from "../../../services/permit.js";
-import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata.js";
+import { createIdCard } from "../../../services/idCard/idCard.js";
+import { createNotification } from "../../../services/notification/notification.js";
+import { createPermit } from "../../../services/permit/permit.js";
+import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata/s3Metadata.js";
 import { updateShopEditIdCard } from "../../../services/shopInfoEdit/command.js";
 import { getMyShopEditHasShop } from "../../../services/shopInfoEdit/query.js";
 import type { ShopInfoEditIdImageBody } from "../../../validators/body/shopInfoEdit.js";
@@ -33,7 +33,7 @@ export const updateShopEditIdImageUseCase = async ({ shopEditId, userId, body }:
 
     if (!shopEdit) throw new AppError("SHOP_EDIT_NOT_FOUND", 404);
 
-    const shopId = shopEdit.ShopInfo.id;
+    const shopId = shopEdit?.ShopInfo?.id;
     const uploadedObjects: UploadedObject[] = [];
     let committed = false;
 

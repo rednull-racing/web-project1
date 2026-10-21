@@ -1,6 +1,6 @@
 import { AppError } from "../../../errors.js";
-import { countItemPageComment } from "../../../services/comment.js";
-import { countItemLike, getItemLikeOne } from "../../../services/itemLike.js";
+import { countItemPageComment } from "../../../services/comment/comment.js";
+import { countItemLike, getItemLikeOne } from "../../../services/itemLike/itemLike.js";
 import { getItemPageData } from "../../../services/items/index.js";
 import { getMeHighlight } from "../../../services/users/query.js";
 import { ItemPageMode } from "../../../validators/query/items.js";
@@ -18,13 +18,7 @@ export const getItemPageUseCase = async ({ itemId, userId, mode }: Params) => {
     // itemデータ取得
     const item = await getItemPageData({ itemId });
 
-    if (
-        !item ||
-        (mode === "normal" && !["active", "soldout"].includes(item.status)) ||
-        (mode === "draft" && !(item.status === "draft")) ||
-        (mode === "confirm" && item.status === "deleted") ||
-        (mode === "deleted" && !(item.status === "deleted"))
-    ) {
+    if (!item || (mode === "normal" && !["active", "soldout"].includes(item.status))) {
         throw new AppError("ITEM_NOTFOUND", 404);
     }
 

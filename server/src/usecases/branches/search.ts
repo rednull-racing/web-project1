@@ -1,5 +1,5 @@
 import { Branches } from "../../models/index.js";
-import { getBranchesAll } from "../../services/branches.js";
+import { getBranchesAll } from "../../services/branches/branches.js";
 
 type Params = {
     kw: string;
@@ -32,7 +32,7 @@ export const searchBranchesUseCase = async ({ kw, bankCode }: Params) => {
                 nHira.includes(kw)
             );
         })
-        .map((b: typeof Branches) => ({
+        .map((b: InstanceType<typeof Branches>) => ({
             code: b.code,
             name: b.normalize?.name || b.name,
             kana: b.kana,

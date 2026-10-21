@@ -1,7 +1,7 @@
 import { Comment } from "../../models/index.js";
-import { getAllReply } from "../../services/comment.js";
-import { countCommentLike, getCommentLikeOne } from "../../services/commentLike.js";
-import { countCommentReport } from "../../services/commentReport.js";
+import { getAllReply } from "../../services/comment/comment.js";
+import { countCommentLike, getCommentLikeOne } from "../../services/commentLike/commentLike.js";
+import { countCommentReport } from "../../services/commentReport/commentReport.js";
 import { patchCommentSortNumberAddUseCase } from "./patchSortNumber.js";
 
 type Params = {

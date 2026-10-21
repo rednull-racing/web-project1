@@ -1,5 +1,5 @@
 import { Op, WhereOptions } from "sequelize";
-import { getMyPointsHistory } from "../../services/pointsHistory.js";
+import { getMyPointsHistory } from "../../services/pointsHistory/pointsHistory.js";
 
 type Params = {
     userId: number;

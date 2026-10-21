@@ -1,6 +1,6 @@
-import { createUriage180 } from "../../services/pointsUriageOver.js";
-import { createTransfer } from "../../services/transfer.js";
-import { getExpiredUriageAll } from "../../services/uriagekinLots.js";
+import { createUriage180 } from "../../services/pointsUriageOver/pointsUriageOver.js";
+import { createTransfer } from "../../services/transfer/transfer.js";
+import { getExpiredUriageAll } from "../../services/uriagekinLots/uriagekinLots.js";
 import { getUserHasBankAccount } from "../../services/users/query.js";
 import type { UriagekinLotsInstance } from "../../types/serviceType/uriagekinLots.js";
 import { generateTransferId } from "../../utils/generateTransferId.js";
@@ -29,7 +29,7 @@ export const cronExpiredUriagekinUseCase = async () => {
 
         try {
             const sumRemainingUriagekin = userDataList.reduce(
-                (sum, data) => sum + (data.uriagekin - data.used_Uriagekin),
+                (sum, data) => sum + (data.uriagekin - data.used_uriagekin),
                 0,
             );
             const user = await getUserHasBankAccount({ userId });
@@ -53,11 +53,11 @@ export const cronExpiredUriagekinUseCase = async () => {
                         trans_schedule_date: twoWeeksLater,
                         transfer_id: transferId,
                         bank_snapshot: {
-                            bank_name: account.bank_name,
-                            branch_name: account.branch,
-                            account_type: account.account_type,
-                            account_number: account.account_number,
-                            meigi: account.meigi,
+                            bank_name: String(account?.bank_name),
+                            branch_name: String(account?.branch),
+                            account_type: account?.account_type ?? "ordinary",
+                            account_number: String(account?.account_number),
+                            meigi: String(account?.meigi),
                         },
                     },
                 });

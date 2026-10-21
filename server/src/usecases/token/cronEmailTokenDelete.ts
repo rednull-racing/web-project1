@@ -1,4 +1,4 @@
-import { destroyExpiredEmailChangeTokens } from "../../services/tokenEmailChange.js";
+import { destroyExpiredEmailChangeTokens } from "../../services/tokenEmailChange/tokenEmailChange.js";
 
 // TokenEmailChange削除
 export const deleteCronEmailChangeTokensUseCase = (): Promise<number> => {

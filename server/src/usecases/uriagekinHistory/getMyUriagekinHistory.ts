@@ -1,5 +1,5 @@
 import { Op, WhereOptions } from "sequelize";
-import { getMyUriagekinHistory } from "../../services/uriagekinHistory.js";
+import { getMyUriagekinHistory } from "../../services/uriagekinHistory/uriagekinHistory.js";
 
 type Params = {
     userId: number;

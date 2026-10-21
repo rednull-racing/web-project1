@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import S3Metadata from "./s3_metadata.js";
@@ -13,6 +14,9 @@ export class IdCard extends Model {
     declare rear_s3_metadata_id: number | null;
     declare createdAt: Date;
     declare updatedAt: Date;
+
+    declare FrontIdCard?: NonAttribute<S3Metadata | null>;
+    declare RearIdCard?: NonAttribute<S3Metadata | null>;
 
     static associate() {
         IdCard.belongsTo(S3Metadata, {

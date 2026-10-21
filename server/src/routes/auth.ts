@@ -14,7 +14,7 @@ import {
     authPatchEmailController,
     authPatchNewEmailController,
     authGetStatusController,
-} from "../controllers/auth.js";
+} from "../controllers/auth/auth.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
     emailChangeRateLimit,

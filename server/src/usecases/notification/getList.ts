@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { countUnread, getMyNotificationList } from "../../services/notification.js";
+import { countUnread, getMyNotificationList } from "../../services/notification/notification.js";
 
 type Params = {
     userId: number;

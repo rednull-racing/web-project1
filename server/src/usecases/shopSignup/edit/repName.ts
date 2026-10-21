@@ -3,9 +3,9 @@ import { AppError } from "../../../errors.js";
 import { deleteS3Object } from "../../../infra/aws/deleteS3Object.js";
 import { verificationDocumentsBucket } from "../../../infra/aws/s3.js";
 import { uploadS3Object } from "../../../infra/aws/uploadS3Object.js";
-import { createIdCard, updateIdCardS3Metadata } from "../../../services/idCard.js";
-import { updateName } from "../../../services/name.js";
-import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata.js";
+import { createIdCard, updateIdCardS3Metadata } from "../../../services/idCard/idCard.js";
+import { updateName } from "../../../services/name/name.js";
+import { createS3Metadata, deleteS3Metadata } from "../../../services/s3Metadata/s3Metadata.js";
 import { updateShopSignupIdCard } from "../../../services/shopSignup/command.js";
 import { getMyShopSignupHasRepName } from "../../../services/shopSignup/query.js";
 import { UpdateShopSignupRepNameBody } from "../../../validators/body/shopSignup.js";
@@ -32,6 +32,10 @@ export const updateShopSignupRepNameUseCase = async ({ shopSignupId, body, userI
     const shopSignup = await getMyShopSignupHasRepName({ shopSignupId, userId });
 
     if (!shopSignup) throw new AppError("SHOP_NOT_FOUND", 404);
+
+    const representativeName = shopSignup.RepresentativeName;
+
+    if (!representativeName) throw new AppError("REP_NAME_NOT_FOUND", 404);
 
     const idCard = shopSignup.IdCard;
     const oldFront = idCard?.FrontIdCard;
@@ -124,7 +128,7 @@ export const updateShopSignupRepNameUseCase = async ({ shopSignupId, body, userI
             if (rearIdCard && oldRear) await deleteS3Metadata({ s3Metadata: oldRear, transaction });
 
             await updateName({
-                name: shopSignup.RepresentativeName,
+                name: representativeName,
                 data: {
                     sei,
                     mei,

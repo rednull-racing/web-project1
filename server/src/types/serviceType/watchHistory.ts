@@ -1,5 +1,6 @@
 import { Transaction } from "sequelize";
 import { WatchHistory } from "../../models/index.js";
+import type { ItemWhere } from "./items.js";
 
 export type ItemUserParams = {
     itemId: number;
@@ -12,7 +13,7 @@ export type WatchHistoryParams = {
 
 export type UserWatchListParams = {
     userId: number;
-    itemWhere: any;
+    itemWhere: ItemWhere;
     limit: number;
     offset: number;
 };

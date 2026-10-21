@@ -1,5 +1,5 @@
-import { getAllAliases } from "../../services/brandAliases.js";
-import { BrandsInstance, getAllBrands } from "../../services/brands.js";
+import { getAllAliases } from "../../services/brandAliases/brandAliases.js";
+import { BrandsInstance, getAllBrands } from "../../services/brands/brands.js";
 
 type Params = {
     keyword: string;
@@ -27,9 +27,11 @@ export const getBrandsSuggestUseCase = async ({ keyword }: Params) => {
         brandMap.set(d.id, d);
     }
 
-    for (const alias of fromAlias) {
-        if (alias.brand) {
-            brandMap.set(alias.brand.id, alias.brand);
+    if (fromAlias) {
+        for (const alias of fromAlias) {
+            if (alias.brand) {
+                brandMap.set(alias.brand.id, alias.brand);
+            }
         }
     }
 

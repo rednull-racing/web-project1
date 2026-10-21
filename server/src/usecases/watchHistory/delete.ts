@@ -1,4 +1,4 @@
-import { destroyWatchHistory, getWatchHistoryOne } from "../../services/watchHistory.js";
+import { destroyWatchHistory, getWatchHistoryOne } from "../../services/watchHistory/watchHistory.js";
 import { AppError } from "../../errors.js";
 
 type Params = {

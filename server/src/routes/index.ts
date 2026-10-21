@@ -17,6 +17,8 @@ import DeliveryRouter from "./delivery.js";
 import FollowRouter from "./follow.js";
 import IdCardRouter from "./idCard.js";
 import InquiryRouter from "./inquiry.js";
+import ItemDraftRouter from "./itemDraft.js";
+import ItemEditingRouter from "./itemEditing.js";
 import ItemLikeRouter from "./itemLike.js";
 import ItemReportRouter from "./itemReport.js";
 import ItemsRouter from "./items.js";
@@ -43,7 +45,6 @@ export const registerRoutes = (app: Application) => {
     app.use("/api/users/me/items", UsersMeItemsRouter);
     app.use("/api/auth", authRouter);
     app.use("/api/items", ItemsRouter);
-    app.use("/api/item-like", ItemLikeRouter);
     app.use("/api/address", AddressRouter);
     app.use("/api/bank-account", BankAccountRouter);
     app.use("/api/banks", BanksRouter);
@@ -58,6 +59,9 @@ export const registerRoutes = (app: Application) => {
     app.use("/api/follow", FollowRouter);
     app.use("/api/id-card", IdCardRouter);
     app.use("/api/inquiry", InquiryRouter);
+    app.use("/api/item-draft", ItemDraftRouter);
+    app.use("/api/item-editing", ItemEditingRouter);
+    app.use("/api/item-like", ItemLikeRouter);
     app.use("/api/name", NameRouter);
     app.use("/api/notification", NotificationRouter);
     app.use("/api/orders", OrdersRouter);

@@ -266,10 +266,12 @@ export const getMyShopInfoHasS3Data = ({ shopId, userId }: UserShopIdParams): Pr
             },
             {
                 model: Permit,
+                as: "Permit",
                 required: false,
                 include: [
                     {
                         model: S3Metadata,
+                        as: "S3Metadata",
                         required: false,
                     },
                 ],

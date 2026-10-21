@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import Address from "./address.js";
@@ -34,6 +35,9 @@ export class Delivery extends Model {
     declare shipping_memo: string | null; // 配送メモ（自由入力）
     declare address_id: number | null;
     declare name_id: number | null;
+
+    declare Address?: NonAttribute<Address | null>;
+    declare Name?: NonAttribute<Name | null>;
 
     static associate() {
         Delivery.belongsTo(ShippingDayOption, {

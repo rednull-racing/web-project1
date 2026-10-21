@@ -1,4 +1,4 @@
-import { deleteCronSearch } from "../../services/search.js";
+import { deleteCronSearch } from "../../services/search/search.js";
 
 // 180日経過search削除
 export const searchCronDeleteUseCase = () => {

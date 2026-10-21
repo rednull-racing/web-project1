@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../db.js";
+import type { BankNormalization } from "../types/bankNormalization.js";
 
 export class Banks extends Model {
     declare id: number;
@@ -7,7 +8,7 @@ export class Banks extends Model {
     declare name: string;
     declare kana: string | null;
     declare hira: string | null;
-    declare normalize: object | null;
+    declare normalize: BankNormalization | null;
 }
 
 Banks.init(

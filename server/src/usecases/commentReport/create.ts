@@ -1,6 +1,6 @@
 import { AppError } from "../../errors.js";
-import { getComment, updateReportScore } from "../../services/comment.js";
-import { createCommentReport, getCommentReportOption } from "../../services/commentReport.js";
+import { getComment, updateReportScore } from "../../services/comment/comment.js";
+import { createCommentReport, getCommentReportOption } from "../../services/commentReport/commentReport.js";
 import { getUser } from "../../services/users/query.js";
 
 type Params = {

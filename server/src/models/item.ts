@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 import type { ItemAttributes } from "../types/itemAttributes.js";
 
@@ -7,6 +8,7 @@ import Brands from "./brands.js";
 import Cart from "./cart.js";
 import Categories from "./categories.js";
 import Comment from "./comment.js";
+import CouponItem from "./coupon_item.js";
 import ItemConditionOption from "./item_condition_option.js";
 import ItemLike from "./item_like.js";
 import ItemReport from "./item_report.js";
@@ -16,7 +18,6 @@ import Sale from "./sale.js";
 import User from "./user.js";
 import Video from "./video.js";
 import WatchHistory from "./watch_history.js";
-import CouponItem from "./coupon_item.js";
 
 export class Item extends Model {
     declare id: number;
@@ -35,18 +36,24 @@ export class Item extends Model {
     declare uploaded_at: Date | null;
     declare search_text: string | null;
     declare sort_buzz_number: number | null;
-    declare deleted_at: Date | null;
     declare first_image_url: string | null;
     declare save_at: Date | null;
     declare gender_type: "men" | "women" | "unisex";
     declare age_type: "adult" | "kids" | "both";
-    declare status: "editing" | "draft" | "active" | "hidden" | "soldout" | "deleted";
+    declare status: "active" | "soldout";
     declare category_id: number | null;
     declare brand_id: number | null;
     declare brand_aliases_id: number | null;
     declare attributes: ItemAttributes;
     declare recommend: boolean | null;
     declare report_score: number;
+    declare video_id: number | null;
+    declare sale_id: number | null;
+    declare shipping_id: number | null;
+
+    declare Category?: NonAttribute<Categories | null>;
+    declare User?: NonAttribute<User | null>;
+    declare Video?: NonAttribute<Video | null>;
 
     static associate() {
         Item.belongsTo(User, {
@@ -66,22 +73,22 @@ export class Item extends Model {
         Item.belongsTo(BrandAliases, {
             foreignKey: "brand_aliases_id",
         });
+        Item.belongsTo(Video, {
+            foreignKey: "video_id",
+        });
+        Item.belongsTo(Sale, {
+            foreignKey: "sale_id",
+        });
+        Item.belongsTo(ItemShippingProfile, {
+            foreignKey: "shipping_id",
+        });
         Item.hasMany(Cart, {
             foreignKey: "item_id",
         });
         Item.hasMany(ItemLike, {
             foreignKey: "item_id",
         });
-        Item.hasOne(Video, {
-            foreignKey: "item_id",
-        });
-        Item.hasOne(Sale, {
-            foreignKey: "item_id",
-        });
         Item.hasMany(ItemReport, {
-            foreignKey: "item_id",
-        });
-        Item.hasOne(ItemShippingProfile, {
             foreignKey: "item_id",
         });
         Item.hasMany(PurchaseSession, {
@@ -105,7 +112,7 @@ export class Item extends Model {
         ItemLike: Association<Item, ItemLike>;
         Video: Association<Item, Video>;
         Sale: Association<Item, Sale>;
-        Categories: Association<Item, Categories>;
+        Category: Association<Item, Categories>;
         ItemReport: Association<Item, ItemReport>;
         Brand: Association<Item, Brands>;
         BrandAliases: Association<Item, BrandAliases>;
@@ -207,10 +214,6 @@ Item.init(
                 return Number(this.getDataValue("sort_buzz_number"));
             },
         },
-        deleted_at: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
         first_image_url: {
             type: DataTypes.TEXT,
             allowNull: true,
@@ -230,9 +233,9 @@ Item.init(
             defaultValue: "both",
         },
         status: {
-            type: DataTypes.ENUM("editing", "draft", "active", "hidden", "soldout", "deleted"),
+            type: DataTypes.ENUM("active", "soldout"),
             allowNull: false,
-            defaultValue: "editing",
+            defaultValue: "active",
         },
         category_id: {
             type: DataTypes.INTEGER,
@@ -278,6 +281,36 @@ Item.init(
             type: DataTypes.DECIMAL,
             defaultValue: 0,
             allowNull: false,
+        },
+        video_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "video",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "SET NULL",
+        },
+        sale_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "sale",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "SET NULL",
+        },
+        shipping_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "item_shipping_profile",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "SET NULL",
         },
         createdAt: {
             type: DataTypes.DATE,

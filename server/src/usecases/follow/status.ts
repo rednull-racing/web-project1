@@ -1,4 +1,4 @@
-import { getFollowOne } from "../../services/follow.js";
+import { getFollowOne } from "../../services/follow/follow.js";
 
 type Params = {
     currentUserId: number;

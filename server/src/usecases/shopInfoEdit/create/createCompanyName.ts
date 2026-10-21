@@ -1,5 +1,5 @@
 import { AppError } from "../../../errors.js";
-import { createNotification } from "../../../services/notification.js";
+import { createNotification } from "../../../services/notification/notification.js";
 import { updateShopCompanyName } from "../../../services/shopInfo/command.js";
 import { getMyShop } from "../../../services/shopInfo/query.js";
 import { createShopEditCompanyName } from "../../../services/shopInfoEdit/command.js";

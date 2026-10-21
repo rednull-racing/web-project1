@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-import { getSoldOrders } from "../../services/orders.js";
+import { getSoldOrders } from "../../services/orders/orders.js";
+import type { OrderWhere } from "../../types/serviceType/orders.js";
 
 type Params = {
     page: number;
@@ -14,7 +15,7 @@ export const getSoldListUseCase = async ({ page, userId, status }: Params) => {
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const where: any = {
+    const where: OrderWhere = {
         seller_user_id: userId,
     };
 

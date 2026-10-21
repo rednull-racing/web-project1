@@ -1,8 +1,11 @@
-import { Transaction } from "sequelize";
-import { ItemShippingProfile } from "../../models/index.js";
+import type { Transaction } from "sequelize";
+import type { ItemShippingProfile } from "../../models/index.js";
 
 export type CreateShippingParams = {
-    itemId: number;
+    data: Pick<
+        InstanceType<typeof ItemShippingProfile>,
+        "shipping_day_id" | "shipping_service_id" | "shipping_place_id" | "shipping_service_free_text"
+    >;
     transaction: Transaction;
 };
 
@@ -13,16 +16,6 @@ export type UpdateShippingParams = {
         shipping_service_id: number | null;
         shipping_place_id: number | null;
         shipping_service_free_text: string | null;
-    };
-    transaction: Transaction;
-};
-
-export type CreateShippingCopyUploadParams = {
-    data: {
-        shipping_day_id: number;
-        shipping_service_id: number;
-        shipping_place_id: number;
-        item_id: number;
     };
     transaction: Transaction;
 };

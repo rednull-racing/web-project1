@@ -41,10 +41,13 @@ import ItemBuyerReportOptionModel from "./item_buyer_report_option.js";
 import ItemConditionOptionModel from "./item_condition_option.js";
 import ItemDeleteLogsModel from "./item_delete_logs.js";
 import ItemDeletedModel from "./item_deleted.js";
+import ItemDraftModel from "./item_draft.js";
+import ItemEditingModel from "./item_editing.js";
 import ItemLikeModel from "./item_like.js";
 import ItemReportModel from "./item_report.js";
 import ItemReportOptionModel from "./item_report_option.js";
 import ItemShippingProfileModel from "./item_shipping_profile.js";
+import ItemTrashModel from "./item_trash.js";
 import JournalModel from "./journal.js";
 import JournalReasonOptionModel from "./journal_reason_option.js";
 import KanjyoOptionModel from "./kanjyo_option.js";
@@ -88,7 +91,7 @@ import VideoModel from "./video.js";
 import WatchHistoryModel from "./watch_history.js";
 
 const env = (process.env.NODE_ENV as "development" | "test" | "production") || "development";
-const config = (configFile as any)[env];
+const config = configFile[env];
 
 let sequelize: Sequelize;
 if (config.use_env_variable) {
@@ -98,95 +101,104 @@ if (config.use_env_variable) {
 }
 
 // モデルを読み込む
-const db: any = {};
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+const models = {
+    Address: AddressModel,
+    BankAccount: BankAccountModel,
+    Banks: BanksModel,
+    BlogCategoryOption: BlogCategoryOptionModel,
+    Blog: BlogModel,
+    Branches: BranchesModel,
+    BrandAliases: BrandAliasesModel,
+    Brands: BrandsModel,
+    CancelFeeReturnOption: CancelFeeReturnOptionModel,
+    Cancel: CancelModel,
+    Cart: CartModel,
+    Categories: CategoriesModel,
+    Chat: ChatModel,
+    ComOrFreeOption: ComOrFreeOptionModel,
+    CommentLike: CommentLikeModel,
+    CommentReportOption: CommentReportOptionModel,
+    CommentReport: CommentReportModel,
+    Comment: CommentModel,
+    Coupon: CouponModel,
+    CouponUser: CouponUserModel,
+    CouponItem: CouponItemModel,
+    CouponShop: CouponShopModel,
+    CouponCategory: CouponCategoryModel,
+    DeliveryStatusOption: DeliveryStatusOptionModel,
+    Delivery: DeliveryModel,
+    Follow: FollowModel,
+    GenderOption: GenderOptionModel,
+    IdCard: IdCardModel,
+    Inquiry: InquiryModel,
+    ItemBuyerReportOption: ItemBuyerReportOptionModel,
+    ItemBuyerReport: ItemBuyerReportModel,
+    ItemConditionOption: ItemConditionOptionModel,
+    ItemDeleted: ItemDeletedModel,
+    ItemDeleteLogs: ItemDeleteLogsModel,
+    ItemDraft: ItemDraftModel,
+    ItemEditing: ItemEditingModel,
+    ItemLike: ItemLikeModel,
+    ItemReportOption: ItemReportOptionModel,
+    ItemReport: ItemReportModel,
+    ItemShippingProfile: ItemShippingProfileModel,
+    ItemTrash: ItemTrashModel,
+    Item: ItemModel,
+    JournalReasonOption: JournalReasonOptionModel,
+    Journal: JournalModel,
+    KanjyoOption: KanjyoOptionModel,
+    Name: NameModel,
+    Notification: NotificationModel,
+    OrderDeletedSystems: OrderDeletedSystemsModel,
+    Orders: OrdersModel,
+    PaymentMethodOption: PaymentMethodOptionModel,
+    Permit: PermitModel,
+    PointReasonOption: PointReasonOptionModel,
+    PointLots: PointLotsModel,
+    PointsHistory: PointsHistoryModel,
+    PointsUriageOver: PointsUriageOverModel,
+    PurchaseSession: PurchaseSessionModel,
+    ReferenceCode: ReferenceCodeModel,
+    RefreshTokens: RefreshTokensModel,
+    S3Metadata: S3MetadataModel,
+    Sale: SaleModel,
+    SalesHistory: SalesHistoryModel,
+    Search: SearchModel,
+    SearchWords: SearchWordsModel,
+    ShippingDayOption: ShippingDayOptionModel,
+    ShippingServiceOption: ShippingServiceOptionModel,
+    ShopInfoEdit: ShopInfoEditModel,
+    ShopSignup: ShopSignupModel,
+    ShopInfo: ShopInfoModel,
+    StarHistory: StarHistoryModel,
+    SuggestWords: SuggestWordsModel,
+    TodouhukenOption: TodouhukenOptionModel,
+    TokenEmailChange: TokenEmailChangeModel,
+    TokenPasswordReset: TokenPasswordResetModel,
+    TokenSignupVerification: TokenSignupVerificationModel,
+    TransReasonOption: TransReasonOptionModel,
+    Transfer: TransferModel,
+    UriagekinHistory: UriagekinHistoryModel,
+    UriagekinLots: UriagekinLotsModel,
+    UriagekinReasonOption: UriagekinReasonOptionModel,
+    User: UserModel,
+    UserDeleteLogs: UserDeleteLogsModel,
+    Video: VideoModel,
+    WatchHistory: WatchHistoryModel,
+};
 
-db.Address = AddressModel;
-db.BankAccount = BankAccountModel;
-db.Banks = BanksModel;
-db.BlogCategoryOption = BlogCategoryOptionModel;
-db.Blog = BlogModel;
-db.Branches = BranchesModel;
-db.BrandAliases = BrandAliasesModel;
-db.Brands = BrandsModel;
-db.CancelFeeReturnOption = CancelFeeReturnOptionModel;
-db.Cancel = CancelModel;
-db.Cart = CartModel;
-db.Categories = CategoriesModel;
-db.Chat = ChatModel;
-db.ComOrFreeOption = ComOrFreeOptionModel;
-db.CommentLike = CommentLikeModel;
-db.CommentReportOption = CommentReportOptionModel;
-db.CommentReport = CommentReportModel;
-db.Comment = CommentModel;
-db.Coupon = CouponModel;
-db.CouponUser = CouponUserModel;
-db.CouponItem = CouponItemModel;
-db.CouponShop = CouponShopModel;
-db.CouponCategory = CouponCategoryModel;
-db.DeliveryStatusOption = DeliveryStatusOptionModel;
-db.Delivery = DeliveryModel;
-db.Follow = FollowModel;
-db.GenderOption = GenderOptionModel;
-db.IdCard = IdCardModel;
-db.Inquiry = InquiryModel;
-db.ItemBuyerReportOption = ItemBuyerReportOptionModel;
-db.ItemBuyerReport = ItemBuyerReportModel;
-db.ItemConditionOption = ItemConditionOptionModel;
-db.ItemDeleted = ItemDeletedModel;
-db.ItemDeleteLogs = ItemDeleteLogsModel;
-db.ItemLike = ItemLikeModel;
-db.ItemReportOption = ItemReportOptionModel;
-db.ItemReport = ItemReportModel;
-db.ItemShippingProfile = ItemShippingProfileModel;
-db.Item = ItemModel;
-db.JournalReasonOption = JournalReasonOptionModel;
-db.Journal = JournalModel;
-db.KanjyoOption = KanjyoOptionModel;
-db.Name = NameModel;
-db.Notification = NotificationModel;
-db.OrderDeletedSystems = OrderDeletedSystemsModel;
-db.Orders = OrdersModel;
-db.PaymentMethodOption = PaymentMethodOptionModel;
-db.Permit = PermitModel;
-db.PointReasonOption = PointReasonOptionModel;
-db.PointLots = PointLotsModel;
-db.PointsHistory = PointsHistoryModel;
-db.PointsUriageOver = PointsUriageOverModel;
-db.PurchaseSession = PurchaseSessionModel;
-db.ReferenceCode = ReferenceCodeModel;
-db.RefreshTokens = RefreshTokensModel;
-db.S3Metadata = S3MetadataModel;
-db.Sale = SaleModel;
-db.SalesHistory = SalesHistoryModel;
-db.Search = SearchModel;
-db.SearchWords = SearchWordsModel;
-db.ShippingDayOption = ShippingDayOptionModel;
-db.ShippingServiceOption = ShippingServiceOptionModel;
-db.ShopInfoEdit = ShopInfoEditModel;
-db.ShopSignup = ShopSignupModel;
-db.ShopInfo = ShopInfoModel;
-db.StarHistory = StarHistoryModel;
-db.SuggestWords = SuggestWordsModel;
-db.TodouhukenOption = TodouhukenOptionModel;
-db.TokenEmailChange = TokenEmailChangeModel;
-db.TokenPasswordReset = TokenPasswordResetModel;
-db.TokenSignupVerification = TokenSignupVerificationModel;
-db.TransReasonOption = TransReasonOptionModel;
-db.Transfer = TransferModel;
-db.UriagekinHistory = UriagekinHistoryModel;
-db.UriagekinLots = UriagekinLotsModel;
-db.UriagekinReasonOption = UriagekinReasonOptionModel;
-db.User = UserModel;
-db.UserDeleteLogs = UserDeleteLogsModel;
-db.Video = VideoModel;
-db.WatchHistory = WatchHistoryModel;
+export type ModelRegistry = typeof models;
+
+const db: ModelRegistry & { sequelize: Sequelize; Sequelize: typeof Sequelize } = {
+    sequelize,
+    Sequelize,
+    ...models,
+};
 
 // リレーションを設定
-Object.keys(db).forEach((modelName) => {
-    if (db[modelName].associate) {
-        db[modelName].associate(db);
+Object.values(models).forEach((model) => {
+    if ("associate" in model) {
+        model.associate();
     }
 });
 
@@ -224,10 +236,13 @@ export const {
     ItemBuyerReport,
     ItemConditionOption,
     ItemDeleted,
+    ItemDraft,
+    ItemEditing,
     ItemLike,
     ItemReportOption,
     ItemReport,
     ItemShippingProfile,
+    ItemTrash,
     Item,
     ItemDeleteLogs,
     JournalReasonOption,
@@ -235,7 +250,7 @@ export const {
     KanjyoOption,
     Name,
     Notification,
-    OrderDeleted,
+    OrderDeletedSystems: OrderDeleted,
     Orders,
     PaymentMethodOption,
     Permit,

@@ -24,7 +24,7 @@ export const getShopSignup2UseCase = async ({ userId, shopSignupId }: Params) =>
 
         if (!user) throw new AppError("USER_NOT_FOUND", 404);
 
-        account = user.BankAccount;
+        account = user.BankAccount ?? undefined;
     }
 
     if (!account) throw new AppError("BANK_ACCOUNT_NOT_FOUND", 404);

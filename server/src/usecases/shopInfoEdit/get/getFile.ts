@@ -1,6 +1,5 @@
 import { AppError } from "../../../errors.js";
 import { getS3Object } from "../../../infra/aws/getS3Object.js";
-import { Permit, S3Metadata } from "../../../models/index.js";
 import { getMyShopEditHasS3Data } from "../../../services/shopInfoEdit/query.js";
 
 type Params = {
@@ -24,9 +23,7 @@ export const getShopEditFileUseCase = async ({ shopEditId, s3MetadataId, userId 
     const rearS3Metadata = shop.IdCard?.RearIdCard;
 
     const permitS3Metadata =
-        shop.Permit?.map((permit: InstanceType<typeof Permit>) => permit.S3Metadata).filter(
-            (metadata: InstanceType<typeof S3Metadata>) => metadata != null,
-        ) ?? [];
+        shop.Permit?.map((permit) => permit.S3Metadata).filter((metadata) => metadata != null) ?? [];
 
     const allowedS3Metadata = [frontS3Metadata, rearS3Metadata, ...permitS3Metadata].filter(
         (metadata) => metadata != null,

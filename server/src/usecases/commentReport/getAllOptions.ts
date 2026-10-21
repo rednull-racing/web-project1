@@ -1,6 +1,6 @@
 import { AppError } from "../../errors.js";
 import type { CommentReportOption } from "../../models/comment_report_option.js";
-import { getAllCommentReportOptions } from "../../services/commentReport.js";
+import { getAllCommentReportOptions } from "../../services/commentReport/commentReport.js";
 
 // GET /comment-report/all-options
 // summary: CommentReportOptions取得

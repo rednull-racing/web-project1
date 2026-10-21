@@ -1,4 +1,4 @@
-import { createOutputCode } from "../../services/referenceCode.js";
+import { createOutputCode } from "../../services/referenceCode/referenceCode.js";
 import { generateRandomReferenceCode } from "../../utils/generateReferenceCode.js";
 
 type Params = {

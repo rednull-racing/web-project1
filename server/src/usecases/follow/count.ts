@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { countFollowBoth } from "../../services/follow.js";
+import { countFollowBoth } from "../../services/follow/follow.js";
 
 type Params = {
     userId: number;

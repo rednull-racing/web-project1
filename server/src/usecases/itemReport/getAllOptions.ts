@@ -1,6 +1,6 @@
 import { AppError } from "../../errors.js";
 import type { ItemReportOption } from "../../models/item_report_option.js";
-import { getAllItemReportOptions } from "../../services/itemReport.js";
+import { getAllItemReportOptions } from "../../services/itemReport/itemReport.js";
 
 // GET /item-report/all-options
 // summary: ItemReportOptions取得

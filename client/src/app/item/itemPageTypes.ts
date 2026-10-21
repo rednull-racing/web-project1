@@ -104,7 +104,7 @@ export type Item = {
     first_image_url: string;
     price: number;
     seller_id: number;
-    status: "editing" | "draft" | "active" | "hidden" | "soldout" | "deleted";
+    status: "active" | "soldout";
     early_sell: boolean;
     updatedAt: Date;
     uploaded_at: Date;

@@ -20,7 +20,7 @@ export const addPenaltyUseCase = async ({ pageUserId, addPenalty }: Params) => {
     if (!user) throw new AppError("USER_NOT_FOUND", 404);
 
     // db更新
-    const newPenaltyPoints = user.penalty_points + addPenalty;
+    const newPenaltyPoints = Number(user.penalty_points) + addPenalty;
 
     await updatePenaltyUser({
         user,

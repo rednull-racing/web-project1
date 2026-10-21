@@ -1,10 +1,10 @@
 import { AppError } from "../../../errors.js";
-import { getAllLevel1 } from "../../../services/categories.js";
-import { findAllCondition } from "../../../services/itemConditionOption.js";
+import { getAllLevel1 } from "../../../services/categories/categories.js";
+import { findAllCondition } from "../../../services/itemConditionOption/itemConditionOption.js";
 import { getItemFormData } from "../../../services/items/index.js";
-import { findAllShippingDay } from "../../../services/shippingDay.js";
-import { findAllShippingService } from "../../../services/shippingService.js";
-import { getAllTodouhuken } from "../../../services/todouhuken.js";
+import { findAllShippingDay } from "../../../services/shippingDay/shippingDay.js";
+import { findAllShippingService } from "../../../services/shippingService/shippingService.js";
+import { getAllTodouhuken } from "../../../services/todouhuken/todouhuken.js";
 import { getUserHasShop } from "../../../services/users/query.js";
 
 type Params = {
@@ -29,10 +29,10 @@ export const getFormDataUseCase = async ({ itemId, userId }: Params) => {
         findAllShippingDay(),
         findAllShippingService(),
         getAllTodouhuken(),
-        getUserHasShop({ userId: item.seller_id }),
+        getUserHasShop({ userId: Number(item.seller_id) }),
     ]);
 
-    const hasShop = !!userHasShop.ShopInfo;
+    const hasShop = !!userHasShop?.ShopInfo;
 
     return {
         item,

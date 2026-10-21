@@ -13,8 +13,8 @@ import {
     shopInfoEditPostByIdRepNameController,
     updateShopEditRepNameController,
     updateShopInfoEditIdImageController,
-} from "../controllers/shopInfoEdit.js";
-import { getShopEditFileController } from "../controllers/shopSignup.js";
+} from "../controllers/shopInfoEdit/shopInfoEdit.js";
+import { getShopEditFileController } from "../controllers/shopSignup/shopSignup.js";
 import { authenticateToken } from "../middleware/index.js";
 import { parseMultipartBody } from "../middleware/multipart.js";
 import {

@@ -1,10 +1,8 @@
 import { Router } from "express";
 import {
     addItemSortNumberController,
-    copyUploadItemController,
     createItemController,
     decreaseItemSortNumberController,
-    deleteDraftItemController,
     deleteItemLogicallyController,
     deleteItemPerfectController,
     getItemFormDataController,
@@ -14,16 +12,12 @@ import {
     getItemPageController,
     getRecommendItemsController,
     patchItemAccessLogsController,
-    publishItemController,
     restoreItemController,
     searchItemsController,
-    uploadItemController,
-} from "../controllers/items.js";
+} from "../controllers/items/items.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
-    createItemCopyRateLimit,
     createItemRateLimit,
-    draftDeleteItemRateLimit,
     editSortItemRateLimit,
     getItemHighlightRateLimit,
     getItemListRateLimit,
@@ -34,19 +28,16 @@ import {
     logicalDeleteItemRateLimit,
     perfectDeleteItemRateLimit,
     restoreItemRateLimit,
-    uploadItemRateLimit,
-    uploadPublishItemRateLimit,
 } from "../middleware/rateLimit/itemsRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";
-import { itemUploadBodySchema } from "../validators/body/items.js";
+import { createItemBodySchema } from "../validators/body/items.js";
 import { idParamSchema } from "../validators/params/id.js";
 import {
     getItemPageQuerySchema,
     itemListQuerySchema,
     itemSortNumberQuerySchema,
-    putItemUploadQuerySchema,
     recommendItemsQuerySchema,
     searchItemsQuerySchema,
 } from "../validators/query/items.js";
@@ -54,44 +45,9 @@ import {
 const router = Router();
 
 // POST /items
-// summary: 商品データ作成
-// page: /upload/before
-router.post("/", authenticateToken, createItemRateLimit, createItemController);
-
-// POST /items/:id/copy-upload
-// summary: 商品コピーアップロード
-// page: /item/[id]
-router.post(
-    "/:id/copy-upload",
-    authenticateToken,
-    createItemCopyRateLimit,
-    validateParams(idParamSchema),
-    copyUploadItemController,
-);
-
-// PUT /items/:id?mode=""
-// summary: 商品アップロード
-// page: /upload/[id]
-router.put(
-    "/:id",
-    authenticateToken,
-    uploadItemRateLimit,
-    validateParams(idParamSchema),
-    validateQuery(putItemUploadQuerySchema),
-    validateBody(itemUploadBodySchema),
-    uploadItemController,
-);
-
-// PATCH /items/:id/publish
-// summary: 商品公開
+// summary: 販売中商品作成
 // page: /item/confirm/[id]
-router.patch(
-    "/:id/publish",
-    authenticateToken,
-    uploadPublishItemRateLimit,
-    validateParams(idParamSchema),
-    publishItemController,
-);
+router.post("/", authenticateToken, createItemRateLimit, validateBody(createItemBodySchema), createItemController);
 
 // PATCH /items/:id/sort-number/add?number=number
 // summary: sortNumber追加
@@ -151,17 +107,6 @@ router.delete(
     authenticateToken,
     validateParams(idParamSchema),
     deleteItemPerfectController,
-);
-
-// DELETE /items/:id/draft
-// summary: 下書き商品削除
-// page: /item/draft/[id]
-router.delete(
-    "/:id/draft",
-    authenticateToken,
-    draftDeleteItemRateLimit,
-    validateParams(idParamSchema),
-    deleteDraftItemController,
 );
 
 // GET /items?type=""&page=number&view=""&limit=number(&pageUserId=${id})

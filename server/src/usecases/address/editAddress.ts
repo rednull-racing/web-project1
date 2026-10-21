@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { getMyAddress, updateAddress } from "../../services/address.js";
+import { getMyAddress, updateAddress } from "../../services/address/address.js";
 import { fetchAddressFromZipUseCase } from "./zipUseCase.js";
 
 type Params = {

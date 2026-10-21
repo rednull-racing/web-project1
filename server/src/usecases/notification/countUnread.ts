@@ -1,4 +1,4 @@
-import { countUnread } from "../../services/notification.js";
+import { countUnread } from "../../services/notification/notification.js";
 
 type Params = {
     userId: number;

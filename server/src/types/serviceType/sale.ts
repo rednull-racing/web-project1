@@ -1,20 +1,12 @@
-import { Transaction } from "sequelize";
-import { Sale } from "../../models/index.js";
+import type { Transaction } from "sequelize";
+import type { Sale } from "../../models/index.js";
 
 export type SaleIdParams = {
     saleId: number;
 };
 
 export type CreateSaleParams = {
-    itemId: number;
-    transaction: Transaction;
-};
-
-export type CreateSaleCopyUploadParams = {
-    data: {
-        before_price: number;
-        item_id: number;
-    };
+    data: Pick<InstanceType<typeof Sale>, "before_price" | "discount_rate" | "discount_amount" | "sale_flag">;
     transaction: Transaction;
 };
 

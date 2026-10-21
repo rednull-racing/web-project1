@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { itemReportPostByIdController, itemReportGetAllOptionsController } from "../controllers/itemReport.js";
+import {
+    itemReportPostByIdController,
+    itemReportGetAllOptionsController,
+} from "../controllers/itemReport/itemReport.js";
 import { authenticateToken } from "../middleware/index.js";
 import { getItemReportRateLimit, itemReportRateLimit } from "../middleware/rateLimit/itemReportRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";

@@ -134,7 +134,7 @@ router.get(
                         include: [
                             {
                                 model: Categories,
-                                as: "children",
+                                as: "Category",
                                 required: false,
                                 include: [
                                     {
@@ -197,7 +197,7 @@ router.get(
             const itemId = item?.id ?? null;
             const currentUserId = req.user?.id ?? null;
 
-            const baseCategory = item.Categories;
+            const baseCategory = item.Category;
 
             const targetParentId = baseCategory.parent_id ?? baseCategory.id;
 
@@ -217,6 +217,7 @@ router.get(
                     },
                     {
                         model: Categories,
+                        as: "Category",
                         where: {
                             [Op.or]: [{ parent_id: targetParentId }, { id: targetParentId }],
                         },

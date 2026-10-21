@@ -1,6 +1,6 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
-import { createPerfectDelete } from "../../../services/itemDeleteLogs.js";
+import { createPerfectDelete } from "../../../services/itemDeleteLogs/itemDeleteLogs.js";
 import { destroyPerfectItem, getMyItem } from "../../../services/items/index.js";
 
 type Params = {

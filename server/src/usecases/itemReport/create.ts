@@ -1,5 +1,5 @@
 import { AppError } from "../../errors.js";
-import { createItemReport, getItemReportOption } from "../../services/itemReport.js";
+import { createItemReport, getItemReportOption } from "../../services/itemReport/itemReport.js";
 import { getItem, updateReportScore } from "../../services/items/index.js";
 import { getUser } from "../../services/users/query.js";
 

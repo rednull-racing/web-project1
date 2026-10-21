@@ -71,7 +71,7 @@ export type Item = {
     gender_type: "men" | "women" | "unisex";
     age_type: "adult" | "kids" | "both";
     attributes: ItemAttributes;
-    status: "editing" | "draft" | "active" | "hidden" | "soldout" | "deleted";
+    status: "active" | "soldout";
     price: number;
     Video?: Video | null;
     Sale?: Sale | null;

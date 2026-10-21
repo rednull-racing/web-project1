@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-import { getUserItemsLikesList } from "../../../../services/itemLike.js";
+import { getUserItemsLikesList } from "../../../../services/itemLike/itemLike.js";
+import type { ItemWhere } from "../../../../types/serviceType/items.js";
 
 type Params = {
     page: number;
@@ -14,7 +15,7 @@ export const getUserItemsLikesUseCase = async ({ page, userId, keyword }: Params
     const limit = 20;
     const offset = (page - 1) * limit;
 
-    const itemWhere: any = {
+    const itemWhere: ItemWhere = {
         status: ["active", "soldout"],
     };
 

@@ -23,8 +23,8 @@
 
 また、以下のコーディング規約を確認してください。
 
-- `/docs/rule/backend/coding_rule/route.md`
-- `/docs/rule/backend/coding_rule/controller.md`
+- `/docs/codingRule/backend/route.md`
+- `/docs/codingRule/backend/controller.md`
 
 ---
 

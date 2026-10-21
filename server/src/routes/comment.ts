@@ -6,7 +6,7 @@ import {
     commentDeleteByIdController,
     commentGetByIdController,
     commentGetByIdReplyController,
-} from "../controllers/comment.js";
+} from "../controllers/comment/comment.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
     createCommentRateLimit,

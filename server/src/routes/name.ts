@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { namePatchByIdController } from "../controllers/name.js";
+import { namePatchByIdController } from "../controllers/name/name.js";
 import { authenticateToken } from "../middleware/index.js";
 import { nameEditRateLimit } from "../middleware/rateLimit/nameRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";

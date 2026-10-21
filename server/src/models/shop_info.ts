@@ -1,4 +1,5 @@
 import { Association, DataTypes, Model } from "sequelize";
+import type { NonAttribute } from "sequelize";
 import sequelize from "../db.js";
 
 import Address from "./address.js";
@@ -36,6 +37,13 @@ export class ShopInfo extends Model {
     declare account_id: number | null;
     declare idcard_id: number | null;
 
+    declare Address?: NonAttribute<Address | null>;
+    declare BankAccount?: NonAttribute<BankAccount | null>;
+    declare ContactName?: NonAttribute<Name | null>;
+    declare IdCard?: NonAttribute<IdCard | null>;
+    declare Permit?: NonAttribute<Permit[]>;
+    declare RepresentativeName?: NonAttribute<Name | null>;
+
     static associate() {
         ShopInfo.belongsTo(User, {
             foreignKey: "user_id",
@@ -64,7 +72,8 @@ export class ShopInfo extends Model {
             foreignKey: "shop_info_id",
         });
         ShopInfo.hasMany(Permit, {
-            foreignKey: "permit_id",
+            foreignKey: "shop_info_id",
+            as: "Permit",
         });
     }
 

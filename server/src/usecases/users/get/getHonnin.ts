@@ -1,5 +1,5 @@
 import { AppError } from "../../../errors.js";
-import { getGenderOptionAll } from "../../../services/genderOption.js";
+import { getGenderOptionAll } from "../../../services/genderOption/genderOption.js";
 import { getHonninEditUser } from "../../../services/users/query.js";
 
 type Params = {

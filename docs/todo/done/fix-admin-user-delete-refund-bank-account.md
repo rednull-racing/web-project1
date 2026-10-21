@@ -28,7 +28,7 @@
 - `/server/src/services/users/query.ts`
     - `getUserHasBankAccount`
     - `getUserHasUriagekinPointBank`
-- `/server/src/services/transfer.ts`
+- `/server/src/services/transfer/transfer.ts`
     - `createTransfer`
 - `/server/src/types/serviceType/transfer.ts`
 - 購入者へのキャンセル返金を作成している他のUseCase
