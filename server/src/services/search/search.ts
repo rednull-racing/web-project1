@@ -1,7 +1,11 @@
 import { Op } from "sequelize";
 import sequelize from "../../db.js";
 import { Search } from "../../models/index.js";
-import type { CreateSearchKeywordParams, CronDeleteSearchParams, UserIdParams } from "../../types/serviceType/search.js";
+import type {
+    CreateSearchKeywordParams,
+    CronDeleteSearchParams,
+    UserIdParams,
+} from "../../types/serviceType/search.js";
 
 export const getSearchHistoryAll = ({ userId }: UserIdParams) => {
     return Search.findAll({

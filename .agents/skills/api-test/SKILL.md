@@ -49,11 +49,11 @@ description: このリポジトリは新規バックエンドAPIを、詳細設�
 
 [テスト配置規則](../../../server/test/AGENTS.md) と各層の `AGENTS.md` に従う。
 
-| 成果物 | 配置先 |
-| --- | --- |
-| 単体テスト | 対象本番コードに最も近い `server/src/**/test/` |
-| 結合テスト | `server/test/integration/<役割>/<機能領域>/<処理名>/` |
-| fixture・setup | `server/test/fixtures/<機能領域>/<処理名>/` |
+| 成果物         | 配置先                                                |
+| -------------- | ----------------------------------------------------- |
+| 単体テスト     | 対象本番コードに最も近い `server/src/**/test/`        |
+| 結合テスト     | `server/test/integration/<役割>/<機能領域>/<処理名>/` |
+| fixture・setup | `server/test/fixtures/<機能領域>/<処理名>/`           |
 
 - 結合テストの役割は配置規則と検証対象に合わせる。実DBを使うテストは [database規則](../../../server/test/integration/database/AGENTS.md)、usecase・HTTP接続等は [usecases規則](../../../server/test/integration/usecases/AGENTS.md) を読む。
 - [fixture規則](../../../server/test/fixtures/AGENTS.md) に従う。既存の準備処理を再利用する場合はimport時のモック・hook・DB接続・cleanupまで確認する。
@@ -69,11 +69,11 @@ description: このリポジトリは新規バックエンドAPIを、詳細設�
 2. 実DBテストは、接続前の `.env.test` 由来の設定検査、接続後の実DB名 `test_db` の確認、必要なスキーマ検査を全接続で行ってから書き込む。ガード不成立やスキーマ不足は自動補正せず中断する。自作ID限定のcleanup・全処理回収・接続終了まで確認する。
 3. `server/` で次を実行する。通常lint対象外の変更TSは対象規約に従って追加検査する。
 
-   ```bash
-   npm run lint
-   npm run typecheck
-   ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
-   ```
+    ```bash
+    npm run lint
+    npm run typecheck
+    ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+    ```
 
 4. [レポートの共通ルール](../../../server/test/docs/report/AGENTS.md) に従い、実行日・ディレクトリ・コマンド、実出力に基づく結果、設計ケースとの対応、保証範囲、失敗・skip・未実行・未実装を記録する。初回・修正案・修正後の結果は同じレポートへまとめ、最新要約と履歴を区別する。
 5. 失敗、ロジックの誤り、必要ケースの未実行があれば原因を切り分け、修正ID・元ケース・対象ファイル・原因・修正方針・期待結果・未達事項を記載する。

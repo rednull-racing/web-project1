@@ -1,12 +1,20 @@
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, makeItem, transactionFixture } from "../../../../usecases/itemEditing/createItemEditingCopy/test/fixtures.js";
+import {
+    deferred,
+    makeItem,
+    transactionFixture,
+} from "../../../../usecases/itemEditing/createItemEditingCopy/test/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ findOne: vi.fn(), create: vi.fn() }));
 vi.mock("../../../../models/index.js", () => ({
-    Item: { findOne: mocks.findOne }, ItemEditing: { create: mocks.create },
-    Video: { marker: "video" }, Sale: { marker: "sale" }, ItemShippingProfile: { marker: "shipping" },
-    Categories: {}, User: {},
+    Item: { findOne: mocks.findOne },
+    ItemEditing: { create: mocks.create },
+    Video: { marker: "video" },
+    Sale: { marker: "sale" },
+    ItemShippingProfile: { marker: "shipping" },
+    Categories: {},
+    User: {},
 }));
 import { Video, Sale, ItemShippingProfile } from "../../../../models/index.js";
 import { getMyItemWithVideoSaleShipping } from "../relation.js";
@@ -14,27 +22,49 @@ import { getMyItemWithVideoSaleShipping } from "../relation.js";
 let transaction: Transaction;
 const params = () => ({ userId: 7, itemId: 101, transaction });
 const lockOptions = () => ({
-    attributes: ["id"], where: { id: 101, seller_id: 7 }, transaction, lock: transaction.LOCK.UPDATE,
+    attributes: ["id"],
+    where: { id: 101, seller_id: 7 },
+    transaction,
+    lock: transaction.LOCK.UPDATE,
 });
 const readOptions = () => ({
     where: { id: 101, seller_id: 7 },
     attributes: [
-        "id", "seller_id", "status", "name", "detail", "image_url", "item_condition_id",
-        "first_image_url", "gender_type", "age_type", "recommend", "category_id",
-        "brand_id", "brand_aliases_id", "attributes",
+        "id",
+        "seller_id",
+        "status",
+        "name",
+        "detail",
+        "image_url",
+        "item_condition_id",
+        "first_image_url",
+        "gender_type",
+        "age_type",
+        "recommend",
+        "category_id",
+        "brand_id",
+        "brand_aliases_id",
+        "attributes",
     ],
     include: [
-        { model: Video, attributes: [
-            "thumbnail_url", "title", "summary", "duration", "original_url", "converted_url", "status",
-        ], required: false },
+        {
+            model: Video,
+            attributes: ["thumbnail_url", "title", "summary", "duration", "original_url", "converted_url", "status"],
+            required: false,
+        },
         { model: Sale, attributes: ["before_price"], required: false },
-        { model: ItemShippingProfile, attributes: [
-            "shipping_day_id", "shipping_service_id", "shipping_place_id", "shipping_service_free_text",
-        ], required: false },
+        {
+            model: ItemShippingProfile,
+            attributes: ["shipping_day_id", "shipping_service_id", "shipping_place_id", "shipping_service_free_text"],
+            required: false,
+        },
     ],
     transaction,
 });
-beforeEach(() => { vi.resetAllMocks(); transaction = transactionFixture(); });
+beforeEach(() => {
+    vi.resetAllMocks();
+    transaction = transactionFixture();
+});
 
 describe("P0/P1 取得serviceの呼出し契約（DB非接続）", () => {
     it("S01 S02 T01: 所有者込みでItemだけをロック後、関連データを同じtransactionで取得する", async () => {
@@ -63,13 +93,18 @@ describe("P0/P1 取得serviceの呼出し契約（DB非接続）", () => {
         if (step === 1) mocks.findOne.mockReturnValueOnce(gate.promise).mockResolvedValueOnce(item);
         else mocks.findOne.mockResolvedValueOnce({ id: 101 }).mockReturnValueOnce(gate.promise);
         let done = false;
-        const pending = getMyItemWithVideoSaleShipping(params()).finally(() => { done = true; });
+        const pending = getMyItemWithVideoSaleShipping(params()).finally(() => {
+            done = true;
+        });
         try {
             // 2回目のSELECTへ進むために、最初のawaitの継続だけを待つ。
             await Promise.resolve();
             expect(mocks.findOne).toHaveBeenCalledTimes(step);
             expect(done).toBe(false);
-        } finally { gate.resolve(step === 1 ? { id: 101 } : item); await pending; }
+        } finally {
+            gate.resolve(step === 1 ? { id: 101 } : item);
+            await pending;
+        }
         expect(await pending).toBe(item);
     });
     it.each([1, 2])("S05 S06 E05 E06: SELECT%sの例外を伝播し後続SELECTを打ち切る", async (step) => {
@@ -84,8 +119,10 @@ describe("P0/P1 取得serviceの呼出し契約（DB非接続）", () => {
         mocks.findOne.mockResolvedValue(item);
         expect(await getMyItemWithVideoSaleShipping({ userId: 7, itemId: 101 })).toBe(item);
         expect(mocks.findOne).toHaveBeenCalledExactlyOnceWith({
-            where: { id: 101, seller_id: 7 }, attributes: undefined,
-            include: [{ model: Video }, { model: Sale }, { model: ItemShippingProfile }], transaction: undefined,
+            where: { id: 101, seller_id: 7 },
+            attributes: undefined,
+            include: [{ model: Video }, { model: Sale }, { model: ItemShippingProfile }],
+            transaction: undefined,
         });
     });
 });

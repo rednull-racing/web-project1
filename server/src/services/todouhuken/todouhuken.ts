@@ -11,7 +11,9 @@ type TodouhukenParams = {
 };
 
 export const getTodouhuken = ({ todouhukenId, transaction }: TodouhukenIdParams) => {
-    return transaction ? TodouhukenOption.findByPk(todouhukenId, { transaction }) : TodouhukenOption.findByPk(todouhukenId);
+    return transaction
+        ? TodouhukenOption.findByPk(todouhukenId, { transaction })
+        : TodouhukenOption.findByPk(todouhukenId);
 };
 
 export const getTodouhukenOne = ({ todouhuken }: TodouhukenParams) => {

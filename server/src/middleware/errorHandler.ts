@@ -8,8 +8,10 @@ export const errorHandler: ErrorRequestHandler = (err: unknown, req, res, next) 
 
     if (
         err instanceof SyntaxError &&
-        "type" in err && err.type === "entity.parse.failed" &&
-        "status" in err && err.status === 400
+        "type" in err &&
+        err.type === "entity.parse.failed" &&
+        "status" in err &&
+        err.status === 400
     ) {
         return res.status(400).json({
             code: "INVALID_JSON",

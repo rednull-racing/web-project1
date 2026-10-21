@@ -11,5 +11,7 @@ export const findAllCondition = async () => {
 };
 
 export const getItemCondition = async ({ conditionId, transaction }: ConditionIdParams) => {
-    return transaction ? ItemConditionOption.findByPk(conditionId, { transaction }) : ItemConditionOption.findByPk(conditionId);
+    return transaction
+        ? ItemConditionOption.findByPk(conditionId, { transaction })
+        : ItemConditionOption.findByPk(conditionId);
 };

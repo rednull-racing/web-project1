@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CreateItemDraft } from "../../../services/itemDraft/command.js";
-import { deferred, expectAppError, makeBody, makeItem } from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
+import {
+    deferred,
+    expectAppError,
+    makeBody,
+    makeItem,
+} from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn(),

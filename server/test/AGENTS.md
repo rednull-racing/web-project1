@@ -13,23 +13,23 @@
 
 例：
 
-| 本番コード | 単体テストの配置先 |
-| --- | --- |
-| `server/src/usecases/itemEditing/createItemEditingDraft.ts` | `server/src/usecases/itemEditing/test/` |
+| 本番コード                                                                       | 単体テストの配置先                                            |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `server/src/usecases/itemEditing/createItemEditingDraft.ts`                      | `server/src/usecases/itemEditing/test/`                       |
 | `server/src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.ts` | `server/src/usecases/itemEditing/createItemEditingCopy/test/` |
-| `server/src/controllers/itemEditing/itemEditing.ts` | `server/src/controllers/itemEditing/test/` |
-| `server/src/services/itemEditing/command.ts` | `server/src/services/itemEditing/test/` |
-| `server/src/validators/body/itemEditing.ts` | `server/src/validators/body/test/` |
+| `server/src/controllers/itemEditing/itemEditing.ts`                              | `server/src/controllers/itemEditing/test/`                    |
+| `server/src/services/itemEditing/command.ts`                                     | `server/src/services/itemEditing/test/`                       |
+| `server/src/validators/body/itemEditing.ts`                                      | `server/src/validators/body/test/`                            |
 
 ## 結合テスト
 
 結合テストは `server/test/integration/<役割>/<大分類>/<小分類>/` に置く。ファイルの主な検証対象に合わせて役割を選び、大分類・小分類までディレクトリを分ける。
 
-| 役割 | 配置するテスト | 配置例 |
-| --- | --- | --- |
-| `database` | 永続化・DB制約などの結合テスト | `server/test/integration/database/itemEditing/createItemEditingDraft/` |
+| 役割       | 配置するテスト                                           | 配置例                                                                 |
+| ---------- | -------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `database` | 永続化・DB制約などの結合テスト                           | `server/test/integration/database/itemEditing/createItemEditingDraft/` |
 | `usecases` | usecaseのtransaction・並行処理・HTTP接続などの結合テスト | `server/test/integration/usecases/itemEditing/createItemEditingDraft/` |
-| `services` | serviceの結合テスト | `server/test/integration/services/<大分類>/<小分類>/` |
+| `services` | serviceの結合テスト                                      | `server/test/integration/services/<大分類>/<小分類>/`                  |
 
 ## fixture・setup
 
@@ -41,10 +41,10 @@ fixture とテスト用 setup は `server/test/fixtures/<大分類>/<小分類>/
 
 ドキュメントは種類ごとに分け、大分類をディレクトリ名、小分類をMarkdownのファイル名にする。
 
-| 種類 | 配置先 | 配置例 |
-| --- | --- | --- |
-| テスト設計書 | `server/test/docs/architecture/<大分類>/<小分類>.md` | `server/test/docs/architecture/itemEditing/createItemEditingDraft.md` |
-| テストレポート | `server/test/docs/report/<大分類>/<小分類>.md` | `server/test/docs/report/itemEditing/createItemEditingDraft.md` |
+| 種類           | 配置先                                               | 配置例                                                                |
+| -------------- | ---------------------------------------------------- | --------------------------------------------------------------------- |
+| テスト設計書   | `server/test/docs/architecture/<大分類>/<小分類>.md` | `server/test/docs/architecture/itemEditing/createItemEditingDraft.md` |
+| テストレポート | `server/test/docs/report/<大分類>/<小分類>.md`       | `server/test/docs/report/itemEditing/createItemEditingDraft.md`       |
 
 修正・再検証のレポートも、同じ小分類のテストレポートにまとめる。
 

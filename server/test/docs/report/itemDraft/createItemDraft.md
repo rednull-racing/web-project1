@@ -8,9 +8,7 @@ service直下の単一TSを同名フォルダへ移動し、呼出し元・モ�
 
 service単体テスト全体は移動前9ファイル・移動後15ファイルで、ともに72件すべて成功。Vitest JSONの全テスト名と成否が一致した。DB接続・実DBテスト・migrationは未実施。
 
-
 初回報告と改善案・再実行記録を統合した。以下は各実行時点の履歴であり、移動前の最新結果は後半の「9. F1〜F6 対応後の再実行結果（2026-10-12）」を参照する。
-
 
 ## 2026-10-16 配置変更後の確認
 
@@ -18,19 +16,19 @@ service単体テスト全体は移動前9ファイル・移動後15ファイル�
 
 DB非接続の単体・結合テストは10ファイル・823件すべて成功。失敗・skip・todoは0件。初回は804件成功し、Router19件はサンドボックスのHTTP待受け制限で停止した。同じテストを通信許可後に再実行し19件成功を確認した。JSON結果は `/tmp/create-item-draft-layout-results.json` と `/tmp/create-item-draft-route-authorized.json` に出力した。
 
-| ファイル（server/基準） | 成功件数 |
-| --- | ---: |
-| `src/usecases/itemDraft/test/createItemDraft.test.ts` | 79 |
-| `src/controllers/itemDraft/test/createItemDraft.test.ts` | 5 |
-| `src/validators/body/test/createItemDraft.test.ts` | 350 |
-| `src/usecases/shared/test/createItemDraft.signedUrls.test.ts` | 72 |
-| `src/utils/s3/test/createItemDraft.videoPresignedPost.test.ts` | 4 |
-| `src/services/itemDraft/test/createItemDraft.test.ts` | 6 |
-| `src/services/itemEditing/test/createItemDraft.test.ts` | 5 |
-| `src/services/test/createItemDraft.test.ts` | 30 |
-| `test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts` | 253 |
-| `test/integration/usecases/itemDraft/createItemDraft/route.test.ts` | 19 |
-| 合計 | 823 |
+| ファイル（server/基準）                                                   | 成功件数 |
+| ------------------------------------------------------------------------- | -------: |
+| `src/usecases/itemDraft/test/createItemDraft.test.ts`                     |       79 |
+| `src/controllers/itemDraft/test/createItemDraft.test.ts`                  |        5 |
+| `src/validators/body/test/createItemDraft.test.ts`                        |      350 |
+| `src/usecases/shared/test/createItemDraft.signedUrls.test.ts`             |       72 |
+| `src/utils/s3/test/createItemDraft.videoPresignedPost.test.ts`            |        4 |
+| `src/services/itemDraft/test/createItemDraft.test.ts`                     |        6 |
+| `src/services/itemEditing/test/createItemDraft.test.ts`                   |        5 |
+| `src/services/test/createItemDraft.test.ts`                               |       30 |
+| `test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts` |      253 |
+| `test/integration/usecases/itemDraft/createItemDraft/route.test.ts`       |       19 |
+| 合計                                                                      |      823 |
 
 lint・本番コードのtypecheck・単体/結合テスト全体の型検査、参照パス以外の内容保持、相対import・mock参照先、文書リンクとgit diff --checkを確認した。実DBテスト177件・DB接続・migrationは今回は未実施。後述の1,000件成功は2026-10-12の履歴であり、今回の実行件数には含めない。
 
@@ -54,19 +52,19 @@ lint・本番コードのtypecheck・単体/結合テスト全体の型検査、
 
 全ファイルで失敗・skip・todo は 0 件です。
 
-| 記号     | テストファイル                                                 | 成功件数 | 実処理とモックの境界                                                                                         |
-| -------- | -------------------------------------------------------------- | -------: | ------------------------------------------------------------------------------------------------------------ |
-| U        | [usecase.test.ts](../../../../src/usecases/itemDraft/test/createItemDraft.test.ts)                           |       68 | 実 usecase。helper・service・transaction はモック。保存引数・待機・後続未実行を確認                          |
+| 記号     | テストファイル                                                                                                       | 成功件数 | 実処理とモックの境界                                                                                         |
+| -------- | -------------------------------------------------------------------------------------------------------------------- | -------: | ------------------------------------------------------------------------------------------------------------ |
+| U        | [usecase.test.ts](../../../../src/usecases/itemDraft/test/createItemDraft.test.ts)                                   |       68 | 実 usecase。helper・service・transaction はモック。保存引数・待機・後続未実行を確認                          |
 | HM       | [masterBrand.test.ts](../../../integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts)                   |      184 | 実 helper と実 usecase。DB service・S3・transaction をモック。数値・マスター・ブランド・メディアの接続を確認 |
-| HS       | [signedUrls.test.ts](../../../../src/usecases/shared/test/createItemDraft.signedUrls.test.ts)                     |       71 | 実 URL helper。S3 署名・公開ドメイン・時刻・UUID を制御。署名内部の AWS 処理は未検証                         |
-| V        | [validation.test.ts](../../../../src/validators/body/test/createItemDraft.test.ts)                     |      325 | 実 schema・validateBody・validateParams。受理・拒否・parse 後の値を確認                                      |
-| S        | [services.test.ts](../../architecture/itemDraft/createItemDraft.md)                         |       41 | 実 service。Model メソッド・SQL 呼出しをモック。DB の効果はこのファイルでは保証しない                        |
-| C        | [controller.test.ts](../../../../src/controllers/itemDraft/test/createItemDraft.test.ts)                     |        5 | 実 controller、usecase モック。認証 ID・検証済み body・200 応答・next への伝播を確認                         |
+| HS       | [signedUrls.test.ts](../../../../src/usecases/shared/test/createItemDraft.signedUrls.test.ts)                        |       71 | 実 URL helper。S3 署名・公開ドメイン・時刻・UUID を制御。署名内部の AWS 処理は未検証                         |
+| V        | [validation.test.ts](../../../../src/validators/body/test/createItemDraft.test.ts)                                   |      325 | 実 schema・validateBody・validateParams。受理・拒否・parse 後の値を確認                                      |
+| S        | [services.test.ts](../../architecture/itemDraft/createItemDraft.md)                                                  |       41 | 実 service。Model メソッド・SQL 呼出しをモック。DB の効果はこのファイルでは保証しない                        |
+| C        | [controller.test.ts](../../../../src/controllers/itemDraft/test/createItemDraft.test.ts)                             |        5 | 実 controller、usecase モック。認証 ID・検証済み body・200 応答・next への伝播を確認                         |
 | R        | [route.test.ts](../../../integration/usecases/itemDraft/createItemDraft/route.test.ts)                               |       11 | 実 Router・JWT 認証・レート制限・validator。usecase モック。最小 Express と Supertest で HTTP を検証         |
 | D        | [database.test.ts](../../../integration/database/itemDraft/createItemDraft/database.test.ts)                         |      127 | 実 usecase・helper・service・モデル・PostgreSQL。S3 のみモック。永続化・制約・状態・逐次再実行を確認         |
 | T        | [databaseTransactions.test.ts](../../../integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts) |       17 | 同上。明示した service の障害注入・保留を追加。commit 可視性・rollback・再試行を確認                         |
 | P        | [databaseConcurrency.test.ts](../../../integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts)   |       12 | 同上。実 SELECT・保存・別名作成をラップして順序を制御。別 transaction の競合を確認                           |
-| **合計** | **10 ファイル**                                                |  **861** | **DB156 件＋ DB 非接続 705 件**                                                                              |
+| **合計** | **10 ファイル**                                                                                                      |  **861** | **DB156 件＋ DB 非接続 705 件**                                                                              |
 
 JSON の `numTotalTestSuites=144` は describe 等を含む集計値です。テストファイル数には `testResults` の 10 ファイルを使いました。ケース ID と `it.each` 展開後の件数も別の数字です。一つのテストが複数 ID に対応するため、ID 別に件数を足して 861 件を算出してはいません。
 

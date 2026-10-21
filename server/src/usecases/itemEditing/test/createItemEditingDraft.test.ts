@@ -3,7 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { getMyItemDraft } from "../../../services/itemDraft/query.js";
 import type { createItemEditingDraft } from "../../../services/itemEditing/command.js";
 import type { deleteItemDraft } from "../../../services/itemDraft/command.js";
-import { copyVariants, deferred, expectAppError, makeData, makeDraft, waitForGate } from "./createItemEditingDraft.fixtures.js";
+import {
+    copyVariants,
+    deferred,
+    expectAppError,
+    makeData,
+    makeDraft,
+    waitForGate,
+} from "./createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     transaction: vi.fn<(callback: (t: Transaction) => Promise<number>) => Promise<number>>(),

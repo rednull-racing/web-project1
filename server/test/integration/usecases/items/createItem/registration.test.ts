@@ -44,7 +44,10 @@ vi.mock("../../../../../src/routes/users.js", () => ({ default: express.Router()
 vi.mock("../../../../../src/routes/users/me/items.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/video.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/watchHistory.js", () => ({ default: express.Router() }));
-afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
+afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+});
 it("R12: 実registerRoutesのPOST /api/itemsが新handlerへ到達", async () => {
     vi.stubEnv("NEXTAUTH_SECRET", "registration-test-only-secret");
     const { registerRoutes } = await import("../../../../../src/routes/index.js");
@@ -53,7 +56,10 @@ it("R12: 実registerRoutesのPOST /api/itemsが新handlerへ到達", async () =>
     app.use(express.json());
     registerRoutes(app);
     app.use(errorHandler);
-    const r = await request(app).post("/api/items").set("Authorization", "Bearer " + makeToken(process.env.NEXTAUTH_SECRET!)).send({ itemEditingId: 11 });
+    const r = await request(app)
+        .post("/api/items")
+        .set("Authorization", "Bearer " + makeToken(process.env.NEXTAUTH_SECRET!))
+        .send({ itemEditingId: 11 });
     expect(r.status).toBe(201);
     expect(r.body).toEqual({ itemId: 456 });
     expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemEditingId: 11 });

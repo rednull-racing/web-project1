@@ -21,7 +21,7 @@
 | 編集セッション生成           | `src/services/itemEditing/command.ts`：`createItemEditingDraft`                                                                                                       |
 | 元下書き削除                 | `src/services/itemDraft/command.ts`：`deleteItemDraft`                                                                                                                |
 | 入出力の型                   | `src/types/serviceType/{itemDraft,itemEditing}.ts`、`src/types/itemAttributes.ts`                                                                                     |
-| HTTP 接続                    | `src/controllers/itemEditing/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                                                  |
+| HTTP 接続                    | `src/controllers/itemEditing/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                                      |
 | 入力検証                     | `src/validators/body/itemEditing.ts`：`createItemEditingDraftBodySchema`、`src/middleware/validate/validateBody.ts`                                                   |
 | 認証・制限・エラー           | `src/middleware/authMiddleware.ts`、`src/middleware/rateLimit/itemEditingRateLimit.ts`、`src/errors.ts`、`src/middleware/errorHandler.ts`                             |
 | モデル・関連付け             | `src/models/{item_draft,item_editing}.ts`、`src/models/index.ts`                                                                                                      |
@@ -52,16 +52,16 @@
 
 以下は `server/` 基準。下表の旧ファイル名・過去の実行コマンドは初回設計時の記録として残す。
 
-| 旧ファイル | 現在の配置 |
-| --- | --- |
-| `usecase.test.ts` | `src/usecases/itemEditing/test/createItemEditingDraft.test.ts` |
-| `services.test.ts` | `src/services/itemDraft/test/createItemEditingDraft.test.ts`（取得・削除）、`src/services/itemEditing/test/createItemEditingDraft.test.ts`（作成） |
-| `validation.test.ts` | `src/validators/body/test/createItemEditingDraft.test.ts` |
-| `controller.test.ts` | `src/controllers/itemEditing/test/createItemEditingDraft.test.ts` |
-| `fixtures.ts` | `src/usecases/itemEditing/test/createItemEditingDraft.fixtures.ts`（単体・結合テスト共通） |
-| `database.test.ts` | `test/integration/database/itemEditing/createItemEditingDraft/`：永続化・制約・所有権・再実行。ファイル内のHTTP→DB検証も維持 |
-| `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`、`route.test.ts` | `test/integration/usecases/itemEditing/createItemEditingDraft/`：transaction・並行処理・HTTP接続 |
-| DB fixture・setup | `test/fixtures/itemEditing/createItemEditingDraft/`（`databaseFixtures.ts`・`databaseSetup.ts`） |
+| 旧ファイル                                                                     | 現在の配置                                                                                                                                         |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `usecase.test.ts`                                                              | `src/usecases/itemEditing/test/createItemEditingDraft.test.ts`                                                                                     |
+| `services.test.ts`                                                             | `src/services/itemDraft/test/createItemEditingDraft.test.ts`（取得・削除）、`src/services/itemEditing/test/createItemEditingDraft.test.ts`（作成） |
+| `validation.test.ts`                                                           | `src/validators/body/test/createItemEditingDraft.test.ts`                                                                                          |
+| `controller.test.ts`                                                           | `src/controllers/itemEditing/test/createItemEditingDraft.test.ts`                                                                                  |
+| `fixtures.ts`                                                                  | `src/usecases/itemEditing/test/createItemEditingDraft.fixtures.ts`（単体・結合テスト共通）                                                         |
+| `database.test.ts`                                                             | `test/integration/database/itemEditing/createItemEditingDraft/`：永続化・制約・所有権・再実行。ファイル内のHTTP→DB検証も維持                       |
+| `databaseTransactions.test.ts`、`databaseConcurrency.test.ts`、`route.test.ts` | `test/integration/usecases/itemEditing/createItemEditingDraft/`：transaction・並行処理・HTTP接続                                                   |
+| DB fixture・setup                                                              | `test/fixtures/itemEditing/createItemEditingDraft/`（`databaseFixtures.ts`・`databaseSetup.ts`）                                                   |
 
 単体テストは `npm run test:run -- src/usecases/itemEditing/test/createItemEditingDraft.test.ts src/services/itemDraft/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/validators/body/test/createItemEditingDraft.test.ts src/controllers/itemEditing/test/createItemEditingDraft.test.ts --maxWorkers=1` で実行する。
 本番コードの `npm run typecheck` が移動先の単体テストを含む。残る結合テストの型は `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` で確認する。
@@ -71,8 +71,6 @@ DB非接続のRouterテストは `npm run test:run -- test/integration/usecases/
 2026-10-16の移動後確認ではlint・本番コードとテスト全体の型検査が成功。Routerテストは対象外usecaseのモック漏れによるDB設定読込みで40件とも検証前に停止し、実DBテストは未実行。対応は [Todo](../../../../../docs/todo/done/isolate-create-item-editing-draft-route-test-from-db.md) を参照。
 
 全統合テストは `npm run test:run -- test/integration/database/itemEditing/createItemEditingDraft/ test/integration/usecases/itemEditing/createItemEditingDraft/ --maxWorkers=1` で実行する。実DBテストを含むため、第13節の接続ガード・安全条件を先に確認する。
-
-
 
 下表は将来の実装構成。今回は各ファイルを作成しない。
 

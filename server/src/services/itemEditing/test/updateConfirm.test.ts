@@ -82,4 +82,3 @@ it("P02/P08: 所有者条件と同じtransactionで更新ロックを指定す�
         lock: "UPDATE",
     });
 });
-

@@ -6,10 +6,7 @@ export type SaleIdParams = {
 };
 
 export type CreateSaleParams = {
-    data: Pick<
-        InstanceType<typeof Sale>,
-        "before_price" | "discount_rate" | "discount_amount" | "sale_flag"
-    >;
+    data: Pick<InstanceType<typeof Sale>, "before_price" | "discount_rate" | "discount_amount" | "sale_flag">;
     transaction: Transaction;
 };
 

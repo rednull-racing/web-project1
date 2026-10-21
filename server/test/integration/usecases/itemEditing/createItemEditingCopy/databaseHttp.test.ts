@@ -3,15 +3,25 @@ import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    seed, sequelize, editingIds, protectedSnapshot, expectedCopy, expectCopy, ItemEditing,
+    seed,
+    sequelize,
+    editingIds,
+    protectedSnapshot,
+    expectedCopy,
+    expectCopy,
+    ItemEditing,
 } from "../../../../fixtures/itemEditing/createItemEditingCopy/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingCopy/databaseFixtures.js";
 import { makeHttpApp, postCopy } from "../../../../fixtures/itemEditing/createItemEditingCopy/httpFixtures.js";
 
 // 対象copyは実処理。他エンドポイントの初期化だけを切り離す。
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
+    createItemEditingDraftUseCase: vi.fn(),
+}));
+vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
+    updateItemEditingConfirmUseCase: vi.fn(),
+}));
 
 let f: DbFixture;
 let app: Awaited<ReturnType<typeof makeHttpApp>>;
@@ -25,7 +35,8 @@ beforeEach(async () => {
     vi.stubEnv("NEXTAUTH_SECRET", secret);
     f = await seed();
     app = await makeHttpApp();
-    const { createItemEditingCopyRateLimit } = await import("../../../../../src/middleware/rateLimit/itemEditingRateLimit.js");
+    const { createItemEditingCopyRateLimit } =
+        await import("../../../../../src/middleware/rateLimit/itemEditingRateLimit.js");
     await createItemEditingCopyRateLimit.resetKey("admin:" + f.owner.id);
 });
 afterEach(() => {
@@ -36,18 +47,21 @@ const post = (body: object = { itemId: f.item.id }) => postCopy(app, secret, bod
 
 describe("P1/P2 実HTTPと実usecase・DBの接続", () => {
     it.each([401, 400, 404])("D07: %sで停止して新規行・既存データを変更しない", async (status) => {
-        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const before = await protectedSnapshot(f),
+            ids = await editingIds(f);
         const transaction = vi.spyOn(sequelize, "transaction");
-        const result = status === 401
-            ? await request(app).post("/api/item-editing/copy").send({ itemId: f.item.id })
-            : await post(status === 400 ? {} : { itemId: f.otherItem.id });
+        const result =
+            status === 401
+                ? await request(app).post("/api/item-editing/copy").send({ itemId: f.item.id })
+                : await post(status === 400 ? {} : { itemId: f.otherItem.id });
         expect(result.status).toBe(status);
         expect(transaction).toHaveBeenCalledTimes(status === 404 ? 1 : 0);
         expect(await editingIds(f)).toEqual(ids);
         expect(await protectedSnapshot(f)).toEqual(before);
     });
     it("D07 Q05: 5回成功で異なる編集行を作り6回目はDB未開始、窓更新後は追加できる", async () => {
-        const before = await protectedSnapshot(f), initial = await editingIds(f);
+        const before = await protectedSnapshot(f),
+            initial = await editingIds(f);
         const copied: number[] = [];
         for (let i = 0; i < 5; i++) {
             const response = await post();
@@ -79,30 +93,36 @@ describe("P1/P2 実HTTPと実usecase・DBの接続", () => {
     }, 30000);
 });
 
-
 describe("P1 修正後のHTTP・DB境界", () => {
     it.each([2147483648, Number.MAX_SAFE_INTEGER])("O02 AF-ID01 AF-ID02: itemId=%sは400でDB未開始", async (itemId) => {
-        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const before = await protectedSnapshot(f),
+            ids = await editingIds(f);
         const transaction = vi.spyOn(sequelize, "transaction");
         const response = await post({ itemId });
         expect(response.status).toBe(400);
         expect(response.body).toEqual({ code: "INVALID_BODY", message: "INVALID_BODY" });
         expect(transaction).not.toHaveBeenCalled();
-        expect(await editingIds(f)).toEqual(ids); expect(await protectedSnapshot(f)).toEqual(before);
+        expect(await editingIds(f)).toEqual(ids);
+        expect(await protectedSnapshot(f)).toEqual(before);
     });
     it("O05 AF-DEL01: activeの論理削除済み商品は404で作成しない", async () => {
         await f.item.update({ deleted_at: new Date("2020-01-01T00:00:00Z") });
-        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const before = await protectedSnapshot(f),
+            ids = await editingIds(f);
         const create = vi.spyOn(ItemEditing, "create");
         const response = await post();
         expect(response.status).toBe(404);
         expect(response.body).toEqual({ code: "ITEM_NOT_FOUND", message: "ITEM_NOT_FOUND" });
         expect(create).not.toHaveBeenCalled();
-        expect(await editingIds(f)).toEqual(ids); expect(await protectedSnapshot(f)).toEqual(before);
+        expect(await editingIds(f)).toEqual(ids);
+        expect(await protectedSnapshot(f)).toEqual(before);
     });
     it("O01 AF-INV01: 破損した保存済みサイズ在庫は明示的な500で作成しない", async () => {
-        await f.item.update({ attributes: { colorVariants: [{ sizes: [{ size: "M" }] }] } as unknown as typeof f.item.attributes });
-        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        await f.item.update({
+            attributes: { colorVariants: [{ sizes: [{ size: "M" }] }] } as unknown as typeof f.item.attributes,
+        });
+        const before = await protectedSnapshot(f),
+            ids = await editingIds(f);
         const create = vi.spyOn(ItemEditing, "create");
         const response = await post();
         expect(response.status).toBe(500);
@@ -111,6 +131,7 @@ describe("P1 修正後のHTTP・DB境界", () => {
             message: "商品の在庫情報を確認できません。時間をおいてもう一度お試しください。",
         });
         expect(create).not.toHaveBeenCalled();
-        expect(await editingIds(f)).toEqual(ids); expect(await protectedSnapshot(f)).toEqual(before);
+        expect(await editingIds(f)).toEqual(ids);
+        expect(await protectedSnapshot(f)).toEqual(before);
     });
 });

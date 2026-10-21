@@ -17,7 +17,11 @@ import {
     expectUnchanged,
 } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
-import { copyVariants, expectAppError, makeBody } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import {
+    copyVariants,
+    expectAppError,
+    makeBody,
+} from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 beforeEach(async () => {
@@ -128,7 +132,8 @@ describe("P0: HTTP入口で拒否した場合の実DB不変", () => {
                 if (authenticated) req.set("Authorization", `Bearer ${token}`);
                 return req.send(valid ? makeBody(f.draft.id) : {});
             };
-            const { sequelize } = await import("../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js");
+            const { sequelize } =
+                await import("../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js");
             const transaction = vi.spyOn(sequelize, "transaction");
             if (mode === "制限超過") for (let i = 0; i < 5; i++) expect((await send(false)).status).toBe(400);
             const result = await send(mode !== "入力不正", mode !== "未認証");

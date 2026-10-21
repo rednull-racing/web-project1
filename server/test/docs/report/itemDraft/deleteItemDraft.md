@@ -19,12 +19,12 @@ deleteItemDraftのO03は新契約AF-JSON01へ更新し、正常/なし/不正JWT
 - 追加lintで検出した既存の未使用 `_next` は `void _next` で明示した。Expressがエラーハンドラーとして認識する4引数を維持した。
 - 本番コード、db.tsの接続ガード、dotenvモック、既存のレスポンス・認証・入力・レート制限の期待値は変更していない。
 
-| 検証 | 成功 | 失敗/skip/todo | 結果 |
-| --- | ---: | --- | --- |
-| AF-MOCK01：既存controller | 5 | 0/0/0 | DB初期化なしでケース本体まで実行 |
-| AF-MOCK01：既存作成HTTP | 19 | 0/0/0 | beforeEachのimport失敗を解消、従来assertを維持 |
-| AF-MOCK01：削除API回帰 | 208 | 0/0/0 | 単体97、DBなし結合62、実DB49を維持 |
-| AF-MOCK02：作成/削除の分離 | 上記ケース内 | 0/0/0 | 作成24ケースの削除呼出し0回、削除C01/R01の作成呼出し0回 |
+| 検証                       |         成功 | 失敗/skip/todo | 結果                                                    |
+| -------------------------- | -----------: | -------------- | ------------------------------------------------------- |
+| AF-MOCK01：既存controller  |            5 | 0/0/0          | DB初期化なしでケース本体まで実行                        |
+| AF-MOCK01：既存作成HTTP    |           19 | 0/0/0          | beforeEachのimport失敗を解消、従来assertを維持          |
+| AF-MOCK01：削除API回帰     |          208 | 0/0/0          | 単体97、DBなし結合62、実DB49を維持                      |
+| AF-MOCK02：作成/削除の分離 | 上記ケース内 | 0/0/0          | 作成24ケースの削除呼出し0回、削除C01/R01の作成呼出し0回 |
 
 実行ディレクトリは `server/`。
 
@@ -72,19 +72,19 @@ lint、本番typecheck、テスト用typecheck、通常lint対象外の追加10�
 
 パスは以下、特記がなければ `server/` 基準。
 
-| 記号 | 新規ファイル | 実処理 / モック |
-| --- | --- | --- |
-| V | `src/validators/params/test/id.test.ts` | 実idParamSchema。外部依存なし |
-| M | `src/middleware/validate/test/deleteItemDraft.test.ts` | 実validateParamsとschema。部分Request/Response/nextのみテスト用 |
-| C | `src/controllers/itemDraft/test/deleteItemDraft.test.ts` | 実controller。削除usecaseと対象外の作成usecaseをモック |
-| U | `src/usecases/itemDraft/test/deleteItemDraft.test.ts` | 実usecase。transaction・取得/削除serviceを境界でモック |
-| S | `src/services/itemDraft/test/deleteItemDraft.test.ts` | 実service。findOne・モデルインスタンスdestroyをモック |
-| R | `test/integration/usecases/itemDraft/deleteItemDraft/route.test.ts` | 実Router・JWT認証・MemoryStore・validator・controller・共通errorHandler。両usecaseをモック |
-| I | `test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts` | categories読取/itemEditing更新の実Router・共通ID検証。controller以下をモック |
-| D | `test/integration/database/itemDraft/deleteItemDraft/database.test.ts` | 実usecase/service/model/PostgreSQL。S3境界をモック |
-| H | `test/integration/usecases/itemDraft/deleteItemDraft/routeDatabase.test.ts` | 最小Expressから実DBまで。対象外の作成usecase・外部通信をモック |
-| T | `test/integration/usecases/itemDraft/deleteItemDraft/databaseTransactions.test.ts` | 実transaction。指定箇所のcall-through待合せ/障害注入のみspy |
-| P | `test/integration/usecases/itemDraft/deleteItemDraft/databaseConcurrency.test.ts` | 実削除usecase・実編集開始usecase・独立transaction。実ロック待機を監視 |
+| 記号 | 新規ファイル                                                                       | 実処理 / モック                                                                            |
+| ---- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| V    | `src/validators/params/test/id.test.ts`                                            | 実idParamSchema。外部依存なし                                                              |
+| M    | `src/middleware/validate/test/deleteItemDraft.test.ts`                             | 実validateParamsとschema。部分Request/Response/nextのみテスト用                            |
+| C    | `src/controllers/itemDraft/test/deleteItemDraft.test.ts`                           | 実controller。削除usecaseと対象外の作成usecaseをモック                                     |
+| U    | `src/usecases/itemDraft/test/deleteItemDraft.test.ts`                              | 実usecase。transaction・取得/削除serviceを境界でモック                                     |
+| S    | `src/services/itemDraft/test/deleteItemDraft.test.ts`                              | 実service。findOne・モデルインスタンスdestroyをモック                                      |
+| R    | `test/integration/usecases/itemDraft/deleteItemDraft/route.test.ts`                | 実Router・JWT認証・MemoryStore・validator・controller・共通errorHandler。両usecaseをモック |
+| I    | `test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts`       | categories読取/itemEditing更新の実Router・共通ID検証。controller以下をモック               |
+| D    | `test/integration/database/itemDraft/deleteItemDraft/database.test.ts`             | 実usecase/service/model/PostgreSQL。S3境界をモック                                         |
+| H    | `test/integration/usecases/itemDraft/deleteItemDraft/routeDatabase.test.ts`        | 最小Expressから実DBまで。対象外の作成usecase・外部通信をモック                             |
+| T    | `test/integration/usecases/itemDraft/deleteItemDraft/databaseTransactions.test.ts` | 実transaction。指定箇所のcall-through待合せ/障害注入のみspy                                |
+| P    | `test/integration/usecases/itemDraft/deleteItemDraft/databaseConcurrency.test.ts`  | 実削除usecase・実編集開始usecase・独立transaction。実ロック待機を監視                      |
 
 fixtureは `test/fixtures/itemDraft/deleteItemDraft/` に `fixtures.ts`、`databaseSetup.ts`、`databaseFixtures.ts`、`concurrencyFixtures.ts` を追加した。
 
@@ -99,143 +99,143 @@ fixtureは `test/fixtures/itemDraft/deleteItemDraft/` に `fixtures.ts`、`datab
 
 件数は最終Vitest JSON出力の `assertionResults` から集計。設計ID数と `it.each` 展開後のテスト件数は異なる。複数IDを1ケースで確認するもの、1IDを複数入力へ展開するものがある。
 
-| 分類 | ファイル記号 | 成功 | 失敗 | skip/todo |
-| --- | --- | ---: | ---: | ---: |
-| 単体 | V | 46 | 0 | 0/0 |
-| 単体 | M | 23 | 0 | 0/0 |
-| 単体 | C | 6 | 0 | 0/0 |
-| 単体 | U | 13 | 0 | 0/0 |
-| 単体 | S | 9 | 0 | 0/0 |
-| DBなしHTTP | R | 56 | 0 | 0/0 |
-| DBなし共有Router回帰 | I | 6 | 0 | 0/0 |
-| 実DB | D | 16 | 0 | 0/0 |
-| HTTP＋実DB | H | 9 | 0 | 0/0 |
-| 実transaction | T | 10 | 0 | 0/0 |
-| 実並行処理 | P | 14 | 0 | 0/0 |
-| **追加テスト合計** | **11ファイル** | **208** | **0** | **0/0** |
+| 分類                 | ファイル記号   |    成功 |  失敗 | skip/todo |
+| -------------------- | -------------- | ------: | ----: | --------: |
+| 単体                 | V              |      46 |     0 |       0/0 |
+| 単体                 | M              |      23 |     0 |       0/0 |
+| 単体                 | C              |       6 |     0 |       0/0 |
+| 単体                 | U              |      13 |     0 |       0/0 |
+| 単体                 | S              |       9 |     0 |       0/0 |
+| DBなしHTTP           | R              |      56 |     0 |       0/0 |
+| DBなし共有Router回帰 | I              |       6 |     0 |       0/0 |
+| 実DB                 | D              |      16 |     0 |       0/0 |
+| HTTP＋実DB           | H              |       9 |     0 |       0/0 |
+| 実transaction        | T              |      10 |     0 |       0/0 |
+| 実並行処理           | P              |      14 |     0 |       0/0 |
+| **追加テスト合計**   | **11ファイル** | **208** | **0** |   **0/0** |
 
 内訳は単体97件、DBなし結合62件、実DB結合49件。カバレッジ率は取得しておらず、208件の成功から行/分岐100%を主張しない。
 
 ### 既存回帰（追加208件との重複加算なし）
 
-| 既存ファイル | 成功 | 失敗 | 範囲・備考 |
-| --- | ---: | ---: | --- |
-| `src/usecases/itemDraft/test/createItemDraft.test.ts` | 79 | 0 | 作成usecase |
-| `src/controllers/itemDraft/test/createItemDraft.test.ts` | 5 | 0 | 作成controller。対象外削除の依存遮断不足はF1で補足 |
-| `src/services/itemDraft/test/createItemDraft.test.ts` | 6 | 0 | 作成service |
-| `src/services/itemDraft/test/createItemEditingDraft.test.ts` | 7 | 0 | 共有取得・削除service |
-| `src/usecases/itemEditing/test/createItemEditingDraft.test.ts` | 55 | 0 | 編集開始usecase |
-| `src/controllers/itemEditing/test/createItemEditingDraft.test.ts` | 4 | 0 | 編集開始controller |
-| `src/services/itemEditing/test/createItemEditingDraft.test.ts` | 4 | 0 | 編集作成service |
-| `src/validators/body/test/createItemEditingDraft.test.ts` | 33 | 0 | 編集開始入力 |
-| `test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts` | 253 | 0 | 実helper接続、DBなし |
-| `test/integration/usecases/itemDraft/createItemDraft/route.test.ts` | 0 | 19 | F1。beforeEachのimport失敗、HTTPケース本体未実行 |
-| `test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts` | 40 | 0 | 編集開始HTTP、DBなし |
-| `test/integration/database/itemDraft/createItemDraft/database.test.ts` | 148 | 0 | 実DBの作成保存 |
-| `test/integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts` | 17 | 0 | 実DBの作成transaction |
-| `test/integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts` | 12 | 0 | 実DBの作成競合 |
-| `test/integration/database/itemEditing/createItemEditingDraft/database.test.ts` | 54 | 0 | 実DBの編集開始保存 |
-| `test/integration/usecases/itemEditing/createItemEditingDraft/databaseTransactions.test.ts` | 11 | 0 | 実DBの編集開始transaction |
-| `test/integration/usecases/itemEditing/createItemEditingDraft/databaseConcurrency.test.ts` | 12 | 0 | 実DBの編集開始競合 |
-| **既存回帰合計** | **740** | **19** | **DBなし486成功/19失敗、実DB254成功/0失敗。skip/todoは0** |
+| 既存ファイル                                                                                |    成功 |   失敗 | 範囲・備考                                                |
+| ------------------------------------------------------------------------------------------- | ------: | -----: | --------------------------------------------------------- |
+| `src/usecases/itemDraft/test/createItemDraft.test.ts`                                       |      79 |      0 | 作成usecase                                               |
+| `src/controllers/itemDraft/test/createItemDraft.test.ts`                                    |       5 |      0 | 作成controller。対象外削除の依存遮断不足はF1で補足        |
+| `src/services/itemDraft/test/createItemDraft.test.ts`                                       |       6 |      0 | 作成service                                               |
+| `src/services/itemDraft/test/createItemEditingDraft.test.ts`                                |       7 |      0 | 共有取得・削除service                                     |
+| `src/usecases/itemEditing/test/createItemEditingDraft.test.ts`                              |      55 |      0 | 編集開始usecase                                           |
+| `src/controllers/itemEditing/test/createItemEditingDraft.test.ts`                           |       4 |      0 | 編集開始controller                                        |
+| `src/services/itemEditing/test/createItemEditingDraft.test.ts`                              |       4 |      0 | 編集作成service                                           |
+| `src/validators/body/test/createItemEditingDraft.test.ts`                                   |      33 |      0 | 編集開始入力                                              |
+| `test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts`                   |     253 |      0 | 実helper接続、DBなし                                      |
+| `test/integration/usecases/itemDraft/createItemDraft/route.test.ts`                         |       0 |     19 | F1。beforeEachのimport失敗、HTTPケース本体未実行          |
+| `test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts`                |      40 |      0 | 編集開始HTTP、DBなし                                      |
+| `test/integration/database/itemDraft/createItemDraft/database.test.ts`                      |     148 |      0 | 実DBの作成保存                                            |
+| `test/integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts`          |      17 |      0 | 実DBの作成transaction                                     |
+| `test/integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts`           |      12 |      0 | 実DBの作成競合                                            |
+| `test/integration/database/itemEditing/createItemEditingDraft/database.test.ts`             |      54 |      0 | 実DBの編集開始保存                                        |
+| `test/integration/usecases/itemEditing/createItemEditingDraft/databaseTransactions.test.ts` |      11 |      0 | 実DBの編集開始transaction                                 |
+| `test/integration/usecases/itemEditing/createItemEditingDraft/databaseConcurrency.test.ts`  |      12 |      0 | 実DBの編集開始競合                                        |
+| **既存回帰合計**                                                                            | **740** | **19** | **DBなし486成功/19失敗、実DB254成功/0失敗。skip/todoは0** |
 
 ## 4. 設計IDとの対応・確認内容
 
 「成功」は当該レベルのassertが通った意味。V/C/U/Sの成功を実DBや認証の保証へ広げない。ファイル記号は2節の新規ファイルを指す。
 
-| ID | ファイル | 判定・確認した条件 |
-| --- | --- | --- |
-| V01 | V | 成功：1/2/2147483646/2147483647の数値化 |
-| V02 | V | 成功：0/負数/上限超過/巨大値の拒否とissue.path |
-| V03 | V | 成功：小数/NaN/±Infinity/非数値を拒否 |
-| V04 | V | 成功：欠落/undefined/null/空文字/空白を拒否 |
-| V05 | V | 成功：SQL/HTML風文字列、slash、commaを拒否 |
-| V06 | V | 成功：未知キー除去、元オブジェクト不変 |
-| V07 | V | 成功：HTTP外の数値型境界 |
-| M01 | M | 成功：validatedParams格納、raw params不変、next1回 |
-| M02 | M | 成功：不正値・欠落でAppError400、next/response/検証値設定なし |
-| M03 | M | 成功：部分Request再利用時の不正入力は古い検証値を上書きせずnextなし |
-| C01 | C | 成功：raw/body/queryの他人IDを無視し認証ユーザーと検証済みidだけを渡す |
-| C02 | C | 成功：200とmessageのみのJSON、nextなし |
-| C03 | C | 成功：AppError/通常Errorの同一参照をnextへ、成功応答なし |
-| C04 | C | 成功：usecase保留中の応答/nextなし、成功/失敗で解放 |
-| C05 | C | 成功：jsonの模擬送信失敗後に削除再実行・作成なし |
-| U01 | U | 成功：同じtransaction・取得インスタンス、引数完全一致、取得→削除 |
-| U02 | U | 成功：nullならITEM_DRAFT_NOT_FOUND/404、削除なし |
-| U03 | U | 成功：transaction開始相当失敗、取得/削除なし |
-| U04 | U | 成功：取得失敗をそのまま伝播、削除なし |
-| U05 | U | 成功：削除失敗をそのまま伝播、再試行なし |
-| U06 | U | 成功：callback後のtransaction rejectを伝播。実COMMIT障害の検証ではない |
-| U07 | U | 成功：取得の成功/不存在/例外まで削除を開始しない |
-| U08 | U | 成功：削除の成功/例外までusecaseを完了しない |
-| U09 | U | 成功：callback完了後もtransaction Promiseを待つ |
-| U10 | U | 成功：交差した2要求のモデルとtransactionが混ざらない |
-| S01 | S | 成功：id＋seller_idのwhere、UPDATE lock、同じt |
-| S02 | S | 成功：モデル/nullをそのまま返す |
-| S03 | S | 成功：findOneの元例外を伝播 |
-| S04 | S | 成功：全取得列・順序とoptionsの完全一致、余分な条件なし |
-| S05 | S | 成功：インスタンスdestroyのみ、static destroy/createなし |
-| S06 | S | 成功：destroyの元例外を伝播、再試行/復元なし |
-| S07 | S | 成功：取得/削除それぞれの保留後成功/例外を待機 |
-| R01 | R | 成功：bodyなしの正常要求、200/JSON、作成usecaseなし |
-| R02 | R | 成功：なし/Basic/空Bearer/壊れたJWT/別鍵/期限切れは401 |
-| R03 | R | 成功：HTTP表現可能な不正値は400、usecaseなし。エンコードしたslash/空白も確認 |
-| R04 | R | 成功：上下限を数値でusecaseへ渡す。実DB固定境界行は作成していない |
-| R05 | R | 成功：他人/不存在相当の404 JSONが同じ形 |
-| R06 | R | 成功：500整形、内部message/SQL/stackのレスポンス露出なし |
-| R07 | R | 成功：id欠落/余分なpath/未定義PUT・PATCHは削除なし |
-| R08 | R | 成功：body/queryで所有者・対象を上書きできない |
-| R09 | R | 成功：無認証＋不正入力・制限超過時も401、正常ユーザー枠消費なし |
-| R10 | R | 成功：制限超過＋不正入力は429優先 |
-| R11 | R | 成功：usecase保留中にJSONを送らない |
-| R12 | R/H | 成功：管理者JWTも本人IDで実認可し、他人の下書きは404 |
-| L01 | R | 成功：20回通過、21/22回目429、残量境界 |
-| L02 | R | 成功：不正入力20回も計上し21回目429 |
-| L03 | R | 成功：404要求も計上 |
-| L04 | R | 成功：500要求も計上 |
-| L05 | R | 成功：同じIPでも別ユーザー枠は独立 |
-| L06 | R | 成功：JWT再発行・対象id/query/IP系ヘッダー変更で回避不能 |
-| L07 | R | 成功：401要求21回は認証済みユーザー枠に加算しない |
-| L08 | R | 成功：299999ms時は429、300000msで再開、直後も残量更新 |
-| L09 | R | 成功：standardヘッダー・Retry-After、legacyヘッダーなし、既定429本文 |
-| L10 | R | 成功：作成先行/削除先行とも独立store |
-| L11 | R | 成功：同一ユーザー21並行要求は20通過/1拒否。拒否対象の順序は固定しない |
-| D01 | D | 成功：D1のみ物理削除、親・他下書き・editing・ユーザー全列不変 |
-| D02 | D | 成功：事前確認した不存在idは404・削除なし |
-| D03 | D | 成功：他人/管理者本人IDでは他人行を削除しない |
-| D04 | D | 成功：seller_id=nullはA/Bとも404 |
-| D05 | D | 成功：共有item/URLの別下書きを保持、S3境界0回 |
-| D06 | D | 成功：item_id=null/nullable列null/attributes空/画像空でも削除可能 |
-| D07 | D | 成功：video_status3値×sale_flag2値に削除制約なし |
-| D08 | D | 成功：削除成功後の再要求は404 |
-| H01 | H | 成功：HTTPから実削除、commit前の応答なし、commit後200と別接続で不存在 |
-| H02 | H | 成功：実DBの他人/不存在/null所有者/管理者で404、非対象不変 |
-| H03 | H | 成功：401/400/429はusecase・transaction・取得・削除0回 |
-| H04 | H | 成功：実destroy後の模擬障害は500・実rollback |
-| T01 | T | 成功：findOne/destroyまで同じt、commit後に不存在 |
-| T02 | T | 成功：実取得後のgateで同じt/別接続とも旧行、未完了 |
-| T03 | T | 成功：実destroy後は同じtで不存在、別接続で旧行、commit後に不存在 |
-| T04 | T | 成功：実destroy後throwで全列rollback、復元INSERTなし |
-| T05 | T | 成功：取得前/取得後/削除前の個別失敗で後続停止・旧行保持 |
-| T06 | T | 成功：実DELETEがSHARE table lockで待機、SQLSTATE55P03、実rollback |
-| T07 | T | 成功：失敗後同じidで再試行成功、その後404。ロック解放確認 |
-| T08 | T | 成功：404後に別transactionのFOR UPDATE NOWAITが完了 |
-| T09 | T | 成功：commit済み後の模擬送信失敗では復元なし、再要求404 |
-| P01 | P | 成功：先行ロック→後続待機→先行commit、後続404。逆ラベル順も実施 |
-| P02 | P | 成功：先行実destroy後rollback、後続取得gate時に元行を観測、後続削除成功 |
-| P03 | P | 成功：編集開始先行commit→削除404、正しくコピーされたediting1件 |
-| P04 | P | 成功：編集開始が実editing作成・削除後rollback→削除成功、editing0件 |
-| P05 | P | 成功：削除先行commit→編集開始404、editing0件 |
-| P06 | P | 成功：削除先行rollback→編集開始成功、editing1件 |
-| P07 | P | 成功：別ユーザー・別行は先行成功/rollbackの両方で待たず完了 |
-| P08 | P | 成功：削除先行時の所有者UPDATE待機、commitなら影響0行、rollbackなら所有者変更後に旧所有者404/新所有者削除可 |
-| P09 | P | 成功：所有者UPDATE先行commitなら旧所有者404、rollbackなら削除成功。WHERE再評価 |
-| P10 | P | 成功：所有権不一致は先行行ロック中も404で終了 |
-| O01 | V/R | 観測成功：先頭ゼロ/符号/小数表記/指数/16進/空白/丸められる小数を数値化して受理 |
-| O02 | V | 観測成功：HTTP外のtrue/[1]は1として受理、false/空配列/複数要素/objectは拒否 |
-| O03 | R | 観測成功：不正JSONはJWTの有無によらず認証前に失敗し現errorHandlerで500。F2参照 |
-| O04 | — | 未実施：実COMMIT通信障害は設計で未計画。U06/T04/T09では代替できない |
-| O05 | I | 代表範囲成功：categories読取/itemEditing更新の上下限でcontroller到達、上限超過で400・controller未実行。全利用APIの回帰ではない |
+| ID  | ファイル | 判定・確認した条件                                                                                                             |
+| --- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| V01 | V        | 成功：1/2/2147483646/2147483647の数値化                                                                                        |
+| V02 | V        | 成功：0/負数/上限超過/巨大値の拒否とissue.path                                                                                 |
+| V03 | V        | 成功：小数/NaN/±Infinity/非数値を拒否                                                                                          |
+| V04 | V        | 成功：欠落/undefined/null/空文字/空白を拒否                                                                                    |
+| V05 | V        | 成功：SQL/HTML風文字列、slash、commaを拒否                                                                                     |
+| V06 | V        | 成功：未知キー除去、元オブジェクト不変                                                                                         |
+| V07 | V        | 成功：HTTP外の数値型境界                                                                                                       |
+| M01 | M        | 成功：validatedParams格納、raw params不変、next1回                                                                             |
+| M02 | M        | 成功：不正値・欠落でAppError400、next/response/検証値設定なし                                                                  |
+| M03 | M        | 成功：部分Request再利用時の不正入力は古い検証値を上書きせずnextなし                                                            |
+| C01 | C        | 成功：raw/body/queryの他人IDを無視し認証ユーザーと検証済みidだけを渡す                                                         |
+| C02 | C        | 成功：200とmessageのみのJSON、nextなし                                                                                         |
+| C03 | C        | 成功：AppError/通常Errorの同一参照をnextへ、成功応答なし                                                                       |
+| C04 | C        | 成功：usecase保留中の応答/nextなし、成功/失敗で解放                                                                            |
+| C05 | C        | 成功：jsonの模擬送信失敗後に削除再実行・作成なし                                                                               |
+| U01 | U        | 成功：同じtransaction・取得インスタンス、引数完全一致、取得→削除                                                               |
+| U02 | U        | 成功：nullならITEM_DRAFT_NOT_FOUND/404、削除なし                                                                               |
+| U03 | U        | 成功：transaction開始相当失敗、取得/削除なし                                                                                   |
+| U04 | U        | 成功：取得失敗をそのまま伝播、削除なし                                                                                         |
+| U05 | U        | 成功：削除失敗をそのまま伝播、再試行なし                                                                                       |
+| U06 | U        | 成功：callback後のtransaction rejectを伝播。実COMMIT障害の検証ではない                                                         |
+| U07 | U        | 成功：取得の成功/不存在/例外まで削除を開始しない                                                                               |
+| U08 | U        | 成功：削除の成功/例外までusecaseを完了しない                                                                                   |
+| U09 | U        | 成功：callback完了後もtransaction Promiseを待つ                                                                                |
+| U10 | U        | 成功：交差した2要求のモデルとtransactionが混ざらない                                                                           |
+| S01 | S        | 成功：id＋seller_idのwhere、UPDATE lock、同じt                                                                                 |
+| S02 | S        | 成功：モデル/nullをそのまま返す                                                                                                |
+| S03 | S        | 成功：findOneの元例外を伝播                                                                                                    |
+| S04 | S        | 成功：全取得列・順序とoptionsの完全一致、余分な条件なし                                                                        |
+| S05 | S        | 成功：インスタンスdestroyのみ、static destroy/createなし                                                                       |
+| S06 | S        | 成功：destroyの元例外を伝播、再試行/復元なし                                                                                   |
+| S07 | S        | 成功：取得/削除それぞれの保留後成功/例外を待機                                                                                 |
+| R01 | R        | 成功：bodyなしの正常要求、200/JSON、作成usecaseなし                                                                            |
+| R02 | R        | 成功：なし/Basic/空Bearer/壊れたJWT/別鍵/期限切れは401                                                                         |
+| R03 | R        | 成功：HTTP表現可能な不正値は400、usecaseなし。エンコードしたslash/空白も確認                                                   |
+| R04 | R        | 成功：上下限を数値でusecaseへ渡す。実DB固定境界行は作成していない                                                              |
+| R05 | R        | 成功：他人/不存在相当の404 JSONが同じ形                                                                                        |
+| R06 | R        | 成功：500整形、内部message/SQL/stackのレスポンス露出なし                                                                       |
+| R07 | R        | 成功：id欠落/余分なpath/未定義PUT・PATCHは削除なし                                                                             |
+| R08 | R        | 成功：body/queryで所有者・対象を上書きできない                                                                                 |
+| R09 | R        | 成功：無認証＋不正入力・制限超過時も401、正常ユーザー枠消費なし                                                                |
+| R10 | R        | 成功：制限超過＋不正入力は429優先                                                                                              |
+| R11 | R        | 成功：usecase保留中にJSONを送らない                                                                                            |
+| R12 | R/H      | 成功：管理者JWTも本人IDで実認可し、他人の下書きは404                                                                           |
+| L01 | R        | 成功：20回通過、21/22回目429、残量境界                                                                                         |
+| L02 | R        | 成功：不正入力20回も計上し21回目429                                                                                            |
+| L03 | R        | 成功：404要求も計上                                                                                                            |
+| L04 | R        | 成功：500要求も計上                                                                                                            |
+| L05 | R        | 成功：同じIPでも別ユーザー枠は独立                                                                                             |
+| L06 | R        | 成功：JWT再発行・対象id/query/IP系ヘッダー変更で回避不能                                                                       |
+| L07 | R        | 成功：401要求21回は認証済みユーザー枠に加算しない                                                                              |
+| L08 | R        | 成功：299999ms時は429、300000msで再開、直後も残量更新                                                                          |
+| L09 | R        | 成功：standardヘッダー・Retry-After、legacyヘッダーなし、既定429本文                                                           |
+| L10 | R        | 成功：作成先行/削除先行とも独立store                                                                                           |
+| L11 | R        | 成功：同一ユーザー21並行要求は20通過/1拒否。拒否対象の順序は固定しない                                                         |
+| D01 | D        | 成功：D1のみ物理削除、親・他下書き・editing・ユーザー全列不変                                                                  |
+| D02 | D        | 成功：事前確認した不存在idは404・削除なし                                                                                      |
+| D03 | D        | 成功：他人/管理者本人IDでは他人行を削除しない                                                                                  |
+| D04 | D        | 成功：seller_id=nullはA/Bとも404                                                                                               |
+| D05 | D        | 成功：共有item/URLの別下書きを保持、S3境界0回                                                                                  |
+| D06 | D        | 成功：item_id=null/nullable列null/attributes空/画像空でも削除可能                                                              |
+| D07 | D        | 成功：video_status3値×sale_flag2値に削除制約なし                                                                               |
+| D08 | D        | 成功：削除成功後の再要求は404                                                                                                  |
+| H01 | H        | 成功：HTTPから実削除、commit前の応答なし、commit後200と別接続で不存在                                                          |
+| H02 | H        | 成功：実DBの他人/不存在/null所有者/管理者で404、非対象不変                                                                     |
+| H03 | H        | 成功：401/400/429はusecase・transaction・取得・削除0回                                                                         |
+| H04 | H        | 成功：実destroy後の模擬障害は500・実rollback                                                                                   |
+| T01 | T        | 成功：findOne/destroyまで同じt、commit後に不存在                                                                               |
+| T02 | T        | 成功：実取得後のgateで同じt/別接続とも旧行、未完了                                                                             |
+| T03 | T        | 成功：実destroy後は同じtで不存在、別接続で旧行、commit後に不存在                                                               |
+| T04 | T        | 成功：実destroy後throwで全列rollback、復元INSERTなし                                                                           |
+| T05 | T        | 成功：取得前/取得後/削除前の個別失敗で後続停止・旧行保持                                                                       |
+| T06 | T        | 成功：実DELETEがSHARE table lockで待機、SQLSTATE55P03、実rollback                                                              |
+| T07 | T        | 成功：失敗後同じidで再試行成功、その後404。ロック解放確認                                                                      |
+| T08 | T        | 成功：404後に別transactionのFOR UPDATE NOWAITが完了                                                                            |
+| T09 | T        | 成功：commit済み後の模擬送信失敗では復元なし、再要求404                                                                        |
+| P01 | P        | 成功：先行ロック→後続待機→先行commit、後続404。逆ラベル順も実施                                                                |
+| P02 | P        | 成功：先行実destroy後rollback、後続取得gate時に元行を観測、後続削除成功                                                        |
+| P03 | P        | 成功：編集開始先行commit→削除404、正しくコピーされたediting1件                                                                 |
+| P04 | P        | 成功：編集開始が実editing作成・削除後rollback→削除成功、editing0件                                                             |
+| P05 | P        | 成功：削除先行commit→編集開始404、editing0件                                                                                   |
+| P06 | P        | 成功：削除先行rollback→編集開始成功、editing1件                                                                                |
+| P07 | P        | 成功：別ユーザー・別行は先行成功/rollbackの両方で待たず完了                                                                    |
+| P08 | P        | 成功：削除先行時の所有者UPDATE待機、commitなら影響0行、rollbackなら所有者変更後に旧所有者404/新所有者削除可                    |
+| P09 | P        | 成功：所有者UPDATE先行commitなら旧所有者404、rollbackなら削除成功。WHERE再評価                                                 |
+| P10 | P        | 成功：所有権不一致は先行行ロック中も404で終了                                                                                  |
+| O01 | V/R      | 観測成功：先頭ゼロ/符号/小数表記/指数/16進/空白/丸められる小数を数値化して受理                                                 |
+| O02 | V        | 観測成功：HTTP外のtrue/[1]は1として受理、false/空配列/複数要素/objectは拒否                                                    |
+| O03 | R        | 観測成功：不正JSONはJWTの有無によらず認証前に失敗し現errorHandlerで500。F2参照                                                 |
+| O04 | —        | 未実施：実COMMIT通信障害は設計で未計画。U06/T04/T09では代替できない                                                            |
+| O05 | I        | 代表範囲成功：categories読取/itemEditing更新の上下限でcontroller到達、上限超過で400・controller未実行。全利用APIの回帰ではない |
 
 ## 5. 実DBの接続・状態・並行順序の証拠
 
@@ -298,14 +298,14 @@ JS
 
 ## 7. 実装中の失敗と修正の履歴
 
-| 段階 | 結果・原因 | 対応・最終状態 |
-| --- | --- | --- |
-| 初回単体 | 95件成功 | 後にS07の保留後例外2ケースを追加し、最終単体97件成功 |
-| 初回HTTP | 60件失敗、Supertestの一時HTTP待受がサンドボックスで拒否 | 権限付きで同じテストを再実行し60成功。その後slash/空白2ケースを追加し最終DBなし結合62成功。APIロジック不良ではない |
-| 初回DB収集 | hoisted変数を直接exportしたfixtureで収集失敗、ケース本体0件 | hoistedな内部変数とexportを分離。テストfixtureだけ修正 |
-| DB再実行 | PostgreSQL接続EPERMでsetup失敗 | 同じ.env.test/test_dbガードを維持して権限付き再実行。接続先の変更・ガード緩和なし |
-| 初回実DB | 25成功・T06の1件失敗 | テスト用待機監視SQLの `:blocker=ANY` を `:blocker = ANY` に修正。最終実DB49件はすべて成功。本番コード変更なし |
-| 既存回帰 | createItemDraft HTTPの19件がbeforeEachで失敗 | F1に修正案。既存テストの失敗をskip化・期待値緩和で隠していない |
+| 段階       | 結果・原因                                                  | 対応・最終状態                                                                                                     |
+| ---------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 初回単体   | 95件成功                                                    | 後にS07の保留後例外2ケースを追加し、最終単体97件成功                                                               |
+| 初回HTTP   | 60件失敗、Supertestの一時HTTP待受がサンドボックスで拒否     | 権限付きで同じテストを再実行し60成功。その後slash/空白2ケースを追加し最終DBなし結合62成功。APIロジック不良ではない |
+| 初回DB収集 | hoisted変数を直接exportしたfixtureで収集失敗、ケース本体0件 | hoistedな内部変数とexportを分離。テストfixtureだけ修正                                                             |
+| DB再実行   | PostgreSQL接続EPERMでsetup失敗                              | 同じ.env.test/test_dbガードを維持して権限付き再実行。接続先の変更・ガード緩和なし                                  |
+| 初回実DB   | 25成功・T06の1件失敗                                        | テスト用待機監視SQLの `:blocker=ANY` を `:blocker = ANY` に修正。最終実DB49件はすべて成功。本番コード変更なし      |
+| 既存回帰   | createItemDraft HTTPの19件がbeforeEachで失敗                | F1に修正案。既存テストの失敗をskip化・期待値緩和で隠していない                                                     |
 
 途中の実行を最終件数へ重複加算していない。setup失敗で実行されなかったケースを成功・skip件数へ混ぜていない。
 
@@ -322,10 +322,10 @@ JS
 - 修正案：各ファイルで現在の相対パスの `deleteItemDraftUseCase` を `vi.mock` し、元の作成usecaseモックと独立させる。dotenvモックにダミーDB設定を返す方法やdb.tsのガード緩和は使わない。
 - 修正後契約：作成APIの既存19HTTPケースがDB初期化なしで本体まで実行され、従来の応答・入力・制限assertを維持する。本番Router/controller/usecaseの変更は対象外。
 
-| 追加検証案 | 元ケース | 手順・修正後期待値 |
-| --- | --- | --- |
-| AF-MOCK01 | 既存作成R系 / 本設計R01 | 削除usecaseモック追加後、既存19ケースとcontroller5ケースを再実行して成功。新規削除208件も維持 |
-| AF-MOCK02 | C01/R01 | 作成要求で削除usecase呼出し0回、削除要求で作成usecase呼出し0回。dotenv/DBへ到達しない |
+| 追加検証案 | 元ケース                | 手順・修正後期待値                                                                            |
+| ---------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| AF-MOCK01  | 既存作成R系 / 本設計R01 | 削除usecaseモック追加後、既存19ケースとcontroller5ケースを再実行して成功。新規削除208件も維持 |
+| AF-MOCK02  | C01/R01                 | 作成要求で削除usecase呼出し0回、削除要求で作成usecase呼出し0回。dotenv/DBへ到達しない         |
 
 修正提案は [Todo](../../../../../docs/todo/P1-bug/createItemDraft-deleteItemDraft-test-mock.md) にも記録した。
 

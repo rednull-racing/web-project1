@@ -1,7 +1,16 @@
 import "../../../../fixtures/itemEditing/updateConfirm/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryTypes } from "sequelize";
-import { seed, run, snapshot, newMedia, observer, sequelize, ItemEditing, BrandAliases } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
+import {
+    seed,
+    run,
+    snapshot,
+    newMedia,
+    observer,
+    sequelize,
+    ItemEditing,
+    BrandAliases,
+} from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
 import { deferred, expectAppError } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
 import * as query from "../../../../../src/services/itemEditing/query.js";

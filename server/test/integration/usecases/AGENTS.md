@@ -8,14 +8,14 @@
 
 参考例は目的別に選び、一機能のファイル数・ケース数・業務制約を全機能へ適用しない。
 
-| 参考例 | 主な検証範囲 |
-| --- | --- |
-| [createItemDraft/masterBrand.test.ts](itemDraft/createItemDraft/masterBrand.test.ts) | 実 usecase・helper と依存モック、変換・失敗位置・待機 |
-| [refreshToken/jwt.test.ts](auth/refreshToken/jwt.test.ts) | DB なしの実 JWT 検証・生成 helper 接続 |
-| [ErrorHandler/errorHandler.test.ts](ErrorHandler/ErrorHandler/errorHandler.test.ts) | 実 parser と共通 errorHandler、公開情報の境界 |
-| [createItem/route.test.ts](items/createItem/route.test.ts)、[registration.test.ts](items/createItem/registration.test.ts) | 最小アプリの Router 接続と実 registerRoutes の到達性を別々に確認 |
-| [deleteItemDraft](itemDraft/deleteItemDraft/) | 実 transaction、HTTP 応答の確定順序、削除・編集開始の実ロック競合 |
-| [createItem](items/createItem/) | 複数テーブルの原子性、読取り後の障害、公開競合、commit 後の通知 |
+| 参考例                                                                                                                    | 主な検証範囲                                                      |
+| ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [createItemDraft/masterBrand.test.ts](itemDraft/createItemDraft/masterBrand.test.ts)                                      | 実 usecase・helper と依存モック、変換・失敗位置・待機             |
+| [refreshToken/jwt.test.ts](auth/refreshToken/jwt.test.ts)                                                                 | DB なしの実 JWT 検証・生成 helper 接続                            |
+| [ErrorHandler/errorHandler.test.ts](ErrorHandler/ErrorHandler/errorHandler.test.ts)                                       | 実 parser と共通 errorHandler、公開情報の境界                     |
+| [createItem/route.test.ts](items/createItem/route.test.ts)、[registration.test.ts](items/createItem/registration.test.ts) | 最小アプリの Router 接続と実 registerRoutes の到達性を別々に確認  |
+| [deleteItemDraft](itemDraft/deleteItemDraft/)                                                                             | 実 transaction、HTTP 応答の確定順序、削除・編集開始の実ロック競合 |
+| [createItem](items/createItem/)                                                                                           | 複数テーブルの原子性、読取り後の障害、公開競合、commit 後の通知   |
 
 ## 契約と作業範囲
 

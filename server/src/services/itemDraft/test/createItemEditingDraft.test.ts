@@ -1,6 +1,10 @@
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { copyColumns, deferred, makeDraft } from "../../../usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import {
+    copyColumns,
+    deferred,
+    makeDraft,
+} from "../../../usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({ findOne: vi.fn(), create: vi.fn(), itemCreate: vi.fn(), destroy: vi.fn() }));
 vi.mock("../../../models/index.js", () => ({

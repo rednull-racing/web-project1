@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { cartPostByIdController, cartDeleteByIdController, cartGetByIdStatusController } from "../controllers/cart/cart.js";
+import {
+    cartPostByIdController,
+    cartDeleteByIdController,
+    cartGetByIdStatusController,
+} from "../controllers/cart/cart.js";
 import { authenticateToken } from "../middleware/index.js";
 import { cartAddRateLimit, cartDeleteRateLimit, cartStatusRateLimit } from "../middleware/rateLimit/cartRateLimit.js";
 import { validateParams } from "../middleware/validate/validateParams.js";

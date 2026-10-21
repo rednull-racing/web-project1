@@ -20,7 +20,11 @@ import {
     protectedRows,
 } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
-import { deferred, expectAppError, waitForGate } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import {
+    deferred,
+    expectAppError,
+    waitForGate,
+} from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 const sql: string[] = [];

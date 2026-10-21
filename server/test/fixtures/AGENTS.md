@@ -6,15 +6,15 @@
 
 既存ファイルにはデータ factory、モック登録、HTTP 構成、DB hook 登録、他 fixture の再 export がある。ファイル数や名前を一律に揃えず、必要な責務だけを設ける。短い fixture に DB 用の空ファイルを追加しない。
 
-| ファイル例 | 主な責務 |
-| --- | --- |
-| `fixtures.ts` | 標準入力・取得値・期待値の factory、境界値、共通アサーション、deferred |
-| `usecaseMocks.ts` | usecase の依存モック登録、正常応答の再設定 |
-| `httpMocks.ts` | Router/controller が読み込む対象外依存の遮断 |
-| `httpFixtures.ts` | 最小 Express、実 Router/errorHandler の接続、テスト用 JWT・リクエスト helper |
-| `databaseSetup.ts` | DB 初期化前の env 検査、dotenv 制御、必要な外部通信モック |
-| `databaseFixtures.ts` | 全接続・スキーマ検査、seed、ID 追跡、snapshot、DB アサーション、cleanup と接続終了 |
-| `concurrencyFixtures.ts` | 実処理を呼ぶ gate、transaction の PID、期限付きの実ロック待機監視 |
+| ファイル例               | 主な責務                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| `fixtures.ts`            | 標準入力・取得値・期待値の factory、境界値、共通アサーション、deferred             |
+| `usecaseMocks.ts`        | usecase の依存モック登録、正常応答の再設定                                         |
+| `httpMocks.ts`           | Router/controller が読み込む対象外依存の遮断                                       |
+| `httpFixtures.ts`        | 最小 Express、実 Router/errorHandler の接続、テスト用 JWT・リクエスト helper       |
+| `databaseSetup.ts`       | DB 初期化前の env 検査、dotenv 制御、必要な外部通信モック                          |
+| `databaseFixtures.ts`    | 全接続・スキーマ検査、seed、ID 追跡、snapshot、DB アサーション、cleanup と接続終了 |
+| `concurrencyFixtures.ts` | 実処理を呼ぶ gate、transaction の PID、期限付きの実ロック待機監視                  |
 
 参考例は目的別に選び、特定の一実装を全機能の雛形にしない。
 

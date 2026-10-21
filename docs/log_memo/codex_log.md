@@ -252,6 +252,7 @@
 - 検証ヘルパーだけを評価し、通常／名称のみ／null／空配列／不正データを確認。スクリプト・DB更新・外部API呼び出しは実行していない。
 - server全体lint・git diff --check通過。typecheckは対象外28件の既存エラーで失敗。対象スクリプトの型エラーなし。
 - ページング・保存カラム・commit／rollbackの流れを維持。ライブラリ追加なし。
+
 ## 20261015_backend-coding_services型エラー修正
 
 - services配下12ファイルの型エラー17件を解消。削除12箇所のtransactionをoptionsに統合。
@@ -262,13 +263,13 @@
 
 ---
 
-## 20261015_backend-coding_ユーザー削除返金口座のnullable型修正
+## 20261015*backend-coding*ユーザー削除返金口座のnullable型修正
 
 - deleteUser.tsの返金口座引数エラーを、deleteUserRefund.tsの入力型修正で解消。
 - BankAccountの対象カラムをPickで参照し、口座自体のnullも許容。既存の空文字への変換処理は維持。
 - 全体lint・返金ヘルパー既存テスト3件が通過。typecheckは対象エラー解消、対象外2件が残存。
 
-## 20261015_backend-coding_関連取得プロパティ名の残存不一致修正
+## 20261015*backend-coding*関連取得プロパティ名の残存不一致修正
 
 - ShopInfoの関連定義・型・includeを既存参照のPermitへ統一。
 - prototypeの注文取得のカテゴリinclude・参照とItemのassociations型をCategoryへ統一。
@@ -283,14 +284,14 @@
 - server全体lint・typecheck通過。DB接続なしで双方向の外部キー・生成JOIN・所有者条件・関連ファイル有無を確認。
 - 対象Todoを完了に更新。DBクエリ・migration実行なし。
 
-## 20261015_backend-coding_旧商品作成のSale関連保存修正
+## 20261015*backend-coding*旧商品作成のSale関連保存修正
 
 - createSaleに残っていたSale.item_idへの保存を削除し、Sale作成結果を返すよう変更。
 - UseCaseでSaleを先に作成し、同じtransactionの商品作成へsaleIdを渡してItem.sale_idに保存。
 - server全体lint・typecheck通過。DBモックで関連ID・所有者・transaction・戻り値・全作成段階のエラー伝播を確認。
 - 対象Todoを完了記録付きでdoneへ移動。Model変更・DB接続・migration実行なし。
 
-## 20261015_backend-coding_旧Videoサービスのカラム参照修正
+## 20261015*backend-coding*旧Videoサービスのカラム参照修正
 
 - createVideoのitem_id・user_id保存を廃止し、商品作成時に作成済みVideo.idをItem.video_idへ保存。
 - getMyVideoはItemへの必須JOINとseller_id条件で所有者を確認。Sale関連・transaction・戻り値を維持。
@@ -319,13 +320,18 @@
 - 対象8件成功。全体lint・対象テスト追加lint・本番とテストの型検査・git diff --checkが通過。
 - 対象Todoに完了内容を記録。DB接続・migration実行なし。
 
-## 20261016_documents_作業ブランチ運用ルールのレビュー
+## 20261016*documents*作業ブランチ運用ルールのレビュー
 
 ### 作業内容
+
 - ルートAGENTS.mdのブランチ作成・統合・worktree運用をレビュー。
+
 ### 変更目的
+
 - 統合コマンドの欠落、未コミット変更の扱い、並列作業の終了手順を確認。
+
 ### 注意点・その他留意事項
+
 - AGENTS.mdの修正・ブランチ切替は行わず、レビュー結果を回答。ログのみ追記。
 
 ## 20261016_backend-test_createItemEditingCopy単体テストの配置変更
@@ -418,7 +424,7 @@
 - CopyのHTTP統合テスト22件成功。初回はサンドボックスのlisten制限で停止し、許可後に再実行。
 - DB接続・実DBテスト・migrationは未実施。Draftの既存Routerテスト問題は既存Todoで継続管理。
 
-## 20261016_documents_テスト関連ディレクトリ構成の明文化
+## 20261016*documents*テスト関連ディレクトリ構成の明文化
 
 - server/test/AGENTS.mdに単体テスト・結合テスト・fixture/setup・設計書・レポートの配置規則と例を記載。
 - 単体テストは本番コードに最も近いtest、結合テストは役割/大分類/小分類、fixtureは大分類/小分類に統一。
@@ -441,13 +447,13 @@
 - DB非接続の単体・結合10ファイル823件、lint・本番/テスト全体型検査、内容保持・参照先・git diff --checkを確認。
 - Router19件は初回のHTTP待受け制限後、許可を得て再実行し成功。実DBテスト177件・DB接続・migrationは未実施。
 
-## 20261016_backend-test_旧usecaseテストディレクトリの削除
+## 20261016*backend-test*旧usecaseテストディレクトリの削除
 
 - ユーザー指定に従いserver/test/usecases配下の全ディレクトリと旧テスト・補助コード9ファイルを削除。
 - server/test/usecases/AGENTS.mdのみ残し、内容が変更されていないことを確認。
 - serverのlint・typecheck・テスト全体型検査とgit diff --checkが成功。テスト実行・DB接続なし。
 
-## 20261016_documents_テスト共通ルールの責務別分割
+## 20261016*documents*テスト共通ルールの責務別分割
 
 - integration/database・integration/usecases・fixtures・docs/architecture・docs/reportにAGENTS.mdを作成し、旧usecasesの共通ルールを分割。
 - src/AGENTS.mdに単体共通・utilityルールを追記し、controllers・services・usecases・validatorsの既存AGENTS.mdに各層の単体ルールを追記。
@@ -472,7 +478,7 @@
 - Router40件はHTTP待受けの制限解除後に全件成功。lint・本番/テスト全体型検査・対象TS追加lintも成功。
 - 設計書・レポートを更新し、対象Todoをdoneへ移動。本番コード・環境設定の変更、DB接続・migration実行なし。
 
-## 20261016_backend-coding_テストDB設定の読込み後検証
+## 20261016*backend-coding*テストDB設定の読込み後検証
 
 - db.tsのtest分岐で.env.test読込み後の最終URLを検証し、読込み失敗・URL欠落時の親設定へのフォールバックを禁止。
 - NODE_ENV・ファイル由来URLとの一致・PostgreSQL・ホスト・test_dbをSequelize生成前に検査し、URLのパース例外を秘匿化。
@@ -506,7 +512,7 @@
 - 単体188件・結合155件（実DB129件）の計343件、lint・本番/テスト型検査・対象9ファイル追加lintが成功。
 - 同じレポートへ結果・残る範囲を追記し設計を更新。migration・共有取得のtransaction省略経路・接続ガードの変更なし。
 
-## 20261019_documents_バックエンド詳細設計の共通ルール作成
+## 20261019*documents*バックエンド詳細設計の共通ルール作成
 
 - detail配下の既存2設計書を参照し、detail/AGENTS.mdに章構成・API・認可・DB操作・排他制御・テストの共通記述ルールを追加。
 - コピー元の保持／削除や再リクエストの違い、未決定事項を推測で共通仕様にしない方針を明記。
@@ -562,20 +568,20 @@
 - 詳細設計とテスト設計の期待値を更新し、null拒否・修復後再試行・競合後再判定を追加。cron・Model・migration・共有helperは変更なし。
 - lint・本番型検査・既存テスト型検査成功。テストコード実装・テスト実行・実DB操作は未実施。
 
-## 20261020_backend-migration_商品関連3カラム削除
+## 20261020*backend-migration*商品関連3カラム削除
 
 - item.deleted_at、item_editing.item_id、item_draft.item_idを同一transactionで削除するESM migrationを追加。
 - downは逆順で現在のModelと同じ型・NULL制約・外部キーを復元。削除された値は復元不可。
 - lint・typecheck・node --check成功。migration未実行、Model未変更のため適用時はModel・参照処理との整合が必要。
 
-## 20261020_backend-model_商品関連3カラム削除反映
+## 20261020*backend-model*商品関連3カラム削除反映
 
 - 明示依頼に基づきdevelopment DBへ20261020120909 migrationを適用し、3カラム不在・履歴登録を実DBで確認。
 - Modelの3カラムと対応リレーションを削除。依存する作成用型・コピー値・既存テスト期待値を最小限追従。
 - lint・本番/テスト型検査・関連単体192件・diffチェック成功。DB結合テストは未実行。
 - Serviceの旧カラム取得・where・削除/復元/cron処理が残存。業務仕様変更を伴う修正は行わずP1 Todoへ記録。
 
-## 20261020_backend-coding_削除済み商品3カラムの参照除去
+## 20261020*backend-coding*削除済み商品3カラムの参照除去
 
 - server/src全体を調査し、旧取得列・where・更新値を削除。関連単体テストの期待値とfixtureを追従。
 - ユーザー回答により旧論理削除・復元は503で停止、30日期限削除cronと旧実装を削除。item_trash移行は既存P1 Todoへ記録。
@@ -622,102 +628,174 @@
 - 単体42件・実JWT接続14件成功、lint・本番/テスト用型検査・追加lint成功。F3完了をレポートへ追記。
 - 指定Todoへ完了記録を追加しP1-bugからdoneへ移動。DB接続・migration・対象外コードの変更なし。
 
-## 20261020_documents_テスト文書AGENTS共通ルール再分析
+## 20261020*documents*テスト文書AGENTS共通ルール再分析
+
 ### 作業内容
+
 - architecture/report各8文書を比較し、両AGENTS.mdを上書き。敵対的ケースの検討指示と具体的な観点を追加。
+
 ### 変更目的
+
 - 短文設計・共通機能にも適用できる形式に整理し、最新契約・履歴・実行範囲・モック/実DBの証拠を明確化。
+
 ### 注意点・その他留意事項
+
 - 相対リンク16件・敵対的観点・差分を確認。文書のみの変更のためテスト・lint・型検査は未実行。
 
 ## 20261020_documents_fixtures共通ルール再分析
+
 ### 作業内容
+
 - fixture配下のTS24件を比較し、AGENTS.mdの責務表・再利用・モック・並行制御・DB準備と後片付けを更新。
+
 ### 変更目的
+
 - HTTP/モック専用ファイルや再exportの実態に合わせ、import副作用と初期化順、ID追跡・cleanupの責務を明確化。
+
 ### 注意点・その他留意事項
+
 - 相対リンク10件・参照例・差分を確認。文書のみの変更のためテスト・lint・型検査は未実行。DB接続なし。
 
-## 20261020_documents_独立作業のエージェント並列稼働方針
+## 20261020*documents*独立作業のエージェント並列稼働方針
+
 ### 作業内容
+
 - ルートAGENTS.mdの並列稼働欄に、独立性の高い作業の並列化と担当・統合範囲の事前分離を追記。
+
 ### 変更目的
+
 - 独立した調査・文書更新をworktreeで並列化し、共有ファイルや状態の競合を避ける。
+
 ### 注意点・その他留意事項
+
 - 文書差分を確認。文書のみの変更のためテスト・lint・型検査は未実行。
 
 ## 20261020_documents_database結合テスト共通ルール再分析
+
 ### 作業内容
+
 - database配下のTS7件を比較し、AGENTS.mdの参考例・検証境界・保存値・制約・再実行の規則を更新。
+
 ### 変更目的
+
 - 一機能基準と依存先の一律モックを見直し、敵対的ケース・確定契約と観測・機能別の再送契約を明確化。
+
 ### 注意点・その他留意事項
+
 - 全接続ガード・中断条件・ID限定cleanupを維持。相対リンク12件・参照例・差分を確認。
 - 文書のみのためテスト・lint・型検査は未実行。DB接続・コード・設定変更なし。
 
 ## 20261020_documents_usecases結合テスト共通ルール再分析
+
 ### 作業内容
+
 - usecases配下のTS29件を比較し、AGENTS.mdをHTTP・実JWT・共通middleware・実DBの責務に合わせて更新。
+
 ### 変更目的
+
 - 一律usecaseモックと全依存の完了待機を見直し、敵対的ケースの契約/観測、実ロック・確定後応答の証拠を明確化。
+
 ### 注意点・その他留意事項
+
 - 相対リンク・参照例・差分を確認。文書のみのためテスト・lint・型検査は未実行。DB接続なし。
 
 ## 20261020_documents_src単体テスト共通ルール再分析
+
 ### 作業内容
+
 - src配下の単体55ファイルと追加履歴を調査し、src・controllers・services・usecases・validators・middlewareの6件を更新。
 - 1文書1担当の計6エージェントをworktreeで分離し、同時最大3担当で並列作業後に代表が順次統合。
+
 ### 変更目的
+
 - 敵対的ケース、入力・例外・非同期待機の契約、fixture両配置、モックと実DB保証の境界を各層の実例へ整理。
+
 ### 注意点・その他留意事項
+
 - 本番規約部分の完全保持、単体節の相対リンク58件、参照例・差分を確認。テスト・lint・型検査未実行、DB接続なし。
 
 ## 20261020_documents_Todo読込みと完了移動ルール更新
+
 ### 作業内容
+
 - docs/todo/AGENTS.mdに対象Todo全文・関連コード/文書・完了履歴を読む手順と、完了後のdone移動を明記。
+
 ### 変更目的
+
 - 古い提案と現行契約、未完了と対応済みを区別し、パス指定でエージェントへ作業を引き継げる運用へ整理。
+
 ### 注意点・その他留意事項
+
 - Todo運用・優先順位の原文保持と差分を確認。文書のみの変更でテスト・lint・型検査未実行。既存Todoは未変更。
 
-## 20261020_documents_バックエンド詳細設計共通ルール再分析
+## 20261020*documents*バックエンド詳細設計共通ルール再分析
+
 ### 作業内容
+
 - detail配下4設計書を比較し、AGENTS.mdの目的別参考例・データ対応・算出値・副作用・再送/競合の記載を更新。
+
 ### 変更目的
+
 - 共通8章とMermaid構成を維持し、旧仕様/最新契約・非待機通知・成否不明のCOMMIT・テスト保証の境界を明確化。
+
 ### 注意点・その他留意事項
+
 - 相対リンク10件・参照例・差分を確認。文書のみのためテスト・lint・型検査未実行。個別設計書・本番コード・DBは未変更。
 
 ## 20261020_documents_item_trashのER図追加
+
 ### 作業内容
+
 - item_trashモデルに基づき、商品系ER図へPK・9つのFKと親テーブルへの関係を追加。
+
 ### 変更目的
+
 - item_trashの参照先と多重度を商品系ER図で把握できるようにする。
+
 ### 注意点・その他留意事項
+
 - 全FKのNULL許容・非unique制約と図の関係を照合し、差分を確認。文書のみのためlint・型検査は未実行。
 
 ## 20261020_documents_API開発スキルの手順明確化
+
 ### 作業内容
+
 - api-developmentの適用範囲、工程別成果物・進行条件、自動修正の範囲、中断・再開、完了条件を整理。
+
 ### 変更目的
+
 - 大まかな仕様から設計・実装・検証まで進め、未確定仕様や対象外エラーを推測で解消しない手順へ更新。
+
 ### 注意点・その他留意事項
+
 - quick_validate成功、相対リンク9件と差分を確認。文書のみのためAPIテスト・lint・型検査は未実行。
 
 ## 20261021_documents_APIテストスキルの手順抽出
+
 ### 作業内容
+
 - api-developmentからテスト設計以降と必要な共通手順をapi-test/SKILL.mdへ抽出。
+
 ### 変更目的
+
 - 既存の詳細設計・本番コードを前提に、テスト設計・実装・実行・修正・報告を行えるようにする。
+
 ### 注意点・その他留意事項
+
 - 詳細設計の新規作成・本番コードの初期実装は対象外。抽出元は未変更。
 - quick_validate、相対リンク8件、差分を確認。文書のみのためAPIテスト・lint・型検査は未実行。
 
 ## 20261021_documents_AGENTSにAPIスキル参照を追加
+
 ### 作業内容
+
 - 詳細設計のAGENTS.mdにapi-development、server/testのAGENTS.mdにapi-testへの参照を追記。
+
 ### 変更目的
+
 - 作業開始前に対応するスキルの手順と適用範囲を確認できるようにする。
+
 ### 注意点・その他留意事項
+
 - 依頼された工程に実行範囲を限定する旨を明記。参照先2件と差分を確認。
 - 文書のみのためテスト・lint・型検査は未実行。

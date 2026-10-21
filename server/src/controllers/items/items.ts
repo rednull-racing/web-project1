@@ -10,7 +10,10 @@ import { getMetadataUseCase } from "../../usecases/items/itemPage/metadata.js";
 import { patchItemLogsAccessUseCase } from "../../usecases/items/log/accessLogs.js";
 import { restoreItemUseCase } from "../../usecases/items/restore/restore.js";
 import { getSearchItemsUseCase } from "../../usecases/items/search/getSearchItems.js";
-import { patchSortNumberAddUseCase, patchSortNumberDecreaseUseCase } from "../../usecases/items/sortNumber/sortNumber.js";
+import {
+    patchSortNumberAddUseCase,
+    patchSortNumberDecreaseUseCase,
+} from "../../usecases/items/sortNumber/sortNumber.js";
 import { createItemUseCase } from "../../usecases/itemEditing/createItem.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
 import type { CreateItemBody } from "../../validators/body/items.js";

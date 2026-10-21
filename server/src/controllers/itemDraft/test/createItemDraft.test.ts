@@ -5,7 +5,9 @@ import { deferred, makeBody } from "../../../../test/fixtures/itemDraft/createIt
 const mocks = vi.hoisted(() => ({ create: vi.fn(), remove: vi.fn() }));
 vi.mock("../../../usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("../../../usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
-vi.mock("../../../db.js", () => { throw new Error("AF-MOCK01: controller単体からDBを初期化しない"); });
+vi.mock("../../../db.js", () => {
+    throw new Error("AF-MOCK01: controller単体からDBを初期化しない");
+});
 import { createItemDraftController } from "../itemDraft.js";
 const response = () => {
     const json = vi.fn(),

@@ -34,12 +34,12 @@ F1の実装・詳細設計・テスト修正と非DB検証は完了。関連19�
 
 設計書の117ケースIDと、it.each展開後の521件（449実行＋72未実行）は別の集計。IDが同じテストや複数IDを確認するテストがあるため、ID別件数は加算しない。件数はVitest JSONのassertionResultsから集計した。
 
-| 区分 | 登録件数 | 成功 | 失敗 | skip/pending | todo | 判定 |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| 単体（src、16ファイル） | 400 | 400 | 0 | 0 | 0 | 成功 |
-| DB非接続結合（H/R/REG、3ファイル） | 49 | 49 | 0 | 0 | 0 | 成功 |
-| 実DB（4ファイル） | 72 | 0 | 0 | 72 | 0 | setup失敗で本体未実行 |
-| 合計 | 521 | 449 | 0 | 72 | 0 | 実DBに未達あり |
+| 区分                               | 登録件数 | 成功 | 失敗 | skip/pending | todo | 判定                  |
+| ---------------------------------- | -------: | ---: | ---: | -----------: | ---: | --------------------- |
+| 単体（src、16ファイル）            |      400 |  400 |    0 |            0 |    0 | 成功                  |
+| DB非接続結合（H/R/REG、3ファイル） |       49 |   49 |    0 |            0 |    0 | 成功                  |
+| 実DB（4ファイル）                  |       72 |    0 |    0 |           72 |    0 | setup失敗で本体未実行 |
+| 合計                               |      521 |  449 |    0 |           72 |    0 | 実DBに未達あり        |
 
 非DBは単体16ファイルと結合3ファイル。
 
@@ -47,31 +47,31 @@ F1の実装・詳細設計・テスト修正と非DB検証は完了。関連19�
 
 以下は今回追加したテストファイル。略号は後段のケース対応表で使用する。DBのskip列はすべてsetup失敗による未実行。
 
-| 略号 | server基準のファイル | 成功 | 失敗 | skip | todo |
-| --- | --- | ---: | ---: | ---: | ---: |
-| C | `src/controllers/items/test/createItem.test.ts` | 4 | 0 | 0 | 0 |
-| S-categories | `src/services/categories/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| S-follow | `src/services/follow/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
-| S-itemConditionOption | `src/services/itemConditionOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| S-itemEditing | `src/services/itemEditing/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
-| S-itemShippingProfile | `src/services/itemShippingProfile/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| S-items | `src/services/items/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
-| S-sale | `src/services/sale/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| S-shippingDayOption | `src/services/shippingDayOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| S-shippingServiceOption | `src/services/shippingServiceOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| S-todouhuken | `src/services/todouhuken/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| S-users | `src/services/users/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
-| S-video | `src/services/video/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| U | `src/usecases/itemEditing/test/createItem.test.ts` | 340 | 0 | 0 | 0 |
-| V | `src/validators/body/test/createItem.test.ts` | 28 | 0 | 0 | 0 |
-| S-items-create | `src/services/items/command/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| H | `test/integration/usecases/items/createItem/master.test.ts` | 15 | 0 | 0 | 0 |
-| REG | `test/integration/usecases/items/createItem/registration.test.ts` | 1 | 0 | 0 | 0 |
-| R | `test/integration/usecases/items/createItem/route.test.ts` | 33 | 0 | 0 | 0 |
-| DB | `test/integration/database/items/createItem/database.test.ts` | 0 | 0 | 24 | 0 |
-| CON | `test/integration/usecases/items/createItem/databaseConcurrency.test.ts` | 0 | 0 | 24 | 0 |
-| HTTP-DB | `test/integration/usecases/items/createItem/databaseHttp.test.ts` | 0 | 0 | 13 | 0 |
-| TX | `test/integration/usecases/items/createItem/databaseTransactions.test.ts` | 0 | 0 | 11 | 0 |
+| 略号                    | server基準のファイル                                                      | 成功 | 失敗 | skip | todo |
+| ----------------------- | ------------------------------------------------------------------------- | ---: | ---: | ---: | ---: |
+| C                       | `src/controllers/items/test/createItem.test.ts`                           |    4 |    0 |    0 |    0 |
+| S-categories            | `src/services/categories/test/createItem.test.ts`                         |    2 |    0 |    0 |    0 |
+| S-follow                | `src/services/follow/test/createItem.count.test.ts`                       |    2 |    0 |    0 |    0 |
+| S-itemConditionOption   | `src/services/itemConditionOption/test/createItem.test.ts`                |    2 |    0 |    0 |    0 |
+| S-itemEditing           | `src/services/itemEditing/test/createItem.test.ts`                        |    3 |    0 |    0 |    0 |
+| S-itemShippingProfile   | `src/services/itemShippingProfile/test/createItem.test.ts`                |    2 |    0 |    0 |    0 |
+| S-items                 | `src/services/items/test/createItem.count.test.ts`                        |    2 |    0 |    0 |    0 |
+| S-sale                  | `src/services/sale/test/createItem.test.ts`                               |    2 |    0 |    0 |    0 |
+| S-shippingDayOption     | `src/services/shippingDayOption/test/createItem.test.ts`                  |    2 |    0 |    0 |    0 |
+| S-shippingServiceOption | `src/services/shippingServiceOption/test/createItem.test.ts`              |    2 |    0 |    0 |    0 |
+| S-todouhuken            | `src/services/todouhuken/test/createItem.test.ts`                         |    2 |    0 |    0 |    0 |
+| S-users                 | `src/services/users/test/createItem.test.ts`                              |    3 |    0 |    0 |    0 |
+| S-video                 | `src/services/video/test/createItem.test.ts`                              |    2 |    0 |    0 |    0 |
+| U                       | `src/usecases/itemEditing/test/createItem.test.ts`                        |  340 |    0 |    0 |    0 |
+| V                       | `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |    0 |    0 |
+| S-items-create          | `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |    0 |    0 |
+| H                       | `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |    0 |    0 |
+| REG                     | `test/integration/usecases/items/createItem/registration.test.ts`         |    1 |    0 |    0 |    0 |
+| R                       | `test/integration/usecases/items/createItem/route.test.ts`                |   33 |    0 |    0 |    0 |
+| DB                      | `test/integration/database/items/createItem/database.test.ts`             |    0 |    0 |   24 |    0 |
+| CON                     | `test/integration/usecases/items/createItem/databaseConcurrency.test.ts`  |    0 |    0 |   24 |    0 |
+| HTTP-DB                 | `test/integration/usecases/items/createItem/databaseHttp.test.ts`         |    0 |    0 |   13 |    0 |
+| TX                      | `test/integration/usecases/items/createItem/databaseTransactions.test.ts` |    0 |    0 |   11 |    0 |
 
 共通fixture・モック・ガードは `test/fixtures/items/createItem/{fixtures,usecaseMocks,httpFixtures,httpMocks,databaseSetup,databaseFixtures}.ts` を追加。設計書 `test/docs/architecture/items/createItem.md` は最新のnull許容とAF-BR01〜03を反映した。本番変更はF1、作業ログは `/docs/log_memo/codex_log.md`、既存の型エラーは `/docs/todo/P1-bug/refreshToken-jwt-payload-typecheck.md` へ記録。
 
@@ -89,22 +89,25 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-| 確認 | 結果 |
-| --- | --- |
-| 単体・DB非接続結合 | exit 0、449/449成功 |
-| 実DB | exit 1、全4 suiteが同じスキーマガードで停止 |
-| npm run lint | exit 0 |
-| npm run typecheck | exit 0 |
-| test/tsconfig.jsonの型検査 | exit 2。既存refreshToken.ts:43のTS2339のみ。今回追加コードの診断0 |
-| test配下の追加lint | exit 0。既存ESLint/typescript-eslint recommendedで今回のfixtureと結合TSを検査 |
-| サブエージェントレビュー | 読取専用レビュー。重大な問題の指摘なし。DB未検証の明記を確認 |
+| 確認                       | 結果                                                                          |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| 単体・DB非接続結合         | exit 0、449/449成功                                                           |
+| 実DB                       | exit 1、全4 suiteが同じスキーマガードで停止                                   |
+| npm run lint               | exit 0                                                                        |
+| npm run typecheck          | exit 0                                                                        |
+| test/tsconfig.jsonの型検査 | exit 2。既存refreshToken.ts:43のTS2339のみ。今回追加コードの診断0             |
+| test配下の追加lint         | exit 0。既存ESLint/typescript-eslint recommendedで今回のfixtureと結合TSを検査 |
+| サブエージェントレビュー   | 読取専用レビュー。重大な問題の指摘なし。DB未検証の明記を確認                  |
 
 追加lintは共有設定を変更せず、次の一時設定を `/tmp/create-item-eslint.config.mjs` に置いて実行した。
 
 ```js
-import eslint from '/home/conta/project/server/node_modules/@eslint/js/src/index.js';
-import tseslint from '/home/conta/project/server/node_modules/typescript-eslint/dist/index.js';
-export default tseslint.config({files:['**/*.ts'],extends:[eslint.configs.recommended,...tseslint.configs.recommended]});
+import eslint from "/home/conta/project/server/node_modules/@eslint/js/src/index.js";
+import tseslint from "/home/conta/project/server/node_modules/typescript-eslint/dist/index.js";
+export default tseslint.config({
+    files: ["**/*.ts"],
+    extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
+});
 ```
 
 ```bash
@@ -136,125 +139,125 @@ export default tseslint.config({files:['**/*.ts'],extends:[eslint.configs.recomm
 
 「成功」は記載した非DB責務の確認範囲。D/Pを設計レベルに持つIDでも非DB成功だけでDB完了にしない。DB列にIDが付く代表テストは用意したが、すべて本体未実行。O04は設計書どおり将来の実通信障害であり今回未実装・未実行。
 
-| ID | 判定 | 対応ファイル略号 | 確認範囲・残る範囲 |
-| --- | --- | --- | --- |
-| N01 | 成功（非DB） | U, DB | DB未実行 |
-| N02 | 成功（非DB） | U, DB | DB未実行 |
-| N03 | 成功（非DB） | U, DB | DB未実行 |
-| N04 | 成功（非DB） | U | 実DBへの保証なし |
-| N05 | 成功（非DB） | U | 実DBへの保証なし |
-| N06 | 成功（非DB） | U | 実DBへの保証なし |
-| N07 | 成功（非DB） | U | 実DBへの保証なし |
-| N08 | 成功（非DB） | U | 実DBへの保証なし |
-| N09 | 成功（非DB） | U, H, DB | DB未実行 |
-| N10 | 成功（非DB） | U | 実DBへの保証なし |
-| N11 | 成功（非DB） | U | 実DBへの保証なし |
-| N12 | 成功（非DB） | U | 実DBへの保証なし |
-| V01 | 成功（非DB） | V, R | 実DBへの保証なし |
-| V02 | 成功（非DB） | V, R | 実DBへの保証なし |
-| V03 | 成功（非DB） | V, R | 実DBへの保証なし |
-| V04 | 成功（非DB） | V, R | 実DBへの保証なし |
-| V05 | 成功（非DB） | V, R | 実DBへの保証なし |
-| V06 | 成功（非DB） | V | 実DBへの保証なし |
-| E01 | 成功（非DB） | U, DB | DB未実行 |
-| B01 | 成功（非DB） | U | 実DBへの保証なし |
-| B02 | 成功（非DB） | U, DB | DB未実行 |
-| B03 | 成功（非DB） | U, DB | DB未実行 |
-| B04 | 成功（非DB） | U, DB | DB未実行 |
-| B05 | 成功（非DB） | U, DB | DB未実行 |
-| B06 | 成功（非DB） | U, DB | DB未実行 |
-| B07 | 成功（非DB） | U, DB | DB未実行 |
-| B08 | 成功（非DB） | U | 実DBへの保証なし |
-| B09 | 成功（非DB） | U | 実DBへの保証なし |
-| B10 | 成功（非DB） | U | 実DBへの保証なし |
-| I01 | 成功（非DB） | U, DB | DB未実行 |
-| I02 | 成功（非DB） | U | 実DBへの保証なし |
-| I03 | 成功（非DB） | U | 実DBへの保証なし |
-| I04 | 成功（非DB） | U | 実DBへの保証なし |
-| I05 | 成功（非DB） | U, DB | DB未実行 |
-| I06 | 成功（非DB） | U, DB | DB未実行 |
-| I07 | 成功（非DB） | U | 実DBへの保証なし |
-| I08 | 成功（非DB） | U, DB | DB未実行 |
-| I09 | 成功（非DB） | U, DB | DB未実行 |
-| I10 | 成功（非DB） | U, DB | DB未実行 |
-| I11 | 成功（非DB） | U | 実DBへの保証なし |
-| I12 | 成功（非DB） | U, DB | DB未実行 |
-| M01 | 成功（非DB） | H | 実DBへの保証なし |
-| M02 | 成功（非DB） | H | 実DBへの保証なし |
-| M03 | 成功（非DB） | H | 実DBへの保証なし |
-| M04 | 成功（非DB） | H | 実DBへの保証なし |
-| M05 | 成功（非DB） | U | 実DBへの保証なし |
-| M06 | 成功（非DB） | H | 実DBへの保証なし |
-| M07 | 成功（非DB） | H | 実DBへの保証なし |
-| S01 | 成功（非DB） | S-itemEditing | 実DBへの保証なし |
-| S02 | 成功（非DB） | S-itemEditing | 実DBへの保証なし |
-| S03 | 成功（非DB） | S-itemEditing | 実DBへの保証なし |
-| S04 | 成功（非DB） | S-itemShippingProfile, S-sale, S-video, S-items-create | 実DBへの保証なし |
-| S05 | 成功（非DB） | S-follow, S-items, DB | DB未実行 |
-| S06 | 成功（非DB） | S-follow, S-items, DB | DB未実行 |
-| S07 | 成功（非DB） | S-categories, S-itemConditionOption, S-shippingDayOption, S-shippingServiceOption, S-todouhuken, S-users | 実DBへの保証なし |
-| S08 | 成功（非DB） | S-categories, S-follow, S-itemConditionOption, S-items, S-shippingDayOption, S-shippingServiceOption, S-todouhuken, S-users | 実DBへの保証なし |
-| T01 | 成功（非DB） | U, TX | DB未実行 |
-| T02 | 成功（非DB） | U | 実DBへの保証なし |
-| T03 | 成功（非DB） | U | 実DBへの保証なし |
-| T04 | 成功（非DB） | U | 実DBへの保証なし |
-| T05 | 成功（非DB） | U | 実DBへの保証なし |
-| T06 | 成功（非DB） | U, TX | DB未実行 |
-| T07 | 成功（非DB） | U, TX | DB未実行 |
-| T08 | 成功（非DB） | U | 実DBへの保証なし |
-| T09 | 未実行 | TX | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| T10 | 成功（非DB） | C | 実DBへの保証なし |
-| T11 | 成功（非DB） | U | 実DBへの保証なし |
-| T12 | 成功（非DB） | U, TX | DB未実行 |
-| T13 | 成功（非DB） | U | 実DBへの保証なし |
-| D01 | 未実行 | DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D02 | 未実行 | TX | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D03 | 未実行 | TX | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D04 | 未実行 | TX | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D05 | 未実行 | DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D06 | 未実行 | DB, HTTP-DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D07 | 未実行 | DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D08 | 未実行 | TX | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D09 | 未実行 | HTTP-DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| D10 | 未実行 | HTTP-DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P01 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P02 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P03 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P04 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P05 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P06 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P07 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P08 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P09 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P10 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| P11 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| C01 | 成功（非DB） | C | 実DBへの保証なし |
-| C02 | 成功（非DB） | C | 実DBへの保証なし |
-| C03 | 成功（非DB） | C | 実DBへの保証なし |
-| R01 | 成功（非DB） | R | 実DBへの保証なし |
-| R02 | 成功（非DB） | R | 実DBへの保証なし |
-| R03 | 成功（非DB） | R | 実DBへの保証なし |
-| R04 | 成功（非DB） | R | 実DBへの保証なし |
-| R05 | 成功（非DB） | R | 実DBへの保証なし |
-| R06 | 成功（非DB） | R | 実DBへの保証なし |
-| R07 | 成功（非DB） | R | 実DBへの保証なし |
-| R08 | 成功（非DB） | R | 実DBへの保証なし |
-| R09 | 成功（非DB） | R, HTTP-DB | DB未実行 |
-| R10 | 成功（非DB） | R | 実DBへの保証なし |
-| R11 | 成功（非DB） | R | 実DBへの保証なし |
-| R12 | 成功（非DB） | REG, R | 実DBへの保証なし |
-| R13 | 成功（非DB） | R | 実DBへの保証なし |
-| O01 | 観測成功 | U | 実DBへの保証なし |
-| O02 | 観測成功 | U | 実DBへの保証なし |
-| O03 | 観測成功 | U | 実DBへの保証なし |
-| O04 | 未実装・未実行 |  | 実COMMIT応答喪失/HTTP切断は今回対象外。外側Promise rejectはT08のみ |
-| O06 | 観測成功 | U | 実DBへの保証なし |
-| AF-ID01 | 成功（非DB） | U, DB, HTTP-DB | DB未実行 |
-| AF-ID02 | 未実行 | DB, HTTP-DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| AF-ID03 | 未実行 | CON | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| AF-BR01 | 成功（非DB） | U | 実DBへの保証なし |
-| AF-BR02 | 未実行 | DB, HTTP-DB | スキーマ検査で停止。保存・rollback・並行制御は未検証 |
-| AF-BR03 | 成功（非DB） | H | 実resolveBrand接続成功。updateConfirmのDB保存は未検証 |
+| ID      | 判定           | 対応ファイル略号                                                                                                            | 確認範囲・残る範囲                                                 |
+| ------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| N01     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| N02     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| N03     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| N04     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| N05     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| N06     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| N07     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| N08     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| N09     | 成功（非DB）   | U, H, DB                                                                                                                    | DB未実行                                                           |
+| N10     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| N11     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| N12     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| V01     | 成功（非DB）   | V, R                                                                                                                        | 実DBへの保証なし                                                   |
+| V02     | 成功（非DB）   | V, R                                                                                                                        | 実DBへの保証なし                                                   |
+| V03     | 成功（非DB）   | V, R                                                                                                                        | 実DBへの保証なし                                                   |
+| V04     | 成功（非DB）   | V, R                                                                                                                        | 実DBへの保証なし                                                   |
+| V05     | 成功（非DB）   | V, R                                                                                                                        | 実DBへの保証なし                                                   |
+| V06     | 成功（非DB）   | V                                                                                                                           | 実DBへの保証なし                                                   |
+| E01     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| B01     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| B02     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| B03     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| B04     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| B05     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| B06     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| B07     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| B08     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| B09     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| B10     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| I01     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| I02     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| I03     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| I04     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| I05     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| I06     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| I07     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| I08     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| I09     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| I10     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| I11     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| I12     | 成功（非DB）   | U, DB                                                                                                                       | DB未実行                                                           |
+| M01     | 成功（非DB）   | H                                                                                                                           | 実DBへの保証なし                                                   |
+| M02     | 成功（非DB）   | H                                                                                                                           | 実DBへの保証なし                                                   |
+| M03     | 成功（非DB）   | H                                                                                                                           | 実DBへの保証なし                                                   |
+| M04     | 成功（非DB）   | H                                                                                                                           | 実DBへの保証なし                                                   |
+| M05     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| M06     | 成功（非DB）   | H                                                                                                                           | 実DBへの保証なし                                                   |
+| M07     | 成功（非DB）   | H                                                                                                                           | 実DBへの保証なし                                                   |
+| S01     | 成功（非DB）   | S-itemEditing                                                                                                               | 実DBへの保証なし                                                   |
+| S02     | 成功（非DB）   | S-itemEditing                                                                                                               | 実DBへの保証なし                                                   |
+| S03     | 成功（非DB）   | S-itemEditing                                                                                                               | 実DBへの保証なし                                                   |
+| S04     | 成功（非DB）   | S-itemShippingProfile, S-sale, S-video, S-items-create                                                                      | 実DBへの保証なし                                                   |
+| S05     | 成功（非DB）   | S-follow, S-items, DB                                                                                                       | DB未実行                                                           |
+| S06     | 成功（非DB）   | S-follow, S-items, DB                                                                                                       | DB未実行                                                           |
+| S07     | 成功（非DB）   | S-categories, S-itemConditionOption, S-shippingDayOption, S-shippingServiceOption, S-todouhuken, S-users                    | 実DBへの保証なし                                                   |
+| S08     | 成功（非DB）   | S-categories, S-follow, S-itemConditionOption, S-items, S-shippingDayOption, S-shippingServiceOption, S-todouhuken, S-users | 実DBへの保証なし                                                   |
+| T01     | 成功（非DB）   | U, TX                                                                                                                       | DB未実行                                                           |
+| T02     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| T03     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| T04     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| T05     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| T06     | 成功（非DB）   | U, TX                                                                                                                       | DB未実行                                                           |
+| T07     | 成功（非DB）   | U, TX                                                                                                                       | DB未実行                                                           |
+| T08     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| T09     | 未実行         | TX                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| T10     | 成功（非DB）   | C                                                                                                                           | 実DBへの保証なし                                                   |
+| T11     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| T12     | 成功（非DB）   | U, TX                                                                                                                       | DB未実行                                                           |
+| T13     | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| D01     | 未実行         | DB                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D02     | 未実行         | TX                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D03     | 未実行         | TX                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D04     | 未実行         | TX                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D05     | 未実行         | DB                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D06     | 未実行         | DB, HTTP-DB                                                                                                                 | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D07     | 未実行         | DB                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D08     | 未実行         | TX                                                                                                                          | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D09     | 未実行         | HTTP-DB                                                                                                                     | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| D10     | 未実行         | HTTP-DB                                                                                                                     | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P01     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P02     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P03     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P04     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P05     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P06     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P07     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P08     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P09     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P10     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| P11     | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| C01     | 成功（非DB）   | C                                                                                                                           | 実DBへの保証なし                                                   |
+| C02     | 成功（非DB）   | C                                                                                                                           | 実DBへの保証なし                                                   |
+| C03     | 成功（非DB）   | C                                                                                                                           | 実DBへの保証なし                                                   |
+| R01     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R02     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R03     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R04     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R05     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R06     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R07     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R08     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R09     | 成功（非DB）   | R, HTTP-DB                                                                                                                  | DB未実行                                                           |
+| R10     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R11     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| R12     | 成功（非DB）   | REG, R                                                                                                                      | 実DBへの保証なし                                                   |
+| R13     | 成功（非DB）   | R                                                                                                                           | 実DBへの保証なし                                                   |
+| O01     | 観測成功       | U                                                                                                                           | 実DBへの保証なし                                                   |
+| O02     | 観測成功       | U                                                                                                                           | 実DBへの保証なし                                                   |
+| O03     | 観測成功       | U                                                                                                                           | 実DBへの保証なし                                                   |
+| O04     | 未実装・未実行 |                                                                                                                             | 実COMMIT応答喪失/HTTP切断は今回対象外。外側Promise rejectはT08のみ |
+| O06     | 観測成功       | U                                                                                                                           | 実DBへの保証なし                                                   |
+| AF-ID01 | 成功（非DB）   | U, DB, HTTP-DB                                                                                                              | DB未実行                                                           |
+| AF-ID02 | 未実行         | DB, HTTP-DB                                                                                                                 | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| AF-ID03 | 未実行         | CON                                                                                                                         | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| AF-BR01 | 成功（非DB）   | U                                                                                                                           | 実DBへの保証なし                                                   |
+| AF-BR02 | 未実行         | DB, HTTP-DB                                                                                                                 | スキーマ検査で停止。保存・rollback・並行制御は未検証               |
+| AF-BR03 | 成功（非DB）   | H                                                                                                                           | 実resolveBrand接続成功。updateConfirmのDB保存は未検証              |
 
 ## F1：brand/alias null拒否（修正・非DB再検証済み）
 
@@ -266,11 +269,11 @@ export default tseslint.config({files:['**/*.ts'],extends:[eslint.configs.recomm
 - 検証：AF-BR01の3成功条件と片方null＋他方0の2拒否条件、AF-BR03の実helper接続成功を確認。B08/B09、AF-ID01、在庫・コピー・HTTP等も維持し449件すべて成功。
 - 未達：AF-BR02の実保存・HTTP DBはスキーマ不一致で未実行。修正後にDB成功を確認したとはしない。
 
-| 修正後ケース | 元ケース | レベル | 入力・手順 | 期待・現在の結果 |
-| --- | --- | --- | --- | --- |
-| AF-BR01 | B08/B09/N04/O03 | U | 片方/両方null、片方null＋他方0 | null許容・不正非null拒否。成功 |
-| AF-BR02 | AF-BR01/D01/D09 | D/R | 保存済み任意ID nullから公開・新規SELECT | 201とnull保存・元行消費。未実行 |
-| AF-BR03 | M01/O03 | H | 実resolveBrandのalias=nullを取得fixtureへ渡す | 公開成功。成功 |
+| 修正後ケース | 元ケース        | レベル | 入力・手順                                    | 期待・現在の結果                |
+| ------------ | --------------- | ------ | --------------------------------------------- | ------------------------------- |
+| AF-BR01      | B08/B09/N04/O03 | U      | 片方/両方null、片方null＋他方0                | null許容・不正非null拒否。成功  |
+| AF-BR02      | AF-BR01/D01/D09 | D/R    | 保存済み任意ID nullから公開・新規SELECT       | 201とnull保存・元行消費。未実行 |
+| AF-BR03      | M01/O03         | H      | 実resolveBrandのalias=nullを取得fixtureへ渡す | 公開成功。成功                  |
 
 旧null拒否テストは任意IDのnullだけ成功契約へ移行し、必須5種類のnull拒否と全非null不正値のassertは維持した。旧挙動を通すためのskip/todo化・assert緩和はしていない。
 
@@ -304,44 +307,44 @@ export default tseslint.config({files:['**/*.ts'],extends:[eslint.configs.recomm
 
 実行ディレクトリは`/home/conta/project/server`。前掲の対象選択コマンドと同じ19ファイルを明示して実行した。今回のJSON出力先は`/tmp/create-item-f1-unit.json`と`/tmp/create-item-f1-db.json`。VitestのassertionResultsから集計し、前回結果と混ぜていない。
 
-| ファイル（server基準） | 成功 | 失敗 | skip/pending | todo |
-| --- | ---: | ---: | ---: | ---: |
-| `src/controllers/items/test/createItem.test.ts` | 4 | 0 | 0 | 0 |
-| `src/services/categories/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/follow/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/itemConditionOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/itemEditing/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
-| `src/services/itemShippingProfile/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/items/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/sale/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/shippingDayOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/shippingServiceOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/todouhuken/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/video/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `src/services/users/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
-| `src/usecases/itemEditing/test/createItem.test.ts` | 365 | 0 | 0 | 0 |
-| `src/validators/body/test/createItem.test.ts` | 28 | 0 | 0 | 0 |
-| `src/services/items/command/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| `test/integration/usecases/items/createItem/master.test.ts` | 15 | 0 | 0 | 0 |
-| `test/integration/usecases/items/createItem/registration.test.ts` | 1 | 0 | 0 | 0 |
-| `test/integration/usecases/items/createItem/route.test.ts` | 33 | 0 | 0 | 0 |
-| `test/integration/database/items/createItem/database.test.ts` | 0 | 0 | 24 | 0 |
-| `test/integration/usecases/items/createItem/databaseConcurrency.test.ts` | 0 | 0 | 24 | 0 |
-| `test/integration/usecases/items/createItem/databaseHttp.test.ts` | 0 | 0 | 13 | 0 |
-| `test/integration/usecases/items/createItem/databaseTransactions.test.ts` | 0 | 0 | 11 | 0 |
-| 非DB合計（19ファイル） | 474 | 0 | 0 | 0 |
-| 実DB合計（4ファイル・setup失敗） | 0 | 0 | 72 | 0 |
+| ファイル（server基準）                                                    | 成功 | 失敗 | skip/pending | todo |
+| ------------------------------------------------------------------------- | ---: | ---: | -----------: | ---: |
+| `src/controllers/items/test/createItem.test.ts`                           |    4 |    0 |            0 |    0 |
+| `src/services/categories/test/createItem.test.ts`                         |    2 |    0 |            0 |    0 |
+| `src/services/follow/test/createItem.count.test.ts`                       |    2 |    0 |            0 |    0 |
+| `src/services/itemConditionOption/test/createItem.test.ts`                |    2 |    0 |            0 |    0 |
+| `src/services/itemEditing/test/createItem.test.ts`                        |    3 |    0 |            0 |    0 |
+| `src/services/itemShippingProfile/test/createItem.test.ts`                |    2 |    0 |            0 |    0 |
+| `src/services/items/test/createItem.count.test.ts`                        |    2 |    0 |            0 |    0 |
+| `src/services/sale/test/createItem.test.ts`                               |    2 |    0 |            0 |    0 |
+| `src/services/shippingDayOption/test/createItem.test.ts`                  |    2 |    0 |            0 |    0 |
+| `src/services/shippingServiceOption/test/createItem.test.ts`              |    2 |    0 |            0 |    0 |
+| `src/services/todouhuken/test/createItem.test.ts`                         |    2 |    0 |            0 |    0 |
+| `src/services/video/test/createItem.test.ts`                              |    2 |    0 |            0 |    0 |
+| `src/services/users/test/createItem.test.ts`                              |    3 |    0 |            0 |    0 |
+| `src/usecases/itemEditing/test/createItem.test.ts`                        |  365 |    0 |            0 |    0 |
+| `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |            0 |    0 |
+| `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |            0 |    0 |
+| `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |            0 |    0 |
+| `test/integration/usecases/items/createItem/registration.test.ts`         |    1 |    0 |            0 |    0 |
+| `test/integration/usecases/items/createItem/route.test.ts`                |   33 |    0 |            0 |    0 |
+| `test/integration/database/items/createItem/database.test.ts`             |    0 |    0 |           24 |    0 |
+| `test/integration/usecases/items/createItem/databaseConcurrency.test.ts`  |    0 |    0 |           24 |    0 |
+| `test/integration/usecases/items/createItem/databaseHttp.test.ts`         |    0 |    0 |           13 |    0 |
+| `test/integration/usecases/items/createItem/databaseTransactions.test.ts` |    0 |    0 |           11 |    0 |
+| 非DB合計（19ファイル）                                                    |  474 |    0 |            0 |    0 |
+| 実DB合計（4ファイル・setup失敗）                                          |    0 |    0 |           72 |    0 |
 
 72件のskip/pendingはスキーマ検査で本体に到達していないため、意図的skipや成功として扱わない。総登録件数546件と設計ケースID数117件は別の値。
 
-| 確認 | 結果 |
-| --- | --- |
-| 関連単体・非DB結合 | exit 0。474件成功 |
-| 実DB4ファイル | exit 1。全suiteでDB_TEST_SCHEMA_MISMATCH: item.deleted_at remains |
-| npm run lint | exit 0 |
-| npm run typecheck | exit 0 |
-| tsc --noEmit -p test/tsconfig.json | exit 2。既存refreshToken.ts:43のTS2339のみ |
-| test配下の追加lint | 前掲の一時ESLint設定と同じコマンドでexit 0 |
+| 確認                               | 結果                                                              |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| 関連単体・非DB結合                 | exit 0。474件成功                                                 |
+| 実DB4ファイル                      | exit 1。全suiteでDB_TEST_SCHEMA_MISMATCH: item.deleted_at remains |
+| npm run lint                       | exit 0                                                            |
+| npm run typecheck                  | exit 0                                                            |
+| tsc --noEmit -p test/tsconfig.json | exit 2。既存refreshToken.ts:43のTS2339のみ                        |
+| test配下の追加lint                 | 前掲の一時ESLint設定と同じコマンドでexit 0                        |
 
 AF-BR01/B08/B09/AF-ID01の追加条件と既存の非DB対応IDを再検証した。AF-BR03は実resolveBrandと公開usecaseの接続で成功。実DBのAF-BR02、D/T/Pによる保存・rollback・ロック・HTTP DBは未確認。モック境界は前掲と同じで、今回の非DB成功をDBの永続化成功へ拡大しない。
 
@@ -364,36 +367,36 @@ F2の旧カラム残存による停止は解消し、元のDB72件を実行し�
 
 今回のVitest JSON `/tmp/create-item-f2-final.json` と `/tmp/create-item-f2-regression.json` のassertionResultsから集計した。失敗F4には2つのassertion failureがあるが、テスト件数は1件として数える。
 
-| 区分・ファイル（server基準） | 成功 | 失敗 | skip | todo |
-| --- | ---: | ---: | ---: | ---: |
-| 実DB `test/integration/database/items/createItem/database.test.ts` | 24 | 0 | 0 | 0 |
-| 実DB `test/integration/database/items/createItem/databaseValues.test.ts` | 173 | 0 | 0 | 0 |
-| 実DB `test/integration/usecases/items/createItem/databaseConcurrency.test.ts` | 24 | 0 | 0 | 0 |
-| 実DB `test/integration/usecases/items/createItem/databaseHttp.test.ts` | 21 | 0 | 0 | 0 |
-| 実DB `test/integration/usecases/items/createItem/databaseReadFailures.test.ts` | 10 | 0 | 0 | 0 |
-| 実DB `test/integration/usecases/items/createItem/databaseTransactions.test.ts` | 13 | 1 | 0 | 0 |
-| 実DB合計（6ファイル） | 265 | 1 | 0 | 0 |
-| 非DB `src/controllers/items/test/createItem.test.ts` | 4 | 0 | 0 | 0 |
-| 非DB `src/services/categories/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/follow/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/itemConditionOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/itemEditing/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
-| 非DB `src/services/itemShippingProfile/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/items/test/createItem.count.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/sale/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/shippingDayOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/shippingServiceOption/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/todouhuken/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/services/users/test/createItem.test.ts` | 3 | 0 | 0 | 0 |
-| 非DB `src/services/video/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `src/validators/body/test/createItem.test.ts` | 28 | 0 | 0 | 0 |
-| 非DB `src/usecases/itemEditing/test/createItem.test.ts` | 365 | 0 | 0 | 0 |
-| 非DB `src/services/items/command/test/createItem.test.ts` | 2 | 0 | 0 | 0 |
-| 非DB `test/integration/usecases/items/createItem/master.test.ts` | 15 | 0 | 0 | 0 |
-| 非DB `test/integration/usecases/items/createItem/registration.test.ts` | 1 | 0 | 0 | 0 |
-| 非DB `test/integration/usecases/items/createItem/route.test.ts` | 33 | 0 | 0 | 0 |
-| 非DB合計（19ファイル） | 474 | 0 | 0 | 0 |
-| 全体 | 739 | 1 | 0 | 0 |
+| 区分・ファイル（server基準）                                                   | 成功 | 失敗 | skip | todo |
+| ------------------------------------------------------------------------------ | ---: | ---: | ---: | ---: |
+| 実DB `test/integration/database/items/createItem/database.test.ts`             |   24 |    0 |    0 |    0 |
+| 実DB `test/integration/database/items/createItem/databaseValues.test.ts`       |  173 |    0 |    0 |    0 |
+| 実DB `test/integration/usecases/items/createItem/databaseConcurrency.test.ts`  |   24 |    0 |    0 |    0 |
+| 実DB `test/integration/usecases/items/createItem/databaseHttp.test.ts`         |   21 |    0 |    0 |    0 |
+| 実DB `test/integration/usecases/items/createItem/databaseReadFailures.test.ts` |   10 |    0 |    0 |    0 |
+| 実DB `test/integration/usecases/items/createItem/databaseTransactions.test.ts` |   13 |    1 |    0 |    0 |
+| 実DB合計（6ファイル）                                                          |  265 |    1 |    0 |    0 |
+| 非DB `src/controllers/items/test/createItem.test.ts`                           |    4 |    0 |    0 |    0 |
+| 非DB `src/services/categories/test/createItem.test.ts`                         |    2 |    0 |    0 |    0 |
+| 非DB `src/services/follow/test/createItem.count.test.ts`                       |    2 |    0 |    0 |    0 |
+| 非DB `src/services/itemConditionOption/test/createItem.test.ts`                |    2 |    0 |    0 |    0 |
+| 非DB `src/services/itemEditing/test/createItem.test.ts`                        |    3 |    0 |    0 |    0 |
+| 非DB `src/services/itemShippingProfile/test/createItem.test.ts`                |    2 |    0 |    0 |    0 |
+| 非DB `src/services/items/test/createItem.count.test.ts`                        |    2 |    0 |    0 |    0 |
+| 非DB `src/services/sale/test/createItem.test.ts`                               |    2 |    0 |    0 |    0 |
+| 非DB `src/services/shippingDayOption/test/createItem.test.ts`                  |    2 |    0 |    0 |    0 |
+| 非DB `src/services/shippingServiceOption/test/createItem.test.ts`              |    2 |    0 |    0 |    0 |
+| 非DB `src/services/todouhuken/test/createItem.test.ts`                         |    2 |    0 |    0 |    0 |
+| 非DB `src/services/users/test/createItem.test.ts`                              |    3 |    0 |    0 |    0 |
+| 非DB `src/services/video/test/createItem.test.ts`                              |    2 |    0 |    0 |    0 |
+| 非DB `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |    0 |    0 |
+| 非DB `src/usecases/itemEditing/test/createItem.test.ts`                        |  365 |    0 |    0 |    0 |
+| 非DB `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |    0 |    0 |
+| 非DB `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |    0 |    0 |
+| 非DB `test/integration/usecases/items/createItem/registration.test.ts`         |    1 |    0 |    0 |    0 |
+| 非DB `test/integration/usecases/items/createItem/route.test.ts`                |   33 |    0 |    0 |    0 |
+| 非DB合計（19ファイル）                                                         |  474 |    0 |    0 |    0 |
+| 全体                                                                           |  739 |    1 |    0 |    0 |
 
 ### 実装・修正した内容
 
@@ -418,24 +421,24 @@ F2の旧カラム残存による停止は解消し、元のDB72件を実行し�
 
 以下は過去の未実行/一部実施を今回更新する対応。前掲の古いDB未実行表を成功へ書き換えて履歴を失わないよう、最新判定をここへまとめる。
 
-| 元ID | 最新判定 | 対応ファイル・確認した範囲 | 残る範囲 |
-| --- | --- | --- | --- |
-| N01/N02/N03/N09/N11、B01、I01/I12、D01/D07 | 成功 | DB/VALUES：新規4行、全コピー、JSONB・画像順、割引解除、検索正規化、既存item/下書き/他セッション保持 | S3実体・実アップロードは対象外 |
-| N04/N05/N07、B02〜B07、O01/O02/O03 | 成功（Oは観測） | VALUES/DB：任意null・列挙値・集計変種、価格/画像境界・保存済み不備の拒否と保持、空値/URL/ratio/ブランド組合せの保存 | Oの業務許容要件確定は別対応 |
-| I02/I03/I05〜I11 | 成功 | VALUES/DB：商品/色/サイズの各inventory、全3キー欠落/不正型、後方要素、負数/小数initial、構造優先をJSONBで確認 | 非JSON値は既存Uで検証 |
-| E01/D06 | 成功 | DB/HTTP-DB：不存在・他人・所有者null・再送は404、元行/公開済み行を保護、失敗もレート制限に計上 | 別API全体の認可回帰は対象外 |
-| D02/T01 | 成功 | TX/HTTP-DB：同じtから新4行・元行削除が見え、observerはcommit前に旧行だけ、commit後に反転しHTTP成功 | 実通信断は未実施 |
-| D03/D04、T05/T06/T07/T09/T13 | 成功 | TX/READ：参照後/途中INSERT/削除後/commit前障害で追加残存0・元行復元・保護行不変・NOWAIT再ロック、同ID再試行成功 | T09はcommit前の確定障害注入。COMMIT応答喪失とは異なる |
-| D05 | 成功 | DB/VALUES：active/soldoutの所有者別出品数、follower方向、作成前集計を独立件数と照合 | 全参照の同時点snapshot保証は要求しない |
-| D08 | 成功 | TX/VALUES：Model validation、DB FK、実在gender_type NOT NULL（23502）を別確認。型/関連FK方向のメタデータ照合 | uploaded_atのModel/DB差分はF4で別失敗 |
-| D09/D10/T12 | 成功 | HTTP-DB/TX：正常/404/公開400/構造500/作成失敗/通知失敗、commit/rollback後応答、認証/制限/body/JSON拒否時transaction 0・追加0 | 通知レコード永続化・実配送は対象外 |
-| P01/P02 | 成功 | CON：A取得→B開始→pg_blocking_pidsで実待機→A commitならAのみ成功/B404、A rollbackならBのみ成功。最終各1組・通知1回 | COMMIT送信後の応答喪失は未実施 |
-| P03/P04 | 成功 | CON：実updateConfirmが更新しロック保持→公開実待機→保存commitなら最新値、rollbackなら元の全コピー値。在庫も復元 | buildSignedUrlsは固定URL返却のモック |
-| P05/P06、AF-ID03 | 成功 | CON：別tのDELETE/所有者変更/必須5種類のnull更新→公開実待機→commit/rollback後に存在・所有者・必須値を再評価 | DELETE APIやcronへの接続証明ではない |
-| P07/P08 | 成功 | CON：公開が先行ロック→実updateConfirm再取得/別DELETEの実待機→公開commit後は保存404/DELETE 0件。公開側保護 | 別API全体の仕様は対象外 |
-| P09/P10/P11 | 成功 | CON：別行両ロック後の並行公開で値混入なし。follower読取後にfollow/itemをcommitし次の出品集計のみ最新。エラー後の修復再公開 | 負荷試験や全クエリの直列化保証は対象外 |
-| AF-ID01/AF-ID02 | 成功 | DB/HTTP-DB：必須5種類各nullで400・元行保持、修復後だけ201・元行消費・通知開始 | 必須IDの範囲上限のHTTP非DB検証は既存V/R |
-| AF-BR02 | 成功 | DB/HTTP-DB：brandのみnull・aliasのみnull・両方nullで201相当・null保存・元行消費・保護行不変 | brand/aliasの組合せ再検証は仕様外 |
+| 元ID                                       | 最新判定        | 対応ファイル・確認した範囲                                                                                                   | 残る範囲                                              |
+| ------------------------------------------ | --------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| N01/N02/N03/N09/N11、B01、I01/I12、D01/D07 | 成功            | DB/VALUES：新規4行、全コピー、JSONB・画像順、割引解除、検索正規化、既存item/下書き/他セッション保持                          | S3実体・実アップロードは対象外                        |
+| N04/N05/N07、B02〜B07、O01/O02/O03         | 成功（Oは観測） | VALUES/DB：任意null・列挙値・集計変種、価格/画像境界・保存済み不備の拒否と保持、空値/URL/ratio/ブランド組合せの保存          | Oの業務許容要件確定は別対応                           |
+| I02/I03/I05〜I11                           | 成功            | VALUES/DB：商品/色/サイズの各inventory、全3キー欠落/不正型、後方要素、負数/小数initial、構造優先をJSONBで確認                | 非JSON値は既存Uで検証                                 |
+| E01/D06                                    | 成功            | DB/HTTP-DB：不存在・他人・所有者null・再送は404、元行/公開済み行を保護、失敗もレート制限に計上                               | 別API全体の認可回帰は対象外                           |
+| D02/T01                                    | 成功            | TX/HTTP-DB：同じtから新4行・元行削除が見え、observerはcommit前に旧行だけ、commit後に反転しHTTP成功                           | 実通信断は未実施                                      |
+| D03/D04、T05/T06/T07/T09/T13               | 成功            | TX/READ：参照後/途中INSERT/削除後/commit前障害で追加残存0・元行復元・保護行不変・NOWAIT再ロック、同ID再試行成功              | T09はcommit前の確定障害注入。COMMIT応答喪失とは異なる |
+| D05                                        | 成功            | DB/VALUES：active/soldoutの所有者別出品数、follower方向、作成前集計を独立件数と照合                                          | 全参照の同時点snapshot保証は要求しない                |
+| D08                                        | 成功            | TX/VALUES：Model validation、DB FK、実在gender_type NOT NULL（23502）を別確認。型/関連FK方向のメタデータ照合                 | uploaded_atのModel/DB差分はF4で別失敗                 |
+| D09/D10/T12                                | 成功            | HTTP-DB/TX：正常/404/公開400/構造500/作成失敗/通知失敗、commit/rollback後応答、認証/制限/body/JSON拒否時transaction 0・追加0 | 通知レコード永続化・実配送は対象外                    |
+| P01/P02                                    | 成功            | CON：A取得→B開始→pg_blocking_pidsで実待機→A commitならAのみ成功/B404、A rollbackならBのみ成功。最終各1組・通知1回            | COMMIT送信後の応答喪失は未実施                        |
+| P03/P04                                    | 成功            | CON：実updateConfirmが更新しロック保持→公開実待機→保存commitなら最新値、rollbackなら元の全コピー値。在庫も復元               | buildSignedUrlsは固定URL返却のモック                  |
+| P05/P06、AF-ID03                           | 成功            | CON：別tのDELETE/所有者変更/必須5種類のnull更新→公開実待機→commit/rollback後に存在・所有者・必須値を再評価                   | DELETE APIやcronへの接続証明ではない                  |
+| P07/P08                                    | 成功            | CON：公開が先行ロック→実updateConfirm再取得/別DELETEの実待機→公開commit後は保存404/DELETE 0件。公開側保護                    | 別API全体の仕様は対象外                               |
+| P09/P10/P11                                | 成功            | CON：別行両ロック後の並行公開で値混入なし。follower読取後にfollow/itemをcommitし次の出品集計のみ最新。エラー後の修復再公開   | 負荷試験や全クエリの直列化保証は対象外                |
+| AF-ID01/AF-ID02                            | 成功            | DB/HTTP-DB：必須5種類各nullで400・元行保持、修復後だけ201・元行消費・通知開始                                                | 必須IDの範囲上限のHTTP非DB検証は既存V/R               |
+| AF-BR02                                    | 成功            | DB/HTTP-DB：brandのみnull・aliasのみnull・両方nullで201相当・null保存・元行消費・保護行不変                                  | brand/aliasの組合せ再検証は仕様外                     |
 
 ### 実処理・モックと障害注入の境界
 
@@ -490,10 +493,10 @@ F2による旧カラム残存の停止は解消し、未実施だったDB検証�
 
 接続URL全体・認証情報は記録しない。既存のconfig/config.cjsはtestでも.envを読むため、実行時だけ一時設定 `/tmp/item-uploaded-at-db-config.cjs` を明示指定した。同設定は対象に応じて.env/.env.testを直接parseし、期待DB名とcurrent_database()を照合、カラム型/default/NULL件数/補完不能件数を確認する。実DBは.envのDB_SSL=falseどおりローカル非SSL接続を使用した。
 
-| 対象 | 読込元・設定DB名・実DB名 | 適用前 | 適用後 |
-| --- | --- | --- | --- |
-| 実DB | server/.env、neondb、neondb | uploaded_at is_nullable=YES、NULL2件、createdAt欠落0件 | is_nullable=NO、NULL0件、適用履歴1件 |
-| テストDB | server/.env.test、test_db、test_db | uploaded_at is_nullable=YES、NULL0件 | is_nullable=NO、NULL0件、適用履歴1件 |
+| 対象     | 読込元・設定DB名・実DB名           | 適用前                                                 | 適用後                               |
+| -------- | ---------------------------------- | ------------------------------------------------------ | ------------------------------------ |
+| 実DB     | server/.env、neondb、neondb        | uploaded_at is_nullable=YES、NULL2件、createdAt欠落0件 | is_nullable=NO、NULL0件、適用履歴1件 |
+| テストDB | server/.env.test、test_db、test_db | uploaded_at is_nullable=YES、NULL0件                   | is_nullable=NO、NULL0件、適用履歴1件 |
 
 実DBのID13・27はそれぞれuploaded_at = createdAtがtrueで、2行とも一致した。非NULL行の日時はUPDATE条件の対象外。両DBとも型とdefaultは変更前後で一致した。実DBに対してテストfixtureの作成やテスト実行はしていない。
 
@@ -517,15 +520,15 @@ npm run typecheck
 
 `/tmp/create-item-f4-migration-final.json` の実ランナー結果から集計した。テストコード・期待値を弱めず、前回失敗したF4が実DBのNOT NULL拒否（23502）とrollbackまで成功することを確認した。実FK、実gender_type NOT NULL、Model validationの区別も維持した。
 
-| server基準のテストファイル | 成功 | 失敗 | skip | todo |
-| --- | ---: | ---: | ---: | ---: |
-| `test/integration/database/items/createItem/database.test.ts` | 24 | 0 | 0 | 0 |
-| `test/integration/database/items/createItem/databaseValues.test.ts` | 173 | 0 | 0 | 0 |
-| `test/integration/usecases/items/createItem/databaseConcurrency.test.ts` | 24 | 0 | 0 | 0 |
-| `test/integration/usecases/items/createItem/databaseHttp.test.ts` | 21 | 0 | 0 | 0 |
-| `test/integration/usecases/items/createItem/databaseReadFailures.test.ts` | 10 | 0 | 0 | 0 |
-| `test/integration/usecases/items/createItem/databaseTransactions.test.ts` | 14 | 0 | 0 | 0 |
-| 合計 | 266 | 0 | 0 | 0 |
+| server基準のテストファイル                                                | 成功 | 失敗 | skip | todo |
+| ------------------------------------------------------------------------- | ---: | ---: | ---: | ---: |
+| `test/integration/database/items/createItem/database.test.ts`             |   24 |    0 |    0 |    0 |
+| `test/integration/database/items/createItem/databaseValues.test.ts`       |  173 |    0 |    0 |    0 |
+| `test/integration/usecases/items/createItem/databaseConcurrency.test.ts`  |   24 |    0 |    0 |    0 |
+| `test/integration/usecases/items/createItem/databaseHttp.test.ts`         |   21 |    0 |    0 |    0 |
+| `test/integration/usecases/items/createItem/databaseReadFailures.test.ts` |   10 |    0 |    0 |    0 |
+| `test/integration/usecases/items/createItem/databaseTransactions.test.ts` |   14 |    0 |    0 |    0 |
+| 合計                                                                      |  266 |    0 |    0 |    0 |
 
 D01〜D10、T05〜T07/T09/T12、P01〜P11、AF-ID01〜03、AF-BR02等の実DB回帰が成功した。接続ガードは.env.test/test_dbを維持し、READ COMMITTED、作成ID限定cleanup・残存0、接続closeも従来どおり確認した。実S3・通知レコード永続化・実COMMIT応答喪失は今回の範囲外。
 
@@ -546,22 +549,22 @@ F4のModel/DB制約差分はユーザーがModelどおり必須と確定し、mi
 
 ### テストファイル・結果・境界
 
-| ファイル（server基準） | 成功 | 失敗 | skip | todo |
-| --- | ---: | ---: | ---: | ---: |
-| src/usecases/auth/test/refreshToken.test.ts | 42 | 0 | 0 | 0 |
-| test/integration/usecases/auth/refreshToken/jwt.test.ts | 14 | 0 | 0 | 0 |
-| 合計 | 56 | 0 | 0 | 0 |
+| ファイル（server基準）                                  | 成功 | 失敗 | skip | todo |
+| ------------------------------------------------------- | ---: | ---: | ---: | ---: |
+| src/usecases/auth/test/refreshToken.test.ts             |   42 |    0 |    0 |    0 |
+| test/integration/usecases/auth/refreshToken/jwt.test.ts |   14 |    0 |    0 |    0 |
+| 合計                                                    |   56 |    0 |    0 |    0 |
 
 Vitest JSON `/tmp/refresh-token-f3.json` のassertionResultsから集計した。fixtureは`test/fixtures/auth/refreshToken/fixtures.ts`に追加し、入力・stored token・user・deferredをケースごとに新規生成した。F3の検査を別APIのテスト件数へ加算していない。
 
-| ケースID | 観点・確認内容 | 結果 |
-| --- | --- | --- |
-| F3-U01 | number/数字stringの上下限、先頭0、getUserへのnumber、既存応答と生成引数、id以外のclaimを今回必須化しない | 成功 |
-| F3-U02 | 文字列payload・id欠落・不正id、401と同じstored tokenの削除・ユーザー検索/生成/デコードの未実行 | 成功 |
-| F3-U03 | 保存tokenなし、期限切れと等時刻境界、userなし、同一Error伝播、削除未完了でも401・削除失敗のcatch | 成功 |
-| F3-H01 | 実generateRefreshToken→実jwt.verify→usecase→実generateAccessToken、number/string/先頭0 ID、15分expとclaims | 成功 |
-| F3-H02 | テスト専用鍵で署名が有効な文字列/欠落・不正id payloadを401で拒否、ユーザー検索前に停止 | 成功 |
-| F3-H03 | 実ライブラリの署名不正・JWT期限切れを同じ例外種で伝播、ユーザー検索なし | 成功 |
+| ケースID | 観点・確認内容                                                                                             | 結果 |
+| -------- | ---------------------------------------------------------------------------------------------------------- | ---- |
+| F3-U01   | number/数字stringの上下限、先頭0、getUserへのnumber、既存応答と生成引数、id以外のclaimを今回必須化しない   | 成功 |
+| F3-U02   | 文字列payload・id欠落・不正id、401と同じstored tokenの削除・ユーザー検索/生成/デコードの未実行             | 成功 |
+| F3-U03   | 保存tokenなし、期限切れと等時刻境界、userなし、同一Error伝播、削除未完了でも401・削除失敗のcatch           | 成功 |
+| F3-H01   | 実generateRefreshToken→実jwt.verify→usecase→実generateAccessToken、number/string/先頭0 ID、15分expとclaims | 成功 |
+| F3-H02   | テスト専用鍵で署名が有効な文字列/欠落・不正id payloadを401で拒否、ユーザー検索前に停止                     | 成功 |
+| F3-H03   | 実ライブラリの署名不正・JWT期限切れを同じ例外種で伝播、ユーザー検索なし                                    | 成功 |
 
 Uは実usecaseを呼び、verify/decode・生成helper・DB serviceをモックした。NaN/Infinity、root null/配列/undefinedはverify境界への防御注入であり、HTTPや通常JWTがそれを返す保証ではない。
 

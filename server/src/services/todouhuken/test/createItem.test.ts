@@ -12,10 +12,8 @@ describe("S07 S08 参照service", () => {
         model.findByPk.mockResolvedValueOnce(row).mockResolvedValueOnce(null);
         expect(await getTodouhuken(args)).toBe(row);
         expect(await getTodouhuken(args)).toBeNull();
-        if (withTransaction)
-            expect(model.findByPk).toHaveBeenNthCalledWith(1, 21, { transaction });
-        else
-            expect(model.findByPk).toHaveBeenNthCalledWith(1, 21);
+        if (withTransaction) expect(model.findByPk).toHaveBeenNthCalledWith(1, 21, { transaction });
+        else expect(model.findByPk).toHaveBeenNthCalledWith(1, 21);
         const failure = new Error("read");
         model.findByPk.mockRejectedValueOnce(failure);
         await expect(getTodouhuken(args)).rejects.toBe(failure);

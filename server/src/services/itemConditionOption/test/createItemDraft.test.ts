@@ -28,9 +28,7 @@ beforeEach(() => {
 });
 import { getItemCondition } from "../itemConditionOption.js";
 describe("P1: DB serviceの契約（DB非接続）", () => {
-    const lookups = [
-        ["状態", () => getItemCondition({ conditionId: 31 }), mocks.condition.findByPk, 31],
-    ] as const;
+    const lookups = [["状態", () => getItemCondition({ conditionId: 31 }), mocks.condition.findByPk, 31]] as const;
     describe.each(lookups)("SV01 SV06: %s", (_name, run, mock, args) => {
         it.each([null, { id: 1 }])("結果%jと引数を伝達", async (row) => {
             mock.mockResolvedValue(row);

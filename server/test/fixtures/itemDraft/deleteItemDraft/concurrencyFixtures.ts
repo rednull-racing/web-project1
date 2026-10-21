@@ -18,23 +18,40 @@ export const transactionPid = async (connection: Sequelize, transaction: Transac
 };
 export const gateReads = (count = 2) => {
     const slots = Array.from({ length: count }, () => ({
-        started: deferred<{ pid: number; transaction: Transaction }>(), entered: deferred<void>(), release: deferred<void>(),
+        started: deferred<{ pid: number; transaction: Transaction }>(),
+        entered: deferred<void>(),
+        release: deferred<void>(),
     }));
-    const real = query.getMyItemDraft; let index = 0;
-    vi.spyOn(query, "getMyItemDraft").mockImplementation(async params => {
-        const slot = slots[index++]; if (!slot) throw new Error("想定外の取得回数");
+    const real = query.getMyItemDraft;
+    let index = 0;
+    vi.spyOn(query, "getMyItemDraft").mockImplementation(async (params) => {
+        const slot = slots[index++];
+        if (!slot) throw new Error("想定外の取得回数");
         const pid = await transactionPid(sequelize, params.transaction);
         slot.started.resolve({ pid, transaction: params.transaction });
-        const row = await real(params); slot.entered.resolve(); await slot.release.promise; return row;
+        const row = await real(params);
+        slot.entered.resolve();
+        await slot.release.promise;
+        return row;
     });
     return slots;
 };
 export const waitBlocked = async (waiter: number, blocker: number, pending: Promise<unknown>) => {
     let finished = false;
-    const observation = pending.then(() => { finished = true; }, () => { finished = true; });
+    const observation = pending.then(
+        () => {
+            finished = true;
+        },
+        () => {
+            finished = true;
+        },
+    );
     const deadline = performance.now() + 3000;
     while (performance.now() < deadline) {
-        if (finished) { await observation; throw new Error("ロック待機確認前に処理が終了しました"); }
+        if (finished) {
+            await observation;
+            throw new Error("ロック待機確認前に処理が終了しました");
+        }
         const [row] = await observer.query<{ blocked: boolean; wait_event_type: string | null }>(
             "SELECT :blocker = ANY(pg_blocking_pids(:waiter)) AS blocked, wait_event_type FROM pg_stat_activity WHERE pid = :waiter",
             { replacements: { waiter, blocker }, type: QueryTypes.SELECT },

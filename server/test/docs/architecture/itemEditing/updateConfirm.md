@@ -4,18 +4,18 @@
 
 以下は `server/` 基準。旧ファイル名と過去の実行コマンドは当時の記録として残す。
 
-| 分類 | 旧ファイル | 現在の配置 |
-| --- | --- | --- |
-| 単体 | `usecase.test.ts` | `src/usecases/itemEditing/test/updateConfirm.test.ts` |
-| 単体 | `signedUrls.test.ts` | `src/usecases/shared/test/updateConfirm.signedUrls.test.ts` |
-| 単体 | `validation.test.ts` | `src/validators/body/test/updateConfirm.test.ts` |
-| 単体 | `controller.test.ts` | `src/controllers/itemEditing/test/updateConfirm.test.ts` |
-| 単体 | `services.test.ts` | `src/services/itemEditing/test/updateConfirm.test.ts`（5件）、`src/services/brandAliases/test/updateConfirm.brandAliases.test.ts`（5件） |
-| 結合 | `masterBrand.test.ts`、`route.test.ts`、`databaseTransactions.test.ts`、`databaseConcurrency.test.ts` | `test/integration/usecases/itemEditing/updateConfirm/` |
-| 結合 | `database.test.ts` | `test/integration/database/itemEditing/updateConfirm/` |
-| fixture | `fixtures.ts`、`databaseFixtures.ts`、`databaseSetup.ts` | `test/fixtures/itemEditing/updateConfirm/` |
-| 設計書 | `testArchitecture.md` | `test/docs/architecture/itemEditing/updateConfirm.md` |
-| レポート | `testReport.md`、`afterFix.md` | `test/docs/report/itemEditing/updateConfirm.md` に統合 |
+| 分類     | 旧ファイル                                                                                            | 現在の配置                                                                                                                               |
+| -------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 単体     | `usecase.test.ts`                                                                                     | `src/usecases/itemEditing/test/updateConfirm.test.ts`                                                                                    |
+| 単体     | `signedUrls.test.ts`                                                                                  | `src/usecases/shared/test/updateConfirm.signedUrls.test.ts`                                                                              |
+| 単体     | `validation.test.ts`                                                                                  | `src/validators/body/test/updateConfirm.test.ts`                                                                                         |
+| 単体     | `controller.test.ts`                                                                                  | `src/controllers/itemEditing/test/updateConfirm.test.ts`                                                                                 |
+| 単体     | `services.test.ts`                                                                                    | `src/services/itemEditing/test/updateConfirm.test.ts`（5件）、`src/services/brandAliases/test/updateConfirm.brandAliases.test.ts`（5件） |
+| 結合     | `masterBrand.test.ts`、`route.test.ts`、`databaseTransactions.test.ts`、`databaseConcurrency.test.ts` | `test/integration/usecases/itemEditing/updateConfirm/`                                                                                   |
+| 結合     | `database.test.ts`                                                                                    | `test/integration/database/itemEditing/updateConfirm/`                                                                                   |
+| fixture  | `fixtures.ts`、`databaseFixtures.ts`、`databaseSetup.ts`                                              | `test/fixtures/itemEditing/updateConfirm/`                                                                                               |
+| 設計書   | `testArchitecture.md`                                                                                 | `test/docs/architecture/itemEditing/updateConfirm.md`                                                                                    |
+| レポート | `testReport.md`、`afterFix.md`                                                                        | `test/docs/report/itemEditing/updateConfirm.md` に統合                                                                                   |
 
 `masterBrand.test.ts` は実usecaseと複数helperを接続するため結合テストに分類した。serviceは本番コードに最も近いディレクトリへ分け、テスト内容・ケースID・期待値は維持した。
 単体テストは `npm run typecheck` の本番ビルド対象から除外し、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` が `src/**/test` と `test` の全テスト・fixtureを型検査する。出力先や本番コードの構成は変更しない。
@@ -27,7 +27,6 @@ npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usec
 ```
 
 実DBテストは `test/integration/database/itemEditing/updateConfirm/database.test.ts` と `test/integration/usecases/itemEditing/updateConfirm/database{Transactions,Concurrency}.test.ts` を指定する。実行前に既存の `.env.test`・test_db の安全条件を確認する。
-
 
 ## 2026-10-16 共有helper契約・DB非接続境界の更新（以下の旧観測に優先）
 
@@ -81,9 +80,9 @@ npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/usec
 | usecase                                        | `src/usecases/itemEditing/updateConfirm.ts`                                                                                               |
 | URL 生成・数値変換・マスター検証・ブランド解決 | `src/usecases/itemEditing/shared/{buildSignedUrls,validateNumber,validateMaster,resolveBrand}.ts`                                         |
 | 取得・更新                                     | `src/services/itemEditing/{query,command}.ts`                                                                                             |
-| マスター取得                                   | `src/services/{categories,itemConditionOption,shippingDayOption,shippingServiceOption,todouhuken}/<同名>.ts`                                     |
-| ブランド取得・別名作成                         | `src/services/{brands,brandAliases}/<同名>.ts`                                                                                                   |
-| controller・route                              | `src/controllers/itemEditing/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                                      |
+| マスター取得                                   | `src/services/{categories,itemConditionOption,shippingDayOption,shippingServiceOption,todouhuken}/<同名>.ts`                              |
+| ブランド取得・別名作成                         | `src/services/{brands,brandAliases}/<同名>.ts`                                                                                            |
+| controller・route                              | `src/controllers/itemEditing/itemEditing.ts`、`src/routes/itemEditing.ts`、`src/routes/index.ts`                                          |
 | 入力検証                                       | `src/middleware/validate/{validateBody,validateParams}.ts`、`src/validators/body/itemEditing.ts`、`src/validators/params/id.ts`           |
 | 認証・制限・エラー                             | `src/middleware/authMiddleware.ts`、`src/middleware/rateLimit/itemEditingRateLimit.ts`、`src/middleware/errorHandler.ts`、`src/errors.ts` |
 | 補助処理                                       | `src/utils/{toNullableNumber,normalizeJapanese}.ts`、`src/utils/s3/{signedUrl,videoPresignedPost}.ts`                                     |

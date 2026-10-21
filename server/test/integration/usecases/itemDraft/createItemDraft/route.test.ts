@@ -7,7 +7,9 @@ import { makeBody, makeDuplicateUiIdBody } from "../../../../fixtures/itemDraft/
 const mocks = vi.hoisted(() => ({ create: vi.fn(), remove: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("../../../../../src/usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
-vi.mock("../../../../../src/db.js", () => { throw new Error("AF-MOCK01: 作成HTTPテストからDBを初期化しない"); });
+vi.mock("../../../../../src/db.js", () => {
+    throw new Error("AF-MOCK01: 作成HTTPテストからDBを初期化しない");
+});
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: ReturnType<typeof express>, secret: string;
 const token = (id = 7, expiresIn = 3600) =>

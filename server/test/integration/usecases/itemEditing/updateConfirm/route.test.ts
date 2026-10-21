@@ -3,13 +3,19 @@ import express, { type ErrorRequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
+import {
+    makeBody,
+    makeDuplicateUiIdBody,
+    variantImageStates,
+} from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
 const mocks = vi.hoisted(() => ({ update: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
+    createItemEditingDraftUseCase: vi.fn(),
+}));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
     createItemEditingCopyUseCase: vi.fn(),
 }));

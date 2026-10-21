@@ -1,9 +1,6 @@
 import { Op } from "sequelize";
 import { Item } from "../../../models/index.js";
-import type {
-    GetItemsReportScoreCronParams,
-    GetItemsSortDecayCronParams,
-} from "../../../types/serviceType/items.js";
+import type { GetItemsReportScoreCronParams, GetItemsSortDecayCronParams } from "../../../types/serviceType/items.js";
 
 export const getItemsReportScoreCron = ({ minReportScore }: GetItemsReportScoreCronParams) => {
     return Item.findAll({

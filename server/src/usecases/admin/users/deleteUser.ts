@@ -19,8 +19,15 @@ import { bulkCreateOrderDeleted } from "../../../services/orderDeleted/orderDele
 import { getTradingOrdersAll, updateOrdersStatus } from "../../../services/orders/orders.js";
 import { updatePointLots } from "../../../services/pointLots/pointLots.js";
 import { createOverConfiscated } from "../../../services/pointsUriageOver/pointsUriageOver.js";
-import { deleteInputCodeUserLogical, deleteOutputCodeUserLogical } from "../../../services/referenceCode/referenceCode.js";
-import { createTransfer, deleteTransferUserLogical, sumTransferNotFinishUser } from "../../../services/transfer/transfer.js";
+import {
+    deleteInputCodeUserLogical,
+    deleteOutputCodeUserLogical,
+} from "../../../services/referenceCode/referenceCode.js";
+import {
+    createTransfer,
+    deleteTransferUserLogical,
+    sumTransferNotFinishUser,
+} from "../../../services/transfer/transfer.js";
 import { updateUsedUriagekin } from "../../../services/uriagekinLots/uriagekinLots.js";
 import { createUserDeleteLogs } from "../../../services/userDeleteLogs/userDeleteLogs.js";
 import { updateUserLogicalDelete } from "../../../services/users/command.js";

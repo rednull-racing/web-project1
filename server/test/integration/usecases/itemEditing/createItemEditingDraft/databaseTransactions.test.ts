@@ -16,7 +16,11 @@ import {
     editingIds,
 } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditingDraft/databaseFixtures.js";
-import { deferred, stringColumns, waitForGate } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import {
+    deferred,
+    stringColumns,
+    waitForGate,
+} from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 let f: DbFixture;
 beforeEach(async () => {

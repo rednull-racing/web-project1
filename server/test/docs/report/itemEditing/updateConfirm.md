@@ -17,19 +17,19 @@
 
 パスはserver/基準。
 
-| ファイル | 成功 | ケース・確認範囲 |
-| --- | ---: | --- |
-| src/usecases/itemEditing/test/updateConfirm.test.ts | 53 | usecase、所有権再確認、更新値、transaction引渡し・待機・例外 |
-| src/usecases/shared/test/updateConfirm.signedUrls.test.ts | 61 | S15の署名欠落拒否、既存S/AF-S/K系の署名・index・キー生成 |
-| src/validators/body/test/updateConfirm.test.ts | 211 | 既存V/AF-V系の入力境界 |
-| src/controllers/itemEditing/test/updateConfirm.test.ts | 5 | R01/R02/R08・AF-S06の引渡し・応答・例外伝播 |
-| src/services/itemEditing/test/updateConfirm.test.ts | 5 | 既存serviceの取得・ロック・保存引数 |
-| src/services/brandAliases/test/updateConfirm.brandAliases.test.ts | 5 | 既存別名作成・再利用の呼出し契約 |
-| test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts | 171 | I01〜I06・E05/E15/T06、既存B/AF-B等の実helper接続 |
-| test/integration/usecases/itemEditing/updateConfirm/route.test.ts | 22 | 既存R/AF-S/Q系の認証・validator・レート制限・controller接続 |
-| src/controllers/itemEditing/test/createItemEditingDraft.test.ts | 4 | C01〜C04等のcontroller回帰 |
-| src/controllers/itemEditing/test/createItemEditingCopy.test.ts | 5 | Copyのcontroller回帰 |
-| 合計 | 542 | 全件成功 |
+| ファイル                                                                | 成功 | ケース・確認範囲                                             |
+| ----------------------------------------------------------------------- | ---: | ------------------------------------------------------------ |
+| src/usecases/itemEditing/test/updateConfirm.test.ts                     |   53 | usecase、所有権再確認、更新値、transaction引渡し・待機・例外 |
+| src/usecases/shared/test/updateConfirm.signedUrls.test.ts               |   61 | S15の署名欠落拒否、既存S/AF-S/K系の署名・index・キー生成     |
+| src/validators/body/test/updateConfirm.test.ts                          |  211 | 既存V/AF-V系の入力境界                                       |
+| src/controllers/itemEditing/test/updateConfirm.test.ts                  |    5 | R01/R02/R08・AF-S06の引渡し・応答・例外伝播                  |
+| src/services/itemEditing/test/updateConfirm.test.ts                     |    5 | 既存serviceの取得・ロック・保存引数                          |
+| src/services/brandAliases/test/updateConfirm.brandAliases.test.ts       |    5 | 既存別名作成・再利用の呼出し契約                             |
+| test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts |  171 | I01〜I06・E05/E15/T06、既存B/AF-B等の実helper接続            |
+| test/integration/usecases/itemEditing/updateConfirm/route.test.ts       |   22 | 既存R/AF-S/Q系の認証・validator・レート制限・controller接続  |
+| src/controllers/itemEditing/test/createItemEditingDraft.test.ts         |    4 | C01〜C04等のcontroller回帰                                   |
+| src/controllers/itemEditing/test/createItemEditingCopy.test.ts          |    5 | Copyのcontroller回帰                                         |
+| 合計                                                                    |  542 | 全件成功                                                     |
 
 controllerは実処理で全usecaseをモック。Routerは実認証・validator・レート制限・controllerを使用し、全usecase・dotenvをモックする。Routerのエラーmiddlewareは例外観測用であり、実アプリ共通errorHandlerの検証ではない。署名テストはS3と時刻/UUID、実helper接続はDB service/transactionとS3をモック。実保存・commit/rollbackの成功は示さない。
 
@@ -46,10 +46,9 @@ npm run typecheck
 
 すべて成功。修正後のサンドボックス内実行はRouter22件のみHTTP待受け制限（listen EPERMとport参照失敗）で失敗し、許可後の全体実行で542件成功。JSON結果は/tmp/item-editing-verified.jsonへ出力した。
 
-通常lint対象外の変更結合TS2ファイルは、ESLint APIのoverrideConfigFile:trueと対象files指定、@eslint/js・typescript-eslintのrecommended設定で追加検査。初回はRouterの既存未使用_nextが1件報告された。4引数を維持してvoid参照を加え、追加lintエラー0・警告0。変更後のRouter22件も再実行して成功した（542件へ重複加算しない）。共有lint設定は変更していない。
+通常lint対象外の変更結合TS2ファイルは、ESLint APIのoverrideConfigFile:trueと対象files指定、@eslint/js・typescript-eslintのrecommended設定で追加検査。初回はRouterの既存未使用\_nextが1件報告された。4引数を維持してvoid参照を加え、追加lintエラー0・警告0。変更後のRouter22件も再実行して成功した（542件へ重複加算しない）。共有lint設定は変更していない。
 
 実DBテスト106件、DB保存、実アプリへのRouter登録、実S3通信、カバレッジは今回未検証。DB結合テストの旧I03/I04観測は本件の実行・編集範囲に含めていない。
-
 
 ## 2026-10-16 service配置変更の補足
 
@@ -59,25 +58,23 @@ service直下の単一TSを同名フォルダへ移動し、呼出し元・モ�
 
 service単体テスト全体は移動前9ファイル・移動後15ファイルで、ともに72件すべて成功。Vitest JSONの全テスト名と成否が一致した。DB接続・実DBテスト・migrationは未実施。
 
-
 初回・DB追加検証報告と修正記録を統合した。以下は各実行時点の履歴であり、移動前の最新結果は後半の「2026-10-12 P02・P05・P08 修正後のテスト結果（最新）」を参照する。
-
 
 ## 2026-10-16 配置変更後の確認
 
 ファイルを5分類に移動し、serviceの2分割とレポート統合を行った。移動前の元ファイルを同じコード・環境で比較実行した結果、全テスト名・成否が一致した。期待値や本番コードは変更していない。下記は今回の結果であり、過去の619件成功とは区別する。
 
-| 対象（server/基準） | 成功 | 失敗 | その他 |
-| --- | ---: | ---: | --- |
-| `src/usecases/itemEditing/test/updateConfirm.test.ts` | 53 | 0 | |
-| `src/usecases/shared/test/updateConfirm.signedUrls.test.ts` | 59 | 1 | S15：動画署名undefinedの旧期待値 |
-| `src/validators/body/test/updateConfirm.test.ts` | 211 | 0 | |
-| `src/controllers/itemEditing/test/updateConfirm.test.ts` | 0 | 0 | DB設定読込みでsuite収集失敗。過去の5件は今回は未収集 |
-| `src/services/itemEditing/test/updateConfirm.test.ts` | 5 | 0 | |
-| `src/services/test/updateConfirm.brandAliases.test.ts` | 5 | 0 | |
-| `test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts` | 118 | 34 | I03/I04等：数値変換・接続の旧期待値 |
-| `test/integration/usecases/itemEditing/updateConfirm/route.test.ts` | 0 | 22 | 対象外usecaseのモック漏れでRouter読込み時に停止 |
-| 合計 | 451 | 57 | skip・todo 0件。controllerは未収集 |
+| 対象（server/基準）                                                       | 成功 | 失敗 | その他                                               |
+| ------------------------------------------------------------------------- | ---: | ---: | ---------------------------------------------------- |
+| `src/usecases/itemEditing/test/updateConfirm.test.ts`                     |   53 |    0 |                                                      |
+| `src/usecases/shared/test/updateConfirm.signedUrls.test.ts`               |   59 |    1 | S15：動画署名undefinedの旧期待値                     |
+| `src/validators/body/test/updateConfirm.test.ts`                          |  211 |    0 |                                                      |
+| `src/controllers/itemEditing/test/updateConfirm.test.ts`                  |    0 |    0 | DB設定読込みでsuite収集失敗。過去の5件は今回は未収集 |
+| `src/services/itemEditing/test/updateConfirm.test.ts`                     |    5 |    0 |                                                      |
+| `src/services/test/updateConfirm.brandAliases.test.ts`                    |    5 |    0 |                                                      |
+| `test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts` |  118 |   34 | I03/I04等：数値変換・接続の旧期待値                  |
+| `test/integration/usecases/itemEditing/updateConfirm/route.test.ts`       |    0 |   22 | 対象外usecaseのモック漏れでRouter読込み時に停止      |
+| 合計                                                                      |  451 |   57 | skip・todo 0件。controllerは未収集                   |
 
 比較結果は `/tmp/update-confirm-baseline-results.json`（移動前）と `/tmp/update-confirm-layout-results.json`（移動後）のVitest JSONから集計した。実行コマンドは [設計書の配置表と実行案内](../../architecture/itemEditing/updateConfirm.md) を参照。比較用に復元した元ファイルは実行後に削除した。
 
@@ -107,19 +104,19 @@ lint・本番コードのtypecheck・単体/結合テスト全体の型検査と
 
 Vitest JSON レポートから集計。全ファイルで失敗・skip・todo は 0 件。
 
-| ファイル                                                       | 成功件数 | 対象                                                 |
-| -------------------------------------------------------------- | -------: | ---------------------------------------------------- |
+| ファイル                                                                                                             | 成功件数 | 対象                                                 |
+| -------------------------------------------------------------------------------------------------------------------- | -------: | ---------------------------------------------------- |
 | [database.test.ts](../../../integration/database/itemEditing/updateConfirm/database.test.ts)                         |       91 | 永続化、JSONB、制約、状態遷移、ブランド、逐次再実行  |
 | [databaseTransactions.test.ts](../../../integration/usecases/itemEditing/updateConfirm/databaseTransactions.test.ts) |        6 | rollback、commit 可視性、マスター削除、再試行        |
 | [databaseConcurrency.test.ts](../../../integration/usecases/itemEditing/updateConfirm/databaseConcurrency.test.ts)   |        7 | 更新競合、別商品並行、片方失敗、別名重複、所有権競合 |
-| controller.test.ts                                             |        5 | 既存回帰                                             |
-| masterBrand.test.ts                                            |      150 | 既存回帰                                             |
-| route.test.ts                                                  |       22 | 既存回帰                                             |
-| services.test.ts                                               |        4 | 既存回帰                                             |
-| signedUrls.test.ts                                             |       60 | 既存回帰                                             |
-| usecase.test.ts                                                |       50 | 既存回帰                                             |
-| validation.test.ts                                             |      211 | 既存回帰                                             |
-| **合計**                                                       |  **606** | **追加 104 ＋既存 502**                              |
+| controller.test.ts                                                                                                   |        5 | 既存回帰                                             |
+| masterBrand.test.ts                                                                                                  |      150 | 既存回帰                                             |
+| route.test.ts                                                                                                        |       22 | 既存回帰                                             |
+| services.test.ts                                                                                                     |        4 | 既存回帰                                             |
+| signedUrls.test.ts                                                                                                   |       60 | 既存回帰                                             |
+| usecase.test.ts                                                                                                      |       50 | 既存回帰                                             |
+| validation.test.ts                                                                                                   |      211 | 既存回帰                                             |
+| **合計**                                                                                                             |  **606** | **追加 104 ＋既存 502**                              |
 
 ### 未実施 DB 項目との対応
 
@@ -215,15 +212,15 @@ npm run typecheck
 
 表中の略号を、後続の設計項目一覧でも使用する。
 
-| 略号 | ファイル                                     | 成功数 | 実処理にした範囲                                                           |
-| ---- | -------------------------------------------- | -----: | -------------------------------------------------------------------------- |
-| C    | [controller.test.ts](../../../../src/controllers/itemEditing/test/updateConfirm.test.ts)   |      4 | 実 controller。usecase をモック。                                          |
+| 略号 | ファイル                                                                                           | 成功数 | 実処理にした範囲                                                           |
+| ---- | -------------------------------------------------------------------------------------------------- | -----: | -------------------------------------------------------------------------- |
+| C    | [controller.test.ts](../../../../src/controllers/itemEditing/test/updateConfirm.test.ts)           |      4 | 実 controller。usecase をモック。                                          |
 | M    | [masterBrand.test.ts](../../../integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts) |    130 | 実 usecase と 4 つの実 helper。DB service・S3 署名・transaction をモック。 |
 | R    | [route.test.ts](../../../integration/usecases/itemEditing/updateConfirm/route.test.ts)             |      9 | 実 Router・認証・validator・レート制限。usecase をモック。                 |
-| D    | [services.test.ts](../../../../src/services/itemEditing/test/updateConfirm.test.ts)       |      4 | 実 query/command。モデルメソッドをモックし DB に接続しない。               |
-| S    | [signedUrls.test.ts](../../../../src/usecases/shared/test/updateConfirm.signedUrls.test.ts)   |     52 | 実 buildSignedUrls。S3 署名と時刻をモック。                                |
-| U    | [usecase.test.ts](../../../../src/usecases/itemEditing/test/updateConfirm.test.ts)         |     44 | usecase。依存 helper/service と transaction を Vitest でモック。           |
-| V    | [validation.test.ts](../../../../src/validators/body/test/updateConfirm.test.ts)   |    193 | 実 schema、validateBody、validateParams。                                  |
+| D    | [services.test.ts](../../../../src/services/itemEditing/test/updateConfirm.test.ts)                |      4 | 実 query/command。モデルメソッドをモックし DB に接続しない。               |
+| S    | [signedUrls.test.ts](../../../../src/usecases/shared/test/updateConfirm.signedUrls.test.ts)        |     52 | 実 buildSignedUrls。S3 署名と時刻をモック。                                |
+| U    | [usecase.test.ts](../../../../src/usecases/itemEditing/test/updateConfirm.test.ts)                 |     44 | usecase。依存 helper/service と transaction を Vitest でモック。           |
+| V    | [validation.test.ts](../../../../src/validators/body/test/updateConfirm.test.ts)                   |    193 | 実 schema、validateBody、validateParams。                                  |
 
 [fixtures.ts](../../../fixtures/itemEditing/updateConfirm/fixtures.ts) は標準 body・編集中データ・AppError 検証・deferred Promise を提供する。fixture はテストごとに新規生成し、Vitest のモック・時刻・環境変数をリセットする。テスト名には設計書のケース ID を付与した。
 

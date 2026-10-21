@@ -22,10 +22,10 @@ JSON解析エラーの400分岐は、次のすべてを満たす場合に限定�
 
 これはインストール済みbody-parser/http-errorsの実装と実parserの出力を確認して定めた。解析messageの文面や入力本文に依存しない。構造的な判定なので、サーバー内部で同じSyntaxErrorとメタデータを生成した場合の出所まで証明するものではない。
 
-| 分類 | 公開応答 | 維持・変更した点 |
-| --- | --- | --- |
-| 上記JSON解析エラー | 400、`{code:"INVALID_JSON",message:"JSONの形式を確認してください。"}` | 新契約。message/stack/bodyを公開しない |
-| AppError | 既存statusCode、`{code,message:publicMessage ?? code}` | 既存契約維持。publicMessageの空文字も保持 |
+| 分類               | 公開応答                                                                      | 維持・変更した点                          |
+| ------------------ | ----------------------------------------------------------------------------- | ----------------------------------------- |
+| 上記JSON解析エラー | 400、`{code:"INVALID_JSON",message:"JSONの形式を確認してください。"}`         | 新契約。message/stack/bodyを公開しない    |
+| AppError           | 既存statusCode、`{code,message:publicMessage ?? code}`                        | 既存契約維持。publicMessageの空文字も保持 |
 | 通常DB例外・その他 | 500、`{error:"INTERNAL_SERVER_ERROR",message:"サーバーエラーが発生しました"}` | 既存契約維持。任意status/statusCodeは無視 |
 
 JSON解析エラーのオブジェクトは入力本文を持つため、400分岐を既存 `console.error(err)` より前に置き、生の入力・解析エラーをログへ渡さない。その他の既存ログ処理は変更していない。
@@ -38,15 +38,15 @@ parserが認証より前に動く順序は維持した。正常/なし/不正JWT
 
 パスは `server/` 基準。大分類・小分類はともに `ErrorHandler`。文書のファイル名はユーザー指定の `errorHandler.md` と既存文書配置規則に合わせた。
 
-| 種類 | ファイル | 責務 |
-| --- | --- | --- |
-| 本番 | `src/middleware/errorHandler.ts` | 共有のJSON解析エラー識別と固定400応答 |
-| 独立単体 | `src/middleware/test/ErrorHandler/ErrorHandler/errorHandler.test.ts` | 実handlerを呼ぶ。部分Request/Response/nextとconsoleをテスト用にする |
-| 独立HTTP結合 | `test/integration/usecases/ErrorHandler/ErrorHandler/errorHandler.test.ts` | 実Express JSON parser・実handlerを接続。後続handlerの到達をspy |
-| 独立fixture | `test/fixtures/ErrorHandler/ErrorHandler/fixtures.ts` | 解析エラー・DB例外のfactory、固定期待JSON、入力例 |
-| 独立設計 | `test/docs/architecture/ErrorHandler/errorHandler.md` | 新契約・判定条件・15ケースID・実行方法 |
-| API回帰 | `test/integration/usecases/itemDraft/deleteItemDraft/route.test.ts` | O03を新契約AF-JSON01へ更新しJWT不正ケースを追加 |
-| API設計・報告 | `test/docs/{architecture,report}/itemDraft/deleteItemDraft.md` | 新しい400契約と完了を明記し、旧500観測を報告履歴として保持 |
+| 種類          | ファイル                                                                   | 責務                                                                |
+| ------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 本番          | `src/middleware/errorHandler.ts`                                           | 共有のJSON解析エラー識別と固定400応答                               |
+| 独立単体      | `src/middleware/test/ErrorHandler/ErrorHandler/errorHandler.test.ts`       | 実handlerを呼ぶ。部分Request/Response/nextとconsoleをテスト用にする |
+| 独立HTTP結合  | `test/integration/usecases/ErrorHandler/ErrorHandler/errorHandler.test.ts` | 実Express JSON parser・実handlerを接続。後続handlerの到達をspy      |
+| 独立fixture   | `test/fixtures/ErrorHandler/ErrorHandler/fixtures.ts`                      | 解析エラー・DB例外のfactory、固定期待JSON、入力例                   |
+| 独立設計      | `test/docs/architecture/ErrorHandler/errorHandler.md`                      | 新契約・判定条件・15ケースID・実行方法                              |
+| API回帰       | `test/integration/usecases/itemDraft/deleteItemDraft/route.test.ts`        | O03を新契約AF-JSON01へ更新しJWT不正ケースを追加                     |
+| API設計・報告 | `test/docs/{architecture,report}/itemDraft/deleteItemDraft.md`             | 新しい400契約と完了を明記し、旧500観測を報告履歴として保持          |
 
 独立テストはDB・AWS・実JWT認証・アプリ全体のcronをimportしない。SequelizeのDatabaseErrorは例外オブジェクトの作成にのみ使用し、独立テストからDB接続は作っていない。DB例外のテストはDB接続障害そのものの再現ではなく、公開整形の検証である。
 
@@ -56,42 +56,42 @@ HTTP結合はparserをモックせず、実際に壊れたJSONを送った。単
 
 最終Vitest JSONの `assertionResults` から集計した。設計ID数とit.each展開後件数は分け、複数回の実行を重複加算していない。
 
-| 分類・ファイル | 成功 | 失敗/skip/todo |
-| --- | ---: | --- |
-| 独立単体 `ErrorHandler/ErrorHandler/errorHandler.test.ts` | 35 | 0/0/0 |
-| 独立HTTP結合 `ErrorHandler/ErrorHandler/errorHandler.test.ts` | 20 | 0/0/0 |
-| **独立機能合計** | **55** | **0/0/0** |
-| deleteItemDraft単体5ファイル | 97 | 0/0/0 |
-| deleteItemDraft HTTP | 57 | 0/0/0 |
-| 共有ID Router回帰 | 6 | 0/0/0 |
-| deleteItemDraft DB保存 | 16 | 0/0/0 |
-| deleteItemDraft HTTP＋実DB | 9 | 0/0/0 |
-| deleteItemDraft transaction | 10 | 0/0/0 |
-| deleteItemDraft並行処理 | 14 | 0/0/0 |
-| **deleteItemDraft回帰合計** | **209** | **0/0/0** |
-| 作成API controller単体 | 5 | 0/0/0 |
-| 作成API HTTP | 19 | 0/0/0 |
-| **全体：15ファイル** | **288** | **0/0/0** |
+| 分類・ファイル                                                |    成功 | 失敗/skip/todo |
+| ------------------------------------------------------------- | ------: | -------------- |
+| 独立単体 `ErrorHandler/ErrorHandler/errorHandler.test.ts`     |      35 | 0/0/0          |
+| 独立HTTP結合 `ErrorHandler/ErrorHandler/errorHandler.test.ts` |      20 | 0/0/0          |
+| **独立機能合計**                                              |  **55** | **0/0/0**      |
+| deleteItemDraft単体5ファイル                                  |      97 | 0/0/0          |
+| deleteItemDraft HTTP                                          |      57 | 0/0/0          |
+| 共有ID Router回帰                                             |       6 | 0/0/0          |
+| deleteItemDraft DB保存                                        |      16 | 0/0/0          |
+| deleteItemDraft HTTP＋実DB                                    |       9 | 0/0/0          |
+| deleteItemDraft transaction                                   |      10 | 0/0/0          |
+| deleteItemDraft並行処理                                       |      14 | 0/0/0          |
+| **deleteItemDraft回帰合計**                                   | **209** | **0/0/0**      |
+| 作成API controller単体                                        |       5 | 0/0/0          |
+| 作成API HTTP                                                  |      19 | 0/0/0          |
+| **全体：15ファイル**                                          | **288** | **0/0/0**      |
 
 deleteItemDraftは旧208件のO03を500から400へ更新し、JWT不正を1件追加したため209件になった。既存の通常Error500（R06）・DB失敗500（H04）・認証401・レート制限429の期待値は変更していない。
 
-| 設計ID | 実施レベル・結果 |
-| --- | --- |
-| U01 | 単体成功：3条件を満たす解析エラーは400。入力本文・解析情報のレスポンス露出と生ログ出力なし |
-| U02 | 単体成功：DB例外・通常Errorは500、固定JSONのみ |
-| U03 | 単体成功：AppError400/404/429とpublicMessageあり/なし/空文字の既存契約 |
-| U04 | 単体成功：status/statusCode単独の400/401/403/404/413/415/422を採用しない |
-| U05 | 単体成功：type欠落/別type、status欠落/文字列/別値、statusCodeだけ、通常SyntaxErrorは500 |
-| U06 | 単体成功：普通のError/objectにtype・statusがあっても500 |
-| U07 | 単体成功：null/undefined/文字列/数値/objectでも固定500。Expressがすべてをerror扱いする保証ではない |
-| H01 | HTTP成功：実parserへ壊れたobject/array/JSON外文字列を送ると400、後続handlerなし |
-| H02 | HTTP成功：strict parserが拒否するJSONプリミティブも同じ解析エラーとして400 |
-| H03 | HTTP成功：正常object/array/空body/非JSON Content-Typeは正常経路を維持 |
-| H04 | HTTP成功：DB例外・通常Error・任意statusつきError・無関係SyntaxErrorは500、内部情報非公開 |
-| H05 | HTTP成功：AppErrorの既存公開JSONを維持 |
-| H06 | HTTP成功：実parserのサイズ超過/未対応charsetをJSON構文エラーへ誤分類しない |
-| AF-JSON01 | API回帰成功：O03の正常/なし/不正JWT＋不正JSONは400/INVALID_JSON。作成・削除usecase0回 |
-| AF-JSON02 | 独立U02/H04とAPI R06/H04成功：通常Error・DB例外500、内部情報非公開を維持 |
+| 設計ID    | 実施レベル・結果                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------- |
+| U01       | 単体成功：3条件を満たす解析エラーは400。入力本文・解析情報のレスポンス露出と生ログ出力なし         |
+| U02       | 単体成功：DB例外・通常Errorは500、固定JSONのみ                                                     |
+| U03       | 単体成功：AppError400/404/429とpublicMessageあり/なし/空文字の既存契約                             |
+| U04       | 単体成功：status/statusCode単独の400/401/403/404/413/415/422を採用しない                           |
+| U05       | 単体成功：type欠落/別type、status欠落/文字列/別値、statusCodeだけ、通常SyntaxErrorは500            |
+| U06       | 単体成功：普通のError/objectにtype・statusがあっても500                                            |
+| U07       | 単体成功：null/undefined/文字列/数値/objectでも固定500。Expressがすべてをerror扱いする保証ではない |
+| H01       | HTTP成功：実parserへ壊れたobject/array/JSON外文字列を送ると400、後続handlerなし                    |
+| H02       | HTTP成功：strict parserが拒否するJSONプリミティブも同じ解析エラーとして400                         |
+| H03       | HTTP成功：正常object/array/空body/非JSON Content-Typeは正常経路を維持                              |
+| H04       | HTTP成功：DB例外・通常Error・任意statusつきError・無関係SyntaxErrorは500、内部情報非公開           |
+| H05       | HTTP成功：AppErrorの既存公開JSONを維持                                                             |
+| H06       | HTTP成功：実parserのサイズ超過/未対応charsetをJSON構文エラーへ誤分類しない                         |
+| AF-JSON01 | API回帰成功：O03の正常/なし/不正JWT＋不正JSONは400/INVALID_JSON。作成・削除usecase0回              |
+| AF-JSON02 | 独立U02/H04とAPI R06/H04成功：通常Error・DB例外500、内部情報非公開を維持                           |
 
 ## 5. 実行・検査・DB回帰の範囲
 

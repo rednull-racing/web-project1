@@ -6,7 +6,10 @@ import { createIdCardFirst } from "../../services/idCard/idCard.js";
 import { createNameFirst } from "../../services/name/name.js";
 import { createInputCode } from "../../services/referenceCode/referenceCode.js";
 import { createRefreshToken } from "../../services/refreshTokens/refreshTokens.js";
-import { destroyToken, getTokenVerificationOne } from "../../services/tokenSignupVerificationCode/tokenSignupVerificationCode.js";
+import {
+    destroyToken,
+    getTokenVerificationOne,
+} from "../../services/tokenSignupVerificationCode/tokenSignupVerificationCode.js";
 import { emailVerifyUser } from "../../services/users/command.js";
 import { getUser } from "../../services/users/query.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/jwtHelper.js";

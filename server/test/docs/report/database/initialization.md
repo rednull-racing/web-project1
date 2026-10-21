@@ -10,14 +10,14 @@ test分岐を「読込み → 読込み成功・ファイル内URLの存在 → 
 
 ## ケースと結果
 
-| ケース | 件数 | 確認結果 |
-| --- | ---: | --- |
-| N01 | 4 | 親URLなし・正常・別DBからの上書き、postgresqlプロトコルの正常初期化 |
-| E01 | 4 | 読込み失敗・parsedなし・URL欠落・空文字で親URLを採用せず生成前停止 |
-| E02 | 6 | 不正URL・別DB・https・mysql・ホストなし・余分なパスを生成前に拒否、固定エラーでURL非公開 |
-| E03 | 3 | parsedと最終URLの不一致2件・NODE_ENV上書きを生成前に拒否 |
-| N02 | 1 | DB_SSL=trueのSSLオプション維持 |
-| R01 | 4 | development・production・Dockerの読込み条件、productionのURL欠落時停止 |
+| ケース | 件数 | 確認結果                                                                                 |
+| ------ | ---: | ---------------------------------------------------------------------------------------- |
+| N01    |    4 | 親URLなし・正常・別DBからの上書き、postgresqlプロトコルの正常初期化                      |
+| E01    |    4 | 読込み失敗・parsedなし・URL欠落・空文字で親URLを採用せず生成前停止                       |
+| E02    |    6 | 不正URL・別DB・https・mysql・ホストなし・余分なパスを生成前に拒否、固定エラーでURL非公開 |
+| E03    |    3 | parsedと最終URLの不一致2件・NODE_ENV上書きを生成前に拒否                                 |
+| N02    |    1 | DB_SSL=trueのSSLオプション維持                                                           |
+| R01    |    4 | development・production・Dockerの読込み条件、productionのURL欠落時停止                   |
 
 実db.tsを動的importし、dotenv.configとSequelizeコンストラクタをモックした。ケースごとにモジュール・モック・環境変数を初期化し、環境変数は終了時に復元する。実設定ファイルや認証情報は使用していない。
 

@@ -3,7 +3,7 @@ import { idParamSchema } from "../id.js";
 import { acceptedSpellings, invalidIds } from "../../../../test/fixtures/itemDraft/deleteItemDraft/fixtures.js";
 
 describe("P0/P1: deleteItemDraftの共通ID境界", () => {
-    it.each(["1", "2", "2147483646", "2147483647"])("V01: %sをnumberへ変換する", id => {
+    it.each(["1", "2", "2147483646", "2147483647"])("V01: %sをnumberへ変換する", (id) => {
         expect(idParamSchema.parse({ id })).toEqual({ id: Number(id) });
     });
     it.each(invalidIds)("$id: id=$valueを拒否しidへissueを付ける", ({ value }) => {
@@ -17,7 +17,7 @@ describe("P0/P1: deleteItemDraftの共通ID境界", () => {
         expect(idParamSchema.parse(input)).toEqual({ id: 101 });
         expect(input).toEqual({ id: "101", seller_id: 8, extra: "x" });
     });
-    it.each([1, 2147483647, 0, -1, 1.5, NaN, Infinity])("V07: 非HTTP数値%sの境界", id => {
+    it.each([1, 2147483647, 0, -1, 1.5, NaN, Infinity])("V07: 非HTTP数値%sの境界", (id) => {
         const result = idParamSchema.safeParse({ id });
         expect(result.success).toBe([1, 2147483647].includes(id));
         if (result.success) expect(result.data).toEqual({ id });
@@ -26,8 +26,12 @@ describe("P0/P1: deleteItemDraftの共通ID境界", () => {
         expect(idParamSchema.parse({ id })).toEqual({ id: expected });
     });
     it.each([
-        { value: true, output: 1 }, { value: false, output: null }, { value: [], output: null },
-        { value: [1], output: 1 }, { value: [1, 2], output: null }, { value: {}, output: null },
+        { value: true, output: 1 },
+        { value: false, output: null },
+        { value: [], output: null },
+        { value: [1], output: 1 },
+        { value: [1, 2], output: null },
+        { value: {}, output: null },
     ])("O02: 非HTTP型$valueのcoerce挙動", ({ value, output }) => {
         const result = idParamSchema.safeParse({ id: value });
         expect(result.success).toBe(output !== null);

@@ -10,5 +10,8 @@ vi.mock("../../../../src/usecases/items/itemPage/metadata.js", () => ({ getMetad
 vi.mock("../../../../src/usecases/items/log/accessLogs.js", () => ({ patchItemLogsAccessUseCase: vi.fn() }));
 vi.mock("../../../../src/usecases/items/restore/restore.js", () => ({ restoreItemUseCase: vi.fn() }));
 vi.mock("../../../../src/usecases/items/search/getSearchItems.js", () => ({ getSearchItemsUseCase: vi.fn() }));
-vi.mock("../../../../src/usecases/items/sortNumber/sortNumber.js", () => ({ patchSortNumberAddUseCase: vi.fn(), patchSortNumberDecreaseUseCase: vi.fn() }));
+vi.mock("../../../../src/usecases/items/sortNumber/sortNumber.js", () => ({
+    patchSortNumberAddUseCase: vi.fn(),
+    patchSortNumberDecreaseUseCase: vi.fn(),
+}));
 vi.mock("../../../../src/middleware/isAdmin.js", () => ({ isAdmin: vi.fn() }));

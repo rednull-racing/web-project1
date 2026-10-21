@@ -168,14 +168,14 @@ Service → Express
 
 各層の詳細は近い AGENTS.md を参照する。共通規則の参考例は目的別に選び、ファイル数・章立て・機能固有の数値やエラーを全対象へ複製しない。
 
-| 参考例 | 主な検証範囲 |
-| --- | --- |
-| [test/db.test.ts](test/db.test.ts) | import 時の設定読込み・接続先ガードと Sequelize 初期化引数（実 DB 接続なし） |
-| [動画署名 utility](utils/s3/test/createItemDraft.videoPresignedPost.test.ts) | AWS SDK 境界の署名引数・制約・返却参照 |
-| [shared 署名 helper](usecases/shared/test/createItemDraft.signedUrls.test.ts) | 元 index・uiId・request の対応、署名の待機・逆順完了 |
-| [refreshToken](usecases/auth/test/refreshToken.test.ts) | JWT 依存モック、不正 payload、失敗を許容する削除の非待機 |
-| [createItem usecase](usecases/itemEditing/test/createItem.test.ts) | transaction 引渡し、途中失敗、通知の非待機と観測ケース |
-| [src 内 fixture](usecases/itemEditing/createItemEditingCopy/test/fixtures.ts) | コピー元・期待値の分離、部分的な Model/transaction、deferred |
+| 参考例                                                                        | 主な検証範囲                                                                 |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [test/db.test.ts](test/db.test.ts)                                            | import 時の設定読込み・接続先ガードと Sequelize 初期化引数（実 DB 接続なし） |
+| [動画署名 utility](utils/s3/test/createItemDraft.videoPresignedPost.test.ts)  | AWS SDK 境界の署名引数・制約・返却参照                                       |
+| [shared 署名 helper](usecases/shared/test/createItemDraft.signedUrls.test.ts) | 元 index・uiId・request の対応、署名の待機・逆順完了                         |
+| [refreshToken](usecases/auth/test/refreshToken.test.ts)                       | JWT 依存モック、不正 payload、失敗を許容する削除の非待機                     |
+| [createItem usecase](usecases/itemEditing/test/createItem.test.ts)            | transaction 引渡し、途中失敗、通知の非待機と観測ケース                       |
+| [src 内 fixture](usecases/itemEditing/createItemEditingCopy/test/fixtures.ts) | コピー元・期待値の分離、部分的な Model/transaction、deferred                 |
 
 ### テストコードと fixture のルール
 

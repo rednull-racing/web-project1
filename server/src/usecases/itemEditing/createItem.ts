@@ -24,7 +24,8 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isInventory = (value: unknown): boolean =>
-    isRecord(value) && [value.initial, value.current, value.low_stock_ratio].every(
+    isRecord(value) &&
+    [value.initial, value.current, value.low_stock_ratio].every(
         (number) => typeof number === "number" && Number.isFinite(number),
     );
 
@@ -35,8 +36,9 @@ const hasCopyableInventory = (value: unknown): boolean => {
     return value.colorVariants.every((color: unknown) => {
         if (!isRecord(color) || (color.inventory !== undefined && !isInventory(color.inventory))) return false;
         if (color.sizes === undefined) return true;
-        return Array.isArray(color.sizes) && color.sizes.every(
-            (size: unknown) => isRecord(size) && isInventory(size.inventory),
+        return (
+            Array.isArray(color.sizes) &&
+            color.sizes.every((size: unknown) => isRecord(size) && isInventory(size.inventory))
         );
     });
 };
@@ -51,7 +53,11 @@ const resetCurrentInventory = (inventory: NonNullable<ItemAttributes["inventory"
 const resetInventory = (source: ItemAttributes): ItemAttributes => {
     // 保存済みJSONBはModelのTypeScript型だけでは構造を保証できない。
     if (!hasCopyableInventory(source)) {
-        throw new AppError("ITEM_ATTRIBUTES_INVALID", 500, "商品の在庫情報を確認できません。時間をおいてもう一度お試しください。");
+        throw new AppError(
+            "ITEM_ATTRIBUTES_INVALID",
+            500,
+            "商品の在庫情報を確認できません。時間をおいてもう一度お試しください。",
+        );
     }
     const attributes = structuredClone(source);
     if (attributes.inventory) {
@@ -97,7 +103,8 @@ const validatePublishData = (itemEditing: InstanceType<typeof ItemEditing>): voi
         !itemEditing.first_image_url ||
         itemEditing.price === null ||
         !Number.isInteger(itemEditing.price) ||
-        itemEditing.price < 300 || itemEditing.price > 1000000
+        itemEditing.price < 300 ||
+        itemEditing.price > 1000000
     ) {
         throw new AppError("ITEM_PUBLISH_DATA_INVALID", 400, "商品情報を確認して、もう一度保存してください。");
     }
@@ -131,9 +138,8 @@ export const createItemUseCase = async ({ userId, itemEditingId }: Params): Prom
             placeId: itemEditing.shipping_place_id,
             transaction,
         });
-        const parentCategory = category?.parent_id != null
-            ? await getCategories({ categoryId: category.parent_id, transaction })
-            : null;
+        const parentCategory =
+            category?.parent_id != null ? await getCategories({ categoryId: category.parent_id, transaction }) : null;
         const followerCount = await countFollower({ userId, transaction });
         const sellItemCount = await countSellItem({ userId, transaction });
         let sort =
@@ -141,7 +147,8 @@ export const createItemUseCase = async ({ userId, itemEditingId }: Params): Prom
             (itemEditing.detail?.length ?? 0) +
             (itemEditing.summary?.length ?? 0) +
             (user.user_introduction?.length ?? 0) +
-            followerCount * 10 + sellItemCount * 10;
+            followerCount * 10 +
+            sellItemCount * 10;
         if (Number(user.penalty_points) <= 5) {
             sort += 5000;
         }

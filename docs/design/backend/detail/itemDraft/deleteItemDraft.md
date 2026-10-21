@@ -140,13 +140,13 @@ flowchart TD
 
 ## 7. エラー設計
 
-| 発生条件 | HTTP | エラーコード |
-| --- | --- | --- |
-| 未認証 | 401 | 認証middlewareの既存規約に従う |
-| レート制限超過 | 429 | レート制限middlewareの既存規約に従う |
-| 不正なparams.id | 400 | INVALID_PARAMS |
-| 下書きが存在しない・所有者でない | 404 | ITEM_DRAFT_NOT_FOUND |
-| DB処理失敗 | 500 | INTERNAL_SERVER_ERROR |
+| 発生条件                         | HTTP | エラーコード                         |
+| -------------------------------- | ---- | ------------------------------------ |
+| 未認証                           | 401  | 認証middlewareの既存規約に従う       |
+| レート制限超過                   | 429  | レート制限middlewareの既存規約に従う |
+| 不正なparams.id                  | 400  | INVALID_PARAMS                       |
+| 下書きが存在しない・所有者でない | 404  | ITEM_DRAFT_NOT_FOUND                 |
+| DB処理失敗                       | 500  | INTERNAL_SERVER_ERROR                |
 
 存在確認はusecaseで `AppError` に変換し、DB例外は共通エラーハンドラーへ伝播させる。
 

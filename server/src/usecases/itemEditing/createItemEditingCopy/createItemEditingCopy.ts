@@ -13,7 +13,8 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isInventory = (value: unknown): boolean =>
-    isRecord(value) && [value.initial, value.current, value.low_stock_ratio].every(
+    isRecord(value) &&
+    [value.initial, value.current, value.low_stock_ratio].every(
         (number) => typeof number === "number" && Number.isFinite(number),
     );
 
@@ -24,8 +25,9 @@ const hasCopyableInventory = (value: unknown): boolean => {
     return value.colorVariants.every((color: unknown) => {
         if (!isRecord(color) || (color.inventory !== undefined && !isInventory(color.inventory))) return false;
         if (color.sizes === undefined) return true;
-        return Array.isArray(color.sizes) && color.sizes.every(
-            (size: unknown) => isRecord(size) && isInventory(size.inventory),
+        return (
+            Array.isArray(color.sizes) &&
+            color.sizes.every((size: unknown) => isRecord(size) && isInventory(size.inventory))
         );
     });
 };
@@ -33,7 +35,11 @@ const hasCopyableInventory = (value: unknown): boolean => {
 const resetInventory = (source: ItemAttributes): ItemAttributes => {
     // 保存済みJSONBはTypeScriptの型だけでは構造を保証できない。
     if (!hasCopyableInventory(source)) {
-        throw new AppError("ITEM_ATTRIBUTES_INVALID", 500, "商品の在庫情報を確認できません。時間をおいてもう一度お試しください。");
+        throw new AppError(
+            "ITEM_ATTRIBUTES_INVALID",
+            500,
+            "商品の在庫情報を確認できません。時間をおいてもう一度お試しください。",
+        );
     }
     const attributes = structuredClone(source);
 

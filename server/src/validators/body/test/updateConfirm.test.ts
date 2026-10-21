@@ -5,7 +5,11 @@ import { validateBody } from "../../../middleware/validate/validateBody.js";
 import { validateParams } from "../../../middleware/validate/validateParams.js";
 import { updateItemEditingConfirmBodySchema as schema } from "../itemEditing.js";
 import { idParamSchema } from "../../params/id.js";
-import { makeBody, makeDuplicateUiIdBody, variantImageStates } from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
+import {
+    makeBody,
+    makeDuplicateUiIdBody,
+    variantImageStates,
+} from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
 
 // 型不正・欠落をschemaへ渡すためのfixture操作。実装の変換処理は再現しない。
 const change = (path: string, value: unknown, omit = false) => {

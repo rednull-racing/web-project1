@@ -8,14 +8,14 @@
 
 参考例は目的で選び、特定の一機能を全テストの雛形にしない。
 
-| 参考例 | 主な観点 |
-| --- | --- |
-| [createItemDraft](itemDraft/createItemDraft/database.test.ts) | 入力 schema と保存値、所有者混入、JSONB、省略値、直接 SQL の制約、逐次再実行 |
-| [deleteItemDraft](itemDraft/deleteItemDraft/database.test.ts) | 物理削除、他人・管理者・所有者 null の拒否、同じ参照や URL を持つ非対象行の保持 |
-| [createItemEditingDraft](itemEditing/createItemEditingDraft/database.test.ts) | 下書きからのコピーと元行削除、再送、HTTP 入口で拒否した場合の実 DB 不変 |
-| [createItemEditingCopy](itemEditing/createItemEditingCopy/database.test.ts) | 任意関連・保存列のコピー、実スキーマと SQLSTATE、元行保護、修復後の再試行 |
-| [updateConfirm](itemEditing/updateConfirm/database.test.ts) | 既存行更新、モデル検証と DB 制約の区別、更新途中の rollback、メディア保存値 |
-| [createItem/databaseValues](items/createItem/databaseValues.test.ts) | 保存済み JSONB の破損・値域、関連 FK 方向、DECIMAL、未確定条件の観測 |
+| 参考例                                                                        | 主な観点                                                                        |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [createItemDraft](itemDraft/createItemDraft/database.test.ts)                 | 入力 schema と保存値、所有者混入、JSONB、省略値、直接 SQL の制約、逐次再実行    |
+| [deleteItemDraft](itemDraft/deleteItemDraft/database.test.ts)                 | 物理削除、他人・管理者・所有者 null の拒否、同じ参照や URL を持つ非対象行の保持 |
+| [createItemEditingDraft](itemEditing/createItemEditingDraft/database.test.ts) | 下書きからのコピーと元行削除、再送、HTTP 入口で拒否した場合の実 DB 不変         |
+| [createItemEditingCopy](itemEditing/createItemEditingCopy/database.test.ts)   | 任意関連・保存列のコピー、実スキーマと SQLSTATE、元行保護、修復後の再試行       |
+| [updateConfirm](itemEditing/updateConfirm/database.test.ts)                   | 既存行更新、モデル検証と DB 制約の区別、更新途中の rollback、メディア保存値     |
+| [createItem/databaseValues](items/createItem/databaseValues.test.ts)          | 保存済み JSONB の破損・値域、関連 FK 方向、DECIMAL、未確定条件の観測            |
 
 ファイル名・分割数・ケース ID の接頭辞・件数は機能ごとに異なる。通常の `database.test.ts` と、値や境界を分けた `databaseValues.test.ts` の両方を許容する。
 

@@ -14,7 +14,9 @@ vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
     createItemEditingCopyUseCase: vi.fn(),
 }));
-vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
+    updateItemEditingConfirmUseCase: vi.fn(),
+}));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 
 let app: ReturnType<typeof express>, commonApp: ReturnType<typeof express>, secret: string;

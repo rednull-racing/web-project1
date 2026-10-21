@@ -16,5 +16,11 @@ describe("S04 作成service", () => {
         expect(model.create.mock.calls[0][1].transaction).toBe(transaction);
         expect(result).toBe(row);
     });
-    it("S04: 同一Errorを伝播", async () => { const failure = new Error("create"); model.create.mockRejectedValue(failure); await expect(createSale({ data: {} as Parameters<typeof createSale>[0]["data"], transaction })).rejects.toBe(failure); });
+    it("S04: 同一Errorを伝播", async () => {
+        const failure = new Error("create");
+        model.create.mockRejectedValue(failure);
+        await expect(createSale({ data: {} as Parameters<typeof createSale>[0]["data"], transaction })).rejects.toBe(
+            failure,
+        );
+    });
 });

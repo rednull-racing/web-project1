@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, expectAppError, makeBody, makeItem } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
+import {
+    deferred,
+    expectAppError,
+    makeBody,
+    makeItem,
+} from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     randomUUID: vi.fn(),
@@ -27,11 +32,20 @@ vi.mock("../../../../../src/services/itemDraft/command.js", () => ({
     updateItemDraftImage: mocks.updateItemDraftImage,
 }));
 vi.mock("../../../../../src/services/categories/categories.js", () => ({ getCategories: mocks.getCategories }));
-vi.mock("../../../../../src/services/itemConditionOption/itemConditionOption.js", () => ({ getItemCondition: mocks.getItemCondition }));
-vi.mock("../../../../../src/services/shippingDayOption/shippingDayOption.js", () => ({ getShippingDay: mocks.getShippingDay }));
-vi.mock("../../../../../src/services/shippingServiceOption/shippingServiceOption.js", () => ({ getShippingService: mocks.getShippingService }));
+vi.mock("../../../../../src/services/itemConditionOption/itemConditionOption.js", () => ({
+    getItemCondition: mocks.getItemCondition,
+}));
+vi.mock("../../../../../src/services/shippingDayOption/shippingDayOption.js", () => ({
+    getShippingDay: mocks.getShippingDay,
+}));
+vi.mock("../../../../../src/services/shippingServiceOption/shippingServiceOption.js", () => ({
+    getShippingService: mocks.getShippingService,
+}));
 vi.mock("../../../../../src/services/todouhuken/todouhuken.js", () => ({ getTodouhuken: mocks.getTodouhuken }));
-vi.mock("../../../../../src/services/brands/brands.js", () => ({ getBrand: mocks.getBrand, getBrandOne: mocks.getBrandOne }));
+vi.mock("../../../../../src/services/brands/brands.js", () => ({
+    getBrand: mocks.getBrand,
+    getBrandOne: mocks.getBrandOne,
+}));
 vi.mock("../../../../../src/services/brandAliases/brandAliases.js", () => ({
     getAliasOne: mocks.getAliasOne,
     createAliases: mocks.createAliases,

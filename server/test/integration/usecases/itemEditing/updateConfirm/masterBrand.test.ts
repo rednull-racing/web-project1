@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deferred, expectAppError, makeBody, makeItem } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
+import {
+    deferred,
+    expectAppError,
+    makeBody,
+    makeItem,
+} from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
 
 const mocks = vi.hoisted(() => ({
     randomUUID: vi.fn(),
@@ -27,11 +32,20 @@ vi.mock("../../../../../src/services/itemEditing/command.js", () => ({
     updateItemEditingImage: mocks.updateItemEditingImage,
 }));
 vi.mock("../../../../../src/services/categories/categories.js", () => ({ getCategories: mocks.getCategories }));
-vi.mock("../../../../../src/services/itemConditionOption/itemConditionOption.js", () => ({ getItemCondition: mocks.getItemCondition }));
-vi.mock("../../../../../src/services/shippingDayOption/shippingDayOption.js", () => ({ getShippingDay: mocks.getShippingDay }));
-vi.mock("../../../../../src/services/shippingServiceOption/shippingServiceOption.js", () => ({ getShippingService: mocks.getShippingService }));
+vi.mock("../../../../../src/services/itemConditionOption/itemConditionOption.js", () => ({
+    getItemCondition: mocks.getItemCondition,
+}));
+vi.mock("../../../../../src/services/shippingDayOption/shippingDayOption.js", () => ({
+    getShippingDay: mocks.getShippingDay,
+}));
+vi.mock("../../../../../src/services/shippingServiceOption/shippingServiceOption.js", () => ({
+    getShippingService: mocks.getShippingService,
+}));
 vi.mock("../../../../../src/services/todouhuken/todouhuken.js", () => ({ getTodouhuken: mocks.getTodouhuken }));
-vi.mock("../../../../../src/services/brands/brands.js", () => ({ getBrand: mocks.getBrand, getBrandOne: mocks.getBrandOne }));
+vi.mock("../../../../../src/services/brands/brands.js", () => ({
+    getBrand: mocks.getBrand,
+    getBrandOne: mocks.getBrandOne,
+}));
 vi.mock("../../../../../src/services/brandAliases/brandAliases.js", () => ({
     getAliasOne: mocks.getAliasOne,
     createAliases: mocks.createAliases,
@@ -109,15 +123,18 @@ describe.each(numberTargets)("P0/P1: 数値変換 %s.%s → %s", (group, key, ou
         const result = await validateNumber({ body: body as unknown as Parameters<typeof validateNumber>[0]["body"] });
         expect(result[output]).toBe(expected);
     });
-    it.each(["abc", "NaN", "0", "-1", "1.5", "Infinity", "2147483648"])("E05 I03 I04 I05 T06: %sを拒否し署名発行後でも商品transactionを開始しない", async (value) => {
-        Object.assign(body[group], { [key]: value });
-        body.thumbnail = { name: "新画像", type: "image/png", uploaded: false };
-        await expectAppError(run(), "INVALID_NUMBER");
-        expect(mocks.generateSignedUrl).toHaveBeenCalledOnce();
-        for (const key of masters) expect(mocks[key]).not.toHaveBeenCalled();
-        expect(mocks.getBrand).not.toHaveBeenCalled();
-        noWrites();
-    });
+    it.each(["abc", "NaN", "0", "-1", "1.5", "Infinity", "2147483648"])(
+        "E05 I03 I04 I05 T06: %sを拒否し署名発行後でも商品transactionを開始しない",
+        async (value) => {
+            Object.assign(body[group], { [key]: value });
+            body.thumbnail = { name: "新画像", type: "image/png", uploaded: false };
+            await expectAppError(run(), "INVALID_NUMBER");
+            expect(mocks.generateSignedUrl).toHaveBeenCalledOnce();
+            for (const key of masters) expect(mocks[key]).not.toHaveBeenCalled();
+            expect(mocks.getBrand).not.toHaveBeenCalled();
+            noWrites();
+        },
+    );
 });
 
 describe("P1: マスター検証と実helperの接続", () => {
@@ -158,14 +175,17 @@ describe("P1: マスター検証と実helperの接続", () => {
         expect(mocks.getCategories).not.toHaveBeenCalled();
         expect(mocks.updateConfirm.mock.calls[0][0].data.category_id).toBeNull();
     });
-    it.each(["-1", "1.5", "Infinity", "2147483648"])("I04: 不正数値%sはマスター不在より先に400となる", async (value) => {
-        body.category.id = value;
-        mocks.getCategories.mockResolvedValue(null);
-        await expectAppError(run(), "INVALID_NUMBER");
-        for (const name of masters) expect(mocks[name]).not.toHaveBeenCalled();
-        expect(mocks.getBrand).not.toHaveBeenCalled();
-        noWrites();
-    });
+    it.each(["-1", "1.5", "Infinity", "2147483648"])(
+        "I04: 不正数値%sはマスター不在より先に400となる",
+        async (value) => {
+            body.category.id = value;
+            mocks.getCategories.mockResolvedValue(null);
+            await expectAppError(run(), "INVALID_NUMBER");
+            for (const name of masters) expect(mocks[name]).not.toHaveBeenCalled();
+            expect(mocks.getBrand).not.toHaveBeenCalled();
+            noWrites();
+        },
+    );
     it.each([
         ["E06", 0, "CATEGORY_NOT_FOUND"],
         ["E07", 1, "ITEM_CONDITION_NOT_FOUND"],

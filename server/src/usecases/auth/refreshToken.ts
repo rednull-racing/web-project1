@@ -30,9 +30,8 @@ export const refreshTokenUseCase = async ({ refreshToken }: Params) => {
 
     // デコード
     const decoded = jwt.verify(refreshToken, process.env.NEXTAUTH_SECRET!);
-    const payloadId: unknown = typeof decoded === "object" && decoded !== null && !Array.isArray(decoded)
-        ? decoded.id
-        : undefined;
+    const payloadId: unknown =
+        typeof decoded === "object" && decoded !== null && !Array.isArray(decoded) ? decoded.id : undefined;
     const userId = typeof payloadId === "string" && /^\d+$/.test(payloadId) ? Number(payloadId) : payloadId;
 
     if (typeof userId !== "number" || !Number.isInteger(userId) || userId < 1 || userId > 2147483647) {

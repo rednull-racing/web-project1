@@ -7,5 +7,7 @@ type ShippingServiceIdParams = {
 };
 
 export const getShippingService = ({ serviceId, transaction }: ShippingServiceIdParams) => {
-    return transaction ? ShippingServiceOption.findByPk(serviceId, { transaction }) : ShippingServiceOption.findByPk(serviceId);
+    return transaction
+        ? ShippingServiceOption.findByPk(serviceId, { transaction })
+        : ShippingServiceOption.findByPk(serviceId);
 };

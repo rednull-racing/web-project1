@@ -7,14 +7,19 @@ const environment = await vi.hoisted(async () => {
     const path = resolve(".env.test");
     if (process.env.NODE_ENV !== "test") throw new Error("DB_TEST_STOP: NODE_ENV must be test");
     let parsed: Record<string, string>;
-    try { parsed = dotenv.parse(readFileSync(path)); }
-    catch { throw new Error("DB_TEST_STOP: cannot read server/.env.test; user decision required"); }
+    try {
+        parsed = dotenv.parse(readFileSync(path));
+    } catch {
+        throw new Error("DB_TEST_STOP: cannot read server/.env.test; user decision required");
+    }
     try {
         const url = new URL(parsed.DATABASE_URL);
         if (!["postgres:", "postgresql:"].includes(url.protocol) || decodeURIComponent(url.pathname) !== "/test_db") {
             throw new Error();
         }
-    } catch { throw new Error("DB_TEST_STOP: .env.test must specify PostgreSQL test_db; user decision required"); }
+    } catch {
+        throw new Error("DB_TEST_STOP: .env.test must specify PostgreSQL test_db; user decision required");
+    }
     if (parsed.NODE_ENV && parsed.NODE_ENV !== "test") {
         throw new Error("DB_TEST_STOP: .env.test NODE_ENV mismatch; user decision required");
     }
@@ -39,5 +44,6 @@ vi.mock("dotenv", () => ({
 // Routerの他usecaseのimportに伴うAWS初期化も外部境界で止める。
 vi.mock("../../../../src/infra/aws/s3.js", () => ({ publicS3Domain: "https://media.test" }));
 vi.mock("../../../../src/utils/s3/index.js", () => ({
-    generateSignedUrl: vi.fn(), createVideoPresignedPost: vi.fn(),
+    generateSignedUrl: vi.fn(),
+    createVideoPresignedPost: vi.fn(),
 }));

@@ -11,5 +11,15 @@ export const makeHttpApp = async () => {
     app.use(errorHandler);
     return app;
 };
-export const makeToken = (secret: string, id = 7, expiresIn = 7200) => jwt.sign({ id, email: "publish@example.test", admin: false }, secret, { expiresIn });
-export const post = (app: ReturnType<typeof express>, secret: string, body: object = { itemEditingId: 11 }, userId = 7) => request(app).post("/api/items").set("Authorization", "Bearer " + makeToken(secret, userId)).send(body);
+export const makeToken = (secret: string, id = 7, expiresIn = 7200) =>
+    jwt.sign({ id, email: "publish@example.test", admin: false }, secret, { expiresIn });
+export const post = (
+    app: ReturnType<typeof express>,
+    secret: string,
+    body: object = { itemEditingId: 11 },
+    userId = 7,
+) =>
+    request(app)
+        .post("/api/items")
+        .set("Authorization", "Bearer " + makeToken(secret, userId))
+        .send(body);

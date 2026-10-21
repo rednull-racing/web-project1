@@ -47,11 +47,14 @@ describe("P0: .env.test読込み後の接続先検証", () => {
         mocks.config.mockReturnValue({ error: new Error("private file details"), parsed: { DATABASE_URL: testUrl } });
         await rejectInitialization("Failed to load .env.test!");
     });
-    it.each<Record<string, string> | undefined>([undefined, {}, { DATABASE_URL: "" }])("E01: parsed=%jは親の正常URLで続行しない", async (parsed) => {
-        vi.stubEnv("DATABASE_URL", testUrl);
-        mocks.config.mockReturnValue({ parsed });
-        await rejectInitialization("DATABASE_URL is not set in .env.test!");
-    });
+    it.each<Record<string, string> | undefined>([undefined, {}, { DATABASE_URL: "" }])(
+        "E01: parsed=%jは親の正常URLで続行しない",
+        async (parsed) => {
+            vi.stubEnv("DATABASE_URL", testUrl);
+            mocks.config.mockReturnValue({ parsed });
+            await rejectInitialization("DATABASE_URL is not set in .env.test!");
+        },
+    );
 
     it.each([
         ["not-a-url-with-private-details", "Invalid test DATABASE_URL!"],

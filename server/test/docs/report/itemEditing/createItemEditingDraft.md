@@ -25,7 +25,6 @@ npm run typecheck
 
 本件の完了範囲はRouterのDB設定依存解消。DB保存・transaction・実アプリ登録・カバレッジは今回検証していない。DB初期化順序と上書き後の接続先検証は [別Todo](../../../../../docs/todo/done/validate-test-db-url-after-loading-env.md) に記録し、本番コードの修正やDB接続・migrationは行っていない。
 
-
 <a id="initial-report"></a>
 
 # 下書きから商品編集セッション作成：レビュー・テスト結果

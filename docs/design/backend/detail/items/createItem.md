@@ -353,13 +353,13 @@ const normalizedSearchText = normalizeJapanese(searchText);
 
 コミット後にcreateNotificationをtransactionなしで呼び出す。旧APIの失敗許容動作を継承し、Promiseをawaitせずcatchでエラーを処理する。失敗を成功済み商品のロールバックや500応答へ変換しない。
 
-| 項目 | 値 |
-| --- | --- |
-| read_user_id | 認証済みuserId |
-| url | `/item/${itemId}`（新規商品ID） |
-| message_image | コピーしたfirst_image_url |
-| message | `商品「${name}」を出品いただき誠にありがとうございます。商品の詳細はこちらの商品ページからご確認ください。` |
-| type | `ITEM` |
+| 項目          | 値                                                                                                          |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| read_user_id  | 認証済みuserId                                                                                              |
+| url           | `/item/${itemId}`（新規商品ID）                                                                             |
+| message_image | コピーしたfirst_image_url                                                                                   |
+| message       | `商品「${name}」を出品いただき誠にありがとうございます。商品の詳細はこちらの商品ページからご確認ください。` |
+| type          | `ITEM`                                                                                                      |
 
 expires_at等は既存createNotificationの規約に従う。コミット前の失敗や404の再リクエストでは通知を作成しない。通知の永続化・再送は本APIの成功条件に含めない。
 
@@ -390,22 +390,22 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 ## 7. エラー設計
 
-| 発生条件 | HTTP | エラーコード／応答 |
-| --- | --- | --- |
-| トークンなし・無効・期限切れ | 401 | authenticateTokenの既存message形式（固定codeなし） |
-| 10分間の6回目以降 | 429 | 既存express-rate-limitの応答・ヘッダーを使用（固定codeなし） |
-| JSON構文不正 | 400 | INVALID_JSON（共通JSONパーサー・errorHandler） |
-| itemEditingIdの未指定・型不正・範囲外 | 400 | INVALID_BODY |
-| 保存済みcategory/condition/day/service/placeのIDがnull・非整数・範囲外 | 400 | INVALID_NUMBER |
-| 保存済みbrand/aliasのIDが非nullで非整数・範囲外（null自体は許容） | 400 | INVALID_NUMBER |
-| セッション不存在・所有者不一致・消費済み | 404 | ITEM_EDITING_NOT_FOUND |
-| original_url欠落 | 400 | VIDEO_URL_NULL（既存コードを利用予定） |
-| thumbnail_url欠落 | 400 | THUMBNAIL_URL_NULL（既存コードを利用予定） |
-| image_url欠落・空配列 | 400 | ITEM_IMAGE_NULL（既存コードを利用予定） |
-| image_urlが10枚超 | 400 | ITEM_IMAGE_LIMIT_EXCEEDED（既存コードを利用予定） |
-| その他公開前提条件不成立 | 未確定 | 9章で条件・HTTP・コードを確定する |
-| 保存済みattributesの在庫構造不正 | 500 | ITEM_ATTRIBUTES_INVALID |
-| 出品者レコード欠落・DB取得／集計／作成／削除失敗等 | 500 | 共通errorHandlerに従う。業務AppErrorの追加コードは未確定 |
+| 発生条件                                                               | HTTP   | エラーコード／応答                                           |
+| ---------------------------------------------------------------------- | ------ | ------------------------------------------------------------ |
+| トークンなし・無効・期限切れ                                           | 401    | authenticateTokenの既存message形式（固定codeなし）           |
+| 10分間の6回目以降                                                      | 429    | 既存express-rate-limitの応答・ヘッダーを使用（固定codeなし） |
+| JSON構文不正                                                           | 400    | INVALID_JSON（共通JSONパーサー・errorHandler）               |
+| itemEditingIdの未指定・型不正・範囲外                                  | 400    | INVALID_BODY                                                 |
+| 保存済みcategory/condition/day/service/placeのIDがnull・非整数・範囲外 | 400    | INVALID_NUMBER                                               |
+| 保存済みbrand/aliasのIDが非nullで非整数・範囲外（null自体は許容）      | 400    | INVALID_NUMBER                                               |
+| セッション不存在・所有者不一致・消費済み                               | 404    | ITEM_EDITING_NOT_FOUND                                       |
+| original_url欠落                                                       | 400    | VIDEO_URL_NULL（既存コードを利用予定）                       |
+| thumbnail_url欠落                                                      | 400    | THUMBNAIL_URL_NULL（既存コードを利用予定）                   |
+| image_url欠落・空配列                                                  | 400    | ITEM_IMAGE_NULL（既存コードを利用予定）                      |
+| image_urlが10枚超                                                      | 400    | ITEM_IMAGE_LIMIT_EXCEEDED（既存コードを利用予定）            |
+| その他公開前提条件不成立                                               | 未確定 | 9章で条件・HTTP・コードを確定する                            |
+| 保存済みattributesの在庫構造不正                                       | 500    | ITEM_ATTRIBUTES_INVALID                                      |
+| 出品者レコード欠落・DB取得／集計／作成／削除失敗等                     | 500    | 共通errorHandlerに従う。業務AppErrorの追加コードは未確定     |
 
 業務エラーはAppErrorで表し、controllerがnext(err)へ渡す。AppErrorのJSONは `{ code, message }`。AppError以外の予期しないDB例外等は既存の `{ error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" }` とする。認証・レート制限の応答をこの形式へ変更しない。
 

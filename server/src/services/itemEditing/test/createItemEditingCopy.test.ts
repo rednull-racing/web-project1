@@ -1,6 +1,10 @@
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { editingResult, expectedData, transactionFixture } from "../../../usecases/itemEditing/createItemEditingCopy/test/fixtures.js";
+import {
+    editingResult,
+    expectedData,
+    transactionFixture,
+} from "../../../usecases/itemEditing/createItemEditingCopy/test/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ findOne: vi.fn(), create: vi.fn() }));
 vi.mock("../../../models/index.js", () => ({
@@ -9,11 +13,15 @@ vi.mock("../../../models/index.js", () => ({
 import { createItemEditingCopy } from "../command.js";
 
 let transaction: Transaction;
-beforeEach(() => { vi.resetAllMocks(); transaction = transactionFixture(); });
+beforeEach(() => {
+    vi.resetAllMocks();
+    transaction = transactionFixture();
+});
 
 describe("P0/P1 作成serviceの呼出し契約（DB非接続）", () => {
     it("S08 T01: 作成dataとtransactionを同じ参照でcreateへ渡す", async () => {
-        const data = expectedData(), result = editingResult();
+        const data = expectedData(),
+            result = editingResult();
         mocks.create.mockResolvedValue(result);
         expect(await createItemEditingCopy({ data, transaction })).toBe(result);
         expect(mocks.create).toHaveBeenCalledExactlyOnceWith(data, { transaction });

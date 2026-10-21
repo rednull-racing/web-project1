@@ -32,9 +32,7 @@ export const getCronUserTrustScore = ({ createdBefore, reportTrustScore }: GetCr
 };
 
 export const getUser = ({ userId, transaction, attributes }: GetUserParams) => {
-    return transaction || attributes
-        ? User.findByPk(userId, { transaction, attributes })
-        : User.findByPk(userId);
+    return transaction || attributes ? User.findByPk(userId, { transaction, attributes }) : User.findByPk(userId);
 };
 
 export const getUserAll = ({ where, limit }: GetUserAllParams) => {
