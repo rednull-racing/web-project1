@@ -1,3 +1,5 @@
+import { Op } from "sequelize";
+import type { Transaction } from "sequelize";
 import { ItemEditing } from "../../models/index.js";
 import type { CreateItemEditingCopyParams, CreateItemEditingDraftParams } from "../../types/serviceType/itemEditing.js";
 import type {
@@ -6,6 +8,21 @@ import type {
     UpdateConfirmParams,
     UpdateItemEditingImageParams,
 } from "../../types/serviceType/itemEditing.js";
+
+type DestroyExpiredItemEditingsParams = {
+    createdBefore: Date;
+    transaction: Transaction;
+};
+
+export const destroyExpiredItemEditings = ({
+    createdBefore,
+    transaction,
+}: DestroyExpiredItemEditingsParams): Promise<number> => {
+    return ItemEditing.destroy({
+        where: { createdAt: { [Op.lte]: createdBefore } },
+        transaction,
+    });
+};
 
 export const createItemEditing = ({ data, transaction }: CreateItemEditingParams) => {
     return ItemEditing.create(data, { transaction });
