@@ -125,12 +125,12 @@
 
 ---
 
-## その他修正事項
+## cron
 
-### cron
+### cronDeleteItemEditing
 
-- 1週間放置item削除
+- 実行間隔: 毎日　昼12時
+- usecase: 作成から3日経過したitem_editing削除
 
-　　　　　↓
-
-- 3日経過itemEditing削除
+- 失敗時:
+    - item_editing復元
