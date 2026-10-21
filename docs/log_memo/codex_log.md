@@ -799,3 +799,10 @@
 
 - 依頼された工程に実行範囲を限定する旨を明記。参照先2件と差分を確認。
 - 文書のみのためテスト・lint・型検査は未実行。
+
+## 20261021_backend-coding_cronDeleteItemEditing実装と検証
+
+- 作成から72時間以上のitem_editingを毎日12時JSTに同一transactionで削除する詳細設計・Cron・usecase・serviceを実装。
+- テスト設計・単体/実DBテスト・統合レポートを作成し、競合監視SQLとfixture型の不備を修正。
+- ユーザー指示で新migrationをneondb/test_dbへ適用し、item.createdAt/updatedAtのNOT NULL・NULL0件・履歴を確認。
+- 新規単体14件・既存回帰374件・実DB7件が成功。lint・本番/テスト型検査・追加lint・migration構文検査が成功。
