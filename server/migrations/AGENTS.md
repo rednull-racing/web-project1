@@ -9,7 +9,7 @@
 - 既存の migration ファイルを参照し、命名・記述形式・制約名を統一する。
 - CommonJS ではなく ESM 形式の `export default` で記述する。
 - `up` と `down` の両方を必ず実装する。
-- migration の作成のみを行い、実行はしない。
+- migration を実行する場合は、特別な指示がない限り、実 DB とテスト DB の両方に適用する。
 
 ## Model から反映する項目
 
@@ -59,7 +59,6 @@ updatedAt: {
 
 ## 禁止事項
 
-- migration の実行
 - `sequelize.sync()` の実行
 - DB の初期化、リセット、データ削除
 - Model に存在しない制約の追加
