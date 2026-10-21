@@ -123,6 +123,23 @@
 - 失敗時:
     - itemDraftは保持
 
+### convertItemEditingVideo（itemEditingのvideoをhls変換）
+
+- フロント: /upload/[id]
+- route: PATCH /item-editing/:id/convert
+- usecase: item_editingに一時保管のvideoをhls変換
+
+- 認可:
+    - itemEditing.seller_id === userId
+
+- 成功後:
+    - item_editing.converted_urlに変換済み動画のurlを保管
+    - item_editing.original_urlは編集しない
+
+- 失敗時:
+    - item_editing.converted_url = null
+    - item_editing.original_urlは編集しない
+
 ---
 
 ## cron
