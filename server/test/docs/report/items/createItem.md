@@ -30,7 +30,7 @@ F1の実装・詳細設計・テスト修正と非DB検証は完了。関連19�
 
 単体・DB非接続結合は **449件成功、失敗0、skip 0、todo 0（19ファイル）**。実DBは **4 suiteがsetup失敗、72件はケース本体未実行**。ランナーは72件をskipped/pendingと表示するが、成功・通常の意図的skipとは分ける。全設計の実DB検証完了ではない。
 
-ユーザーは途中でbrand_id/brand_aliases_idをnull許容へ訂正し、その後、本番コードのnull拒否修正を明示的に許可した。最終的な本番変更は `src/usecases/itemEditing/createItem.ts` の公開前提検証のみ。必須5種類のnull拒否と、7種類の非null不正値の拒否を維持し、brand/aliasの片方・両方nullを許容した。DB・migration・その他の本番コードは変更していない。
+ユーザーは途中でbrand_id/brand_aliases_idをnull許容へ訂正し、その後、本番コードのnull拒否修正を明示的に許可した。最終的な本番変更は `src/usecases/items/create/createItem.ts` の公開前提検証のみ。必須5種類のnull拒否と、7種類の非null不正値の拒否を維持し、brand/aliasの片方・両方nullを許容した。DB・migration・その他の本番コードは変更していない。
 
 設計書の117ケースIDと、it.each展開後の521件（449実行＋72未実行）は別の集計。IDが同じテストや複数IDを確認するテストがあるため、ID別件数は加算しない。件数はVitest JSONのassertionResultsから集計した。
 
@@ -62,7 +62,7 @@ F1の実装・詳細設計・テスト修正と非DB検証は完了。関連19�
 | S-todouhuken            | `src/services/todouhuken/test/createItem.test.ts`                         |    2 |    0 |    0 |    0 |
 | S-users                 | `src/services/users/test/createItem.test.ts`                              |    3 |    0 |    0 |    0 |
 | S-video                 | `src/services/video/test/createItem.test.ts`                              |    2 |    0 |    0 |    0 |
-| U                       | `src/usecases/itemEditing/test/createItem.test.ts`                        |  340 |    0 |    0 |    0 |
+| U                       | `src/usecases/items/create/test/createItem.test.ts`                        |  340 |    0 |    0 |    0 |
 | V                       | `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |    0 |    0 |
 | S-items-create          | `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |    0 |    0 |
 | H                       | `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |    0 |    0 |
@@ -261,7 +261,7 @@ export default tseslint.config({
 
 ## F1：brand/alias null拒否（修正・非DB再検証済み）
 
-- 対象：`src/usecases/itemEditing/createItem.ts` のvalidatePublishData。
+- 対象：`src/usecases/items/create/createItem.ts` のvalidatePublishData。
 - 修正前：正常fixtureのbrand_idだけnull、brand_aliases_idだけnull、両方nullの3条件で、期待456に対し400・INVALID_NUMBER。実resolveBrandの既存ブランド選択→alias=nullでも同じ拒否が再現した。
 - 原因：必須5種類と任意brand/aliasを一つの配列に入れ、すべてに `id === null` の拒否条件を適用していた。updateConfirmはresolveBrandのalias=nullをそのまま保存するため、通常のブランド選択でも公開できなかった。
 - 許可後の修正：必須5種類の配列を維持し、brand/aliasを別配列へ分離。任意側は `id !== null && (...)` で非null値のみを整数・1〜2147483647で確認する。undefined、文字列、0、負数、小数、範囲超過、NaN/Infinityは従来どおり拒否する。
@@ -298,9 +298,9 @@ export default tseslint.config({
 
 ### 今回の変更
 
-- 本番 `server/src/usecases/itemEditing/createItem.ts`：前回修正済みのnull許容と非null値の整数範囲検証を維持。配列名をrequiredIdsとnullableBrandIdsに揃え、必須5種類と任意2種類を明確にした。IDの補完・alias生成・共有helper変更は行っていない。
+- 本番 `server/src/usecases/items/create/createItem.ts`：前回修正済みのnull許容と非null値の整数範囲検証を維持。配列名をrequiredIdsとnullableBrandIdsに揃え、必須5種類と任意2種類を明確にした。IDの補完・alias生成・共有helper変更は行っていない。
 - 詳細設計書：冒頭・公開前提・判定順序・コピー・エラー・テスト・未決定事項に残る「7種類すべて必須」を訂正。必須5種類はnull不可、任意2種類はnull可、非nullは整数1〜2147483647とする。どちらかのnullによって他のID検証を省略しない。
-- 単体 `server/src/usecases/itemEditing/test/createItem.test.ts`：既存の片方/両方nullの成功3条件を維持。片方null＋他方不正値を両方向18条件へ拡張（0/-1/2147483648/1.5/"1"/undefined/NaN/±Infinity）。片方null＋他方の整数上下限4条件、両方null＋必須5種類のnull5条件を追加。拒否時はgetUser・helper・集計・作成・削除・通知の未実行を確認した。
+- 単体 `server/src/usecases/items/create/test/createItem.test.ts`：既存の片方/両方nullの成功3条件を維持。片方null＋他方不正値を両方向18条件へ拡張（0/-1/2147483648/1.5/"1"/undefined/NaN/±Infinity）。片方null＋他方の整数上下限4条件、両方null＋必須5種類のnull5条件を追加。拒否時はgetUser・helper・集計・作成・削除・通知の未実行を確認した。
 - テスト設計書のAF-BR01も上記へ更新。レポートとCodexログ以外の変更範囲はこの4ファイル。DB・モデル・migration・対象外APIは変更していない。
 
 ### 最新実行結果
@@ -322,7 +322,7 @@ export default tseslint.config({
 | `src/services/todouhuken/test/createItem.test.ts`                         |    2 |    0 |            0 |    0 |
 | `src/services/video/test/createItem.test.ts`                              |    2 |    0 |            0 |    0 |
 | `src/services/users/test/createItem.test.ts`                              |    3 |    0 |            0 |    0 |
-| `src/usecases/itemEditing/test/createItem.test.ts`                        |  365 |    0 |            0 |    0 |
+| `src/usecases/items/create/test/createItem.test.ts`                        |  365 |    0 |            0 |    0 |
 | `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |            0 |    0 |
 | `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |            0 |    0 |
 | `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |            0 |    0 |
@@ -390,7 +390,7 @@ F2の旧カラム残存による停止は解消し、元のDB72件を実行し�
 | 非DB `src/services/users/test/createItem.test.ts`                              |    3 |    0 |    0 |    0 |
 | 非DB `src/services/video/test/createItem.test.ts`                              |    2 |    0 |    0 |    0 |
 | 非DB `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |    0 |    0 |
-| 非DB `src/usecases/itemEditing/test/createItem.test.ts`                        |  365 |    0 |    0 |    0 |
+| 非DB `src/usecases/items/create/test/createItem.test.ts`                        |  365 |    0 |    0 |    0 |
 | 非DB `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |    0 |    0 |
 | 非DB `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |    0 |    0 |
 | 非DB `test/integration/usecases/items/createItem/registration.test.ts`         |    1 |    0 |    0 |    0 |
@@ -585,3 +585,9 @@ npm run typecheck
 上記はすべてexit 0。追加lintの一時設定は前掲の既存ESLint/typescript-eslint recommendedと同じ。共有lint/tsconfigやライブラリの変更はしていない。テスト用tsconfig全体が成功し、createItem検証を妨げていた既知エラーF3も解消した。作業中に新たな失敗・型エラーは検出していない。
 
 Todoへ完了内容を追記し、ユーザー指定どおりP1-bugからdoneへ移動した。初回に存在したF4 Todoの移動に関する担当外変更は編集・ステージしていない。
+
+## 2026-10-21 usecase配置変更の回帰確認
+
+- usecaseを`src/usecases/items/create/createItem.ts`、単体テストを同配下の`test/createItem.test.ts`へ移動し、関連import・モック・参照を更新。契約・ケース・処理内容は変更なし。
+- usecase単体365件、controller単体5件、master接続14件、route33件、registration1件、合計418件が成功（DBなし、DB・通知等は既存境界でモック）。
+- lint・本番typecheck・テスト用tsconfig型検査が成功。HTTPはsandboxのlisten EPERMで初回失敗後、制限外で同じ5ファイルを再実行して成功。実DBテストは未実行。

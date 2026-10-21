@@ -4,7 +4,7 @@ import request from "supertest";
 import { expect, it, vi, afterEach } from "vitest";
 import { makeToken } from "../../../../fixtures/items/createItem/httpFixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn().mockResolvedValue(456) }));
-vi.mock("../../../../../src/usecases/itemEditing/createItem.js", () => ({ createItemUseCase: mocks.create }));
+vi.mock("../../../../../src/usecases/items/create/createItem.js", () => ({ createItemUseCase: mocks.create }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 vi.mock("../../../../../src/routes/address.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/admin/itemAdmin.js", () => ({ default: express.Router() }));

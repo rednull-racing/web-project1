@@ -2,7 +2,7 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
-参照実装: `server/src/usecases/itemEditing/createItem.ts` の `createItemUseCase`。旧patchPublishUseCaseと旧公開ルートは削除済みで、server/srcに残存しないことを確認した。
+参照実装: `server/src/usecases/items/create/createItem.ts` の `createItemUseCase`。旧patchPublishUseCaseと旧公開ルートは削除済みで、server/srcに残存しないことを確認した。
 
 2026-10-20のユーザー指示で、新item.idの新規採番を確定した。同日の仕様訂正により、category/condition/day/service/placeの5種類のIDは必須、brand_id・brand_aliases_idはそれぞれnull許容（両方nullも許容）とする。またModel・DBからitem.deleted_at、item_editing/item_draft.item_idを削除済みと確認し、本書も追従する。旧item_idのnull・非null受理の記述はカラム削除により廃止。cronEditingDeleteUseCaseは対象外。
 
@@ -44,7 +44,7 @@
         - validateBody（既存）
 - controller: /controllers/items/items.ts
     - createItemController（上書き）
-- usecase: /usecases/itemEditing/createItem.ts（ファイル新規）
+- usecase: /usecases/items/create/createItem.ts（ファイル新規）
     - createItemUseCase（新規）
 - service:
     - itemEditing取得: /services/itemEditing/query.ts

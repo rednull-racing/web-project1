@@ -2,7 +2,7 @@
 
 ## 1. 目的・根拠・作業範囲
 
-対象は `src/usecases/itemEditing/createItem.ts` の `createItemUseCase` と `POST /api/items`。所有者の編集セッションから商品・動画・セール・配送情報を原子的に生成し、成功時だけ元セッションを消費する契約を検証する。コピー漏れ、所有権のすり抜け、不正な保存データ、途中失敗、同時公開による重複生成を検出する。
+対象は `src/usecases/items/create/createItem.ts` の `createItemUseCase` と `POST /api/items`。所有者の編集セッションから商品・動画・セール・配送情報を原子的に生成し、成功時だけ元セッションを消費する契約を検証する。コピー漏れ、所有権のすり抜け、不正な保存データ、途中失敗、同時公開による重複生成を検出する。
 
 根拠は[詳細設計書](../../../../../docs/design/backend/detail/items/createItem.md)の第2〜8章、本番コード、2026-10-20のユーザーによる仕様確定。変更していない契約は[初回実装時の方針記録](../../../../../docs/log_memo/codex_log.md#20261019_backend-coding_createItem本番実装)も参照する。設計形式は[共通ルール](../AGENTS.md)、[配置規則](../../../AGENTS.md)、既存の [createItemEditingCopy](../itemEditing/createItemEditingCopy.md)、[createItemDraft](../itemDraft/createItemDraft.md)、[updateConfirm](../itemEditing/updateConfirm.md) を参考にする。他機能の過去の観測やケース数を本機能の保証へ流用しない。
 
@@ -49,7 +49,7 @@
 
 | 責務                           | 調査対象                                                                                                                                                                                                                                                                                                      |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 業務フロー・公開前提・在庫複製 | `src/usecases/itemEditing/createItem.ts`：createItemUseCase、非公開のvalidatePublishData/hasCopyableInventory/resetInventory/resetCurrentInventory                                                                                                                                                            |
+| 業務フロー・公開前提・在庫複製 | `src/usecases/items/create/createItem.ts`：createItemUseCase、非公開のvalidatePublishData/hasCopyableInventory/resetInventory/resetCurrentInventory                                                                                                                                                            |
 | 認可取得・元行削除             | `src/services/itemEditing/{query,command}.ts`：getMyItemEditing、deleteItemEditing                                                                                                                                                                                                                            |
 | マスター検証                   | `src/usecases/shared/validateMaster.ts`、`src/services/categories/categories.ts`、`src/services/itemConditionOption/itemConditionOption.ts`、`src/services/shippingDayOption/shippingDayOption.ts`、`src/services/shippingServiceOption/shippingServiceOption.ts`、`src/services/todouhuken/todouhuken.ts`    |
 | 集計・出品者参照               | `src/services/users/query.ts`、`src/services/follow/follow.ts`、`src/services/items/items.count.ts`                                                                                                                                                                                                           |
@@ -86,7 +86,7 @@
 
 | レベル | 配置案                                                                                                                                  | 実処理・モック／確認範囲                                                                                                                                           |
 | ------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| U      | `src/usecases/itemEditing/test/createItem.test.ts`                                                                                      | 実usecase・非公開公開前提検証・実normalizeJapanese。service、validateMaster、sequelize.transactionをモック。引数・変換・停止・待機・通知時点。DB原子性は保証しない |
+| U      | `src/usecases/items/create/test/createItem.test.ts`                                                                                      | 実usecase・非公開公開前提検証・実normalizeJapanese。service、validateMaster、sequelize.transactionをモック。引数・変換・停止・待機・通知時点。DB原子性は保証しない |
 | I      | `src/usecases/itemEditing/test/createItem.inventoryReset.test.ts`                                                                       | 非公開関数をexportせず実usecase経由で在庫処理。DB/helper境界をモックし、構造・値域・深いコピーに集中                                                               |
 | H      | `test/integration/usecases/items/createItem/master.test.ts`                                                                             | 実usecase＋実validateMaster。各DB serviceとtransactionをモック。各マスター分岐・transaction引渡しと後続停止を確認                                                  |
 | V      | `src/validators/body/test/createItem.test.ts`                                                                                           | 実schema・実validateBody。DBなしでparse・未知キー除去・400・validatedBodyを確認                                                                                    |
@@ -378,7 +378,7 @@ AF-ID01のR単独はusecaseが返す400の応答形式までとし、保存済�
 
 ```bash
 # 単体の代表（Sは第4節で実装した各対象ファイルも個別指定する）
-npm run test:run -- src/usecases/itemEditing/test/createItem.test.ts src/usecases/itemEditing/test/createItem.inventoryReset.test.ts src/validators/body/test/createItem.test.ts src/controllers/items/test/createItem.test.ts --maxWorkers=1
+npm run test:run -- src/usecases/items/create/test/createItem.test.ts src/usecases/itemEditing/test/createItem.inventoryReset.test.ts src/validators/body/test/createItem.test.ts src/controllers/items/test/createItem.test.ts --maxWorkers=1
 # DBなしのhelper/HTTP接続
 npm run test:run -- test/integration/usecases/items/createItem/master.test.ts test/integration/usecases/items/createItem/route.test.ts --maxWorkers=1
 # 実DB：ファイル間のfixture/hook干渉を避け1 workerで実行

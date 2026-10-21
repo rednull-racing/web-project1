@@ -14,7 +14,7 @@ import {
     patchSortNumberAddUseCase,
     patchSortNumberDecreaseUseCase,
 } from "../../usecases/items/sortNumber/sortNumber.js";
-import { createItemUseCase } from "../../usecases/itemEditing/createItem.js";
+import { createItemUseCase } from "../../usecases/items/create/createItem.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
 import type { CreateItemBody } from "../../validators/body/items.js";
 import type {

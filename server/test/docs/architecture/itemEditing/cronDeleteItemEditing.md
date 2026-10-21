@@ -71,7 +71,7 @@ server/で実行する。
 ```bash
 npm run test:run -- src/usecases/itemEditing/test/cronDeleteItemEditing.test.ts src/services/itemEditing/test/cronDeleteItemEditing.test.ts src/cron/test/itemEditingDelete.test.ts src/cron/test/index.itemEditingDelete.test.ts
 npm run test:run -- test/integration/usecases/itemEditing/cronDeleteItemEditing/ --maxWorkers=1
-npm run test:run -- src/services/itemEditing/test/createItem.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts src/usecases/itemEditing/test/createItem.test.ts
+npm run test:run -- src/services/itemEditing/test/createItem.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts src/usecases/items/create/test/createItem.test.ts
 npm run lint
 npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json

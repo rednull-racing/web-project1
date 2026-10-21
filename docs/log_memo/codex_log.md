@@ -820,3 +820,10 @@
 - テスト設計・単体/実DBテスト・統合レポートを作成し、競合監視SQLとfixture型の不備を修正。
 - ユーザー指示で新migrationをneondb/test_dbへ適用し、item.createdAt/updatedAtのNOT NULL・NULL0件・履歴を確認。
 - 新規単体14件・既存回帰374件・実DB7件が成功。lint・本番/テスト型検査・追加lint・migration構文検査が成功。
+
+## 20261021_backend-coding_createItem_usecase配置変更
+
+- createItem usecaseをitems/createへ移動し、単体テストを同配下のtestへ移動。
+- 詳細設計・controller・関連テスト/fixture・文書の参照パスを更新。処理内容は変更なし。
+- 関連5ファイル418件、lint、本番/テスト型検査、差分検査が成功。HTTP待受制限は制限外で再検証。
+- 既存のdocs/design/backend/itemUpload.mdの未コミット変更は保持し、コミット対象外。

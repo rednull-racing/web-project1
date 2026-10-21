@@ -27,7 +27,7 @@ lint・本番型検査・テスト型検査・test配下追加lint・migration�
 | src/services/itemEditing/test/createItem.test.ts                             | 既存単体回帰 |        3 | 所有者検索/行ロック・既存編集行削除                        |
 | src/services/itemEditing/test/createItemEditingDraft.test.ts                 | 既存単体回帰 |        4 | 既存編集行生成・例外・待機                                 |
 | src/services/itemEditing/test/createItemEditingCopy.test.ts                  | 既存単体回帰 |        2 | 既存コピー生成・例外                                       |
-| src/usecases/itemEditing/test/createItem.test.ts                             | 既存単体回帰 |      365 | 公開処理・編集行消費・途中失敗など                         |
+| src/usecases/items/create/test/createItem.test.ts                             | 既存単体回帰 |      365 | 公開処理・編集行消費・途中失敗など                         |
 | test/integration/usecases/itemEditing/cronDeleteItemEditing/database.test.ts | 実DB         |        7 | D01〜D05。D04とD05は各2条件                                |
 
 最新DB実行: 16:17:19 JST、1ファイル7 passed、失敗/skipなし、exit 0。
@@ -76,7 +76,7 @@ downは本番制約を戻すため実行していない。up/downの構文検査
 すべてserver/で実行。
 
 ```bash
-npm run test:run -- src/usecases/itemEditing/test/cronDeleteItemEditing.test.ts src/services/itemEditing/test/cronDeleteItemEditing.test.ts src/cron/test/itemEditingDelete.test.ts src/cron/test/index.itemEditingDelete.test.ts src/services/itemEditing/test/createItem.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts src/usecases/itemEditing/test/createItem.test.ts
+npm run test:run -- src/usecases/itemEditing/test/cronDeleteItemEditing.test.ts src/services/itemEditing/test/cronDeleteItemEditing.test.ts src/cron/test/itemEditingDelete.test.ts src/cron/test/index.itemEditingDelete.test.ts src/services/itemEditing/test/createItem.test.ts src/services/itemEditing/test/createItemEditingDraft.test.ts src/services/itemEditing/test/createItemEditingCopy.test.ts src/usecases/items/create/test/createItem.test.ts
 npm run test:run -- test/integration/usecases/itemEditing/cronDeleteItemEditing/ --maxWorkers=1
 npm run lint
 npm run typecheck
