@@ -2,6 +2,12 @@
 
 発見日: 2026-10-21。優先度: P3-techdebt。
 
+## 完了結果（2026-10-21）
+
+旧I03/I04のDB観測30件を確定済み契約の48件へ移行。不正ID7種×6項目についてINVALID_NUMBER/400、transaction・更新未実行、対象・非対象行の全列不変を確認。空白ID6項目について既存参照のnull更新と他参照・非対象行の維持を確認した。
+実DB3ファイル125件、DB非接続回帰8ファイル534件がすべて成功。HTTP待受けのEPERMは制限外再実行で解消。lint・本番/テスト型検査・変更DBテスト追加lint・差分検査も成功。本番コード・DB制約・migrationの変更なし。
+詳細は[レポート](../../../server/test/docs/report/itemEditing/updateConfirm.md#database-numbers-20261021)を参照。以下は対応前の問題と実施方針の履歴。
+
 ## 問題と原因
 
 `server/`で`npm run test:run -- test/integration/database/itemEditing/updateConfirm/database.test.ts`を実行し、92件中63件成功・I03/I04の29件失敗を確認。

@@ -1,5 +1,15 @@
 # 商品編集中データの確定更新：テストコード設計書
 
+## 2026-10-21 実DBの数値契約を移行
+
+I03/I04のDB側にも2026-10-16の確定済み共有契約を適用する。旧DB観測は履歴として扱う。本番コード・DB制約の変更は行わない。
+対象は`test/integration/database/itemEditing/updateConfirm/database.test.ts`。実schema・usecase・helper・service・PostgreSQLを通し、S3署名のみモックする。
+
+- I03/I04/I05：6種IDそれぞれに0・負数・小数・Infinity・abc・NaN・INTEGER上限超過を指定する42件。INVALID_NUMBER/400、transactionと両更新serviceの未呼出し、別接続から対象・非対象行の全列不変を確認する。
+- I03：6種IDそれぞれの空白入力を確認する6件。あらかじめ有効な参照を保存し、該当カラムだけnullへ更新され、残り5種の参照と非対象行が維持されることを確認する。brandは名前をnullにして名前検索のfallbackと分ける。
+- 旧30件を上記48件へ置換し、ファイル全体110件を検証する。.env.test由来のtest_db検査・自作ID限定cleanup・接続終了は既存fixtureを維持する。
+- 対象実DB、transaction・並行処理の実DB、DB非接続回帰、lint・本番/テスト型検査・変更TS追加lintを実行する。結果は[レポート](../../report/itemEditing/updateConfirm.md)に記録する。
+
 ## 2026-10-21 動画状態の更新契約
 
 ユーザー指示により、serviceのupdateConfirmへ渡すdataに`video_status: "original"`を常に設定する。
@@ -231,8 +241,8 @@ V の拒否ケースは `INVALID_BODY / 400`（params は `INVALID_PARAMS / 400`
 | --- | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | I01 | H      | null、空文字                     | null へ変換。condition.id の null は HTTP では到達しない                                                                             |
 | I02 | H      | "1"、"01"、" 1 "、"1e2"          | Number の結果である 1、1、1、100 を渡す                                                                                              |
-| I03 | H/D    | "0"、空白だけの文字列            | 0 へ変換。5 種類のマスター照合はスキップするが保存値は 0。参照先 ID=0 がなければ DB 外部キー制約で拒否                               |
-| I04 | H/D    | "-1"、"1.5"、"Infinity"          | 変換関数は NaN 以外を拒否しない。後続 service へ渡る値を確認。DB の取得結果・型制約に応じた失敗を観測し、INVALID_NUMBER と断定しない |
+| I03 | H/D    | "0"、空白だけの文字列            | 0はINVALID_NUMBER/400で保存前に拒否。空白はnullへ変換し、既存の参照をnullへ更新する |
+| I04 | H/D    | "-1"、"1.5"、"Infinity"、"2147483648" | INVALID_NUMBER/400。商品transactionと両更新を開始せず、対象・非対象行を維持する |
 | I05 | H      | "abc"、"NaN"                     | INVALID_NUMBER。複数不正時は category→condition→day→service→place→brand の順に停止                                                   |
 | I06 | H      | 各マスター ID が null／0／有効値 | null と 0 は取得なし、有効値は対応 service へ正しいキー名で 1 回渡す。brandId=0 は resolveBrand では getBrand の対象となる           |
 
