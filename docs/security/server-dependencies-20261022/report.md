@@ -217,7 +217,7 @@ Node.js 26.12.1 / npm 11.20.0 / Vitest 4.1.12。
   対象は全src単体、multipart/security、security/dependencyCompatibility、ErrorHandler、auth/refreshToken/jwt.test.ts。
 - 失敗2件はsrc/services/itemDraft/test/deleteItemDraft.test.tsの既知item_id取得カラム不一致。
   依存更新前の調査と同一の差分で、対象本番コード・fixture・期待値は変更していない。
-  [既存Todo](../../todo/P3-techdebt/align-delete-item-draft-service-test-columns.md)で別管理する。
+  [既存Todo](../../todo/done/align-delete-item-draft-service-test-columns.md)で別管理する。
 - 今回追加: multipart 2ファイル10件、Sequelize/uuid 1ファイル5件が全件成功（上記集計内）。
   既存ErrorHandler/JWTの34件も全件成功（同じ集計内）。
 - 実Routerで認証拒否401・制限拒否429が解析に先行し、両通過時は同一不正multipartが400になることを確認。

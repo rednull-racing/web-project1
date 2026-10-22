@@ -14,7 +14,7 @@ item_idは20261020120909のmigrationで削除済み。今回のNULL制約migrati
 - server/test/integration/database/itemDraft/createItemDraft/database.test.ts（59行、130行、592行付近）
 - server/test/fixtures/itemDraft/createItemDraft/databaseFixtures.ts
 - server/src/models/item_draft.ts、対応する取得service・テスト設計書
-- docs/todo/P3-techdebt/align-delete-item-draft-service-test-columns.md（別serviceテストの類似不一致）
+- docs/todo/done/align-delete-item-draft-service-test-columns.md（別serviceテストの類似不一致）
 - docs/log_memo/20261022-all-column-nullability.md
 
 ## 修正方針・実装内容

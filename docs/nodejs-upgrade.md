@@ -32,7 +32,7 @@ server/clientの本番Dockerイメージ作成成功。完成イメージ内で�
 ## 別途対応する既存問題
 
 - [client lint](todo/P3-techdebt/restore-client-lint-baseline.md)
-- [deleteItemDraftのテスト契約](todo/P3-techdebt/align-delete-item-draft-service-test-columns.md)
+- [deleteItemDraftのテスト契約](todo/done/align-delete-item-draft-service-test-columns.md)
 - [npm依存パッケージの脆弱性](todo/done/review-server-dependency-vulnerabilities.md)
 
 ## 利用・反映
