@@ -133,7 +133,7 @@ U の transaction モックは callback へ同一 t を渡し callback の Promi
 | N05 | U/D    | price 等 nullable 数値・duration=0、recommend=false、sale_flag=false       | 0/false を欠落扱いせず保持。recommend=null は別条件にする                                                    |
 | N06 | U/D    | attributes の任意キーなし／全キーあり／配列内 optional なし                | キーの有無を保持。素材・色・サイズの順と uiId 対応が一致。DB fixture は保存済み JSON を比較元にする          |
 | N07 | U/D    | gender=men/women/unisex、age=adult/kids/both、video_status=null/既存文字列 | 各定義値と状態を保持し作成。status による取得制限・公開遷移なし。値ごとに独立展開                            |
-| N08 | D      | brand_id・brand_aliases_id あり／片方／両方 null       | 有効な FK または許可された null を保持。公開 Item・マスター・ブランドを新規作成／更新しない                  |
+| N08 | D      | brand_id・brand_aliases_id あり／片方／両方 null                           | 有効な FK または許可された null を保持。公開 Item・マスター・ブランドを新規作成／更新しない                  |
 | N09 | D      | 古い元日時、既存編集セッションを併置して成功                               | 新規編集行を返し、元日時をコピーしない。日時は呼出前後の範囲で確認し、連番や異テーブル ID の大小を仮定しない |
 | B01 | U/D    | name/title/video_status/shipping_service_free_text を各 0/254/255 文字     | 保存可能な最大長まで完全一致。各列個別展開、日本語も確認                                                     |
 | B02 | U/D    | image_url=null/0/1/10 件                                                   | 配列順と全 URL を保持。first_image_url は元値を保持する独立カラムとして検証                                  |

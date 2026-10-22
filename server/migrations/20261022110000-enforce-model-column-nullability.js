@@ -2,65 +2,65 @@
 
 const changes = [
     {
-        "table": "brands",
-        "column": "name_normalized",
-        "fill": ""
+        table: "brands",
+        column: "name_normalized",
+        fill: "",
     },
     {
-        "table": "categories",
-        "column": "layer",
-        "fill": ""
+        table: "categories",
+        column: "layer",
+        fill: "",
     },
     {
-        "table": "categories",
-        "column": "path",
-        "fill": ""
+        table: "categories",
+        column: "path",
+        fill: "",
     },
     {
-        "table": "comment",
-        "column": "pin",
-        "fill": false
+        table: "comment",
+        column: "pin",
+        fill: false,
     },
     {
-        "table": "notification",
-        "column": "type",
-        "fill": ""
+        table: "notification",
+        column: "type",
+        fill: "",
     },
     {
-        "table": "points_history",
-        "column": "reason_id",
-        "fill": 0
+        table: "points_history",
+        column: "reason_id",
+        fill: 0,
     },
     {
-        "table": "shop_info",
-        "column": "auto_trans",
-        "fill": false
+        table: "shop_info",
+        column: "auto_trans",
+        fill: false,
     },
     {
-        "table": "shop_info",
-        "column": "open_info",
-        "fill": false
+        table: "shop_info",
+        column: "open_info",
+        fill: false,
     },
     {
-        "table": "shop_info",
-        "column": "request_all",
-        "fill": false
+        table: "shop_info",
+        column: "request_all",
+        fill: false,
     },
     {
-        "table": "shop_info",
-        "column": "verified",
-        "fill": false
+        table: "shop_info",
+        column: "verified",
+        fill: false,
     },
     {
-        "table": "uriagekin_history",
-        "column": "reason_id",
-        "fill": 0
+        table: "uriagekin_history",
+        column: "reason_id",
+        fill: 0,
     },
     {
-        "table": "watch_history",
-        "column": "user_id",
-        "fill": 0
-    }
+        table: "watch_history",
+        column: "user_id",
+        fill: 0,
+    },
 ];
 
 /** @type {import('sequelize-cli').Migration} */

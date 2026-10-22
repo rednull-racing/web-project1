@@ -21,10 +21,10 @@ Critical 7件を「公開APIで成立する7種類の攻撃」とは解釈でき
 - npm auditの件数は脆弱性を持つパッケージ名の集計。親パッケージへの波及、同名の複数バージョンを含み、固有GHSA数や悪用可能数と一致しない。
 - auditはレジストリ情報・lockfileの照合。稼働中EC2のイメージ、NGINX設定、実際の通信経路は未確認。実環境への攻撃検証は未実施。
 
-| 対象 | Critical | High | Moderate | Low | 計 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 全依存 | 7 | 16 | 8 | 3 | 34 |
-| 本番依存（omit=dev） | 7 | 11 | 5 | 2 | 25 |
+| 対象                 | Critical | High | Moderate | Low |  計 |
+| -------------------- | -------: | ---: | -------: | --: | --: |
+| 全依存               |        7 |   16 |        8 |   3 |  34 |
+| 本番依存（omit=dev） |        7 |   11 |        5 |   2 |  25 |
 
 Dockerfileは本番段でも`npm ci --omit=dev`を行うため、dependenciesに置かれたマイグレーション・ビルド用ツールも本番イメージに残る。
 本番にインストールされることと、HTTPリクエストから実行されることを区別して評価した。
@@ -125,45 +125,44 @@ Express 5への移行はこの修正の前提ではない。候補バージョ�
 版はauditのnodesに対応するlockfileの値。severityはnpm集約値。本番欄の「有」はomit=devでも検出されたことを示す。
 全GHSA・影響範囲・fixAvailable・nodesは原本JSON、全依存経路はdependency-paths.jsonを参照。
 
-| パッケージ | 対象版 | severity | 本番検出 | 原因 / 主な経路 |
-| --- | --- | --- | --- | --- |
-| @vitest/coverage-v8 | 4.1.11 | moderate | 無 | vitest |
-| @vitest/mocker | 4.1.11 | moderate | 無 | GHSA-qxg6-89mg-rqv8, GHSA-xp26-3454-mjgp |
-| body-parser | 1.20.4 | low | 有 | GHSA-v422-hmwv-36x6 |
-| brace-expansion | 1.1.13, 1.1.18, 2.0.3, 5.0.5 | high | 有 | GHSA-3jxr-9vmj-r5cp, GHSA-6j4f-fj2g-mc7p, GHSA-jxxr-4gwj-5jf2, GHSA-mh99-v99m-4gvg, GHSA-q2hr-2g5m-vwhr, GHSA-qhr7-859c-m2p7, GHSA-rgw5-rvv9-x895 |
-| braces | 3.0.3 | high | 有 | GHSA-vfj7-8cjw-p6xm |
-| chokidar | 3.6.0 | high | 有 | braces |
-| ejs | 2.6.2 | critical | 有 | GHSA-ghr5-ch3p-vcr6, GHSA-phwq-j96m-2c2q |
-| esbuild | 0.27.5 | low | 無 | GHSA-g7r4-m6w7-qqqr |
-| fast-glob | 3.3.3 | high | 有 | micromatch |
-| globby | 11.1.0 | high | 有 | fast-glob |
-| ip-address | 10.2.0 | high | 有 | GHSA-22jq-vg5j-6vgg, GHSA-2vr4-cq9g-pvrc, GHSA-4xrf-jv44-h6hh, GHSA-h3mg-xc3c-68pw, GHSA-j6r3-76f7-8jcv, GHSA-mwp4-54f8-5fhr, GHSA-rpw4-54j3-4h4q |
-| js-cookie | 3.0.5 | high | 有 | GHSA-qjx8-664m-686j |
-| js-yaml | 4.3.1 | high | 無 | GHSA-2883-xcg3-v3hh |
-| micromatch | 4.0.8 | high | 有 | braces |
-| moment | 2.30.1 | moderate | 有 | GHSA-4p3w-j4w9-5jqw |
-| morgan | 1.9.1 | moderate | 有 | GHSA-4vj7-5mj6-jm8m, GHSA-9f6g-j8ch-79g4, GHSA-jxfw-x594-9x9m, on-headers |
-| multer | 2.1.1 | high | 有 | GHSA-3p4h-7m6x-2hcm, GHSA-535w-7cp7-47q4, GHSA-72gw-mp4g-v24j, GHSA-qvfw-j98x-7q72, GHSA-wc9g-mqfw-jrwm |
-| mysql2 | 2.3.3 | critical | 有 | GHSA-3f6p-5ww8-9rcr, GHSA-49j4-86m8-q2jw, GHSA-4rch-2fh8-94vw, GHSA-fpw7-j2hg-69v5, GHSA-mqr2-w7wj-jjgr, GHSA-pmh2-wpjm-fj45, GHSA-rgwj-5xj2-c3m3 |
-| nodemon | 3.1.14 | high | 無 | chokidar |
-| on-headers | 1.0.2 | low | 有 | GHSA-76c9-3jph-rj3q |
-| proxy-addr | 2.0.7 | critical | 有 | GHSA-jqcg-44mw-7w3h |
-| qs | 6.14.2 | moderate | 有 | GHSA-4mjr-xmp4-gh2g, GHSA-q8mj-m7cp-5q26, GHSA-x5fp-wj9c-mxmx |
-| sequelize | 4.44.4, 5.22.5, 6.37.8 | critical | 有 | GHSA-8c25-f3mj-v6h8, GHSA-f598-mfpv-gmfx, GHSA-v8fg-2rw7-q452, GHSA-vqfx-gj96-3w95, GHSA-wrh9-cjv3-2hpw, uuid, validator |
-| sequelize-auto-migrations | 1.0.3 | critical | 有 | sequelize |
-| sequelize-mig | 3.1.3 | moderate | 有 | sequelize |
-| sequelize-typescript | 1.1.0 | critical | 有 | GHSA-7pvx-4585-hqww, sequelize |
-| sequelize-typescript-migration | 0.0.1-beta.3 | critical | 有 | mysql2, sequelize, sequelize-typescript |
-| source-map-js | 1.2.1 | high | 無 | GHSA-68fv-2mgg-jv7q |
-| ts-node-dev | 2.0.0 | high | 無 | chokidar |
-| tsc-alias | 1.8.16 | high | 有 | chokidar, globby |
-| uuid | 3.4.0, 8.3.2 | moderate | 有 | GHSA-w5hq-g745-h8pq |
-| validator | 10.11.0 | high | 有 | GHSA-9965-vmph-33xx, GHSA-qgmg-gppg-76g5, GHSA-vghf-hv5q-vc2g |
-| vite | 8.2.2 | high | 無 | GHSA-587h-7wmj-h5pm, GHSA-698v-4r3x-3vcv, GHSA-9jrq-w75r-8gcw, GHSA-r825-w8mm-5pxw, GHSA-rq7h-c2jc-7f22, GHSA-vfpm-58rq-9qcg |
-| vitest | 4.1.11 | moderate | 無 | @vitest/coverage-v8, @vitest/mocker |
+| パッケージ                     | 対象版                       | severity | 本番検出 | 原因 / 主な経路                                                                                                                                   |
+| ------------------------------ | ---------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| @vitest/coverage-v8            | 4.1.11                       | moderate | 無       | vitest                                                                                                                                            |
+| @vitest/mocker                 | 4.1.11                       | moderate | 無       | GHSA-qxg6-89mg-rqv8, GHSA-xp26-3454-mjgp                                                                                                          |
+| body-parser                    | 1.20.4                       | low      | 有       | GHSA-v422-hmwv-36x6                                                                                                                               |
+| brace-expansion                | 1.1.13, 1.1.18, 2.0.3, 5.0.5 | high     | 有       | GHSA-3jxr-9vmj-r5cp, GHSA-6j4f-fj2g-mc7p, GHSA-jxxr-4gwj-5jf2, GHSA-mh99-v99m-4gvg, GHSA-q2hr-2g5m-vwhr, GHSA-qhr7-859c-m2p7, GHSA-rgw5-rvv9-x895 |
+| braces                         | 3.0.3                        | high     | 有       | GHSA-vfj7-8cjw-p6xm                                                                                                                               |
+| chokidar                       | 3.6.0                        | high     | 有       | braces                                                                                                                                            |
+| ejs                            | 2.6.2                        | critical | 有       | GHSA-ghr5-ch3p-vcr6, GHSA-phwq-j96m-2c2q                                                                                                          |
+| esbuild                        | 0.27.5                       | low      | 無       | GHSA-g7r4-m6w7-qqqr                                                                                                                               |
+| fast-glob                      | 3.3.3                        | high     | 有       | micromatch                                                                                                                                        |
+| globby                         | 11.1.0                       | high     | 有       | fast-glob                                                                                                                                         |
+| ip-address                     | 10.2.0                       | high     | 有       | GHSA-22jq-vg5j-6vgg, GHSA-2vr4-cq9g-pvrc, GHSA-4xrf-jv44-h6hh, GHSA-h3mg-xc3c-68pw, GHSA-j6r3-76f7-8jcv, GHSA-mwp4-54f8-5fhr, GHSA-rpw4-54j3-4h4q |
+| js-cookie                      | 3.0.5                        | high     | 有       | GHSA-qjx8-664m-686j                                                                                                                               |
+| js-yaml                        | 4.3.1                        | high     | 無       | GHSA-2883-xcg3-v3hh                                                                                                                               |
+| micromatch                     | 4.0.8                        | high     | 有       | braces                                                                                                                                            |
+| moment                         | 2.30.1                       | moderate | 有       | GHSA-4p3w-j4w9-5jqw                                                                                                                               |
+| morgan                         | 1.9.1                        | moderate | 有       | GHSA-4vj7-5mj6-jm8m, GHSA-9f6g-j8ch-79g4, GHSA-jxfw-x594-9x9m, on-headers                                                                         |
+| multer                         | 2.1.1                        | high     | 有       | GHSA-3p4h-7m6x-2hcm, GHSA-535w-7cp7-47q4, GHSA-72gw-mp4g-v24j, GHSA-qvfw-j98x-7q72, GHSA-wc9g-mqfw-jrwm                                           |
+| mysql2                         | 2.3.3                        | critical | 有       | GHSA-3f6p-5ww8-9rcr, GHSA-49j4-86m8-q2jw, GHSA-4rch-2fh8-94vw, GHSA-fpw7-j2hg-69v5, GHSA-mqr2-w7wj-jjgr, GHSA-pmh2-wpjm-fj45, GHSA-rgwj-5xj2-c3m3 |
+| nodemon                        | 3.1.14                       | high     | 無       | chokidar                                                                                                                                          |
+| on-headers                     | 1.0.2                        | low      | 有       | GHSA-76c9-3jph-rj3q                                                                                                                               |
+| proxy-addr                     | 2.0.7                        | critical | 有       | GHSA-jqcg-44mw-7w3h                                                                                                                               |
+| qs                             | 6.14.2                       | moderate | 有       | GHSA-4mjr-xmp4-gh2g, GHSA-q8mj-m7cp-5q26, GHSA-x5fp-wj9c-mxmx                                                                                     |
+| sequelize                      | 4.44.4, 5.22.5, 6.37.8       | critical | 有       | GHSA-8c25-f3mj-v6h8, GHSA-f598-mfpv-gmfx, GHSA-v8fg-2rw7-q452, GHSA-vqfx-gj96-3w95, GHSA-wrh9-cjv3-2hpw, uuid, validator                          |
+| sequelize-auto-migrations      | 1.0.3                        | critical | 有       | sequelize                                                                                                                                         |
+| sequelize-mig                  | 3.1.3                        | moderate | 有       | sequelize                                                                                                                                         |
+| sequelize-typescript           | 1.1.0                        | critical | 有       | GHSA-7pvx-4585-hqww, sequelize                                                                                                                    |
+| sequelize-typescript-migration | 0.0.1-beta.3                 | critical | 有       | mysql2, sequelize, sequelize-typescript                                                                                                           |
+| source-map-js                  | 1.2.1                        | high     | 無       | GHSA-68fv-2mgg-jv7q                                                                                                                               |
+| ts-node-dev                    | 2.0.0                        | high     | 無       | chokidar                                                                                                                                          |
+| tsc-alias                      | 1.8.16                       | high     | 有       | chokidar, globby                                                                                                                                  |
+| uuid                           | 3.4.0, 8.3.2                 | moderate | 有       | GHSA-w5hq-g745-h8pq                                                                                                                               |
+| validator                      | 10.11.0                      | high     | 有       | GHSA-9965-vmph-33xx, GHSA-qgmg-gppg-76g5, GHSA-vghf-hv5q-vc2g                                                                                     |
+| vite                           | 8.2.2                        | high     | 無       | GHSA-587h-7wmj-h5pm, GHSA-698v-4r3x-3vcv, GHSA-9jrq-w75r-8gcw, GHSA-r825-w8mm-5pxw, GHSA-rq7h-c2jc-7f22, GHSA-vfpm-58rq-9qcg                      |
+| vitest                         | 4.1.11                       | moderate | 無       | @vitest/coverage-v8, @vitest/mocker                                                                                                               |
 
 lockfile SHA256: `d6073f2ff51b892c9b701a39617044f7bf5f206243da16803db1c1f099489d66`
-
 
 ## 2026-10-22 修正結果
 
@@ -174,17 +173,17 @@ lockfile SHA256: `d6073f2ff51b892c9b701a39617044f7bf5f206243da16803db1c1f099489d
 
 ### 実装した内容
 
-| 対象 | 修正内容 |
-| --- | --- |
-| HTTP処理 | Multer 2.4.0、Express 4.22.3、morgan 1.12.1へ更新 |
-| Express子依存 | body-parser 1.20.8、qs 6.16.1、proxy-addr 2.0.8 |
-| IP・日時・CLI子依存 | ip-address 10.7.4、moment 2.31.0、js-cookie 3.0.8 |
-| テンプレート | EJSを3.1.10へ更新。ルートviews/error.ejsが存在するため削除せず互換APIを維持 |
-| テスト・開発 | Vitest/coverage-v8 4.1.12、tsx 4.23.15、esbuild 0.28.2、Vite 8.3.5等へ更新 |
-| Sequelize子依存 | Sequelizeに限定したoverridesでuuidを11.1.1へ。Sequelize本体は6.37.8を維持 |
-| 不要依存 | sequelize-auto-migrations、sequelize-mig、sequelize-typescript-migration、nodemon、ts-node-devを削除 |
-| ビルド | srcの独自path alias importがないことを確認しtsc-aliasを削除。buildはtscのみ。typescript/ts-nodeはdevへ移動 |
-| 認証先行 | shopSignupの身分証PATCHを認証→既存レート制限→params→multipart→bodyの順へ修正 |
+| 対象                | 修正内容                                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| HTTP処理            | Multer 2.4.0、Express 4.22.3、morgan 1.12.1へ更新                                                          |
+| Express子依存       | body-parser 1.20.8、qs 6.16.1、proxy-addr 2.0.8                                                            |
+| IP・日時・CLI子依存 | ip-address 10.7.4、moment 2.31.0、js-cookie 3.0.8                                                          |
+| テンプレート        | EJSを3.1.10へ更新。ルートviews/error.ejsが存在するため削除せず互換APIを維持                                |
+| テスト・開発        | Vitest/coverage-v8 4.1.12、tsx 4.23.15、esbuild 0.28.2、Vite 8.3.5等へ更新                                 |
+| Sequelize子依存     | Sequelizeに限定したoverridesでuuidを11.1.1へ。Sequelize本体は6.37.8を維持                                  |
+| 不要依存            | sequelize-auto-migrations、sequelize-mig、sequelize-typescript-migration、nodemon、ts-node-devを削除       |
+| ビルド              | srcの独自path alias importがないことを確認しtsc-aliasを削除。buildはtscのみ。typescript/ts-nodeはdevへ移動 |
+| 認証先行            | shopSignupの身分証PATCHを認証→既存レート制限→params→multipart→bodyの順へ修正                               |
 
 uuidはCommonJSのrequireエントリを持つ11系の修正版に限定した。旧ORM4/5・mysql2等は旧生成ツールとともに除去。
 この依存構成にはbraces/chokidar/globby/fast-glob/micromatchの指摘経路が残らない。

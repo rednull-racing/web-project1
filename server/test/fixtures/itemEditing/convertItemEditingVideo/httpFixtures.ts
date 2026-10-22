@@ -5,7 +5,10 @@ import request from "supertest";
 export const deferred = <T>() => {
     let resolve!: (value: T | PromiseLike<T>) => void;
     let reject!: (reason: unknown) => void;
-    const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
     return { promise, resolve, reject };
 };
 
@@ -26,4 +29,6 @@ export const makeVideoToken = (secret: string, id = 7, expiresIn = 7200) =>
     jwt.sign({ id, email: "video-test@example.test", admin: false }, secret, { expiresIn });
 
 export const patchVideo = (app: ReturnType<typeof express>, secret: string, id: number | string = 101, userId = 7) =>
-    request(app).patch(`/api/item-editing/${id}/convert`).set("Authorization", "Bearer " + makeVideoToken(secret, userId));
+    request(app)
+        .patch(`/api/item-editing/${id}/convert`)
+        .set("Authorization", "Bearer " + makeVideoToken(secret, userId));

@@ -5,7 +5,12 @@ import { QueryTypes } from "sequelize";
 import type { Transaction } from "sequelize";
 import { describe, expect, it } from "vitest";
 import {
-    ItemEditing, observer, protectedSnapshot, seed, sequelize, snapshot,
+    ItemEditing,
+    observer,
+    protectedSnapshot,
+    seed,
+    sequelize,
+    snapshot,
 } from "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.js";
 import { getMyItemEditing } from "../../../../../src/services/itemEditing/query.js";
 import { updateItemEditingVideo } from "../../../../../src/services/itemEditing/command.js";
@@ -37,7 +42,14 @@ const transactionPid = async (transaction: Transaction) => {
 };
 const waitBlocked = async (waiter: number, blocker: number, pending: Promise<unknown>) => {
     let finished = false;
-    const observed = pending.then(() => { finished = true; }, () => { finished = true; });
+    const observed = pending.then(
+        () => {
+            finished = true;
+        },
+        () => {
+            finished = true;
+        },
+    );
     const deadline = performance.now() + 5000;
     while (performance.now() < deadline) {
         if (finished) {
@@ -55,17 +67,21 @@ const waitBlocked = async (waiter: number, blocker: number, pending: Promise<unk
 };
 
 describe("動画変換serviceの実DB永続化", () => {
-    it.each(["original", "processing", "converted", "failed", null])("D01: 元状態%sからprocessingを保存し、URL・秒数と非対象情報を保持する", async (video_status) => {
-        const fixture = await seed();
-        await fixture.editing.update({ video_status });
-        const before = await snapshot("item_editing", fixture.editing.id);
-        const protectedBefore = await protectedSnapshot(fixture);
-        await persist(fixture.editing.id, fixture.owner.id, { video_status: "processing" });
-        expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...withoutUpdatedAt(before), video_status: "processing",
-        });
-        expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
-    });
+    it.each(["original", "processing", "converted", "failed", null])(
+        "D01: 元状態%sからprocessingを保存し、URL・秒数と非対象情報を保持する",
+        async (video_status) => {
+            const fixture = await seed();
+            await fixture.editing.update({ video_status });
+            const before = await snapshot("item_editing", fixture.editing.id);
+            const protectedBefore = await protectedSnapshot(fixture);
+            await persist(fixture.editing.id, fixture.owner.id, { video_status: "processing" });
+            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+                ...withoutUpdatedAt(before),
+                video_status: "processing",
+            });
+            expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
+        },
+    );
 
     it.each([0, 42])("D02: 成功時converted・今回URL・秒数%sだけを保存する", async (duration) => {
         const fixture = await seed();
@@ -73,10 +89,15 @@ describe("動画変換serviceの実DB永続化", () => {
         const before = await snapshot("item_editing", fixture.editing.id);
         const protectedBefore = await protectedSnapshot(fixture);
         await persist(fixture.editing.id, fixture.owner.id, {
-            video_status: "converted", converted_url: "https://media.test/new/index.m3u8", duration,
+            video_status: "converted",
+            converted_url: "https://media.test/new/index.m3u8",
+            duration,
         });
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...withoutUpdatedAt(before), video_status: "converted", converted_url: "https://media.test/new/index.m3u8", duration,
+            ...withoutUpdatedAt(before),
+            video_status: "converted",
+            converted_url: "https://media.test/new/index.m3u8",
+            duration,
         });
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
     });
@@ -88,7 +109,9 @@ describe("動画変換serviceの実DB永続化", () => {
         const protectedBefore = await protectedSnapshot(fixture);
         await persist(fixture.editing.id, fixture.owner.id, { video_status: "failed", converted_url: null });
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...withoutUpdatedAt(before), video_status: "failed", converted_url: null,
+            ...withoutUpdatedAt(before),
+            video_status: "failed",
+            converted_url: null,
         });
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
     });
@@ -99,9 +122,17 @@ describe("動画変換serviceの実DB永続化", () => {
         const protectedBefore = await protectedSnapshot(fixture);
         const error = new Error("after video write");
         const task = sequelize.transaction(async (transaction) => {
-            const itemEditing = await getMyItemEditing({ itemEditingId: fixture.editing.id, userId: fixture.owner.id, transaction });
+            const itemEditing = await getMyItemEditing({
+                itemEditingId: fixture.editing.id,
+                userId: fixture.owner.id,
+                transaction,
+            });
             if (!itemEditing) throw new Error("Fixture not found");
-            await updateItemEditingVideo({ itemEditing, data: { video_status: "converted", converted_url: "https://media.test/rolled-back.m3u8", duration: 99 }, transaction });
+            await updateItemEditingVideo({
+                itemEditing,
+                data: { video_status: "converted", converted_url: "https://media.test/rolled-back.m3u8", duration: 99 },
+                transaction,
+            });
             expect((await snapshot("item_editing", fixture.editing.id, transaction))?.duration).toBe(99);
             expect(await snapshot("item_editing", fixture.editing.id)).toEqual(before);
             throw error;
@@ -119,8 +150,10 @@ describe("動画変換serviceの実DB永続化", () => {
         const before = await snapshot("item_editing", fixture.editing.id);
         const protectedBefore = await protectedSnapshot(fixture);
         for (const [itemEditingId, userId] of [
-            [fixture.editing.id, fixture.other.id], [fixture.otherEditing.id, fixture.owner.id],
-            [fixture.ownerlessEditing.id, fixture.owner.id], [missingId, fixture.owner.id],
+            [fixture.editing.id, fixture.other.id],
+            [fixture.otherEditing.id, fixture.owner.id],
+            [fixture.ownerlessEditing.id, fixture.owner.id],
+            [missingId, fixture.owner.id],
         ]) {
             await sequelize.transaction(async (transaction) => {
                 expect(await getMyItemEditing({ itemEditingId, userId, transaction })).toBeNull();
@@ -143,10 +176,21 @@ describe("動画変換serviceの実DB永続化", () => {
             second = await sequelize.transaction();
             const firstPid = await transactionPid(first);
             const secondPid = await transactionPid(second);
-            const locked = await getMyItemEditing({ itemEditingId: fixture.editing.id, userId: fixture.owner.id, transaction: first });
+            const locked = await getMyItemEditing({
+                itemEditingId: fixture.editing.id,
+                userId: fixture.owner.id,
+                transaction: first,
+            });
             if (!locked) throw new Error("Fixture not found");
-            pending = getMyItemEditing({ itemEditingId: fixture.editing.id, userId: fixture.owner.id, transaction: second });
-            outcome = pending.then((value) => ({ status: "fulfilled", value }), (reason: unknown) => ({ status: "rejected", reason }));
+            pending = getMyItemEditing({
+                itemEditingId: fixture.editing.id,
+                userId: fixture.owner.id,
+                transaction: second,
+            });
+            outcome = pending.then(
+                (value) => ({ status: "fulfilled", value }),
+                (reason: unknown) => ({ status: "rejected", reason }),
+            );
             await waitBlocked(secondPid, firstPid, pending);
             await locked.update({ original_url: "https://media.test/replaced-source.mp4" }, { transaction: first });
             await first.commit();
@@ -161,7 +205,9 @@ describe("動画変換serviceの実DB永続化", () => {
             if (outcome) await outcome;
             if (second && !secondClosed) await second.rollback();
         }
-        expect((await snapshot("item_editing", fixture.editing.id))?.original_url).toBe("https://media.test/replaced-source.mp4");
+        expect((await snapshot("item_editing", fixture.editing.id))?.original_url).toBe(
+            "https://media.test/replaced-source.mp4",
+        );
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
     }, 20000);
 
@@ -169,11 +215,23 @@ describe("動画変換serviceの実DB永続化", () => {
         const fixture = await seed();
         const before = await snapshot("item_editing", fixture.editing.id);
         const task = sequelize.transaction(async (transaction) => {
-            const itemEditing = await getMyItemEditing({ itemEditingId: fixture.editing.id, userId: fixture.owner.id, transaction });
+            const itemEditing = await getMyItemEditing({
+                itemEditingId: fixture.editing.id,
+                userId: fixture.owner.id,
+                transaction,
+            });
             if (!itemEditing) throw new Error("Fixture not found");
             await updateItemEditingVideo({ itemEditing, data: { video_status: "processing" }, transaction });
             expect((await snapshot("item_editing", fixture.editing.id, transaction))?.video_status).toBe("processing");
-            await updateItemEditingVideo({ itemEditing, data: { video_status: "converted", converted_url: "https://media.test/overflow.m3u8", duration: 2147483648 }, transaction });
+            await updateItemEditingVideo({
+                itemEditing,
+                data: {
+                    video_status: "converted",
+                    converted_url: "https://media.test/overflow.m3u8",
+                    duration: 2147483648,
+                },
+                transaction,
+            });
         });
         await expect(task).rejects.toMatchObject({ name: "SequelizeDatabaseError", original: { code: "22003" } });
         expect(await snapshot("item_editing", fixture.editing.id)).toEqual(before);

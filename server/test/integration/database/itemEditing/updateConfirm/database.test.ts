@@ -204,16 +204,19 @@ describe("P0 DB保存・状態遷移", () => {
         });
     });
 
-    it.each([null, "original", "pending", "completed"])("ST06: video_status=%sをoriginalへ更新し変換関連値を維持", async (status) => {
-        await f.editing.update({ video_status: status, converted_url: "https://media.test/converted" });
-        await run(f);
-        expect(await snapshot(f.editing.id)).toMatchObject({
-            name: "商品名",
-            video_status: "original",
-            converted_url: "https://media.test/converted",
-            duration: 20,
-        });
-    });
+    it.each([null, "original", "pending", "completed"])(
+        "ST06: video_status=%sをoriginalへ更新し変換関連値を維持",
+        async (status) => {
+            await f.editing.update({ video_status: status, converted_url: "https://media.test/converted" });
+            await run(f);
+            expect(await snapshot(f.editing.id)).toMatchObject({
+                name: "商品名",
+                video_status: "original",
+                converted_url: "https://media.test/converted",
+                duration: 20,
+            });
+        },
+    );
 
     it("ST08: 価格変更でもsale_flag・割引値を再計算しない", async () => {
         await f.editing.update({ sale_flag: true, discount_rate: 20, discount_amount: 180 });
@@ -334,25 +337,28 @@ describe("P1 DB・モデル制約とrollback", () => {
     });
 
     describe.each(["category", "condition", "day", "service", "place", "brand"] as const)("I03 I04: %s ID", (field) => {
-        it.each(["0", "-1", "1.5", "Infinity", "abc", "NaN", "2147483648"])("不正ID=%sは400で拒否し実DBを更新しない", async (value) => {
-            if (field === "category") f.body.category.id = value;
-            else if (field === "condition") f.body.condition.id = value;
-            else if (field === "brand") f.body.brand = { id: value, name: null };
-            else f.body.shipping[field] = value;
-            const before = await snapshot(f.editing.id);
-            const other = await snapshot(f.otherEditing.id);
-            const transaction = vi.spyOn(sequelize, "transaction");
-            const update = vi.spyOn(command, "updateConfirm");
-            const images = vi.spyOn(command, "updateItemEditingImage");
+        it.each(["0", "-1", "1.5", "Infinity", "abc", "NaN", "2147483648"])(
+            "不正ID=%sは400で拒否し実DBを更新しない",
+            async (value) => {
+                if (field === "category") f.body.category.id = value;
+                else if (field === "condition") f.body.condition.id = value;
+                else if (field === "brand") f.body.brand = { id: value, name: null };
+                else f.body.shipping[field] = value;
+                const before = await snapshot(f.editing.id);
+                const other = await snapshot(f.otherEditing.id);
+                const transaction = vi.spyOn(sequelize, "transaction");
+                const update = vi.spyOn(command, "updateConfirm");
+                const images = vi.spyOn(command, "updateItemEditingImage");
 
-            await expectAppError(run(f), "INVALID_NUMBER", 400);
+                await expectAppError(run(f), "INVALID_NUMBER", 400);
 
-            expect(transaction).not.toHaveBeenCalled();
-            expect(update).not.toHaveBeenCalled();
-            expect(images).not.toHaveBeenCalled();
-            expect(await snapshot(f.editing.id)).toEqual(before);
-            expect(await snapshot(f.otherEditing.id)).toEqual(other);
-        });
+                expect(transaction).not.toHaveBeenCalled();
+                expect(update).not.toHaveBeenCalled();
+                expect(images).not.toHaveBeenCalled();
+                expect(await snapshot(f.editing.id)).toEqual(before);
+                expect(await snapshot(f.otherEditing.id)).toEqual(other);
+            },
+        );
 
         it("I03: 空白IDは既存の参照をnullへ更新し非対象行を維持する", async () => {
             await f.editing.update({

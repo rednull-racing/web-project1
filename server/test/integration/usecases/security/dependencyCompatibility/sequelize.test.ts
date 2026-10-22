@@ -44,10 +44,12 @@ describe("P0: 修正済みuuidと実Sequelizeの互換性（DB非接続）", () 
 
     it.each(["v3", "v5"] as const)("E01: ORM配下uuidの%sは出力bufferの境界超過を拒否する", (method) => {
         const ormRequire = createRequire(createRequire(import.meta.url).resolve("sequelize"));
-        const uuid: Record<"v3" | "v5", (value: string, namespace: string, buffer: Uint8Array, offset: number) => unknown> =
-            ormRequire("uuid");
-        expect(() => uuid[method]("security-regression", "6ba7b810-9dad-11d1-80b4-00c04fd430c8", new Uint8Array(8), 4))
-            .toThrow(RangeError);
+        const uuid: Record<
+            "v3" | "v5",
+            (value: string, namespace: string, buffer: Uint8Array, offset: number) => unknown
+        > = ormRequire("uuid");
+        expect(() =>
+            uuid[method]("security-regression", "6ba7b810-9dad-11d1-80b4-00c04fd430c8", new Uint8Array(8), 4),
+        ).toThrow(RangeError);
     });
-
 });

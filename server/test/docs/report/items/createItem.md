@@ -62,7 +62,7 @@ F1の実装・詳細設計・テスト修正と非DB検証は完了。関連19�
 | S-todouhuken            | `src/services/todouhuken/test/createItem.test.ts`                         |    2 |    0 |    0 |    0 |
 | S-users                 | `src/services/users/test/createItem.test.ts`                              |    3 |    0 |    0 |    0 |
 | S-video                 | `src/services/video/test/createItem.test.ts`                              |    2 |    0 |    0 |    0 |
-| U                       | `src/usecases/items/create/test/createItem.test.ts`                        |  340 |    0 |    0 |    0 |
+| U                       | `src/usecases/items/create/test/createItem.test.ts`                       |  340 |    0 |    0 |    0 |
 | V                       | `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |    0 |    0 |
 | S-items-create          | `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |    0 |    0 |
 | H                       | `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |    0 |    0 |
@@ -322,7 +322,7 @@ export default tseslint.config({
 | `src/services/todouhuken/test/createItem.test.ts`                         |    2 |    0 |            0 |    0 |
 | `src/services/video/test/createItem.test.ts`                              |    2 |    0 |            0 |    0 |
 | `src/services/users/test/createItem.test.ts`                              |    3 |    0 |            0 |    0 |
-| `src/usecases/items/create/test/createItem.test.ts`                        |  365 |    0 |            0 |    0 |
+| `src/usecases/items/create/test/createItem.test.ts`                       |  365 |    0 |            0 |    0 |
 | `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |            0 |    0 |
 | `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |            0 |    0 |
 | `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |            0 |    0 |
@@ -390,7 +390,7 @@ F2の旧カラム残存による停止は解消し、元のDB72件を実行し�
 | 非DB `src/services/users/test/createItem.test.ts`                              |    3 |    0 |    0 |    0 |
 | 非DB `src/services/video/test/createItem.test.ts`                              |    2 |    0 |    0 |    0 |
 | 非DB `src/validators/body/test/createItem.test.ts`                             |   28 |    0 |    0 |    0 |
-| 非DB `src/usecases/items/create/test/createItem.test.ts`                        |  365 |    0 |    0 |    0 |
+| 非DB `src/usecases/items/create/test/createItem.test.ts`                       |  365 |    0 |    0 |    0 |
 | 非DB `src/services/items/command/test/createItem.test.ts`                      |    2 |    0 |    0 |    0 |
 | 非DB `test/integration/usecases/items/createItem/master.test.ts`               |   15 |    0 |    0 |    0 |
 | 非DB `test/integration/usecases/items/createItem/registration.test.ts`         |    1 |    0 |    0 |    0 |

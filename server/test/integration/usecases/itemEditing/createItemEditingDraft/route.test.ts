@@ -7,7 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { invalidIds, makeBody } from "../../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn(), observe: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({ convertItemEditingVideoUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
     createItemEditingDraftUseCase: mocks.create,
 }));

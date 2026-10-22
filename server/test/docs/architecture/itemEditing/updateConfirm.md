@@ -237,14 +237,14 @@ V の拒否ケースは `INVALID_BODY / 400`（params は `INVALID_PARAMS / 400`
 
 以下は category.id、condition.id、shipping.day/service/place、brand.id に対し、schema で許される型の範囲でパラメータ化する。
 
-| ID  | レベル | 入力                             | 期待結果                                                                                                                             |
-| --- | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| I01 | H      | null、空文字                     | null へ変換。condition.id の null は HTTP では到達しない                                                                             |
-| I02 | H      | "1"、"01"、" 1 "、"1e2"          | Number の結果である 1、1、1、100 を渡す                                                                                              |
-| I03 | H/D    | "0"、空白だけの文字列            | 0はINVALID_NUMBER/400で保存前に拒否。空白はnullへ変換し、既存の参照をnullへ更新する |
-| I04 | H/D    | "-1"、"1.5"、"Infinity"、"2147483648" | INVALID_NUMBER/400。商品transactionと両更新を開始せず、対象・非対象行を維持する |
-| I05 | H      | "abc"、"NaN"                     | INVALID_NUMBER。複数不正時は category→condition→day→service→place→brand の順に停止                                                   |
-| I06 | H      | 各マスター ID が null／0／有効値 | null と 0 は取得なし、有効値は対応 service へ正しいキー名で 1 回渡す。brandId=0 は resolveBrand では getBrand の対象となる           |
+| ID  | レベル | 入力                                  | 期待結果                                                                                                                   |
+| --- | ------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| I01 | H      | null、空文字                          | null へ変換。condition.id の null は HTTP では到達しない                                                                   |
+| I02 | H      | "1"、"01"、" 1 "、"1e2"               | Number の結果である 1、1、1、100 を渡す                                                                                    |
+| I03 | H/D    | "0"、空白だけの文字列                 | 0はINVALID_NUMBER/400で保存前に拒否。空白はnullへ変換し、既存の参照をnullへ更新する                                        |
+| I04 | H/D    | "-1"、"1.5"、"Infinity"、"2147483648" | INVALID_NUMBER/400。商品transactionと両更新を開始せず、対象・非対象行を維持する                                            |
+| I05 | H      | "abc"、"NaN"                          | INVALID_NUMBER。複数不正時は category→condition→day→service→place→brand の順に停止                                         |
+| I06 | H      | 各マスター ID が null／0／有効値      | null と 0 は取得なし、有効値は対応 service へ正しいキー名で 1 回渡す。brandId=0 は resolveBrand では getBrand の対象となる |
 
 ## 7. 署名 URL・既存画像の条件分岐
 

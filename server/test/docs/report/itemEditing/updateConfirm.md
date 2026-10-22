@@ -16,12 +16,12 @@
 
 実行場所は`server/`。以下の実出力を集計した。
 
-| 対象 | 結果 |
-| --- | --- |
-| `npm run test:run -- test/integration/database/itemEditing/updateConfirm/database.test.ts` | 110件成功 |
-| `npm run test:run -- test/integration/usecases/itemEditing/updateConfirm/databaseTransactions.test.ts test/integration/usecases/itemEditing/updateConfirm/databaseConcurrency.test.ts --maxWorkers=1` | 2ファイル15件成功 |
-| 設計書冒頭のDB非接続回帰コマンド（単体6ファイル＋masterBrand＋route） | 初回は7ファイル512件成功、route22件はlisten EPERMで停止 |
-| `npm run test:run -- test/integration/usecases/itemEditing/updateConfirm/route.test.ts --maxWorkers=1` | 制限外で22件成功。DB非接続回帰は合計8ファイル534件成功 |
+| 対象                                                                                                                                                                                                  | 結果                                                    |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `npm run test:run -- test/integration/database/itemEditing/updateConfirm/database.test.ts`                                                                                                            | 110件成功                                               |
+| `npm run test:run -- test/integration/usecases/itemEditing/updateConfirm/databaseTransactions.test.ts test/integration/usecases/itemEditing/updateConfirm/databaseConcurrency.test.ts --maxWorkers=1` | 2ファイル15件成功                                       |
+| 設計書冒頭のDB非接続回帰コマンド（単体6ファイル＋masterBrand＋route）                                                                                                                                 | 初回は7ファイル512件成功、route22件はlisten EPERMで停止 |
+| `npm run test:run -- test/integration/usecases/itemEditing/updateConfirm/route.test.ts --maxWorkers=1`                                                                                                | 制限外で22件成功。DB非接続回帰は合計8ファイル534件成功  |
 
 実DBは制限外で実行し、既存fixtureによる.env.test読込元検査、全3接続の実DB名test_db検査、追跡ID限定cleanup・残存0件・接続終了hookまで成功した。実DBの対象処理は実usecase・helper・service・Model・PostgreSQLを通し、S3署名だけをモック。ファイル間のfixture/hook干渉を避けるためmaxWorkers=1を使用し、並行処理ケース内の独立transactionは維持した。
 

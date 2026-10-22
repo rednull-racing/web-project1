@@ -4,7 +4,9 @@ import { AppError } from "../../../errors.js";
 import { deferred, makeBody } from "../../../usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("../../../usecases/itemEditing/convertItemEditingVideo.js", () => ({ convertItemEditingVideoUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../usecases/itemEditing/createItemEditingDraft.js", () => ({
     createItemEditingDraftUseCase: mocks.create,
 }));

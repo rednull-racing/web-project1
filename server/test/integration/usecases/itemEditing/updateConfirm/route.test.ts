@@ -9,7 +9,9 @@ import {
     variantImageStates,
 } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
 const mocks = vi.hoisted(() => ({ update: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({ convertItemEditingVideoUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));

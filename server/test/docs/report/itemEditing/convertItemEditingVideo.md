@@ -25,10 +25,10 @@ User ModelのcreatedAt/updatedAtはallowNull:false。両DBの対象列は適用�
 設定DB名と接続後のcurrent_database()を検査してからメタデータ・NULL件数を読み取った。
 両DBともcreatedAt/updatedAtの既存NULLは0件。データ補完や既存行削除は行っていない。
 
-| DB | 適用後createdAt/updatedAt | 型/default | 今回の履歴 |
-| --- | --- | --- | --- |
-| neondb | 両列NOT NULL | timestamp with time zone / now()を保持 | SequelizeMetaに今回名1件 |
-| test_db | 両列NOT NULL | 同上 | 同上 |
+| DB      | 適用後createdAt/updatedAt | 型/default                             | 今回の履歴               |
+| ------- | ------------------------- | -------------------------------------- | ------------------------ |
+| neondb  | 両列NOT NULL              | timestamp with time zone / now()を保持 | SequelizeMetaに今回名1件 |
+| test_db | 両列NOT NULL              | 同上                                   | 同上                     |
 
 upは2列のSET NOT NULLを同一transactionで実行する。downは逆順のDROP NOT NULLで、データ・型/defaultを変更しない。
 既存NULLがあればDB制約検査で停止し、補完値を推測しない。downは構文・内容を確認したが実DBへの実行はしていない。
@@ -56,11 +56,11 @@ DDLと履歴登録は別transactionであり、適用後に両方の成立を確
 処理結果のvideo_statusは仕様どおりconvertedのまま。
 最終検査で旧API処理名の参照はdocs/server配下に残っていない。
 
-| ケース | 実行ファイル（server/基準） | 件数・結果 |
-| --- | --- | --- |
-| U01〜U18、V01〜V13、A01〜A06、S01〜S04、C01〜C04、M01/M02、H01〜H12と既存回帰 | 下記DB非接続コマンド | 263成功 |
-| D01〜D07 | test/integration/database/itemEditing/convertItemEditingVideo/database.test.ts | 13成功 |
-| I01〜I12 | test/integration/usecases/itemEditing/convertItemEditingVideo/database.test.ts | 23成功 |
+| ケース                                                                        | 実行ファイル（server/基準）                                                    | 件数・結果 |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------- |
+| U01〜U18、V01〜V13、A01〜A06、S01〜S04、C01〜C04、M01/M02、H01〜H12と既存回帰 | 下記DB非接続コマンド                                                           | 263成功    |
+| D01〜D07                                                                      | test/integration/database/itemEditing/convertItemEditingVideo/database.test.ts | 13成功     |
+| I01〜I12                                                                      | test/integration/usecases/itemEditing/convertItemEditingVideo/database.test.ts | 23成功     |
 
 I系は変換utilityだけをモックし、実UseCase・service・Model・transaction・PostgreSQLを接続した。
 正常/全状態と再送、失敗duration保持、他人/不存在/元URLなし、元URL差替え後の旧成功/失敗保存抑止、
@@ -140,21 +140,21 @@ Model・migration・DBスキーマの変更はない。
 以下のパス・コマンドの基準はserver/。JSON集計元は一時ファイル
 /tmp/converted-item-editing-video-results.json（重要な件数と結果は本書にも保持）。
 
-| テスト | ケース | 成功件数 |
-| --- | --- | ---: |
-| src/usecases/itemEditing/test/convertItemEditingVideo.test.ts | U01〜U18。状態、停止、transaction待機、差替え、別キー独立、原因保持 | 26 |
-| src/utils/test/itemEditingVideoConversion.test.ts | V01〜V13。変換、duration境界、子プロセスclose/中断/timeout、I/O、cleanup | 38 |
-| src/utils/s3/test/itemEditingVideoConversion.test.ts | A01〜A06。signal有無、SDK/pipeline引渡し、stream終了と原因保持 | 16 |
-| src/services/itemEditing/test/convertItemEditingVideo.test.ts | S01〜S04。DTO3状態、同一instance/transaction、await、所有者where/lock | 7 |
-| src/controllers/itemEditing/test/convertItemEditingVideo.test.ts | C01〜C04。検証値採用、非待機、共通境界、送信失敗 | 6 |
-| src/middleware/test/itemEditingVideoResponse.test.ts | M01/M02。内部statusとheaders、対象外 | 5 |
-| test/integration/usecases/itemEditing/convertItemEditingVideo/http.test.ts | H01〜H12。JWT、params、parser、limiter窓/独立、全202、実app順序 | 41 |
-| src/services/itemEditing/test/の上記以外6ファイル | 既存service回帰 | 22 |
-| src/controllers/itemEditing/test/の上記以外3ファイル | 既存controller回帰 | 14 |
-| test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts | 既存HTTP回帰 | 26 |
-| test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts | 既存HTTP回帰 | 40 |
-| test/integration/usecases/itemEditing/updateConfirm/route.test.ts | 既存HTTP回帰 | 22 |
-| 合計（重複加算なし） | 19ファイル、new139/regression124 | 263 |
+| テスト                                                                     | ケース                                                                   | 成功件数 |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------: |
+| src/usecases/itemEditing/test/convertItemEditingVideo.test.ts              | U01〜U18。状態、停止、transaction待機、差替え、別キー独立、原因保持      |       26 |
+| src/utils/test/itemEditingVideoConversion.test.ts                          | V01〜V13。変換、duration境界、子プロセスclose/中断/timeout、I/O、cleanup |       38 |
+| src/utils/s3/test/itemEditingVideoConversion.test.ts                       | A01〜A06。signal有無、SDK/pipeline引渡し、stream終了と原因保持           |       16 |
+| src/services/itemEditing/test/convertItemEditingVideo.test.ts              | S01〜S04。DTO3状態、同一instance/transaction、await、所有者where/lock    |        7 |
+| src/controllers/itemEditing/test/convertItemEditingVideo.test.ts           | C01〜C04。検証値採用、非待機、共通境界、送信失敗                         |        6 |
+| src/middleware/test/itemEditingVideoResponse.test.ts                       | M01/M02。内部statusとheaders、対象外                                     |        5 |
+| test/integration/usecases/itemEditing/convertItemEditingVideo/http.test.ts | H01〜H12。JWT、params、parser、limiter窓/独立、全202、実app順序          |       41 |
+| src/services/itemEditing/test/の上記以外6ファイル                          | 既存service回帰                                                          |       22 |
+| src/controllers/itemEditing/test/の上記以外3ファイル                       | 既存controller回帰                                                       |       14 |
+| test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts  | 既存HTTP回帰                                                             |       26 |
+| test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts | 既存HTTP回帰                                                             |       40 |
+| test/integration/usecases/itemEditing/updateConfirm/route.test.ts          | 既存HTTP回帰                                                             |       22 |
+| 合計（重複加算なし）                                                       | 19ファイル、new139/regression124                                         |      263 |
 
 ```bash
 npm run test:run -- src/usecases/itemEditing/test/convertItemEditingVideo.test.ts src/utils/test/itemEditingVideoConversion.test.ts src/utils/s3/test/itemEditingVideoConversion.test.ts src/services/itemEditing/test/ src/controllers/itemEditing/test/ src/middleware/test/itemEditingVideoResponse.test.ts test/integration/usecases/itemEditing/convertItemEditingVideo/http.test.ts test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts test/integration/usecases/itemEditing/updateConfirm/route.test.ts --reporter=json --outputFile=/tmp/converted-item-editing-video-results.json
@@ -187,15 +187,15 @@ ItemEditing全列の存在/NULL検査を通過したが、User.createdAtで停�
 DB_TEST_STOP: user.createdAt exists=true nullable=true expected=false
 ```
 
-| ID | 実装した観点 | 展開件数・状態 |
-| --- | --- | --- |
-| D01 | original/processing/converted/failed/null→processing、非対象列/他行保持 | 5件・未実行 |
-| D02 | converted/URL、duration 0/42 | 2件・未実行 |
-| D03 | failed/URL null、duration 17/null保持 | 2件・未実行 |
-| D04 | 実UPDATE後のcallback失敗とrollback | 1件・未実行 |
-| D05 | 他人/所有者null/不存在の実除外 | 1件・未実行 |
-| D06 | 独立transaction/PID/observerのpg_blocking_pids実待機後に元URL再取得 | 1件・未実行 |
-| D07 | INTEGER超過SQLSTATE 22003と先行processingのrollback | 1件・未実行 |
+| ID  | 実装した観点                                                            | 展開件数・状態 |
+| --- | ----------------------------------------------------------------------- | -------------- |
+| D01 | original/processing/converted/failed/null→processing、非対象列/他行保持 | 5件・未実行    |
+| D02 | converted/URL、duration 0/42                                            | 2件・未実行    |
+| D03 | failed/URL null、duration 17/null保持                                   | 2件・未実行    |
+| D04 | 実UPDATE後のcallback失敗とrollback                                      | 1件・未実行    |
+| D05 | 他人/所有者null/不存在の実除外                                          | 1件・未実行    |
+| D06 | 独立transaction/PID/observerのpg_blocking_pids実待機後に元URL再取得     | 1件・未実行    |
+| D07 | INTEGER超過SQLSTATE 22003と先行processingのrollback                     | 1件・未実行    |
 
 seed前停止でテスト作成行0、cleanup DELETE0。safe不成立時にcleanup削除をしない。
 列挙した3接続はすべてclose成功。migration、sync、DB作成、既存行の補正は行っていない。
@@ -204,16 +204,16 @@ seed前停止でテスト作成行0、cleanup DELETE0。safe不成立時にclean
 
 ## 初回・修正・再検証履歴
 
-| 修正ID | 原因・対象 | 修正と結果 |
-| --- | --- | --- |
-| F1 | utilityのfinally内throwがno-unsafe-finally、unitの未使用import | cleanup原因を変数に保持してfinally外でthrow、未使用import削除。主原因保持を維持しutility54件/usecase26件とlint再成功 |
-| F2 | HTTP fixtureのhoisted export収集不備、writeHead overload型診断 | fixture初期化順・具体的overload型を修正。HTTP/controller/middleware52件と統合後の両型検査成功 |
-| F3 | DB fixtureのFK情報型がobjectでテストtsc失敗 | 型付き情報スキーマSELECTへ変更。テスト型検査成功。DBガード失敗とは別のテストコード問題 |
-| F4 | 初回DB fixtureが無関係なVideo/Itemまでseed・全列照合しVideo.createdAtで停止 | 非対象依存を除き本APIのItemEditing/必要親Userへ限定。APIの必要ガードは維持。次に必要親User.createdAtで停止、ここからDB再実行停止 |
-| F5 | 既存User日時NULL定義不一致 | 未修正。対象外のschema変更やガード緩和をせず中断、Todo作成 |
-| F6 | 新規3ファイルの末尾空行をstaged差分検査で検出 | 末尾空行だけ削除。挙動変更なし、差分検査再成功 |
-| 環境 | HTTP listen EPERM、DB socket EPERM | 承認手順で同じガード/対象を制限外実行。HTTP成功、DBはschemaガード停止 |
-| 検査コマンド | 初回追加ESLintのflat configにextendsを直接渡して起動失敗 | tseslint.configによる展開へ修正。リポジトリ共有設定変更なし、追加6ファイル0 errors/0 warnings |
+| 修正ID       | 原因・対象                                                                  | 修正と結果                                                                                                                       |
+| ------------ | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| F1           | utilityのfinally内throwがno-unsafe-finally、unitの未使用import              | cleanup原因を変数に保持してfinally外でthrow、未使用import削除。主原因保持を維持しutility54件/usecase26件とlint再成功             |
+| F2           | HTTP fixtureのhoisted export収集不備、writeHead overload型診断              | fixture初期化順・具体的overload型を修正。HTTP/controller/middleware52件と統合後の両型検査成功                                    |
+| F3           | DB fixtureのFK情報型がobjectでテストtsc失敗                                 | 型付き情報スキーマSELECTへ変更。テスト型検査成功。DBガード失敗とは別のテストコード問題                                           |
+| F4           | 初回DB fixtureが無関係なVideo/Itemまでseed・全列照合しVideo.createdAtで停止 | 非対象依存を除き本APIのItemEditing/必要親Userへ限定。APIの必要ガードは維持。次に必要親User.createdAtで停止、ここからDB再実行停止 |
+| F5           | 既存User日時NULL定義不一致                                                  | 未修正。対象外のschema変更やガード緩和をせず中断、Todo作成                                                                       |
+| F6           | 新規3ファイルの末尾空行をstaged差分検査で検出                               | 末尾空行だけ削除。挙動変更なし、差分検査再成功                                                                                   |
+| 環境         | HTTP listen EPERM、DB socket EPERM                                          | 承認手順で同じガード/対象を制限外実行。HTTP成功、DBはschemaガード停止                                                            |
+| 検査コマンド | 初回追加ESLintのflat configにextendsを直接渡して起動失敗                    | tseslint.configによる展開へ修正。リポジトリ共有設定変更なし、追加6ファイル0 errors/0 warnings                                    |
 
 DB担当の3回の履歴は、sandbox EPERM、過剰Videoガード、必要親Userガードの順。
 いずれもセットアップ失敗で13件はランナー上skipped、本体の成功/失敗判定ではない。

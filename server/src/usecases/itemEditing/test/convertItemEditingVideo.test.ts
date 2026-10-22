@@ -21,14 +21,19 @@ const row = () => ({ id: 19, seller_id: 7, original_url: source, video_status: "
 const deferred = <T>() => {
     let resolve!: (value: T) => void;
     let reject!: (error: unknown) => void;
-    const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
+    const promise = new Promise<T>((yes, no) => {
+        resolve = yes;
+        reject = no;
+    });
     return { promise, resolve, reject };
 };
 const makeTransaction = () => ({ LOCK: { UPDATE: "UPDATE" } }) as Transaction;
 
 beforeEach(() => {
     vi.resetAllMocks();
-    mocks.transaction.mockImplementation(async (callback: (t: Transaction) => Promise<unknown>) => callback(makeTransaction()));
+    mocks.transaction.mockImplementation(async (callback: (t: Transaction) => Promise<unknown>) =>
+        callback(makeTransaction()),
+    );
     mocks.get.mockImplementation(async () => row());
     mocks.update.mockResolvedValue(undefined);
     mocks.convert.mockResolvedValue({ ...result });
@@ -36,23 +41,36 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("convertItemEditingVideo usecase P0 状態・停止・待機", () => {
-    it.each(["original", "processing", "converted", "failed", null])("U01 %sからprocessingとconvertedのみ保存する", async (status) => {
-        const first = { ...row(), video_status: status };
-        const latest = { ...row(), video_status: "processing" };
-        mocks.get.mockResolvedValueOnce(first).mockResolvedValueOnce(latest);
-        await expect(run(params)).resolves.toBeUndefined();
-        expect(mocks.get).toHaveBeenCalledTimes(2);
-        const firstTransaction = mocks.get.mock.calls[0][0].transaction;
-        const lastTransaction = mocks.get.mock.calls[1][0].transaction;
-        expect(mocks.get.mock.calls[0][0]).toEqual({ ...params, transaction: firstTransaction });
-        expect(mocks.update.mock.calls).toEqual([
-            [{ itemEditing: first, data: { video_status: "processing" }, transaction: firstTransaction }],
-            [{ itemEditing: latest, data: { video_status: "converted", converted_url: result.convertedUrl, duration: 23 }, transaction: lastTransaction }],
-        ]);
-        expect(mocks.update.mock.calls[0][0].itemEditing).toBe(first);
-        expect(mocks.update.mock.calls[1][0].itemEditing).toBe(latest);
-        expect(mocks.convert).toHaveBeenCalledExactlyOnceWith({ ...params, originalUrl: source, signal: expect.any(AbortSignal) });
-    });
+    it.each(["original", "processing", "converted", "failed", null])(
+        "U01 %sからprocessingとconvertedのみ保存する",
+        async (status) => {
+            const first = { ...row(), video_status: status };
+            const latest = { ...row(), video_status: "processing" };
+            mocks.get.mockResolvedValueOnce(first).mockResolvedValueOnce(latest);
+            await expect(run(params)).resolves.toBeUndefined();
+            expect(mocks.get).toHaveBeenCalledTimes(2);
+            const firstTransaction = mocks.get.mock.calls[0][0].transaction;
+            const lastTransaction = mocks.get.mock.calls[1][0].transaction;
+            expect(mocks.get.mock.calls[0][0]).toEqual({ ...params, transaction: firstTransaction });
+            expect(mocks.update.mock.calls).toEqual([
+                [{ itemEditing: first, data: { video_status: "processing" }, transaction: firstTransaction }],
+                [
+                    {
+                        itemEditing: latest,
+                        data: { video_status: "converted", converted_url: result.convertedUrl, duration: 23 },
+                        transaction: lastTransaction,
+                    },
+                ],
+            ]);
+            expect(mocks.update.mock.calls[0][0].itemEditing).toBe(first);
+            expect(mocks.update.mock.calls[1][0].itemEditing).toBe(latest);
+            expect(mocks.convert).toHaveBeenCalledExactlyOnceWith({
+                ...params,
+                originalUrl: source,
+                signal: expect.any(AbortSignal),
+            });
+        },
+    );
 
     it("U02 所有者限定検索nullは404で更新・変換しない", async () => {
         mocks.get.mockResolvedValue(null);
@@ -73,7 +91,8 @@ describe("convertItemEditingVideo usecase P0 状態・停止・待機", () => {
         mocks.convert.mockRejectedValue(error);
         await expect(run(params)).rejects.toBe(error);
         expect(mocks.update.mock.calls.map(([p]) => p.data)).toEqual([
-            { video_status: "processing" }, { video_status: "failed", converted_url: null },
+            { video_status: "processing" },
+            { video_status: "failed", converted_url: null },
         ]);
     });
 
@@ -138,7 +157,9 @@ describe("convertItemEditingVideo usecase P0 状態・停止・待機", () => {
             return value;
         });
         let settled = false;
-        const task = run(params).finally(() => { settled = true; });
+        const task = run(params).finally(() => {
+            settled = true;
+        });
         try {
             await entered.promise;
             expect(settled).toBe(false);
@@ -170,7 +191,16 @@ describe("convertItemEditingVideo usecase P0 要求差替え", () => {
         mocks.convert.mockImplementationOnce(async ({ signal }: { signal: AbortSignal }) => {
             firstSignal = signal;
             entered.resolve();
-            await new Promise<void>((resolve) => signal.addEventListener("abort", () => { aborted.resolve(); resolve(); }, { once: true }));
+            await new Promise<void>((resolve) =>
+                signal.addEventListener(
+                    "abort",
+                    () => {
+                        aborted.resolve();
+                        resolve();
+                    },
+                    { once: true },
+                ),
+            );
             await cleanup.promise;
             signal.throwIfAborted();
         });
@@ -192,7 +222,11 @@ describe("convertItemEditingVideo usecase P0 要求差替え", () => {
         if (requests === 3) expect(outcomes[1]).toMatchObject({ code: "VIDEO_CONVERSION_CANCELLED" });
         expect(outcomes.at(-1)).toBeUndefined();
         expect(mocks.convert).toHaveBeenCalledTimes(2);
-        expect(mocks.update.mock.calls.map(([p]) => p.data.video_status)).toEqual(["processing", "processing", "converted"]);
+        expect(mocks.update.mock.calls.map(([p]) => p.data.video_status)).toEqual([
+            "processing",
+            "processing",
+            "converted",
+        ]);
     });
 
     it.each([
@@ -232,7 +266,10 @@ describe("convertItemEditingVideo usecase P0 要求差替え", () => {
     it("U16 開始UPDATE待機中に中断した旧callbackは失敗してから新要求を始める", async () => {
         const entered = deferred<void>();
         const release = deferred<void>();
-        mocks.update.mockImplementationOnce(async () => { entered.resolve(); await release.promise; });
+        mocks.update.mockImplementationOnce(async () => {
+            entered.resolve();
+            await release.promise;
+        });
         const first = run(params).catch((error: unknown) => error);
         let second: Promise<void> | undefined;
         try {
@@ -262,8 +299,13 @@ describe("convertItemEditingVideo usecase P0 要求差替え", () => {
         await second;
         expect(outcome).toBeInstanceOf(AggregateError);
         expect((outcome as AggregateError).errors).toEqual([
-            expect.objectContaining({ code: "VIDEO_CONVERSION_CANCELLED" }), cleanupError,
+            expect.objectContaining({ code: "VIDEO_CONVERSION_CANCELLED" }),
+            cleanupError,
         ]);
-        expect(mocks.update.mock.calls.map(([p]) => p.data.video_status)).toEqual(["processing", "processing", "converted"]);
+        expect(mocks.update.mock.calls.map(([p]) => p.data.video_status)).toEqual([
+            "processing",
+            "processing",
+            "converted",
+        ]);
     });
 });

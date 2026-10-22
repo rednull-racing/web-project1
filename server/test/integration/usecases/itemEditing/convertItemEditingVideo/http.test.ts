@@ -3,7 +3,12 @@ import type { Application } from "express";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { videoHttpMocks as mocks } from "../../../../fixtures/itemEditing/convertItemEditingVideo/httpMocks.js";
-import { deferred, makeVideoHttpApp, makeVideoToken, patchVideo } from "../../../../fixtures/itemEditing/convertItemEditingVideo/httpFixtures.js";
+import {
+    deferred,
+    makeVideoHttpApp,
+    makeVideoToken,
+    patchVideo,
+} from "../../../../fixtures/itemEditing/convertItemEditingVideo/httpFixtures.js";
 
 // 実appのparser順を検証するケースだけが使う。cron・対象外Routerの起動を遮断する。
 vi.mock("../../../../../src/cron/index.js", () => ({ startAllCrons: vi.fn() }));
@@ -42,52 +47,75 @@ afterEach(() => {
 
 describe("P0 実Router・認証・params・202境界", () => {
     it("H01: body/queryの所有者やIDを無視して認証ID・paramsだけを渡す", async () => {
-        const result = await patch().query({ userId: 8, id: 999 }).send({ userId: 8, seller_id: 8, itemEditingId: 888 });
+        const result = await patch()
+            .query({ userId: 8, id: 999 })
+            .send({ userId: 8, seller_id: 8, itemEditingId: 888 });
         expect(result.status).toBe(202);
         expect(result.body).toEqual(accepted);
         expect(mocks.convert).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemEditingId: 101 });
         expect(mocks.create).not.toHaveBeenCalled();
     });
-    it.each(["なし", "Bearer空", "不正署名", "期限切れ"])("H02: %sは202と認証拒否本文で変換を開始しない", async (mode) => {
-        const req = request(app).patch("/api/item-editing/not-number/convert");
-        if (mode === "Bearer空") req.set("Authorization", "Bearer ");
-        if (mode === "不正署名") req.set("Authorization", "Bearer " + makeVideoToken("different-secret"));
-        if (mode === "期限切れ") req.set("Authorization", "Bearer " + makeVideoToken(secret, 7, -1));
-        const result = await req;
-        expect(result.status).toBe(202);
-        expect(result.body).toEqual({ message: ["なし", "Bearer空"].includes(mode) ? "トークンがありません。" : "トークンが無効です。" });
-        expect(mocks.convert).not.toHaveBeenCalled();
-    });
+    it.each(["なし", "Bearer空", "不正署名", "期限切れ"])(
+        "H02: %sは202と認証拒否本文で変換を開始しない",
+        async (mode) => {
+            const req = request(app).patch("/api/item-editing/not-number/convert");
+            if (mode === "Bearer空") req.set("Authorization", "Bearer ");
+            if (mode === "不正署名") req.set("Authorization", "Bearer " + makeVideoToken("different-secret"));
+            if (mode === "期限切れ") req.set("Authorization", "Bearer " + makeVideoToken(secret, 7, -1));
+            const result = await req;
+            expect(result.status).toBe(202);
+            expect(result.body).toEqual({
+                message: ["なし", "Bearer空"].includes(mode) ? "トークンがありません。" : "トークンが無効です。",
+            });
+            expect(mocks.convert).not.toHaveBeenCalled();
+        },
+    );
     it.each([1, 2, 2147483646, 2147483647])("H03: id=%sは整数として受け付ける", async (id) => {
         const result = await patch(id);
         expect(result.status).toBe(202);
         expect(result.body).toEqual(accepted);
         expect(mocks.convert).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemEditingId: id });
     });
-    it.each([0, -1, 1.5, 2147483648, "invalid", "NaN", "Infinity"])("H03: id=%sは202と入力拒否本文で停止する", async (id) => {
-        const result = await patch(id);
-        expect(result.status).toBe(202);
-        expect(result.body).toEqual({ code: "INVALID_PARAMS", message: "INVALID_PARAMS" });
-        expect(mocks.convert).not.toHaveBeenCalled();
-        expect(result.headers["ratelimit-remaining"]).toBe("4");
-    });
-    it.each(['{"secret":"do-not-publish",', '"primitive"'])("H04: JSON=%sのparser拒否は未認証より先に202で返す", async (raw) => {
-        const result = await request(app).patch("/api/item-editing/101/convert").set("Content-Type", "application/json").send(raw);
-        expect(result.status).toBe(202);
-        expect(result.body).toEqual({ code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
-        expect(result.text).not.toContain("do-not-publish");
-        expect(result.headers["ratelimit-remaining"]).toBeUndefined();
-        expect(mocks.convert).not.toHaveBeenCalled();
-    });
+    it.each([0, -1, 1.5, 2147483648, "invalid", "NaN", "Infinity"])(
+        "H03: id=%sは202と入力拒否本文で停止する",
+        async (id) => {
+            const result = await patch(id);
+            expect(result.status).toBe(202);
+            expect(result.body).toEqual({ code: "INVALID_PARAMS", message: "INVALID_PARAMS" });
+            expect(mocks.convert).not.toHaveBeenCalled();
+            expect(result.headers["ratelimit-remaining"]).toBe("4");
+        },
+    );
+    it.each(['{"secret":"do-not-publish",', '"primitive"'])(
+        "H04: JSON=%sのparser拒否は未認証より先に202で返す",
+        async (raw) => {
+            const result = await request(app)
+                .patch("/api/item-editing/101/convert")
+                .set("Content-Type", "application/json")
+                .send(raw);
+            expect(result.status).toBe(202);
+            expect(result.body).toEqual({ code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
+            expect(result.text).not.toContain("do-not-publish");
+            expect(result.headers["ratelimit-remaining"]).toBeUndefined();
+            expect(mocks.convert).not.toHaveBeenCalled();
+        },
+    );
     it("H01 C02: usecase保留中でもHTTP受付を完了する", async () => {
-        const gate = deferred<void>(), started = deferred<void>();
-        mocks.convert.mockImplementation(() => { started.resolve(); return gate.promise; });
+        const gate = deferred<void>(),
+            started = deferred<void>();
+        mocks.convert.mockImplementation(() => {
+            started.resolve();
+            return gate.promise;
+        });
         try {
             const result = await patch();
             await started.promise;
             expect(result.status).toBe(202);
             expect(result.body).toEqual(accepted);
-        } finally { gate.resolve(); await gate.promise; }
+        } finally {
+            gate.resolve();
+            await gate.promise;
+        }
     });
     it.each([404, 400, 422, 408, 409, 500])("H12: 内部%sでも受付本文を維持し詳細を公開しない", async (status) => {
         const { AppError } = await import("../../../../../src/errors.js");
@@ -100,7 +128,9 @@ describe("P0 実Router・認証・params・202境界", () => {
         expect(result.status).toBe(202);
         expect(result.body).toEqual(accepted);
         expect(log).toHaveBeenCalledExactlyOnceWith("Detached task failed", {
-            taskName: "convertItemEditingVideo", target: { userId: 7, itemEditingId: 101 }, error,
+            taskName: "convertItemEditingVideo",
+            target: { userId: 7, itemEditingId: 101 },
+            error,
         });
         if (error instanceof AppError) expect(error.statusCode).toBe(status);
     });
@@ -120,11 +150,14 @@ describe("P0/P1 専用レート制限と優先順位", () => {
     });
     it("H06: 同一ユーザーはID/IP/tokenを変えても同枠、別ユーザーと別APIは独立する", async () => {
         await consume();
-        const sameUser = await patch(202).set("X-Forwarded-For", "192.0.2.12")
+        const sameUser = await patch(202)
+            .set("X-Forwarded-For", "192.0.2.12")
             .set("Authorization", "Bearer " + makeVideoToken(secret, 7, 7300));
         expect(sameUser.text).toBe(limited);
         expect((await patch(101, 8)).body).toEqual(accepted);
-        const anotherApi = await request(app).post("/api/item-editing").set("Authorization", "Bearer " + makeVideoToken(secret));
+        const anotherApi = await request(app)
+            .post("/api/item-editing")
+            .set("Authorization", "Bearer " + makeVideoToken(secret));
         expect(anotherApi.status).toBe(200);
         expect(anotherApi.body).toEqual({ itemEditingId: 456 });
         expect(mocks.convert).toHaveBeenCalledTimes(6);
@@ -144,7 +177,9 @@ describe("P0/P1 専用レート制限と優先順位", () => {
         for (let i = 0; i < 5; i++) {
             const result = await patch(kind === "params" ? 0 : 101);
             expect(result.status).toBe(202);
-            expect(result.body).toEqual(kind === "params" ? { code: "INVALID_PARAMS", message: "INVALID_PARAMS" } : accepted);
+            expect(result.body).toEqual(
+                kind === "params" ? { code: "INVALID_PARAMS", message: "INVALID_PARAMS" } : accepted,
+            );
         }
         expect((await patch(0)).text).toBe(limited);
         expect(mocks.convert).toHaveBeenCalledTimes(kind === "params" ? 0 : 5);
@@ -152,10 +187,17 @@ describe("P0/P1 専用レート制限と優先順位", () => {
     it.each(["未認証", "parser拒否"])("H09: %sはユーザー枠を消費しない", async (kind) => {
         for (let i = 0; i < 6; i++) {
             const req = request(app).patch("/api/item-editing/101/convert");
-            if (kind === "parser拒否") req.set("Authorization", "Bearer " + makeVideoToken(secret)).set("Content-Type", "application/json").send("{");
+            if (kind === "parser拒否")
+                req.set("Authorization", "Bearer " + makeVideoToken(secret))
+                    .set("Content-Type", "application/json")
+                    .send("{");
             const result = await req;
             expect(result.status).toBe(202);
-            expect(result.body).toEqual(kind === "未認証" ? { message: "トークンがありません。" } : { code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
+            expect(result.body).toEqual(
+                kind === "未認証"
+                    ? { message: "トークンがありません。" }
+                    : { code: "INVALID_JSON", message: "JSONの形式を確認してください。" },
+            );
         }
         await consume();
         expect((await patch()).text).toBe(limited);
@@ -164,7 +206,9 @@ describe("P0/P1 専用レート制限と優先順位", () => {
     it("H09: 制限超過よりparser、paramsより認証・limiterを優先する", async () => {
         await consume();
         expect((await patch(0)).text).toBe(limited);
-        expect((await request(app).patch("/api/item-editing/0/convert")).body).toEqual({ message: "トークンがありません。" });
+        expect((await request(app).patch("/api/item-editing/0/convert")).body).toEqual({
+            message: "トークンがありません。",
+        });
         const malformed = await patch(0).set("Content-Type", "application/json").send("{");
         expect(malformed.body).toEqual({ code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
         expect(mocks.convert).toHaveBeenCalledTimes(5);
@@ -172,14 +216,18 @@ describe("P0/P1 専用レート制限と優先順位", () => {
 });
 
 describe("P1 app接続と対象パス境界", () => {
-    it.each(["/api/item-editing/101/convert/", "/API/ITEM-EDITING/101/CONVERT"])("H10: Expressが受ける%sも202境界を適用する", async (path) => {
-        const result = await request(app).patch(path);
-        expect(result.status).toBe(202);
-        expect(result.body).toEqual({ message: "トークンがありません。" });
-        expect(mocks.convert).not.toHaveBeenCalled();
-    });
+    it.each(["/api/item-editing/101/convert/", "/API/ITEM-EDITING/101/CONVERT"])(
+        "H10: Expressが受ける%sも202境界を適用する",
+        async (path) => {
+            const result = await request(app).patch(path);
+            expect(result.status).toBe(202);
+            expect(result.body).toEqual({ message: "トークンがありません。" });
+            expect(mocks.convert).not.toHaveBeenCalled();
+        },
+    );
     it.each(["POST", "PUT"])("H10: 対象外%sのJSON拒否は従来400を維持する", async (method) => {
-        const req = method === "POST" ? request(app).post("/api/item-editing") : request(app).put("/api/item-editing/101");
+        const req =
+            method === "POST" ? request(app).post("/api/item-editing") : request(app).put("/api/item-editing/101");
         const result = await req.set("Content-Type", "application/json").send("{");
         expect(result.status).toBe(400);
         expect(result.body).toEqual({ code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
@@ -192,10 +240,16 @@ describe("P1 app接続と対象パス境界", () => {
     });
     it("H11: 実app.tsでも202境界がparserより前にあり他APIの400を維持する", async () => {
         const { default: actualApp } = await import("../../../../../src/app.js");
-        const result = await request(actualApp).patch("/api/item-editing/101/convert").set("Content-Type", "application/json").send("{");
+        const result = await request(actualApp)
+            .patch("/api/item-editing/101/convert")
+            .set("Content-Type", "application/json")
+            .send("{");
         expect(result.status).toBe(202);
         expect(result.body).toEqual({ code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
-        const other = await request(actualApp).post("/api/item-editing").set("Content-Type", "application/json").send("{");
+        const other = await request(actualApp)
+            .post("/api/item-editing")
+            .set("Content-Type", "application/json")
+            .send("{");
         expect(other.status).toBe(400);
         expect(mocks.convert).not.toHaveBeenCalled();
     });

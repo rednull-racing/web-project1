@@ -38,20 +38,20 @@ Authorization: Bearer <token>
 
 ### 配置と責務（server/src基準）
 
-| 層 | ファイル・関数 | 区分・責務 |
-| --- | --- | --- |
-| 初期化 | app.ts、middleware/itemEditingVideoResponse.ts | 変更/新規。対象PATCHの202境界をparserより前に接続。他APIは変更しない |
-| route | routes/itemEditing.ts | 新規PATCH。authenticateToken→専用limiter→validateParams→controller |
-| 認証・検証 | middleware/authMiddleware.ts、middleware/validate/validateParams.ts、validators/params/id.ts | 既存利用 |
-| limiter | middleware/rateLimit/itemEditingRateLimit.ts、convertItemEditingVideoRateLimit | 新規export |
-| controller | controllers/itemEditing/itemEditing.ts、convertItemEditingVideoController | 新規export。認証IDと検証済みidをrunDetachedTaskへ渡し202応答 |
-| usecase | usecases/itemEditing/convertItemEditingVideo.ts、convertItemEditingVideoUseCase | 新規。要求差替え・所有者/元動画確認・transaction・状態遷移 |
-| query | services/itemEditing/query.ts、getMyItemEditing | 既存。所有者条件、transaction指定時UPDATEロック |
-| command | services/itemEditing/command.ts、updateItemEditingVideo | 新規。動画3列だけのDTOとtransactionを受けてインスタンス更新 |
-| 型 | types/serviceType/itemEditing.ts | 更新DTO。video_statusはprocessing/converted/failedのみ |
-| utility | utils/itemEditingVideoConversion.ts、convertItemEditingVideo | 新規。AbortSignal対応の子プロセス・通信・cleanup |
-| S3 | utils/s3/videoConvert.ts | 既存download/uploadへ任意AbortSignal追加。旧呼出しの契約を維持 |
-| 非同期境界 | utils/runDetachedTask.ts | 既存利用。内部例外の捕捉・記録。HTTP再送信なし |
+| 層         | ファイル・関数                                                                               | 区分・責務                                                           |
+| ---------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 初期化     | app.ts、middleware/itemEditingVideoResponse.ts                                               | 変更/新規。対象PATCHの202境界をparserより前に接続。他APIは変更しない |
+| route      | routes/itemEditing.ts                                                                        | 新規PATCH。authenticateToken→専用limiter→validateParams→controller   |
+| 認証・検証 | middleware/authMiddleware.ts、middleware/validate/validateParams.ts、validators/params/id.ts | 既存利用                                                             |
+| limiter    | middleware/rateLimit/itemEditingRateLimit.ts、convertItemEditingVideoRateLimit               | 新規export                                                           |
+| controller | controllers/itemEditing/itemEditing.ts、convertItemEditingVideoController                    | 新規export。認証IDと検証済みidをrunDetachedTaskへ渡し202応答         |
+| usecase    | usecases/itemEditing/convertItemEditingVideo.ts、convertItemEditingVideoUseCase              | 新規。要求差替え・所有者/元動画確認・transaction・状態遷移           |
+| query      | services/itemEditing/query.ts、getMyItemEditing                                              | 既存。所有者条件、transaction指定時UPDATEロック                      |
+| command    | services/itemEditing/command.ts、updateItemEditingVideo                                      | 新規。動画3列だけのDTOとtransactionを受けてインスタンス更新          |
+| 型         | types/serviceType/itemEditing.ts                                                             | 更新DTO。video_statusはprocessing/converted/failedのみ               |
+| utility    | utils/itemEditingVideoConversion.ts、convertItemEditingVideo                                 | 新規。AbortSignal対応の子プロセス・通信・cleanup                     |
+| S3         | utils/s3/videoConvert.ts                                                                     | 既存download/uploadへ任意AbortSignal追加。旧呼出しの契約を維持       |
+| 非同期境界 | utils/runDetachedTask.ts                                                                     | 既存利用。内部例外の捕捉・記録。HTTP再送信なし                       |
 
 route/controller/usecaseの三行コメント:
 
@@ -112,15 +112,15 @@ flowchart TD
 前提検査で発見したUser日時列のNULL制約は、明示依頼された20261022080000-enforce-user-timestamps-not-null.jsをneondb/test_dbへ適用してModelと整合させた。
 全3接続のtest_dbと必要スキーマの検査完了後に実DBテストを実行済み。Model存在だけをDB反映済みの根拠にしていない。
 
-| 段階 | 更新列 | 保持列 |
-| --- | --- | --- |
-| 開始 | video_status=processing | converted_url、duration、original_url、他全列 |
-| 成功 | video_status=converted、converted_url=今回のplaylist URL、duration=今回の整数秒数 | original_url、他全列 |
-| 通常失敗 | video_status=failed、converted_url=null | duration、original_url、他全列 |
-| 中断・差替え | 旧要求からの更新なし | 新要求の値を保持 |
+| 段階         | 更新列                                                                            | 保持列                                        |
+| ------------ | --------------------------------------------------------------------------------- | --------------------------------------------- |
+| 開始         | video_status=processing                                                           | converted_url、duration、original_url、他全列 |
+| 成功         | video_status=converted、converted_url=今回のplaylist URL、duration=今回の整数秒数 | original_url、他全列                          |
+| 通常失敗     | video_status=failed、converted_url=null                                           | duration、original_url、他全列                |
+| 中断・差替え | 旧要求からの更新なし                                                              | 新要求の値を保持                              |
 
 updatedAtはSequelize通常更新に従う。ID・所有者・createdAtは保持。Video.statusやItemは更新しない。
-S3キー: video/converted/item-editing/{userId}/{itemEditingId}/{requestUUID}/index.m3u8とseg_%03d.ts。
+S3キー: video/converted/item-editing/{userId}/{itemEditingId}/{requestUUID}/index.m3u8とseg\_%03d.ts。
 一時パスもUUIDで分離し、生成した元動画と出力ディレクトリだけを削除する。
 MIMEはplaylistがapplication/vnd.apple.mpegurl、segmentがvideo/mp2t。
 HLSは既存参考API同様H264 baseline・AAC・最大幅1280・偶数高さ・10秒segment・vod。音声トラックは任意。
@@ -156,18 +156,18 @@ cleanupは子プロセス・通信終了後。旧callbackは中断後に成功�
 
 公開HTTPはすべて202。内部statusCodeと公開HTTPを区別し、内部例外の詳細は公開しない。
 
-| 条件 | 内部の扱い | 公開本文と効果 |
-| --- | --- | --- |
-| JWTなし・不正 | 既存401 | 既存message。変換開始なし |
-| 制限超過 | limiter429、Retry-After | 既存limiter応答。変換・中断なし |
-| params不正 | INVALID_PARAMS/400 | 既存errorHandler JSON。変換開始なし |
-| 不正JSON | parser400、INVALID_JSON | 既存errorHandler JSON。認証前に停止 |
-| 不存在・他人 | ITEM_EDITING_NOT_FOUND/404 | 受付本文のまま。DB・S3変更なし |
-| 元動画なし | ORIGINAL_URL_NOT_FOUND/400 | 受付本文のまま。DB・S3変更なし |
-| 変換失敗・出力不備 | VIDEO_CONVERSION_FAILED/422 | 受付本文のまま。最新要求だけfailed |
-| timeout | VIDEO_CONVERSION_TIMEOUT/408 | 同上 |
-| 新要求による中断・元動画差替え | VIDEO_CONVERSION_CANCELLED/409 | 受付本文のまま。旧要求からDB更新なし |
-| DB・S3・ファイル障害 | 元例外 | 受付本文のまま。可能な範囲の失敗記録とcleanup |
+| 条件                           | 内部の扱い                     | 公開本文と効果                                |
+| ------------------------------ | ------------------------------ | --------------------------------------------- |
+| JWTなし・不正                  | 既存401                        | 既存message。変換開始なし                     |
+| 制限超過                       | limiter429、Retry-After        | 既存limiter応答。変換・中断なし               |
+| params不正                     | INVALID_PARAMS/400             | 既存errorHandler JSON。変換開始なし           |
+| 不正JSON                       | parser400、INVALID_JSON        | 既存errorHandler JSON。認証前に停止           |
+| 不存在・他人                   | ITEM_EDITING_NOT_FOUND/404     | 受付本文のまま。DB・S3変更なし                |
+| 元動画なし                     | ORIGINAL_URL_NOT_FOUND/400     | 受付本文のまま。DB・S3変更なし                |
+| 変換失敗・出力不備             | VIDEO_CONVERSION_FAILED/422    | 受付本文のまま。最新要求だけfailed            |
+| timeout                        | VIDEO_CONVERSION_TIMEOUT/408   | 同上                                          |
+| 新要求による中断・元動画差替え | VIDEO_CONVERSION_CANCELLED/409 | 受付本文のまま。旧要求からDB更新なし          |
+| DB・S3・ファイル障害           | 元例外                         | 受付本文のまま。可能な範囲の失敗記録とcleanup |
 
 cleanupだけの失敗も隠さない。主エラーとの重複は両方を保持する。
 utilityのcleanupは成功保存より前であり、失敗時は最新要求だけfailedを記録する。確定済みconvertedの後からcleanupを実行する設計ではない。

@@ -12,20 +12,33 @@ const runProcess = async ({
     command,
     args,
     signal,
-}: { command: string; args: string[]; signal: AbortSignal }): Promise<string> => {
+}: {
+    command: string;
+    args: string[];
+    signal: AbortSignal;
+}): Promise<string> => {
     signal.throwIfAborted();
     const child = spawn(command, args, { stdio: ["ignore", "pipe", "ignore"] });
 
     return await new Promise<string>((resolve, reject) => {
         let output = "";
         let processError: unknown;
-        const onData = (chunk: Buffer) => { output += chunk.toString(); };
-        const onError = (error: Error) => { processError = error; };
-        const onAbort = () => { child.kill("SIGKILL"); };
-        const timer = setTimeout(() => {
-            processError = new AppError("VIDEO_CONVERSION_TIMEOUT", 408);
+        const onData = (chunk: Buffer) => {
+            output += chunk.toString();
+        };
+        const onError = (error: Error) => {
+            processError = error;
+        };
+        const onAbort = () => {
             child.kill("SIGKILL");
-        }, 5 * 60 * 1000);
+        };
+        const timer = setTimeout(
+            () => {
+                processError = new AppError("VIDEO_CONVERSION_TIMEOUT", 408);
+                child.kill("SIGKILL");
+            },
+            5 * 60 * 1000,
+        );
 
         // spawn失敗もcloseに到達する。終了後まで待ち、一時パスへ書き込むプロセスを残さない。
         child.once("error", onError);
@@ -66,7 +79,15 @@ export const convertItemEditingVideo = async ({ userId, itemEditingId, originalU
 
         const durationOutput = await runProcess({
             command: "ffprobe",
-            args: ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", originalFilePath],
+            args: [
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                originalFilePath,
+            ],
             signal,
         });
         const seconds = Number(durationOutput.trim());
@@ -77,11 +98,34 @@ export const convertItemEditingVideo = async ({ userId, itemEditingId, originalU
         await runProcess({
             command: "ffmpeg",
             args: [
-                "-y", "-i", originalFilePath, "-map", "0:v:0", "-map", "0:a:0?",
-                "-profile:v", "baseline", "-c:v", "libx264", "-c:a", "aac",
-                "-vf", "scale='min(1280,iw)':-2", "-level", "3.0", "-start_number", "0",
-                "-hls_time", "10", "-hls_playlist_type", "vod", "-hls_segment_filename",
-                `${convertedDir}/seg_%03d.ts`, "-f", "hls", `${convertedDir}/index.m3u8`,
+                "-y",
+                "-i",
+                originalFilePath,
+                "-map",
+                "0:v:0",
+                "-map",
+                "0:a:0?",
+                "-profile:v",
+                "baseline",
+                "-c:v",
+                "libx264",
+                "-c:a",
+                "aac",
+                "-vf",
+                "scale='min(1280,iw)':-2",
+                "-level",
+                "3.0",
+                "-start_number",
+                "0",
+                "-hls_time",
+                "10",
+                "-hls_playlist_type",
+                "vod",
+                "-hls_segment_filename",
+                `${convertedDir}/seg_%03d.ts`,
+                "-f",
+                "hls",
+                `${convertedDir}/index.m3u8`,
             ],
             signal,
         });

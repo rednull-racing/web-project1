@@ -1,7 +1,10 @@
 import "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    ItemEditing, protectedSnapshot, seed, snapshot,
+    ItemEditing,
+    protectedSnapshot,
+    seed,
+    snapshot,
 } from "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.js";
 import { AppError } from "../../../../../src/errors.js";
@@ -16,20 +19,27 @@ const result = { convertedUrl: "https://media.test/current/index.m3u8", duration
 const params = (fixture: DbFixture) => ({ userId: fixture.owner.id, itemEditingId: fixture.editing.id });
 const deferred = () => {
     let resolve!: () => void;
-    const promise = new Promise<void>((done) => { resolve = done; });
+    const promise = new Promise<void>((done) => {
+        resolve = done;
+    });
     return { promise, resolve };
 };
-const settled = (task: Promise<void>) => task.then(
-    () => ({ success: true as const }),
-    (error: unknown) => ({ success: false as const, error }),
-);
+const settled = (task: Promise<void>) =>
+    task.then(
+        () => ({ success: true as const }),
+        (error: unknown) => ({ success: false as const, error }),
+    );
 const waitEntered = async (gate: Promise<void>, task: ReturnType<typeof settled>) => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
         await Promise.race([
             gate,
-            task.then((outcome) => { throw new Error("処理がgate到達前に終了しました", { cause: outcome }); }),
-            new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("gate到達期限超過")), 5000); }),
+            task.then((outcome) => {
+                throw new Error("処理がgate到達前に終了しました", { cause: outcome });
+            }),
+            new Promise<never>((_, reject) => {
+                timer = setTimeout(() => reject(new Error("gate到達期限超過")), 5000);
+            }),
         ]);
     } finally {
         clearTimeout(timer);
@@ -55,29 +65,42 @@ beforeEach(() => {
 
 // HTTP/schemaを介さず実usecase・service・Model・transactionを接続し、外部変換だけを遮断する。
 describe("動画変換usecaseと実DBの状態遷移・認可", () => {
-    it.each(["original", "processing", "converted", "failed", null])("I01: 元状態%sを再変換しprocessingのcommit後に変換、convertedだけを保存する", async (video_status) => {
-        const fixture = await seed();
-        await fixture.editing.update({ video_status });
-        const before = withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id));
-        const protectedBefore = await protectedSnapshot(fixture);
-        mocks.convert.mockImplementationOnce(async (input) => {
-            expect(input).toEqual({ ...params(fixture), originalUrl: fixture.originalUrl, signal: expect.any(AbortSignal) });
-            expect(input.signal.aborted).toBe(false);
-            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({ ...before, video_status: "processing" });
-            return { ...result };
-        });
-        await expect(run(params(fixture))).resolves.toBeUndefined();
-        expect(mocks.convert).toHaveBeenCalledTimes(1);
-        expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...before, video_status: "converted", converted_url: result.convertedUrl, duration: 42,
-        });
-        expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
-        // 逐次再送も新しい変換を実行し、終了済み要求のsignalを再利用しない。
-        await run(params(fixture));
-        expect(mocks.convert).toHaveBeenCalledTimes(2);
-        expect(mocks.convert.mock.calls[1][0].signal).not.toBe(mocks.convert.mock.calls[0][0].signal);
-        expect(mocks.convert.mock.calls[1][0].signal.aborted).toBe(false);
-    });
+    it.each(["original", "processing", "converted", "failed", null])(
+        "I01: 元状態%sを再変換しprocessingのcommit後に変換、convertedだけを保存する",
+        async (video_status) => {
+            const fixture = await seed();
+            await fixture.editing.update({ video_status });
+            const before = withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id));
+            const protectedBefore = await protectedSnapshot(fixture);
+            mocks.convert.mockImplementationOnce(async (input) => {
+                expect(input).toEqual({
+                    ...params(fixture),
+                    originalUrl: fixture.originalUrl,
+                    signal: expect.any(AbortSignal),
+                });
+                expect(input.signal.aborted).toBe(false);
+                expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+                    ...before,
+                    video_status: "processing",
+                });
+                return { ...result };
+            });
+            await expect(run(params(fixture))).resolves.toBeUndefined();
+            expect(mocks.convert).toHaveBeenCalledTimes(1);
+            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+                ...before,
+                video_status: "converted",
+                converted_url: result.convertedUrl,
+                duration: 42,
+            });
+            expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
+            // 逐次再送も新しい変換を実行し、終了済み要求のsignalを再利用しない。
+            await run(params(fixture));
+            expect(mocks.convert).toHaveBeenCalledTimes(2);
+            expect(mocks.convert.mock.calls[1][0].signal).not.toBe(mocks.convert.mock.calls[0][0].signal);
+            expect(mocks.convert.mock.calls[1][0].signal.aborted).toBe(false);
+        },
+    );
 
     it.each([17, null])("I02: 変換失敗はfailed・URL null・duration=%s維持、再試行は成功する", async (duration) => {
         const fixture = await seed();
@@ -87,37 +110,47 @@ describe("動画変換usecaseと実DBの状態遷移・認可", () => {
         const error = new Error("conversion failed");
         mocks.convert.mockRejectedValueOnce(error);
         await expect(run(params(fixture))).rejects.toBe(error);
-        expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({ ...before, video_status: "failed", converted_url: null });
+        expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+            ...before,
+            video_status: "failed",
+            converted_url: null,
+        });
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
         await run(params(fixture));
         expect(mocks.convert).toHaveBeenCalledTimes(2);
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...before, video_status: "converted", converted_url: result.convertedUrl, duration: 42,
+            ...before,
+            video_status: "converted",
+            converted_url: result.convertedUrl,
+            duration: 42,
         });
     });
 
-    it.each(["foreign-user", "foreign-editing", "ownerless", "missing"] as const)("I03: %sを404で拒否し変換せず全行を保持する", async (kind) => {
-        const fixture = await seed();
-        const missing = await ItemEditing.create({ seller_id: fixture.owner.id });
-        await missing.destroy();
-        const target = {
-            "foreign-user": { userId: fixture.other.id, itemEditingId: fixture.editing.id },
-            "foreign-editing": { userId: fixture.owner.id, itemEditingId: fixture.otherEditing.id },
-            ownerless: { userId: fixture.owner.id, itemEditingId: fixture.ownerlessEditing.id },
-            missing: { userId: fixture.owner.id, itemEditingId: missing.id },
-        }[kind];
-        const before = await snapshot("item_editing", fixture.editing.id);
-        const protectedBefore = await protectedSnapshot(fixture);
-        const outcome = await settled(run(target));
-        expect(outcome.success).toBe(false);
-        if (outcome.success) throw new Error("Expected authorization rejection");
-        expect(outcome.error).toBeInstanceOf(AppError);
-        expect(outcome.error).toMatchObject({ code: "ITEM_EDITING_NOT_FOUND", statusCode: 404 });
-        expect(mocks.convert).not.toHaveBeenCalled();
-        expect(await snapshot("item_editing", fixture.editing.id)).toEqual(before);
-        expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
-        expect(await snapshot("item_editing", missing.id)).toBeNull();
-    });
+    it.each(["foreign-user", "foreign-editing", "ownerless", "missing"] as const)(
+        "I03: %sを404で拒否し変換せず全行を保持する",
+        async (kind) => {
+            const fixture = await seed();
+            const missing = await ItemEditing.create({ seller_id: fixture.owner.id });
+            await missing.destroy();
+            const target = {
+                "foreign-user": { userId: fixture.other.id, itemEditingId: fixture.editing.id },
+                "foreign-editing": { userId: fixture.owner.id, itemEditingId: fixture.otherEditing.id },
+                ownerless: { userId: fixture.owner.id, itemEditingId: fixture.ownerlessEditing.id },
+                missing: { userId: fixture.owner.id, itemEditingId: missing.id },
+            }[kind];
+            const before = await snapshot("item_editing", fixture.editing.id);
+            const protectedBefore = await protectedSnapshot(fixture);
+            const outcome = await settled(run(target));
+            expect(outcome.success).toBe(false);
+            if (outcome.success) throw new Error("Expected authorization rejection");
+            expect(outcome.error).toBeInstanceOf(AppError);
+            expect(outcome.error).toMatchObject({ code: "ITEM_EDITING_NOT_FOUND", statusCode: 404 });
+            expect(mocks.convert).not.toHaveBeenCalled();
+            expect(await snapshot("item_editing", fixture.editing.id)).toEqual(before);
+            expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
+            expect(await snapshot("item_editing", missing.id)).toBeNull();
+        },
+    );
 
     it.each([null, ""])("I04: 元URL=%sは400、processingも保存せず変換しない", async (original_url) => {
         const fixture = await seed();
@@ -146,7 +179,10 @@ describe("動画変換usecaseと実DBの状態遷移・認可", () => {
             expect(outcome.success).toBe(false);
             if (outcome.success) throw new Error("Expected failure");
             expect(outcome.error).toBeInstanceOf(AggregateError);
-            expect((outcome.error as AggregateError).errors).toEqual([error, expect.objectContaining({ code: "VIDEO_CONVERSION_CANCELLED", statusCode: 409 })]);
+            expect((outcome.error as AggregateError).errors).toEqual([
+                error,
+                expect.objectContaining({ code: "VIDEO_CONVERSION_CANCELLED", statusCode: 409 }),
+            ]);
         } else expectCancelled(outcome);
         expect(await snapshot("item_editing", fixture.editing.id)).toEqual(changed);
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
@@ -196,7 +232,10 @@ describe("動画変換usecaseの要求差替えと実DB保存抑止", () => {
             second = settled(run(params(fixture)));
             expect(oldSignal?.aborted).toBe(true);
             expect(mocks.convert).toHaveBeenCalledTimes(1);
-            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({ ...before, video_status: "processing" });
+            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+                ...before,
+                video_status: "processing",
+            });
         } finally {
             release.resolve();
             await Promise.allSettled([first, ...(second ? [second] : [])]);
@@ -205,7 +244,10 @@ describe("動画変換usecaseの要求差替えと実DB保存抑止", () => {
         expect(await second).toEqual({ success: true });
         expect(mocks.convert).toHaveBeenCalledTimes(2);
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...before, video_status: "converted", converted_url: result.convertedUrl, duration: 42,
+            ...before,
+            video_status: "converted",
+            converted_url: result.convertedUrl,
+            duration: 42,
         });
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
     });
@@ -239,7 +281,10 @@ describe("動画変換usecaseの要求差替えと実DB保存抑止", () => {
         expect(await third).toEqual({ success: true });
         expect(mocks.convert).toHaveBeenCalledTimes(2);
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...before, video_status: "converted", converted_url: result.convertedUrl, duration: 42,
+            ...before,
+            video_status: "converted",
+            converted_url: result.convertedUrl,
+            duration: 42,
         });
     });
 
@@ -259,13 +304,23 @@ describe("動画変換usecaseの要求差替えと実DB保存抑止", () => {
         const first = settled(run(params(fixture)));
         try {
             await waitEntered(entered.promise, first);
-            await expect(run({ ...params(fixture), userId: fixture.other.id })).rejects.toMatchObject({ code: "ITEM_EDITING_NOT_FOUND", statusCode: 404 });
+            await expect(run({ ...params(fixture), userId: fixture.other.id })).rejects.toMatchObject({
+                code: "ITEM_EDITING_NOT_FOUND",
+                statusCode: 404,
+            });
             expect(oldSignal?.aborted).toBe(false);
             await run({ userId: fixture.owner.id, itemEditingId: fixture.sameOwnerEditing.id });
             expect(oldSignal?.aborted).toBe(false);
             expect(mocks.convert).toHaveBeenCalledTimes(2);
-            expect(mocks.convert.mock.calls[1][0]).toMatchObject({ userId: fixture.owner.id, itemEditingId: fixture.sameOwnerEditing.id });
-            expect(await snapshot("item_editing", fixture.sameOwnerEditing.id)).toMatchObject({ video_status: "converted", duration: 42, converted_url: result.convertedUrl });
+            expect(mocks.convert.mock.calls[1][0]).toMatchObject({
+                userId: fixture.owner.id,
+                itemEditingId: fixture.sameOwnerEditing.id,
+            });
+            expect(await snapshot("item_editing", fixture.sameOwnerEditing.id)).toMatchObject({
+                video_status: "converted",
+                duration: 42,
+                converted_url: result.convertedUrl,
+            });
         } finally {
             release.resolve();
             await first;
@@ -287,7 +342,9 @@ describe("動画変換usecaseの実UPDATE後rollback・補償更新・再試行"
             if (row.get("id") !== fixture.editing.id || row.get("video_status") !== "processing") return;
             injected = true;
             if (!options.transaction) throw new Error("Expected usecase transaction");
-            expect((await snapshot("item_editing", fixture.editing.id, options.transaction))?.video_status).toBe("processing");
+            expect((await snapshot("item_editing", fixture.editing.id, options.transaction))?.video_status).toBe(
+                "processing",
+            );
             expect(await snapshot("item_editing", fixture.editing.id)).toEqual(before);
             throw error;
         });
@@ -303,7 +360,10 @@ describe("動画変換usecaseの実UPDATE後rollback・補償更新・再試行"
         await run(params(fixture));
         expect(mocks.convert).toHaveBeenCalledTimes(1);
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...withoutUpdatedAt(before), video_status: "converted", converted_url: result.convertedUrl, duration: 42,
+            ...withoutUpdatedAt(before),
+            video_status: "converted",
+            converted_url: result.convertedUrl,
+            duration: 42,
         });
     });
 
@@ -318,9 +378,15 @@ describe("動画変換usecaseの実UPDATE後rollback・補償更新・再試行"
             injected = true;
             if (!options.transaction) throw new Error("Expected usecase transaction");
             expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id, options.transaction))).toEqual({
-                ...before, video_status: "converted", converted_url: result.convertedUrl, duration: 42,
+                ...before,
+                video_status: "converted",
+                converted_url: result.convertedUrl,
+                duration: 42,
             });
-            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({ ...before, video_status: "processing" });
+            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+                ...before,
+                video_status: "processing",
+            });
             throw error;
         });
         try {
@@ -329,12 +395,19 @@ describe("動画変換usecaseの実UPDATE後rollback・補償更新・再試行"
             ItemEditing.removeHook("afterUpdate", "conversionFinishFailure");
         }
         expect(injected).toBe(true);
-        expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({ ...before, video_status: "failed", converted_url: null });
+        expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+            ...before,
+            video_status: "failed",
+            converted_url: null,
+        });
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
         await run(params(fixture));
         expect(mocks.convert).toHaveBeenCalledTimes(2);
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...before, video_status: "converted", converted_url: result.convertedUrl, duration: 42,
+            ...before,
+            video_status: "converted",
+            converted_url: result.convertedUrl,
+            duration: 42,
         });
     });
 
@@ -350,7 +423,10 @@ describe("動画変換usecaseの実UPDATE後rollback・補償更新・再試行"
             injected = true;
             if (!options.transaction) throw new Error("Expected usecase transaction");
             expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id, options.transaction))).toEqual({
-                ...before, video_status: "converted", converted_url: result.convertedUrl, duration: 42,
+                ...before,
+                video_status: "converted",
+                converted_url: result.convertedUrl,
+                duration: 42,
             });
             entered.resolve();
             await release.promise;
@@ -363,7 +439,10 @@ describe("動画変換usecaseの実UPDATE後rollback・補償更新・再試行"
             second = settled(run(params(fixture)));
             expect(mocks.convert.mock.calls[0][0].signal.aborted).toBe(true);
             expect(mocks.convert).toHaveBeenCalledTimes(1);
-            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({ ...before, video_status: "processing" });
+            expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
+                ...before,
+                video_status: "processing",
+            });
         } finally {
             release.resolve();
             await Promise.allSettled([first, ...(second ? [second] : [])]);
@@ -374,7 +453,10 @@ describe("動画変換usecaseの実UPDATE後rollback・補償更新・再試行"
         expect(await second).toEqual({ success: true });
         expect(mocks.convert).toHaveBeenCalledTimes(2);
         expect(withoutUpdatedAt(await snapshot("item_editing", fixture.editing.id))).toEqual({
-            ...before, video_status: "converted", converted_url: "https://media.test/latest/index.m3u8", duration: 23,
+            ...before,
+            video_status: "converted",
+            converted_url: "https://media.test/latest/index.m3u8",
+            duration: 23,
         });
         expect(await protectedSnapshot(fixture)).toEqual(protectedBefore);
     });

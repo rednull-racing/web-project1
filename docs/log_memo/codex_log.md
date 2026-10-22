@@ -872,7 +872,7 @@
 - server/clientの本番Docker内npm ci・buildが成功。ホストNext buildは長時間compileのため中止。
 - README・更新記録を追加。npm依存の脆弱性34件は別Todoへ記録。本番デプロイ・migrationは未実施。
 
-## 20261022_documents_バックエンド依存脆弱性調査
+## 20261022*documents*バックエンド依存脆弱性調査
 
 - npm audit全依存34件・本番依存25件を再取得し、原本・依存経路・全件一覧を保存。
 - Multerの未認証到達経路を優先事項として確認。Criticalの設定条件・旧ORM経路を現行APIと区別。
@@ -880,7 +880,7 @@
 - 調査のみで依存・コードの更新なし。修正/再検証は未着手のためTodoをP1に保持。
 - 既存のcreateItemDraft-deleteItemDraft-test-mock Todo移動は保持し、今回のコミット対象外。
 
-## 20261022_backend-coding_バックエンド依存脆弱性修正
+## 20261022*backend-coding*バックエンド依存脆弱性修正
 
 - 全依存34件/本番依存25件を0件へ。Multer/Express等の更新、旧生成・監視ツールとtsc-aliasの削除、uuid限定overrideを実施。
 - ショップ身分証PATCHの認証/制限を解析前へ移動。生成コマンドをsequelize-cliへ揃え、JSON optionsでNode26の起動を確認。
@@ -889,14 +889,14 @@
 - 監査原本・報告書・テスト文書を更新し指定Todoをdoneへ。並列エージェントのルート修正/回帰試験をworktreeで統合。
 - DB接続・migration適用/undo・本番デプロイは未実施。CLIのESM/履歴管理検証は既存Todoへ残す。
 
-## 20261022_backend-migration_全Model日時列のNULL制約整合
+## 20261022*backend-migration*全Model日時列のNULL制約整合
 
 - 83モデルの日時120列を両DBと比較し、38テーブル76列をNOT NULL化。
 - ユーザー指定で実DBのupdatedAt NULL49件を各createdAtで補完し、両DBへmigration適用・履歴を確認。
 - 全対象の一致とNULL0件、型/default/制約/索引保持を確認。DB回帰13件・lint/typecheck成功。
 - 詳細は20261022-timestamp-nullability.md。日時以外の比較は元Todoの残件。downは補完値を戻さない・未実行。
 
-## 20261022_backend-migration_全属性NULL制約の調査と15列適用
+## 20261022*backend-migration*全属性NULL制約の調査と15列適用
 
 - 83モデル739属性を両DBと比較し、新規2 migrationで15列のNULL差異を解消。存在する737列すべて一致。
 - 実DBのNULLは指定値で補完。閲覧履歴2件は初回0補完後、追加指定のuser_id 6へ限定訂正。
@@ -910,7 +910,7 @@
 - 対象264件、追加65件成功。lint・本番/テスト型検査・変更TS追加lint成功。
 - 起点と類似Todoをdoneへ移動。別件のsharedIdRoutesモック不足6件は別Todoへ記録。
 
-## 20261022_backend-model_報告注文列リネームと振込口座関連の整合
+## 20261022*backend-model*報告注文列リネームと振込口座関連の整合
 
 - paid_info_id→orders_idの新規migrationを両DBへ適用。全行の値・既存制約・索引保持と履歴を確認。
 - BankAccount→Transferのaccount_id関連付けを削除。transfer_id・bank_snapshotは保持。

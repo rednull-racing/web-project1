@@ -24,7 +24,9 @@ class ProcessFixture extends EventEmitter {
 
 const deferred = <T>() => {
     let resolve!: (value: T) => void;
-    const promise = new Promise<T>((done) => { resolve = done; });
+    const promise = new Promise<T>((done) => {
+        resolve = done;
+    });
     return { promise, resolve };
 };
 const originalFilePath = "tmp/item_editing_original_request-uuid";
@@ -88,18 +90,94 @@ describe("P0: V01 動画変換utilityの正常処理（child・fs・S3境界モ�
     it("V01: duration切捨て、HLS引数、segment先行公開と自作パスだけのcleanup", async () => {
         const params = makeParams();
         const remove = vi.spyOn(params.signal, "removeEventListener");
-        expect(await convertItemEditingVideo(params)).toEqual({ convertedUrl: `https://media.test/${keyPrefix}/index.m3u8`, duration: 12 });
-        expect(mocks.download).toHaveBeenCalledExactlyOnceWith({ key: "video/original/source.mp4", filePath: originalFilePath, signal: params.signal });
+        expect(await convertItemEditingVideo(params)).toEqual({
+            convertedUrl: `https://media.test/${keyPrefix}/index.m3u8`,
+            duration: 12,
+        });
+        expect(mocks.download).toHaveBeenCalledExactlyOnceWith({
+            key: "video/original/source.mp4",
+            filePath: originalFilePath,
+            signal: params.signal,
+        });
         expect(mocks.spawn.mock.calls).toEqual([
-            ["ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", originalFilePath], { stdio: ["ignore", "pipe", "ignore"] }],
-            ["ffmpeg", ["-y", "-i", originalFilePath, "-map", "0:v:0", "-map", "0:a:0?", "-profile:v", "baseline", "-c:v", "libx264", "-c:a", "aac", "-vf", "scale='min(1280,iw)':-2", "-level", "3.0", "-start_number", "0", "-hls_time", "10", "-hls_playlist_type", "vod", "-hls_segment_filename", `${convertedDir}/seg_%03d.ts`, "-f", "hls", `${convertedDir}/index.m3u8`], { stdio: ["ignore", "pipe", "ignore"] }],
+            [
+                "ffprobe",
+                [
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    originalFilePath,
+                ],
+                { stdio: ["ignore", "pipe", "ignore"] },
+            ],
+            [
+                "ffmpeg",
+                [
+                    "-y",
+                    "-i",
+                    originalFilePath,
+                    "-map",
+                    "0:v:0",
+                    "-map",
+                    "0:a:0?",
+                    "-profile:v",
+                    "baseline",
+                    "-c:v",
+                    "libx264",
+                    "-c:a",
+                    "aac",
+                    "-vf",
+                    "scale='min(1280,iw)':-2",
+                    "-level",
+                    "3.0",
+                    "-start_number",
+                    "0",
+                    "-hls_time",
+                    "10",
+                    "-hls_playlist_type",
+                    "vod",
+                    "-hls_segment_filename",
+                    `${convertedDir}/seg_%03d.ts`,
+                    "-f",
+                    "hls",
+                    `${convertedDir}/index.m3u8`,
+                ],
+                { stdio: ["ignore", "pipe", "ignore"] },
+            ],
         ]);
         expect(mocks.upload.mock.calls).toEqual([
-            [{ filePath: `${convertedDir}/seg_000.ts`, key: `${keyPrefix}/seg_000.ts`, contentType: "video/mp2t", signal: params.signal }],
-            [{ filePath: `${convertedDir}/seg_001.ts`, key: `${keyPrefix}/seg_001.ts`, contentType: "video/mp2t", signal: params.signal }],
-            [{ filePath: `${convertedDir}/index.m3u8`, key: `${keyPrefix}/index.m3u8`, contentType: "application/vnd.apple.mpegurl", signal: params.signal }],
+            [
+                {
+                    filePath: `${convertedDir}/seg_000.ts`,
+                    key: `${keyPrefix}/seg_000.ts`,
+                    contentType: "video/mp2t",
+                    signal: params.signal,
+                },
+            ],
+            [
+                {
+                    filePath: `${convertedDir}/seg_001.ts`,
+                    key: `${keyPrefix}/seg_001.ts`,
+                    contentType: "video/mp2t",
+                    signal: params.signal,
+                },
+            ],
+            [
+                {
+                    filePath: `${convertedDir}/index.m3u8`,
+                    key: `${keyPrefix}/index.m3u8`,
+                    contentType: "application/vnd.apple.mpegurl",
+                    signal: params.signal,
+                },
+            ],
         ]);
-        expect(mocks.mkdir.mock.calls).toEqual([["tmp", { recursive: true }], [convertedDir, { recursive: true }]]);
+        expect(mocks.mkdir.mock.calls).toEqual([
+            ["tmp", { recursive: true }],
+            [convertedDir, { recursive: true }],
+        ]);
         expect(remove).toHaveBeenCalledTimes(2);
         expectCleanup();
         expectReleased();
@@ -114,27 +192,36 @@ describe("P0: V01 動画変換utilityの正常処理（child・fs・S3境界モ�
 });
 
 describe("P0/P1: 入力・出力と途中失敗の後続抑止", () => {
-    it.each(["", " \n", "-0.1", "NaN", "Infinity", "2147483648"])("V02: 不正秒数 %j は変換を開始せず422", async (value) => {
-        duration = value;
-        await expectConversionError(convertItemEditingVideo(makeParams()));
-        expect(mocks.spawn).toHaveBeenCalledTimes(1);
-        expect(mocks.upload).not.toHaveBeenCalled();
-        expectCleanup();
-        expectReleased();
-    });
-    it.each(["https://other.test/video.mp4", "https://media.test/", "https://media.test.evil/video.mp4"])("V03: 元URL %s はdownload前に拒否", async (originalUrl) => {
-        await expectConversionError(convertItemEditingVideo({ ...makeParams(), originalUrl }));
-        expect(mocks.download).not.toHaveBeenCalled();
-        expect(mocks.spawn).not.toHaveBeenCalled();
-        expectCleanup();
-    });
-    it.each([["seg_000.ts"], ["index.m3u8"], ["index.m3u8", "not-a-segment.ts"]])("V04: playlist/segment不備 %j は公開しない", async (...files) => {
-        mocks.readdir.mockReturnValue(files);
-        await expectConversionError(convertItemEditingVideo(makeParams()));
-        expect(mocks.upload).not.toHaveBeenCalled();
-        expectCleanup();
-        expectReleased();
-    });
+    it.each(["", " \n", "-0.1", "NaN", "Infinity", "2147483648"])(
+        "V02: 不正秒数 %j は変換を開始せず422",
+        async (value) => {
+            duration = value;
+            await expectConversionError(convertItemEditingVideo(makeParams()));
+            expect(mocks.spawn).toHaveBeenCalledTimes(1);
+            expect(mocks.upload).not.toHaveBeenCalled();
+            expectCleanup();
+            expectReleased();
+        },
+    );
+    it.each(["https://other.test/video.mp4", "https://media.test/", "https://media.test.evil/video.mp4"])(
+        "V03: 元URL %s はdownload前に拒否",
+        async (originalUrl) => {
+            await expectConversionError(convertItemEditingVideo({ ...makeParams(), originalUrl }));
+            expect(mocks.download).not.toHaveBeenCalled();
+            expect(mocks.spawn).not.toHaveBeenCalled();
+            expectCleanup();
+        },
+    );
+    it.each([["seg_000.ts"], ["index.m3u8"], ["index.m3u8", "not-a-segment.ts"]])(
+        "V04: playlist/segment不備 %j は公開しない",
+        async (...files) => {
+            mocks.readdir.mockReturnValue(files);
+            await expectConversionError(convertItemEditingVideo(makeParams()));
+            expect(mocks.upload).not.toHaveBeenCalled();
+            expectCleanup();
+            expectReleased();
+        },
+    );
     it("V05: download障害は同一例外・process未起動でcleanup", async () => {
         const error = new Error("download failed");
         mocks.download.mockRejectedValue(error);
@@ -143,20 +230,28 @@ describe("P0/P1: 入力・出力と途中失敗の後続抑止", () => {
         expect(mocks.upload).not.toHaveBeenCalled();
         expectCleanup();
     });
-    it.each(["tmp mkdir", "converted mkdir", "readdir"])("V13: %s のI/O失敗でも元原因を保持し自作パスをcleanup", async (phase) => {
-        const error = new Error("file operation failed");
-        if (phase === "readdir") mocks.readdir.mockImplementation(() => { throw error; });
-        else {
-            if (phase === "converted mkdir") mocks.mkdir.mockReturnValueOnce(undefined);
-            mocks.mkdir.mockImplementationOnce(() => { throw error; });
-        }
-        await expect(convertItemEditingVideo(makeParams())).rejects.toBe(error);
-        expect(mocks.upload).not.toHaveBeenCalled();
-        if (phase === "tmp mkdir") expect(mocks.download).not.toHaveBeenCalled();
-        if (phase === "converted mkdir") expect(mocks.spawn).toHaveBeenCalledTimes(1);
-        expectCleanup();
-        expectReleased();
-    });
+    it.each(["tmp mkdir", "converted mkdir", "readdir"])(
+        "V13: %s のI/O失敗でも元原因を保持し自作パスをcleanup",
+        async (phase) => {
+            const error = new Error("file operation failed");
+            if (phase === "readdir")
+                mocks.readdir.mockImplementation(() => {
+                    throw error;
+                });
+            else {
+                if (phase === "converted mkdir") mocks.mkdir.mockReturnValueOnce(undefined);
+                mocks.mkdir.mockImplementationOnce(() => {
+                    throw error;
+                });
+            }
+            await expect(convertItemEditingVideo(makeParams())).rejects.toBe(error);
+            expect(mocks.upload).not.toHaveBeenCalled();
+            if (phase === "tmp mkdir") expect(mocks.download).not.toHaveBeenCalled();
+            if (phase === "converted mkdir") expect(mocks.spawn).toHaveBeenCalledTimes(1);
+            expectCleanup();
+            expectReleased();
+        },
+    );
     it.each(["ffprobe", "ffmpeg"])("V07: %s 非0終了は422で後続処理なし", async (command) => {
         const defaultSpawn = mocks.spawn.getMockImplementation()!;
         mocks.spawn.mockImplementation((actualCommand: string, ...args: unknown[]) => {
@@ -267,7 +362,9 @@ describe("P0: process終了回収・timeout・abort・listener解放", () => {
     it("V10: download終了時中断はffprobeを開始しない", async () => {
         const controller = new AbortController();
         const reason = new Error("superseded");
-        mocks.download.mockImplementation(async () => { controller.abort(reason); });
+        mocks.download.mockImplementation(async () => {
+            controller.abort(reason);
+        });
         await expect(convertItemEditingVideo({ ...makeParams(), signal: controller.signal })).rejects.toBe(reason);
         expect(mocks.spawn).not.toHaveBeenCalled();
         expectCleanup();
@@ -276,7 +373,9 @@ describe("P0: process終了回収・timeout・abort・listener解放", () => {
         const controller = new AbortController();
         const reason = new Error("superseded");
         for (let i = 0; i < index; i++) mocks.upload.mockResolvedValueOnce(undefined);
-        mocks.upload.mockImplementationOnce(async () => { controller.abort(reason); });
+        mocks.upload.mockImplementationOnce(async () => {
+            controller.abort(reason);
+        });
         await expect(convertItemEditingVideo({ ...makeParams(), signal: controller.signal })).rejects.toBe(reason);
         expect(mocks.upload).toHaveBeenCalledTimes(index + 1);
         expectCleanup();
@@ -287,7 +386,9 @@ describe("P0: process終了回収・timeout・abort・listener解放", () => {
 describe("P1: cleanup障害も主原因も保持", () => {
     it("V11: 変換成功後のcleanup単独失敗を伝播し両方のパスを試みる", async () => {
         const error = new Error("remove original failed");
-        mocks.rm.mockImplementationOnce(() => { throw error; });
+        mocks.rm.mockImplementationOnce(() => {
+            throw error;
+        });
         const failure: unknown = await convertItemEditingVideo(makeParams()).catch((reason: unknown) => reason);
         expect(failure).toBeInstanceOf(AggregateError);
         expect((failure as AggregateError).errors).toEqual([error]);
@@ -299,7 +400,13 @@ describe("P1: cleanup障害も主原因も保持", () => {
         const removeOriginal = new Error("remove source failed");
         const removeOutput = new Error("remove output failed");
         mocks.download.mockRejectedValue(original);
-        mocks.rm.mockImplementationOnce(() => { throw removeOriginal; }).mockImplementationOnce(() => { throw removeOutput; });
+        mocks.rm
+            .mockImplementationOnce(() => {
+                throw removeOriginal;
+            })
+            .mockImplementationOnce(() => {
+                throw removeOutput;
+            });
         const failure: unknown = await convertItemEditingVideo(makeParams()).catch((reason: unknown) => reason);
         expect(failure).toBeInstanceOf(AggregateError);
         const errors = (failure as AggregateError).errors;

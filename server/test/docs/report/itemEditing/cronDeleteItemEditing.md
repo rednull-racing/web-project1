@@ -27,7 +27,7 @@ lint・本番型検査・テスト型検査・test配下追加lint・migration�
 | src/services/itemEditing/test/createItem.test.ts                             | 既存単体回帰 |        3 | 所有者検索/行ロック・既存編集行削除                        |
 | src/services/itemEditing/test/createItemEditingDraft.test.ts                 | 既存単体回帰 |        4 | 既存編集行生成・例外・待機                                 |
 | src/services/itemEditing/test/createItemEditingCopy.test.ts                  | 既存単体回帰 |        2 | 既存コピー生成・例外                                       |
-| src/usecases/items/create/test/createItem.test.ts                             | 既存単体回帰 |      365 | 公開処理・編集行消費・途中失敗など                         |
+| src/usecases/items/create/test/createItem.test.ts                            | 既存単体回帰 |      365 | 公開処理・編集行消費・途中失敗など                         |
 | test/integration/usecases/itemEditing/cronDeleteItemEditing/database.test.ts | 実DB         |        7 | D01〜D05。D04とD05は各2条件                                |
 
 最新DB実行: 16:17:19 JST、1ファイル7 passed、失敗/skipなし、exit 0。

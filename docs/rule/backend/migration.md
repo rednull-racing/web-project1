@@ -155,7 +155,6 @@ RESTRICT   子レコードがある場合削除禁止
 npx sequelize-cli db:migrate
 ```
 
-
 ## Node.js 26での実行・環境指定
 
 `server/` でpackage.jsonのNode.js要件を満たすバージョンを使う。

@@ -52,10 +52,9 @@ export default {
                 const quoted = queryGenerator.quoteTable({ schema: "public", tableName: table });
                 await sequelize.query(`LOCK TABLE ${quoted} IN ACCESS EXCLUSIVE MODE`, { transaction });
                 // ユーザー指定の補完元を使用。createdAtもNULLなら後続の制約検査で全体を中断する。
-                await sequelize.query(
-                    `UPDATE ${quoted} SET "updatedAt" = "createdAt" WHERE "updatedAt" IS NULL`,
-                    { transaction },
-                );
+                await sequelize.query(`UPDATE ${quoted} SET "updatedAt" = "createdAt" WHERE "updatedAt" IS NULL`, {
+                    transaction,
+                });
                 await sequelize.query(
                     `ALTER TABLE ${quoted} ALTER COLUMN "createdAt" SET NOT NULL, ALTER COLUMN "updatedAt" SET NOT NULL`,
                     { transaction },

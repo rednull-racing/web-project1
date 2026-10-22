@@ -15,9 +15,11 @@ const Umzug = require("umzug");
 test("direct CLI and npm options load ESM options on Node 26", () => {
     for (const command of ["db:migrate", "db:migrate:undo", "migration:generate"]) {
         for (const options of [[], ["--options-path", "config/cli-options.json"]]) {
-            const result = spawnSync(process.execPath, [
-                "node_modules/sequelize-cli/lib/sequelize", ...options, command, "--help",
-            ], { cwd: server, encoding: "utf8" });
+            const result = spawnSync(
+                process.execPath,
+                ["node_modules/sequelize-cli/lib/sequelize", ...options, command, "--help"],
+                { cwd: server, encoding: "utf8" },
+            );
             assert.equal(result.status, 0, result.stderr);
         }
     }
@@ -36,16 +38,26 @@ test("test config ignores inherited DATABASE_URL and uses test_db", () => {
 
 test("CLI selects test configuration for --env and NODE_ENV", () => {
     for (const args of [["--env", "test"], []]) {
-        const result = spawnSync(process.execPath, ["--input-type=module", "-e", `
+        const result = spawnSync(
+            process.execPath,
+            [
+                "--input-type=module",
+                "-e",
+                `
             import helpers from './node_modules/sequelize-cli/lib/helpers/index.js';
             await helpers.config.init();
             const config = helpers.config.readConfig();
             if (config.database !== 'test_db') process.exit(1);
-        `, "--", ...args], {
-            cwd: server,
-            encoding: "utf8",
-            env: { ...process.env, NODE_ENV: "test", DATABASE_URL: "postgres://localhost/production" },
-        });
+        `,
+                "--",
+                ...args,
+            ],
+            {
+                cwd: server,
+                encoding: "utf8",
+                env: { ...process.env, NODE_ENV: "test", DATABASE_URL: "postgres://localhost/production" },
+            },
+        );
         assert.equal(result.status, 0, "CLI test environment selection failed");
     }
 });
@@ -54,13 +66,15 @@ test("installed Umzug invokes existing ESM up/down and preserves migration filen
     const directory = mkdtempSync(join(tmpdir(), "sequelize-esm-"));
     const queries = [];
     const transaction = {};
-    const queryInterface = { sequelize: {
-        transaction: async (callback) => callback(transaction),
-        query: async (sql, options) => {
-            assert.equal(options.transaction, transaction);
-            queries.push(sql);
+    const queryInterface = {
+        sequelize: {
+            transaction: async (callback) => callback(transaction),
+            query: async (sql, options) => {
+                assert.equal(options.transaction, transaction);
+                queries.push(sql);
+            },
         },
-    } };
+    };
     const name = "20261021071500-enforce-item-timestamps-not-null.js";
     const migrator = new Umzug({
         storage: "json",
@@ -73,7 +87,10 @@ test("installed Umzug invokes existing ESM up/down and preserves migration filen
     });
     try {
         await migrator.up();
-        assert.deepEqual((await migrator.executed()).map((entry) => entry.file), [name]);
+        assert.deepEqual(
+            (await migrator.executed()).map((entry) => entry.file),
+            [name],
+        );
         await migrator.up();
         assert.equal(queries.length, 1);
         await migrator.down();
@@ -85,7 +102,6 @@ test("installed Umzug invokes existing ESM up/down and preserves migration filen
         rmSync(directory, { recursive: true, force: true });
     }
 });
-
 
 test("Sequelize history storage adds/removes only the selected filename", async () => {
     const Storage = require("umzug/lib/storages/SequelizeStorage").default;

@@ -20,7 +20,9 @@ class UploadStreamFixture extends EventEmitter {
 }
 const deferred = <T>() => {
     let resolve!: (value: T) => void;
-    const promise = new Promise<T>((done) => { resolve = done; });
+    const promise = new Promise<T>((done) => {
+        resolve = done;
+    });
     return { promise, resolve };
 };
 
@@ -28,7 +30,9 @@ beforeEach(() => {
     vi.resetAllMocks();
     mocks.pipeline.mockResolvedValue(undefined);
 });
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => {
+    vi.restoreAllMocks();
+});
 
 describe("P0: S3 download utilityのSDK/stream境界（AWS通信・実I/Oなし）", () => {
     it.each([true, false])("A01: signal=%s をSDK・pipelineへ渡し旧呼出し契約も維持", async (withSignal) => {
@@ -50,7 +54,9 @@ describe("P0: S3 download utilityのSDK/stream境界（AWS通信・実I/Oなし�
     });
     it.each([undefined, null, "not a readable", {}])("A02: Body=%j はAppError 500・pipeline未起動", async (Body) => {
         mocks.send.mockResolvedValue({ Body });
-        const error: unknown = await downloadVideoFromS3({ key: "key", filePath: "tmp/file" }).catch((reason: unknown) => reason);
+        const error: unknown = await downloadVideoFromS3({ key: "key", filePath: "tmp/file" }).catch(
+            (reason: unknown) => reason,
+        );
         expect(error).toBeInstanceOf(AppError);
         expect(error).toMatchObject({ code: "S3_OBJECT_BODY_INVALID", statusCode: 500 });
         expect(mocks.write).not.toHaveBeenCalled();
@@ -71,11 +77,22 @@ describe("P0: S3 download utilityのSDK/stream境界（AWS通信・実I/Oなし�
         const error = new Error("aborted pipeline");
         mocks.send.mockResolvedValue({ Body: body });
         mocks.write.mockReturnValue(output);
-        mocks.pipeline.mockImplementation(async () => { started.resolve(); await release.promise; throw error; });
+        mocks.pipeline.mockImplementation(async () => {
+            started.resolve();
+            await release.promise;
+            throw error;
+        });
         let settled = false;
         const promise = downloadVideoFromS3({ key: "key", filePath: "tmp/file", signal: new AbortController().signal });
         const rejection = expect(promise).rejects.toBe(error);
-        void promise.then(() => { settled = true; }, () => { settled = true; });
+        void promise.then(
+            () => {
+                settled = true;
+            },
+            () => {
+                settled = true;
+            },
+        );
         await started.promise;
         expect(settled).toBe(false);
         release.resolve();
@@ -92,12 +109,30 @@ describe("P0: S3 upload utilityのSDK引渡し・stream終了回収", () => {
         const destroyStarted = deferred<void>();
         const sdkStarted = deferred<void>();
         const sdkRelease = deferred<void>();
-        stream.destroy.mockImplementation(() => { destroyStarted.resolve(); return stream; });
+        stream.destroy.mockImplementation(() => {
+            destroyStarted.resolve();
+            return stream;
+        });
         mocks.read.mockReturnValue(stream);
-        mocks.send.mockImplementation(async () => { sdkStarted.resolve(); await sdkRelease.promise; });
+        mocks.send.mockImplementation(async () => {
+            sdkStarted.resolve();
+            await sdkRelease.promise;
+        });
         let settled = false;
-        const promise = uploadVideoToS3({ key: "video/index.m3u8", filePath: "tmp/index.m3u8", contentType: "application/vnd.apple.mpegurl", signal });
-        void promise.then(() => { settled = true; }, () => { settled = true; });
+        const promise = uploadVideoToS3({
+            key: "video/index.m3u8",
+            filePath: "tmp/index.m3u8",
+            contentType: "application/vnd.apple.mpegurl",
+            signal,
+        });
+        void promise.then(
+            () => {
+                settled = true;
+            },
+            () => {
+                settled = true;
+            },
+        );
         await sdkStarted.promise;
         expect(stream.destroy).not.toHaveBeenCalled();
         expect(settled).toBe(false);
@@ -106,7 +141,12 @@ describe("P0: S3 upload utilityのSDK引渡し・stream終了回収", () => {
         expect(settled).toBe(false);
         const [command, ...options] = mocks.send.mock.calls[0]!;
         expect(command).toBeInstanceOf(PutObjectCommand);
-        expect(command.input).toEqual({ Bucket: "test-public", Key: "video/index.m3u8", Body: stream, ContentType: "application/vnd.apple.mpegurl" });
+        expect(command.input).toEqual({
+            Bucket: "test-public",
+            Key: "video/index.m3u8",
+            Body: stream,
+            ContentType: "application/vnd.apple.mpegurl",
+        });
         expect(command.input.Body).toBe(stream);
         expect(options).toEqual(withSignal ? [{ abortSignal: signal }] : []);
         expect(mocks.read).toHaveBeenCalledExactlyOnceWith("tmp/index.m3u8");
@@ -119,13 +159,28 @@ describe("P0: S3 upload utilityのSDK引渡し・stream終了回収", () => {
         const stream = new UploadStreamFixture();
         const destroyed = deferred<void>();
         const error = new Error("upload failed");
-        stream.destroy.mockImplementation(() => { destroyed.resolve(); return stream; });
+        stream.destroy.mockImplementation(() => {
+            destroyed.resolve();
+            return stream;
+        });
         mocks.read.mockReturnValue(stream);
         mocks.send.mockRejectedValue(error);
         let settled = false;
-        const promise = uploadVideoToS3({ key: "video/seg_000.ts", filePath: "tmp/segment", contentType: "video/mp2t", signal: withSignal ? new AbortController().signal : undefined });
+        const promise = uploadVideoToS3({
+            key: "video/seg_000.ts",
+            filePath: "tmp/segment",
+            contentType: "video/mp2t",
+            signal: withSignal ? new AbortController().signal : undefined,
+        });
         const rejection = expect(promise).rejects.toBe(error);
-        void promise.then(() => { settled = true; }, () => { settled = true; });
+        void promise.then(
+            () => {
+                settled = true;
+            },
+            () => {
+                settled = true;
+            },
+        );
         await destroyed.promise;
         expect(settled).toBe(false);
         stream.close();
@@ -135,7 +190,10 @@ describe("P0: S3 upload utilityのSDK引渡し・stream終了回収", () => {
     });
     it("A04: destroy時点でclosedなら追加イベントを待たず完了", async () => {
         const stream = new UploadStreamFixture();
-        stream.destroy.mockImplementation(() => { stream.closed = true; return stream; });
+        stream.destroy.mockImplementation(() => {
+            stream.closed = true;
+            return stream;
+        });
         mocks.read.mockReturnValue(stream);
         mocks.send.mockResolvedValue({});
         await uploadVideoToS3({ key: "key", filePath: "tmp/file", contentType: "video/mp2t" });
@@ -144,8 +202,12 @@ describe("P0: S3 upload utilityのSDK引渡し・stream終了回収", () => {
     });
     it("A05: createReadStream同期失敗は元例外を伝播しSDK未呼出し", async () => {
         const error = new Error("open failed");
-        mocks.read.mockImplementation(() => { throw error; });
-        await expect(uploadVideoToS3({ key: "key", filePath: "tmp/file", contentType: "video/mp2t" })).rejects.toBe(error);
+        mocks.read.mockImplementation(() => {
+            throw error;
+        });
+        await expect(uploadVideoToS3({ key: "key", filePath: "tmp/file", contentType: "video/mp2t" })).rejects.toBe(
+            error,
+        );
         expect(mocks.send).not.toHaveBeenCalled();
     });
     it.each(["abort", "stream"])("A06: %s が先にSDKを失敗させても競合原因に置換せずstream終了を回収", async (first) => {
@@ -155,17 +217,28 @@ describe("P0: S3 upload utilityのSDK引渡し・stream終了回収", () => {
         const stream = new UploadStreamFixture();
         const started = deferred<void>();
         const destroyed = deferred<void>();
-        stream.destroy.mockImplementation(() => { destroyed.resolve(); return stream; });
+        stream.destroy.mockImplementation(() => {
+            destroyed.resolve();
+            return stream;
+        });
         mocks.read.mockReturnValue(stream);
         // stream errorとabortの解釈はSDK境界の責務。先にrejectした原因の伝播だけを保証する。
         const onAbort = vi.fn();
-        mocks.send.mockImplementation(() => new Promise<void>((_resolve, reject) => {
-            stream.once("error", reject);
-            onAbort.mockImplementation(() => reject(abortError));
-            controller.signal.addEventListener("abort", onAbort, { once: true });
-            started.resolve();
-        }));
-        const promise = uploadVideoToS3({ key: "key", filePath: "tmp/file", contentType: "video/mp2t", signal: controller.signal });
+        mocks.send.mockImplementation(
+            () =>
+                new Promise<void>((_resolve, reject) => {
+                    stream.once("error", reject);
+                    onAbort.mockImplementation(() => reject(abortError));
+                    controller.signal.addEventListener("abort", onAbort, { once: true });
+                    started.resolve();
+                }),
+        );
+        const promise = uploadVideoToS3({
+            key: "key",
+            filePath: "tmp/file",
+            contentType: "video/mp2t",
+            signal: controller.signal,
+        });
         const rejection = expect(promise).rejects.toBe(first === "abort" ? abortError : streamError);
         await started.promise;
         if (first === "abort") {
