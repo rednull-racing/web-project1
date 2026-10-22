@@ -88,7 +88,7 @@ beforeEach(() => {
     mocks.getMyItemEditing.mockResolvedValue(item);
     mocks.CreateItemDraft.mockResolvedValue(draft);
     mocks.randomUUID.mockReturnValue("request-a");
-    mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<void>) => cb(transaction));
+    mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<number>) => cb(transaction));
     for (const key of masters) mocks[key].mockResolvedValue({ id: 1 });
     mocks.getCategories.mockResolvedValue(category);
     mocks.getBrand.mockResolvedValue(brand);
@@ -449,9 +449,10 @@ describe("P1: ブランド解決から下書き作成への接続", () => {
             return alias.promise;
         });
         let callbackCompleted = false;
-        mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<void>) => {
-            await cb(transaction);
+        mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<number>) => {
+            const itemDraftId = await cb(transaction);
             callbackCompleted = true;
+            return itemDraftId;
         });
         const pending = run();
         await started.promise;
@@ -532,6 +533,7 @@ describe("P0: 実helperとusecaseを接続した更新前チェック", () => {
         expect(keys[0]).toMatch(/^item-image\/7\/11_1_\d+_request-a$/);
         expect(keys[1]).toBe(keys[0].replace("11_1_", "11_3_"));
         expect(result).toEqual({
+            itemDraftId: 101,
             videoSignedUrl: null,
             thumbnailSignedUrl: null,
             itemImageSignedUrls: [

@@ -5,6 +5,7 @@ import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeBody, makeDuplicateUiIdBody } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn(), remove: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemDraft/convertItemDraftVideo.js", () => ({ convertItemDraftVideoUseCase: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("../../../../../src/usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
 vi.mock("../../../../../src/db.js", () => {
@@ -23,6 +24,7 @@ beforeEach(async () => {
     vi.resetModules();
     vi.resetAllMocks();
     mocks.create.mockResolvedValue({
+        itemDraftId: 101,
         videoSignedUrl: null,
         thumbnailSignedUrl: null,
         itemImageSignedUrls: [],
@@ -73,8 +75,9 @@ describe("P0/P1: 実Routerの到達性と優先順位", () => {
         expect((await post()).status).toBe(429);
         expect(mocks.create).toHaveBeenCalledTimes(5);
     });
-    it("AF-R01 R02 O01: 正常JWTとbodyでusecaseへ到達し署名4項目を200で返す", async () => {
+    it("AF-R01 R02 O01: 正常JWTとbodyでusecaseへ到達し下書きIDと署名4項目を200で返す", async () => {
         const signed = {
+            itemDraftId: 202,
             videoSignedUrl: { url: "upload", fields: { key: "video" } },
             thumbnailSignedUrl: "thumb",
             itemImageSignedUrls: [{ index: 0, url: "image" }],

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../../../errors.js";
 import { deferred } from "../../../../test/fixtures/itemDraft/deleteItemDraft/fixtures.js";
 const mocks = vi.hoisted(() => ({ remove: vi.fn(), create: vi.fn() }));
+vi.mock("../../../usecases/itemDraft/convertItemDraftVideo.js", () => ({ convertItemDraftVideoUseCase: vi.fn() }));
 vi.mock("../../../usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
 vi.mock("../../../usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 import { deleteItemDraftController } from "../itemDraft.js";
