@@ -49,7 +49,7 @@ User・Videoの日時列の差異を起点に、同じ問題の再発防止と�
 - 起点Model: `server/src/models/user.ts`、`server/src/models/video.ts`。関連fixture: `server/test/fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.ts`。
 - 検証・結果の参照: `server/test/integration/database/itemEditing/convertItemEditingVideo/database.test.ts`、`server/test/docs/report/itemEditing/convertItemEditingVideo.md`。
 - 関連完了履歴: `docs/todo/done/item-uploaded-at-db-nullability.md` と `server/migrations/20261021071500-enforce-item-timestamps-not-null.js`。Itemの対応済み履歴をUser・Videoや他Modelの解消根拠にしない。
-- 別件: `docs/todo/P3-techdebt/sequelize-cli-node26-esm-compatibility.md` はNode.js 26でのCLI設定読込み停止。NULL制約差異と原因を分けて扱う。
+- 別件: `docs/todo/done/sequelize-cli-node26-esm-compatibility.md` はNode.js 26でのCLI設定読込み停止。NULL制約差異と原因を分けて扱う。
 - 着手時は本Todo全文、対象に適用されるAGENTS.md、関連migration・設計・最新レポートを読み、既存Todo／`done/` と適用済みmigration履歴を照合して重複対応を避ける。
 
 ## 修正方針と実装内容

@@ -1,4 +1,4 @@
 {
-    "config": "config/config.cjs",
+    "config": "config/config.js",
     "migrations-path": "migrations"
 }

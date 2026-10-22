@@ -1,5 +1,15 @@
 # Node.js 26でsequelize-cliが設定を読み込めない問題を解消する
 
+## 2026-10-22 対応完了
+
+- Node.js 26.12.1で最初のrequireエラーを再現後、`.sequelizerc`をESMのrequire相互運用exportへ変更。直接CLIと明示optionsの両経路を復旧。
+- 接続設定を `server/config/config.js` へESM化。testは `.env.test` のtest_dbを検査し、外部DATABASE_URLを継承しない。productionは外部環境変数、SSLはDB_SSLに従う。
+- インストール済みsequelize-cli 6.6.5 / Umzug 2.3.0の既存ESM対応を確認。migration本体・ファイル名・依存関係は変更していない。
+- Node.js 26.12.1の隔離テスト5件成功。直接CLI/options経路、環境選択、既存ESMのup/down、二重適用防止、JSON履歴、Sequelize履歴アダプタの既存行保持を検証。SQL実行とSequelizeMeta実テーブルへの書込みは行っていない。
+- 読取り専用のSELECT current_database()で `.env`由来neondb / `.env.test`由来test_dbと実DB名の一致を確認。実DBのmigration適用・undo・履歴変更は未実施。
+- lint / typecheck成功。運用・再検証手順は [マイグレーション手順](../../rule/backend/migration.md)。実DBでの適用/復旧は対象を明示して許可後に行う。
+- 以下は発見・部分対応時点の履歴。実DB書込みの検証は今回の対象外とし、互換性は隔離テストと読取り接続で確認した。
+
 発見日: 2026-10-22。優先度: P3-techdebt。User日時列のNOT NULL migration適用準備中に発見。
 
 ## 問題と確認済みの原因

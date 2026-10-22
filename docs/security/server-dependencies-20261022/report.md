@@ -205,7 +205,7 @@ npm run migration:generate -- --name change-description
 `config/cli-options.json`で従来と同じconfig/config.cjsとmigrationsを指定し、4つのnpm migrationコマンドで明示読込みする。
 これはNode.js 26で旧.sequelizercを自動読込みするとrequireが未定義になるため、置換後のnpmコマンドを起動可能にする対応。
 直接のnpx呼出し等の旧.sequelizerc経路、実DB接続先とESM migrationの履歴管理の検証は
-[既存CLI互換性Todo](../../todo/P3-techdebt/sequelize-cli-node26-esm-compatibility.md)に残す。
+[既存CLI互換性Todo](../../todo/done/sequelize-cli-node26-esm-compatibility.md)に残す。
 DB変更を伴う確認は今回の修正範囲には含めていない。
 
 ### 検証結果

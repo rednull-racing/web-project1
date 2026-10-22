@@ -916,3 +916,10 @@
 - BankAccount→Transferのaccount_id関連付けを削除。transfer_id・bank_snapshotは保持。
 - 両DB全83モデル738属性の列存在・NULL制約一致、実Model SELECT、DB回帰161件、lint/typecheck成功。
 - 関連Todo2件をdoneへ移動。既存orders FKの削除動作差異は別Todo。詳細は20261022-report-transfer-alignment.md。
+
+## 20261022_backend-coding_sequelize-cliのNode26ESM互換性修正
+
+- .sequelizercと接続設定をESM化し、直接CLIとnpm経路を復旧。testは.env.testのtest_dbを強制。
+- Node26.12.1でCLI・ESM up/down・履歴の隔離テスト5件、lint/typecheck成功。
+- neondb/test_dbの実DB名を読取り確認。実DBのmigration・履歴変更なし。
+- 運用手順を追記し、Todoをdoneへ移動。実DBでの適用/復旧には別途対象と実行許可が必要。
