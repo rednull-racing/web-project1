@@ -209,3 +209,14 @@ export const unchanged = async (f: DbFixture, editing: unknown, other: unknown, 
     expect(await editingSnapshot(f.otherEditing.id)).toEqual(other);
     expect((await Item.findByPk(f.item.id))!.toJSON()).toEqual(item);
 };
+
+// 別セッションからの作成で、メディアやブランドの再利用を検証する。作成IDは既存hookで追跡する。
+export const anotherEditing = (f: DbFixture) =>
+    ItemEditing.create({
+        seller_id: f.owner.id,
+        name: "別の編集セッション",
+        original_url: f.editing.original_url,
+        thumbnail_url: f.editing.thumbnail_url,
+        image_url: f.editing.image_url ? [...f.editing.image_url] : null,
+        attributes: structuredClone(f.editing.attributes),
+    });

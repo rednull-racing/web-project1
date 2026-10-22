@@ -11,11 +11,14 @@ import {
     newMedia,
     observer,
     ItemDraft,
+    ItemEditing,
+    Item,
     BrandAliases,
 } from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemDraft/createItemDraft/databaseFixtures.js";
 import { deferred } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 import * as command from "../../../../../src/services/itemDraft/command.js";
+import * as editingCommand from "../../../../../src/services/itemEditing/command.js";
 import * as brands from "../../../../../src/services/brands/brands.js";
 import * as aliases from "../../../../../src/services/brandAliases/brandAliases.js";
 import * as master from "../../../../../src/usecases/shared/validateMaster.js";
@@ -98,10 +101,12 @@ describe("P0/P1: 実transactionの原子性・可視性", () => {
                 expect(localRows).toHaveLength(1);
                 expect(await draftRows()).toEqual([]);
                 expect(await aliasRows(name)).toEqual([]);
+                expect(await editingSnapshot(f.editing.id)).not.toBeNull();
             } finally {
                 release.resolve();
                 await pending;
             }
+            expect(await editingSnapshot(f.editing.id)).toBeNull();
             const aliases = await aliasRows(name);
             expect(aliases).toHaveLength(1);
             expect(await onlyDraft()).toMatchObject({
@@ -116,8 +121,7 @@ describe("P0/P1: 実transactionの原子性・可視性", () => {
         const name = `${f.prefix}retry`;
         f.body.brand = { id: null, name };
         newMedia(f.body);
-        const before = await editingSnapshot(f.editing.id),
-            error = new Error("初回失敗");
+        const error = new Error("初回失敗");
         vi.spyOn(command, "updateItemDraftImage").mockRejectedValueOnce(error);
         await expect(run(f)).rejects.toBe(error);
         expect(await draftRows()).toEqual([]);
@@ -126,7 +130,81 @@ describe("P0/P1: 実transactionの原子性・可視性", () => {
         const aliases = await aliasRows(name);
         expect(aliases).toHaveLength(1);
         expect(await onlyDraft()).toHaveProperty("brand_aliases_id", aliases[0].id);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
+    });
+    it.each([
+        ["AF-CONSUME02", false],
+        ["AF-CONSUME05", true],
+    ] as const)("%s: 削除SQL実行済み=%sの削除障害で元行・新規下書き・aliasをrollback", async (_id, afterDelete) => {
+        const before = await editingSnapshot(f.editing.id);
+        const other = await editingSnapshot(f.otherEditing.id);
+        const published = f.item.toJSON();
+        const name = `${f.prefix}deletefailure`;
+        f.body.brand = { id: null, name };
+        newMedia(f.body);
+        const real = editingCommand.deleteItemEditing;
+        const error = new Error("編集削除の意図した障害");
+        const deletion = vi.spyOn(editingCommand, "deleteItemEditing").mockImplementationOnce(async (params) => {
+            if (!params.transaction) throw new Error("Expected deletion transaction");
+            const drafts = await ItemDraft.findAll({ where: { seller_id: f.owner.id }, transaction: params.transaction });
+            expect(drafts).toHaveLength(1);
+            expect(drafts[0].image_url).toHaveLength(2);
+            const aliases = await BrandAliases.findAll({ where: { name_normalized: name }, transaction: params.transaction });
+            expect(aliases).toHaveLength(1);
+            if (afterDelete) {
+                await real(params);
+                expect(await ItemEditing.findByPk(f.editing.id, { transaction: params.transaction })).toBeNull();
+            }
+            expect(await editingSnapshot(f.editing.id)).toEqual(before);
+            expect(await draftRows()).toEqual([]);
+            expect(await aliasRows(name)).toEqual([]);
+            throw error;
+        });
+        await expect(run(f)).rejects.toBe(error);
+        expect(deletion).toHaveBeenCalledOnce();
         expect(await editingSnapshot(f.editing.id)).toEqual(before);
+        expect(await editingSnapshot(f.otherEditing.id)).toEqual(other);
+        expect((await Item.findByPk(f.item.id))!.toJSON()).toEqual(published);
+        expect(await draftRows()).toEqual([]);
+        expect(await aliasRows(name)).toEqual([]);
+        await run(f);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
+        expect(await draftRows()).toHaveLength(1);
+        expect(await aliasRows(name)).toHaveLength(1);
+    });
+    it("AF-CONSUME03: 削除SQL完了後も削除serviceを保留中はcommit・応答せず、解放後だけ元行を消費", async () => {
+        const before = await editingSnapshot(f.editing.id);
+        const entered = deferred<void>();
+        const release = deferred<void>();
+        const real = editingCommand.deleteItemEditing;
+        vi.spyOn(editingCommand, "deleteItemEditing").mockImplementationOnce(async (params) => {
+            await real(params);
+            if (!params.transaction) throw new Error("Expected deletion transaction");
+            expect(await ItemEditing.findByPk(f.editing.id, { transaction: params.transaction })).toBeNull();
+            entered.resolve();
+            await release.promise;
+        });
+        let completed = false;
+        const pending = run(f).then((result) => {
+            completed = true;
+            return result;
+        });
+        try {
+            await Promise.race([
+                entered.promise,
+                pending.then(() => { throw new Error("削除待合せに到達せず完了しました"); }),
+            ]);
+            expect(completed).toBe(false);
+            expect(await editingSnapshot(f.editing.id)).toEqual(before);
+            expect(await draftRows()).toEqual([]);
+        } finally {
+            release.resolve();
+            await Promise.allSettled([pending]);
+        }
+        const result = await pending;
+        expect(completed).toBe(true);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
+        expect((await onlyDraft()).id).toBe(result.itemDraftId);
     });
     it("T04 D06: schema通過後のservice障害としてDB文字数エラーを注入しaliasもrollback", async () => {
         const name = `${f.prefix}constraint`;
