@@ -140,6 +140,23 @@
     - item_editing.converted_url = null
     - item_editing.original_urlは編集しない
 
+### convertItemDraftVideo（itemDraftのvideoをhls変換）
+
+- フロント: /upload/[id]
+- route: PATCH /item-draft/:id/convert
+- usecase: item_draftに一時保管のvideoをhls変換
+
+- 認可:
+    - item_draft_.seller_id === userId
+
+- 成功後:
+    - item_draft.converted_urlに変換済み動画のurlを保管
+    - item_draft.original_urlは編集しない
+
+- 失敗時:
+    - item_draft.converted_url = null
+    - item_draft.original_urlは編集しない
+
 ---
 
 ## cron
