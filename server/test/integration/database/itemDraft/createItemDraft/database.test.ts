@@ -58,7 +58,6 @@ describe("P0: 実DBへの下書き作成", () => {
         });
         expect(await onlyDraft()).toEqual({
             id: expect.any(Number),
-            item_id: null,
             seller_id: f.owner.id,
             name: "商品名",
             detail: "商品説明",
@@ -129,7 +128,6 @@ describe("P0: 実DBへの下書き作成", () => {
         await run(f);
         expect(await onlyDraft()).toMatchObject({
             seller_id: f.owner.id,
-            item_id: null,
             sale_flag: false,
             recommend: false,
             discount_rate: null,
@@ -569,7 +567,6 @@ describe("P1: 保存値・制約・非対象行の追加確認", () => {
     it("D10 ST02: 無関係な既存下書きの全列を維持", async () => {
         const existing = await ItemDraft.create({
             seller_id: f.other.id,
-            item_id: f.item.id,
             name: "既存下書き",
             price: 800,
             attributes: { inventory: { initial: 9, current: 6, low_stock_ratio: 0.1 } },
@@ -589,7 +586,8 @@ describe("P0/P1: F2・F4のDB保存追加境界", () => {
     it("AF-OWN02: bodyの所有者混入はschemaで除去し認証所有者で保存", async () => {
         Object.assign(f.body, { userId: f.other.id, seller_id: f.other.id, item_id: f.item.id });
         await run(f);
-        expect(await onlyDraft()).toMatchObject({ seller_id: f.owner.id, item_id: null });
+        expect(await onlyDraft()).toMatchObject({ seller_id: f.owner.id });
+        expect(await onlyDraft()).not.toHaveProperty("item_id");
     });
     it.each([null, "men", "women", "unisex"] as const)("AF-V01: gender=%sとage=nullを保存", async (gender) => {
         f.body.genderAge = { gender, age: null };

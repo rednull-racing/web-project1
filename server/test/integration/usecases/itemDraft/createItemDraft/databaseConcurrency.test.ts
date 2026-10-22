@@ -110,7 +110,6 @@ const assertSaved = (
         price: body.price,
         before_price: body.price,
         seller_id: userId,
-        item_id: null,
         attributes: {
             inventory: {
                 initial: body.attributes.allInventory,

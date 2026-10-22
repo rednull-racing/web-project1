@@ -18,7 +18,7 @@ beforeEach(async () => {
     f = await seed();
 });
 describe("P0/P1: 実DBの下書き削除・所有権・非対象行", () => {
-    it("D01 D05 D08: 同じitemとURLの別下書きを保持し1行だけ物理削除、再送404", async () => {
+    it("D01 D05 D08: 同じURLの別下書きを保持し1行だけ物理削除、再送404", async () => {
         const before = await protectedRows(f),
             remove = vi.spyOn(command, "deleteItemDraft");
         expect(await run(f)).toBeUndefined();
@@ -49,7 +49,6 @@ describe("P0/P1: 実DBの下書き削除・所有権・非対象行", () => {
         },
     );
     it.each([
-        { label: "item_id=null", data: { item_id: null } },
         { label: "全nullable列null", data: { ...nullableData, attributes: {} } },
         { label: "attributes空", data: { attributes: {} } },
         { label: "画像空配列", data: { image_url: [] } },

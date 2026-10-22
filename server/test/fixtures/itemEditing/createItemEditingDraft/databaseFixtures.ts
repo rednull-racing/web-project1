@@ -112,7 +112,6 @@ const checkSchema = async () => {
             { replacements: { table }, type: QueryTypes.SELECT },
         );
         const targets = {
-            item_id: "item",
             seller_id: "user",
             item_condition_id: "item_condition_option",
             category_id: "categories",
@@ -128,7 +127,7 @@ const checkSchema = async () => {
                 target,
                 target_column: "id",
                 update_action: "a",
-                delete_action: column === "item_id" ? "c" : column.startsWith("brand") ? "n" : "a",
+                delete_action: column.startsWith("brand") ? "n" : "a",
             });
         }
     }
@@ -228,7 +227,6 @@ export const seed = async () => {
     const otherDraft = await ItemDraft.create({
         ...values,
         seller_id: other.id,
-        item_id: null,
         name: "他人の商品",
         price: 2000,
         attributes: { inventory: { initial: 7, current: 3, low_stock_ratio: 0.2 } },

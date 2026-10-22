@@ -58,7 +58,6 @@ export const acceptedSpellings = [
 ] as const;
 export const draftColumns = [
     "id",
-    "item_id",
     "name",
     "detail",
     "image_url",

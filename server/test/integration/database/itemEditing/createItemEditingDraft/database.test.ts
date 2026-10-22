@@ -57,7 +57,6 @@ describe("P0/P1: 実DBのコピー・削除・所有権・再実行", () => {
         expect(await savedEditings(f)).toHaveLength(1);
     });
     it.each([
-        { item_id: null },
         { brand_id: null, brand_aliases_id: null },
         { brand_id: null },
         { brand_aliases_id: null },

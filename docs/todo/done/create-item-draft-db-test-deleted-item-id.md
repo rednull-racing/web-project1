@@ -23,3 +23,7 @@ item_idは20261020120909のmigrationで削除済み。今回のNULL制約migrati
 削除済み列の期待値と不要なfixture入力を、契約に基づき修正する。
 テストを通すために列を復活させたり無関係なAPIを変更しない。
 .env.test由来test_dbのガードを確認して対象DBテスト、lint/typecheck、テスト型検査を実行する。
+
+## 完了（2026-10-22）
+
+削除済みitem_draft.item_idへの期待値・入力・取得列・FK依存を除去。本番コードに依存なし。対象264件および追加65件成功、lint・本番/テスト型検査・変更TS追加lint成功。詳細は `server/test/docs/report/itemDraft/createItemDraft.md`。対象外のsharedIdRoutesモック不足6件は別Todo `docs/todo/P3-techdebt/shared-id-routes-controller-mock-export.md` に記録。

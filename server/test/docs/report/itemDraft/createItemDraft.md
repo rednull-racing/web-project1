@@ -1,5 +1,20 @@
 # createItemDraft テスト報告・修正記録
 
+## 2026-10-22 item_draft.item_id削除後の回帰
+
+削除migrationと現行Modelに従い、DB保存結果のitem_id:null期待値、既存下書きfixture入力、取得カラム一覧、nullable参照ケース、共有fixtureの旧FK検査を削除。本番コードには該当依存がなく変更なし。AF-OWN02の未知キー入力・所有者保存検証は維持し、item_id非存在を確認する。
+
+server/で以下を実行（--maxWorkers=1は共有fixture・hookのファイル間干渉を避けるため）。
+
+- `npm run test:run -- test/integration/database/itemDraft/createItemDraft/database.test.ts test/integration/database/itemDraft/deleteItemDraft/database.test.ts src/services/itemDraft/test/ src/usecases/itemDraft/test/createItemDraft.test.ts --maxWorkers=1`: 6ファイル264件成功（DB148+15、非DB101）。
+- `npm run test:run -- test/integration/database/itemEditing/createItemEditingDraft/ test/integration/usecases/itemEditing/createItemEditingDraft/ test/integration/usecases/itemDraft/deleteItemDraft/ --maxWorkers=1`: 8ファイル207件成功、sharedIdRoutesの6件失敗。旧nullableケース除去前の結果。controllerモックのconvertItemEditingVideoController不足は別Todo `docs/todo/P3-techdebt/shared-id-routes-controller-mock-export.md` に記録し未修正。
+- `npm run test:run -- test/integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts test/integration/database/itemEditing/createItemEditingDraft/database.test.ts --maxWorkers=1`: 最終変更後2ファイル65件成功。上記実行との重複を合算しない。
+- `npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` 成功。変更したtest配下TS6ファイルはESLint APIと既存typescript-eslint recommendedで追加検査し成功。
+
+初回DB実行はsandboxのEPERMで163件本体未実行。通信許可後に同じガードで成功。.env.test由来test_dbを初期化前に検査し、アプリ・models・observer、共有基盤のcompetitorの全接続で実DB名を確認。現行Model列、共有基盤の型・NULL・ENUM・FKを検査後にseedし、自作IDだけのcleanup・残存0確認、hook解除・全接続closeを完了。migration/syncは実行していない。S3はモックで実通信未検証、カバレッジ未取得。今回実行していない機能全体の再検証完了を意味しない。
+
+以下は過去の実行履歴。
+
 ## 2026-10-16 service配置変更の補足
 
 service直下の単一TSを同名フォルダへ移動し、呼出し元・モックの参照を更新した。services共通testを対象コードのtestへ移動・分割した。以下の過去の実行表・コマンドは当時の配置と件数を示す。現配置は [設計書](../../architecture/itemDraft/createItemDraft.md) を参照する。

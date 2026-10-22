@@ -903,3 +903,9 @@
 - 型/default/制約/索引・履歴を確認。最終lint/typecheck・動画変換DB13件成功。
 - 広めの回帰は158成功/3失敗（削除済みitem_id期待）。列不存在2件とともに別Todoへ記録。
 - 全列比較と復旧制限は20261022-all-column-nullability.md。downは補完値を戻さない・未実行。
+
+## 20261022_backend-test_item_draftの削除済みitem_id依存を除去
+
+- 下書きDB期待値・fixture・取得列・旧FK検査・nullableケースを削除し、設計とレポートを更新。本番コードに該当依存なし。
+- 対象264件、追加65件成功。lint・本番/テスト型検査・変更TS追加lint成功。
+- 起点と類似Todoをdoneへ移動。別件のsharedIdRoutesモック不足6件は別Todoへ記録。
