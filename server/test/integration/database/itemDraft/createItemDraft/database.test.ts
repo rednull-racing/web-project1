@@ -9,7 +9,7 @@ import {
     onlyDraft,
     newImages,
     newMedia,
-    unchanged,
+    anotherEditing,
     sequelize,
     observer,
     ItemDraft,
@@ -28,9 +28,8 @@ beforeEach(async () => {
 const inv = (n: number) => ({ initial: n, current: n, low_stock_ratio: 0.2 });
 
 describe("P0: 実DBへの下書き作成", () => {
-    it("AF-OWN01 N02 N05 D01 D03 D10 ST01 O02 F01: 作成ID返却・全保存列・認証所有者・非対象行不変", async () => {
-        const before = await editingSnapshot(f.editing.id),
-            other = await editingSnapshot(f.otherEditing.id),
+    it("AF-CONSUME01 AF-OWN01 N02 N05 D01 D03 D10 ST01 O02 F01: 作成ID返却・全保存列・認証所有者・非対象行不変", async () => {
+        const other = await editingSnapshot(f.otherEditing.id),
             published = f.item.toJSON();
         f.body.attributes.colorVariants = [
             { uiId: "blue", color: "青", inventory: 0, sizes: [] },
@@ -115,7 +114,9 @@ describe("P0: 実DBへの下書き作成", () => {
             createdAt: expect.any(Date),
             updatedAt: expect.any(Date),
         });
-        await unchanged(f, before, other, published);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
+        expect(await editingSnapshot(f.otherEditing.id)).toEqual(other);
+        expect((await Item.findByPk(f.item.id))!.toJSON()).toEqual(published);
         expect(await Item.count({ where: { seller_id: f.owner.id } })).toBe(count);
     });
     it("D02 O02: 参照元のsale・割引・動画変換値は作成先にコピーしない", async () => {
@@ -127,7 +128,6 @@ describe("P0: 実DBへの下書き作成", () => {
             converted_url: "converted",
             video_status: "completed",
         });
-        const before = await editingSnapshot(f.editing.id);
         await run(f);
         expect(await onlyDraft()).toMatchObject({
             seller_id: f.owner.id,
@@ -140,7 +140,7 @@ describe("P0: 実DBへの下書き作成", () => {
             video_status: null,
             original_url: "converted",
         });
-        expect(await editingSnapshot(f.editing.id)).toEqual(before);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
     });
     it.each([null, "", "日本語"])("N03 N11 D03: nullable文章%sの保存", async (value) => {
         f.body.itemMeta.detail = value;
@@ -153,22 +153,20 @@ describe("P0: 実DBへの下書き作成", () => {
             shipping_service_free_text: value,
         });
     });
-    it.each([0, 1, 8])("N04 ST03 D03: 在庫%sを全階層に保存、元在庫は維持", async (value) => {
+    it.each([0, 1, 8])("N04 ST03 D03: 在庫%sを全階層に保存して元行を消費", async (value) => {
         f.body.attributes.allInventory = value;
         f.body.attributes.colorVariants[0].inventory = value;
         f.body.attributes.colorVariants[0].sizes[0].inventory = value;
-        const before = await editingSnapshot(f.editing.id);
         await run(f);
         expect((await onlyDraft()).attributes).toMatchObject({
             inventory: inv(value),
             colorVariants: [{ inventory: inv(value), sizes: [{ inventory: inv(value) }] }],
         });
-        expect(await editingSnapshot(f.editing.id)).toEqual(before);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
     });
-    it("N06 D03 ST05: 空の色・素材はJSONBでキー省略、元属性不変", async () => {
+    it("N06 D03 ST05: 空の色・素材はJSONBでキー省略して元行を消費", async () => {
         f.body.attributes.colorVariants = [];
         f.body.attributes.materials = [];
-        const before = await editingSnapshot(f.editing.id);
         await run(f);
         expect((await onlyDraft()).attributes).toEqual({
             inventory: inv(1),
@@ -176,7 +174,7 @@ describe("P0: 実DBへの下書き作成", () => {
             lifestyle_category: "casual",
             layer: "middle",
         });
-        expect(await editingSnapshot(f.editing.id)).toEqual(before);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
     });
     it.each(["分類null", "カテゴリなし"])("N07 D03: %sは該当JSONキー省略", async (mode) => {
         if (mode === "分類null") await f.category.update({ body_category: null, lifestyle_category: null });
@@ -216,22 +214,20 @@ describe("P0: 実DBへの下書き作成", () => {
             brand_aliases_id: null,
         });
     });
-    it.each([null, "pending", "completed"])("ST06: 元video_status=%sでも作成、元行は不変", async (status) => {
+    it.each([null, "pending", "completed"])("ST06: 元video_status=%sでも作成して元行を消費", async (status) => {
         await f.editing.update({ video_status: status });
-        const before = await editingSnapshot(f.editing.id);
         await run(f);
         expect((await onlyDraft()).video_status).toBeNull();
-        expect(await editingSnapshot(f.editing.id)).toEqual(before);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
     });
-    it.each([false, true])("ST04 D10: item_id=null、新規動画=%sでも元行を残して作成", async (fresh) => {
+    it.each([false, true])("ST04 D10: item_id=null、新規動画=%sでも作成して元行を消費", async (fresh) => {
         await f.editing.update({ item_id: null, converted_url: "https://media.test/converted" });
         if (fresh) newMedia(f.body);
-        const before = await editingSnapshot(f.editing.id);
         const result = await run(f);
         expect((await onlyDraft()).original_url).toBe(
             fresh ? `https://media.test/${result.videoSignedUrl!.fields.key}` : "https://media.test/converted",
         );
-        expect(await editingSnapshot(f.editing.id)).toEqual(before);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
     });
     it.each(["他人", "不存在", "所有者null"])("E01: %sの取得は404、作成なし", async (mode) => {
         let id = f.otherEditing.id;
@@ -427,27 +423,24 @@ describe("P2: ブランド関連・逐次再実行", () => {
         }
         expect(await onlyDraft()).toMatchObject({ brand_id: brandId, brand_aliases_id: aliasId });
     });
-    it("Q01 Q05 ST02 D10: 同一body再送は別行追加、既存下書き不変", async () => {
+    it("AF-CONSUME04 Q01 Q05 ST02 D10: 成功後の同一ID再送は404、確定済み下書き不変", async () => {
         await run(f);
         const first = await onlyDraft();
-        await run(f);
-        const rows = await draftRows();
-        expect(rows).toHaveLength(2);
-        expect(rows[0]).toEqual(first);
-        expect(rows[1]).toEqual({
-            ...first,
-            id: expect.any(Number),
-            createdAt: expect.any(Date),
-            updatedAt: expect.any(Date),
-        });
-        expect(rows[1].id).not.toBe(first.id);
+        const other = await editingSnapshot(f.otherEditing.id);
+        const published = f.item.toJSON();
+        await expectAppError(run(f), "ITEM_EDITING_NOT_FOUND", 404);
+        expect(await draftRows()).toEqual([first]);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
+        expect(await editingSnapshot(f.otherEditing.id)).toEqual(other);
+        expect((await Item.findByPk(f.item.id))!.toJSON()).toEqual(published);
     });
-    it("AF-DB01 Q02: 同一時刻・別UUIDの2行で色画像まで返却署名に対応", async () => {
+    it("AF-DB01 Q02: 別編集ID・同一時刻・別UUIDの2行で色画像まで返却署名に対応", async () => {
         newMedia(f.body);
         f.body.attributes.colorVariants[0].image = { name: "赤", type: "image/png", uploaded: false };
         vi.spyOn(Date, "now").mockReturnValue(1800000000000);
+        const second = await anotherEditing(f);
         const a = await run(f),
-            b = await run(f);
+            b = await run(f, f.body, second.id);
         const rows = await draftRows();
         expect(rows).toHaveLength(2);
         expect(a).not.toEqual(b);
@@ -466,10 +459,11 @@ describe("P2: ブランド関連・逐次再実行", () => {
             savedRows[1]!.attributes.colorVariants!.find((v) => v.uiId === "red")!.image_url,
         );
     });
-    it("Q03: 未登録名を逐次再送すると別下書き2行でalias1行共有", async () => {
+    it("Q03: 別編集IDから未登録名を逐次作成すると下書き2行でalias1行共有", async () => {
         f.body.brand = { id: null, name: `${f.prefix}new` };
+        const second = await anotherEditing(f);
         await run(f);
-        await run(f);
+        await run(f, f.body, second.id);
         const aliases = await BrandAliases.findAll({ where: { name_normalized: f.body.brand.name } });
         expect(aliases).toHaveLength(1);
         const rows = await draftRows();
@@ -575,12 +569,13 @@ describe("P1: 保存値・制約・非対象行の追加確認", () => {
             attributes: { inventory: { initial: 9, current: 6, low_stock_ratio: 0.1 } },
         });
         const before = existing.toJSON(),
-            editing = await editingSnapshot(f.editing.id),
             other = await editingSnapshot(f.otherEditing.id),
             published = f.item.toJSON();
         await run(f);
         expect((await ItemDraft.findByPk(existing.id))!.toJSON()).toEqual(before);
-        await unchanged(f, editing, other, published);
+        expect(await editingSnapshot(f.editing.id)).toBeNull();
+        expect(await editingSnapshot(f.otherEditing.id)).toEqual(other);
+        expect((await Item.findByPk(f.item.id))!.toJSON()).toEqual(published);
         expect((await draftRows()).filter((row) => row.id !== existing.id)).toHaveLength(1);
     });
 });

@@ -19,6 +19,7 @@ import type { DbFixture } from "../../../../fixtures/itemDraft/createItemDraft/d
 import type { CreateItemDraftBody } from "../../../../../src/validators/body/itemDraft.js";
 import { deferred, expectAppError } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 import * as query from "../../../../../src/services/itemEditing/query.js";
+import * as editingCommand from "../../../../../src/services/itemEditing/command.js";
 import * as command from "../../../../../src/services/itemDraft/command.js";
 import * as aliases from "../../../../../src/services/brandAliases/brandAliases.js";
 import * as brandResolver from "../../../../../src/usecases/shared/resolveBrand.js";
@@ -38,23 +39,6 @@ const reach = (signal: Promise<void>, operations: readonly Promise<unknown>[]) =
             }),
         ),
     ]);
-const gateReads = () => {
-    const entered = [deferred<void>(), deferred<void>()];
-    const release = [deferred<void>(), deferred<void>()];
-    const real = query.getMyItemEditing;
-    let index = 0;
-    vi.spyOn(query, "getMyItemEditing").mockImplementation(async (params) => {
-        if (params.transaction) return real(params);
-        const i = index++;
-        const row = await real(params);
-        if (i > 1) throw new Error("想定外の初回取得です");
-        expect(params.transaction).toBeUndefined();
-        entered[i].resolve();
-        await release[i].promise;
-        return row;
-    });
-    return { entered, release };
-};
 const inputs = () => {
     const a = structuredClone(f.body),
         b = structuredClone(f.body);
@@ -146,7 +130,7 @@ const assertSaved = (
 };
 
 // 固定sleepで成功を推測せず、指定した接続が実際にロックを待っていることを検査する。
-const waitForLock = async (pid: number, kind: "alias" | "editing") => {
+const waitForLock = async (pid: number, kind: "alias" | "editing", blocker = 0) => {
     const deadline = Date.now() + 3000;
     const maxAttempts = 500;
     let lastState: { state: string; wait_event_type: string | null; wait_event: string | null } | undefined;
@@ -156,16 +140,18 @@ const waitForLock = async (pid: number, kind: "alias" | "editing") => {
             wait_event_type: string | null;
             wait_event: string | null;
             waiting: boolean;
+            blockedByExpected: boolean;
         }>(
             `SELECT state, wait_event_type, wait_event,
+            (:blocker = 0 OR :blocker = ANY(pg_blocking_pids(pid))) AS "blockedByExpected",
             (wait_event_type = 'Lock' AND CASE WHEN :kind = 'alias'
                 THEN wait_event = 'advisory' AND query LIKE '%pg_advisory_xact_lock%'
                 ELSE query LIKE '%item_editing%' AND query LIKE '%FOR UPDATE%' END) AS waiting
             FROM pg_stat_activity WHERE datname = current_database() AND pid = :pid`,
-            { replacements: { pid, kind }, type: QueryTypes.SELECT },
+            { replacements: { pid, kind, blocker }, type: QueryTypes.SELECT },
         );
         lastState = state;
-        if (state?.waiting) return;
+        if (state?.waiting && state.blockedByExpected) return;
         if (Date.now() >= deadline || attempt === maxAttempts) {
             throw new Error(
                 `ロック待ち未確認: kind=${kind}, pid=${pid}, attempts=${attempt}/${maxAttempts}, ` +
@@ -178,6 +164,7 @@ const waitForLock = async (pid: number, kind: "alias" | "editing") => {
 };
 const waitForAliasLock = (pid: number) => waitForLock(pid, "alias");
 const transactionPid = async (t: Transaction) => {
+    await sequelize.query("SET LOCAL lock_timeout = '8000ms'", { transaction: t });
     const [row] = await sequelize.query<{ pid: number; isolation: string }>(
         "SELECT pg_backend_pid() AS pid, current_setting('transaction_isolation') AS isolation",
         { transaction: t, type: QueryTypes.SELECT },
@@ -187,42 +174,74 @@ const transactionPid = async (t: Transaction) => {
 };
 
 describe("P2: 下書き作成の並行処理", () => {
-    it.each(["A→B", "B→A"])("P01: 同じ取得行から%sでcommitしても別下書き2行", async (order) => {
-        const before = await editingSnapshot(f.editing.id),
-            gate = gateReads(),
-            { a, b } = inputs();
-        const pa = run(f, a),
-            pb = run(f, b),
-            settled = Promise.allSettled([pa, pb]);
-        const first = order === "A→B" ? 0 : 1,
-            operations = [pa, pb];
+    it.each(["A→B", "B→A"])("AF-CONSUME06 P01: 同一編集IDの%s、先行commit後は後続404で1行だけ保存", async (order) => {
+        const { a, b } = inputs();
+        const entered = [deferred<void>(), deferred<void>()];
+        const release = [deferred<void>(), deferred<void>()];
+        const holding = deferred<void>();
+        const finishFirst = deferred<void>();
+        const secondRequested = deferred<void>();
+        const realRead = query.getMyItemEditing;
+        const realImage = command.updateItemDraftImage;
+        let initialReads = 0;
+        let firstPid = 0;
+        let secondPid = 0;
+        vi.spyOn(query, "getMyItemEditing").mockImplementation(async (params) => {
+            if (!params.transaction) {
+                const i = initialReads++;
+                const row = await realRead(params);
+                if (i > 1) throw new Error("想定外の初回取得です");
+                entered[i].resolve();
+                await release[i].promise;
+                return row;
+            }
+            if (firstPid) {
+                secondPid = await transactionPid(params.transaction);
+                const pending = realRead(params);
+                secondRequested.resolve();
+                return pending;
+            }
+            return realRead(params);
+        });
+        vi.spyOn(command, "updateItemDraftImage").mockImplementationOnce(async (params) => {
+            await realImage(params);
+            if (!params.transaction) throw new Error("Expected first transaction");
+            firstPid = await transactionPid(params.transaction);
+            holding.resolve();
+            await finishFirst.promise;
+        });
+        const pa = run(f, a);
+        const pb = run(f, b);
+        const operations = [pa, pb];
+        const collected = Promise.allSettled(operations);
+        const first = order === "A→B" ? 0 : 1;
+        const failure = expectAppError(operations[1 - first], "ITEM_EDITING_NOT_FOUND", 404);
         try {
-            await reach(
-                Promise.all(gate.entered.map((g) => g.promise)).then(() => {}),
-                operations,
-            );
+            await reach(Promise.all(entered.map((gate) => gate.promise)).then(() => {}), operations);
+            release[first].resolve();
+            await reach(holding.promise, operations);
+            release[1 - first].resolve();
+            await reach(secondRequested.promise, operations);
+            expect(firstPid).not.toBe(secondPid);
+            await waitForLock(secondPid, "editing", firstPid);
             expect(await draftRows()).toEqual([]);
-            gate.release[first].resolve();
-            await operations[first];
-            expect(await draftRows()).toHaveLength(1);
-            gate.release[1 - first].resolve();
-            await operations[1 - first];
-            const rows = await draftRows();
-            expect(rows).toHaveLength(2);
-            expect(rows[0].id).not.toBe(rows[1].id);
-            assertSaved(rows.find((row) => row.name === a.itemMeta.name)!, a, await pa, f.owner.id, f.editing.id);
-            assertSaved(rows.find((row) => row.name === b.itemMeta.name)!, b, await pb, f.owner.id, f.editing.id);
-            expect(await editingSnapshot(f.editing.id)).toEqual(before);
+            expect(await editingSnapshot(f.editing.id)).not.toBeNull();
+            finishFirst.resolve();
+            const result = await operations[first];
+            await failure;
+            const saved = await onlyDraft();
+            assertSaved(saved, first === 0 ? a : b, result, f.owner.id, f.editing.id);
+            expect(await editingSnapshot(f.editing.id)).toBeNull();
         } finally {
-            gate.release.forEach((g) => g.resolve());
-            await settled;
+            release.forEach((gate) => gate.resolve());
+            finishFirst.resolve();
+            await collected;
+            await failure;
         }
     });
 
     it("AF-P01 AF-OWN02 P02 O02: 別ユーザー・別商品を交差させても入力と署名が混ざらない", async () => {
         await prepareOther();
-        const before = await editingSnapshot(f.editing.id),
-            other = await editingSnapshot(f.otherEditing.id);
         const { a, b } = inputs(),
             real = command.updateItemDraftImage;
         const both = deferred<void>(),
@@ -248,32 +267,38 @@ describe("P2: 下書き作成の並行処理", () => {
             expect(rows).toHaveLength(2);
             assertSaved(rows.find((row) => row.name === a.itemMeta.name)!, a, ra, f.owner.id, f.editing.id);
             assertSaved(rows.find((row) => row.name === b.itemMeta.name)!, b, rb, f.other.id, f.otherEditing.id);
-            expect(await editingSnapshot(f.editing.id)).toEqual(before);
-            expect(await editingSnapshot(f.otherEditing.id)).toEqual(other);
+            expect(await editingSnapshot(f.editing.id)).toBeNull();
+            expect(await editingSnapshot(f.otherEditing.id)).toBeNull();
         } finally {
             release.resolve();
             await settled;
         }
     });
 
-    it("AF-AUTH04 P03: 同じ参照元のBはAのrollbackを待ち、Bだけcommitする", async () => {
+    it("AF-CONSUME07 AF-AUTH04 P03: 同じ参照元のBはAのrollbackを待ち、Bだけcommitして元行消費", async () => {
         const { a, b } = inputs(),
-            realImage = command.updateItemDraftImage,
+            realDelete = editingCommand.deleteItemEditing,
             realRead = query.getMyItemEditing;
         const before = await editingSnapshot(f.editing.id);
+        let aPid = 0;
         const entered = deferred<void>(),
             release = deferred<void>(),
             bRequested = deferred<void>();
-        const error = new Error("Aの画像保存失敗");
+        const error = new Error("Aの削除SQL後の障害");
         let bPid = 0,
             bCompleted = false;
-        vi.spyOn(command, "updateItemDraftImage").mockImplementation(async (params) => {
-            if (params.itemDraft.name === a.itemMeta.name) {
-                entered.resolve();
-                await release.promise;
-                throw error;
-            }
-            return realImage(params);
+        vi.spyOn(editingCommand, "deleteItemEditing").mockImplementationOnce(async (params) => {
+            await realDelete(params);
+            if (!params.transaction) throw new Error("Expected first transaction");
+            aPid = await transactionPid(params.transaction);
+            const [source] = await sequelize.query<{ count: number }>(
+                "SELECT count(*)::int AS count FROM item_editing WHERE id = :id",
+                { replacements: { id: f.editing.id }, type: QueryTypes.SELECT, transaction: params.transaction },
+            );
+            expect(source.count).toBe(0);
+            entered.resolve();
+            await release.promise;
+            throw error;
         });
         const pa = run(f, a),
             failure = expect(pa).rejects.toBe(error);
@@ -295,15 +320,16 @@ describe("P2: 下書き作成の並行処理", () => {
                 return result;
             });
             await reach(bRequested.promise, [pa, pb]);
-            await waitForLock(bPid, "editing");
+            await waitForLock(bPid, "editing", aPid);
             expect(bCompleted).toBe(false);
             expect(await draftRows()).toEqual([]);
+            expect(await editingSnapshot(f.editing.id)).toEqual(before);
             release.resolve();
             await failure;
             const resultB = await pb;
             const committed = await onlyDraft();
             assertSaved(committed, b, resultB, f.owner.id, f.editing.id);
-            expect(await editingSnapshot(f.editing.id)).toEqual(before);
+            expect(await editingSnapshot(f.editing.id)).toBeNull();
         } finally {
             release.resolve();
             await Promise.allSettled(pb ? [pa, pb] : [pa]);
@@ -458,7 +484,6 @@ describe("P2: 参照元・ブランドの変更との競合を観測", () => {
             return row;
         });
         const pending = run(f);
-        let changed: Record<string, unknown> | null = null;
         try {
             await reach(entered.promise, [pending]);
             await observer.query(
@@ -474,7 +499,7 @@ describe("P2: 参照元・ブランドの変更との競合を観測", () => {
                     },
                 },
             );
-            changed = await editingSnapshot(f.editing.id);
+            expect(await editingSnapshot(f.editing.id)).toMatchObject({ original_url: "new-video" });
             release.resolve();
             await pending;
             expect(await onlyDraft()).toMatchObject({
@@ -483,7 +508,7 @@ describe("P2: 参照元・ブランドの変更との競合を観測", () => {
                 image_url: ["https://media.test/old-image0"],
                 attributes: { colorVariants: [{ image_url: "https://media.test/red" }] },
             });
-            expect(await editingSnapshot(f.editing.id)).toEqual(changed);
+            expect(await editingSnapshot(f.editing.id)).toBeNull();
         } finally {
             release.resolve();
             await Promise.allSettled([pending]);
