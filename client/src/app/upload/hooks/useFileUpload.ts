@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import toast from "react-hot-toast";
-import { fetchVideoConvert } from "../api/video";
+import { fetchDraftVideoConvert, fetchVideoConvert } from "../api/video";
+import type { PresignedPost } from "../api/item";
 import { AttributesValue } from "../attributes";
 import { ItemImageValue } from "../itemImage";
 
@@ -10,10 +11,12 @@ type SignedUrlItem = {
 };
 
 type VideoArgs = {
-    itemEditingId: string;
     videoFile: File | null;
-    videoSignedUrl?: string;
-};
+    videoSignedUrl: PresignedPost | null;
+} & (
+    | { target: "editing"; itemEditingId: string }
+    | { target: "draft"; itemDraftId: number }
+);
 
 type ThumbnailArgs = {
     thumbnailFile: File | null;
@@ -33,18 +36,22 @@ type AttributesImageArgs = {
 export const useFileUpload = () => {
     // 動画
     const videoUploadAndConvert = useCallback(
-        async ({ videoFile, videoSignedUrl, itemEditingId }: VideoArgs): Promise<boolean> => {
-            if (!videoSignedUrl || !(videoFile instanceof File) || !itemEditingId) {
+        async (args: VideoArgs): Promise<boolean> => {
+            const { videoFile, videoSignedUrl } = args;
+            if (!videoSignedUrl || !(videoFile instanceof File)) {
                 return true;
             }
 
             // s3直接アップロード
-            const uploadRes = await fetch(videoSignedUrl, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": videoFile.type,
-                },
-                body: videoFile,
+            const formData = new FormData();
+            Object.entries(videoSignedUrl.fields).forEach(([name, value]) => {
+                formData.append(name, value);
+            });
+            formData.append("file", videoFile);
+
+            const uploadRes = await fetch(videoSignedUrl.url, {
+                method: "POST",
+                body: formData,
             });
 
             if (!uploadRes.ok) {
@@ -53,7 +60,11 @@ export const useFileUpload = () => {
             }
 
             // ffmpeg変換
-            await fetchVideoConvert(itemEditingId);
+            if (args.target === "draft") {
+                await fetchDraftVideoConvert(args.itemDraftId);
+            } else {
+                await fetchVideoConvert(args.itemEditingId);
+            }
 
             return true;
         },

@@ -5,3 +5,9 @@ export const fetchVideoConvert = async (itemEditingId: string) => {
         method: "PATCH",
     });
 };
+
+export const fetchDraftVideoConvert = async (itemDraftId: number) => {
+    return apiFetch(`/item-draft/${itemDraftId}/convert`, {
+        method: "PATCH",
+    });
+};
