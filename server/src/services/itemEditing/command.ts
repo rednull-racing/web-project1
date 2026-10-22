@@ -7,6 +7,7 @@ import type {
     ItemEditingTransactionParams,
     UpdateConfirmParams,
     UpdateItemEditingImageParams,
+    UpdateItemEditingVideoParams,
 } from "../../types/serviceType/itemEditing.js";
 
 type DestroyExpiredItemEditingsParams = {
@@ -36,6 +37,14 @@ export const updateItemEditingImage = async ({ itemEditing, urls, transaction }:
     itemEditing.setDataValue("image_url", urls);
     itemEditing.changed("image_url", true);
     await itemEditing.save({ transaction });
+};
+
+export const updateItemEditingVideo = async ({
+    itemEditing,
+    data,
+    transaction,
+}: UpdateItemEditingVideoParams): Promise<void> => {
+    await itemEditing.update(data, { transaction });
 };
 
 export const createItemEditingDraft = ({ data, transaction }: CreateItemEditingDraftParams) => {
