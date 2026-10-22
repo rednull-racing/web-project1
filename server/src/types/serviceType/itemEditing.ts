@@ -91,6 +91,15 @@ export type UpdateItemEditingImageParams = {
     transaction?: Transaction;
 };
 
+export type UpdateItemEditingVideoData =
+    | { video_status: "processing" }
+    | { video_status: "converted"; converted_url: string; duration: number }
+    | { video_status: "failed"; converted_url: null };
+
+export type UpdateItemEditingVideoParams = ItemEditingTransactionParams & {
+    data: UpdateItemEditingVideoData;
+};
+
 export type CreateItemEditingDraftParams = {
     data: Pick<
         InstanceType<typeof ItemEditing>,
