@@ -4,6 +4,15 @@
 User・Videoの日時列の差異を起点に、同じ問題の再発防止として全Modelへ調査対象を広げる。
 既存レポートから参照されるため、ファイル名は維持する。
 
+## 2026-10-22 全属性のNULL制約差異解消（列不存在は残件）
+
+- 83モデル739属性を両DBと比較。737列が存在、15列のNULL制約差異と2列不存在を検出。
+- 新規20261022110000・20261022120000の2 migrationを両DBへ適用し15列をNOT NULL化。実DBはユーザー指定の空文字・ordinary・関連から判定またはcontact・createdAtで補完。閲覧履歴2件は初回の0補完後、追加指定のuser_id 6へ限定訂正。
+- **DBに存在する全737列のNULL制約はModelと一致。差異0件、変更した15列のNULL0件。** 両DBの型/default/制約/索引を保持し、新規履歴各1件を確認。
+- [全属性の比較結果](../../log_memo/20261022-all-column-nullability.md)にDB別の全列・NULL件数・補完・復旧制限を記録。最終lint/typecheck・動画変換DB13件成功。
+- 広めのDB回帰は158成功/3失敗。削除済みitem_draft.item_idを期待する失敗は[別Todo](create-item-draft-db-test-deleted-item-id.md)へ記録。
+- **残件はNULL差異ではなく2列の不存在**（item_buyer_report.orders_id、transfer.account_id）。[別Todo](model-columns-missing-from-database.md)に移行方針の検討を記録。元Todoの「全対応列」の完了条件を満たさないためP3に保持。以下は過去の経緯として読む。
+
 ## 2026-10-22 日時列の全Model調査・適用完了
 
 - 今回の依頼は全テーブルの `createdAt` / `updatedAt` に限定。83モデルを調査し、対象60テーブル120列のうち両DBで38テーブル76列の差異を検出した。

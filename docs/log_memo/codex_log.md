@@ -895,3 +895,11 @@
 - ユーザー指定で実DBのupdatedAt NULL49件を各createdAtで補完し、両DBへmigration適用・履歴を確認。
 - 全対象の一致とNULL0件、型/default/制約/索引保持を確認。DB回帰13件・lint/typecheck成功。
 - 詳細は20261022-timestamp-nullability.md。日時以外の比較は元Todoの残件。downは補完値を戻さない・未実行。
+
+## 20261022_backend-migration_全属性NULL制約の調査と15列適用
+
+- 83モデル739属性を両DBと比較し、新規2 migrationで15列のNULL差異を解消。存在する737列すべて一致。
+- 実DBのNULLは指定値で補完。閲覧履歴2件は初回0補完後、追加指定のuser_id 6へ限定訂正。
+- 型/default/制約/索引・履歴を確認。最終lint/typecheck・動画変換DB13件成功。
+- 広めの回帰は158成功/3失敗（削除済みitem_id期待）。列不存在2件とともに別Todoへ記録。
+- 全列比較と復旧制限は20261022-all-column-nullability.md。downは補完値を戻さない・未実行。
