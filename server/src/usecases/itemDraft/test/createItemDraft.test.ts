@@ -66,13 +66,13 @@ beforeEach(() => {
     mocks.resolveBrand.mockResolvedValue({ brand: { id: 61 }, alias: { id: 71 } });
     mocks.CreateItemDraft.mockResolvedValue(draft);
     mocks.updateItemDraftImage.mockResolvedValue(undefined);
-    mocks.transaction.mockImplementation(async (callback: (t: typeof transaction) => Promise<void>) =>
+    mocks.transaction.mockImplementation(async (callback: (t: typeof transaction) => Promise<number>) =>
         callback(transaction),
     );
 });
 
 describe("P0: usecaseの作成と処理順序", () => {
-    it("N01 N02 N05 T01: 全保存項目・引数・順序と署名4項目の返却を確認する", async () => {
+    it("N01 N02 N05 T01: 全保存項目・引数・順序と下書きID・署名4項目の返却を確認する", async () => {
         body.attributes.colorVariants.push({
             uiId: "blue",
             color: "青",
@@ -175,6 +175,7 @@ describe("P0: usecaseの作成と処理順序", () => {
         expect(order).toEqual([...order].sort((a, b) => a - b));
         const urls = makeUrls();
         expect(result).toEqual({
+            itemDraftId: 101,
             videoSignedUrl: urls.videoSignedUrl,
             thumbnailSignedUrl: urls.thumbnailSignedUrl,
             itemImageSignedUrls: urls.itemImageSignedUrls,
@@ -360,7 +361,7 @@ describe("P0: 失敗伝播と後続未実行", () => {
     });
     it.each(["開始", "完了"])("E12: transaction%sの失敗を伝播する", async (phase) => {
         const error = new Error(phase);
-        mocks.transaction.mockImplementation(async (callback: (t: typeof transaction) => Promise<void>) => {
+        mocks.transaction.mockImplementation(async (callback: (t: typeof transaction) => Promise<number>) => {
             if (phase === "完了") await callback(transaction);
             throw error;
         });
@@ -384,10 +385,11 @@ describe("P0: 失敗伝播と後続未実行", () => {
             imageStarted.resolve();
             return images.promise;
         });
-        mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<void>) => {
-            await cb(transaction);
+        mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<number>) => {
+            const id = await cb(transaction);
             commitStarted.resolve();
             await commit.promise;
+            return id;
         });
         let settled = false;
         const result = run().then((value) => {
@@ -405,7 +407,7 @@ describe("P0: 失敗伝播と後続未実行", () => {
             await commitStarted.promise;
             expect(settled).toBe(false);
             commit.resolve();
-            await result;
+            expect((await result).itemDraftId).toBe(101);
             expect(settled).toBe(true);
         } finally {
             main.resolve(draft);
