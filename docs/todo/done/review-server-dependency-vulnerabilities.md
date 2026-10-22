@@ -1,5 +1,7 @@
 # バックエンド依存パッケージの脆弱性を調査する
 
+完了: 2026-10-22。全依存・本番依存の監査が0件。修正と検証結果は末尾を参照。
+
 発見日: 2026-10-22 / 優先度: P1-bug
 
 ## 問題と原因
@@ -39,9 +41,21 @@ Node.js 26.12.1の本番Dockerビルド中、builderの`npm ci`が34件の依存
 - EJSのrender経路、uuidの脆弱なAPI呼出し、momentのlocale呼出しは現行コードに見つからない。稼働EC2での検証は未実施。
 - bracesには修正版がなく、現行Sequelizeのuuid指定も修正版majorを許容しない。auditの自動提案にはダウングレードがあり、一括適用しない。
 
-## 残件・修正時の完了条件
+## 調査時点の残件・修正時の完了条件（履歴）
 
 今回の依頼は調査のため、依存更新・本番コード修正・migration実行は行っていない。
 報告書の修正順序に従い、Multer、HTTP周辺、不要な生成・描画依存、ビルド/開発依存を個別に対処する。
 修正後のlint・型検査・関連テスト・Docker検証・再auditが必要なため、このTodoはP1-bugへ残す。
 未解消経路は到達性と対応方針を記録し、調査報告だけで脆弱性修正完了とはしない。
+
+## 2026-10-22 修正完了
+
+- Multer/Express/morgan/EJSと指摘された子依存・テストツールを更新。旧生成/監視ツールとtsc-aliasを除去。
+- Sequelize配下uuidをCommonJS互換の11.1.1へ限定overrideし、UUID既定値・transaction ID・境界検査を確認。
+- ショップ身分証PATCHの認証と既存レート制限をmultipart解析前へ移動。
+- 全依存34→0件、本番依存25→0件。audit-fixed-full/production.jsonを保存。lint・本番/テスト型検査・build・本番Dockerビルド成功。
+- 最終テスト1965件中1963件成功。追加multipart10件/ORM5件と関連ErrorHandler/JWT34件は成功。既知item_id不一致2件は別Todoで管理。
+- 生成コマンドは既存sequelize-cliの雛形生成へ変更（--name必須）。npm migrationコマンドはJSON optionsを明示し--helpを確認。
+- DB接続・migration適用・undo・本番デプロイは未実施。CLI全体のESM/履歴管理検証は既存CLI互換性Todoへ残す。
+
+[報告書・原本](../../security/server-dependencies-20261022/report.md)に対応内容・検証限界を記録し、本Todoをdoneへ移動した。

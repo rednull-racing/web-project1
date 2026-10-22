@@ -1,5 +1,8 @@
 # バックエンド依存パッケージ脆弱性調査（2026-10-22）
 
+最新状況: 2026-10-22に依存脆弱性を修正。全依存34件・本番依存25件から、いずれも0件へ減少した。
+[修正内容・検証結果](#2026-10-22-修正結果)を参照。以下の初回調査は修正前の履歴として保存する。
+
 ## 結論
 
 全依存34件、本番依存25件を再現した。最優先は、実際の公開APIで解析処理を使うMulter 2.1.1の更新。
@@ -160,3 +163,78 @@ Express 5への移行はこの修正の前提ではない。候補バージョ�
 | vitest | 4.1.11 | moderate | 無 | @vitest/coverage-v8, @vitest/mocker |
 
 lockfile SHA256: `d6073f2ff51b892c9b701a39617044f7bf5f206243da16803db1c1f099489d66`
+
+
+## 2026-10-22 修正結果
+
+全依存・本番依存ともaudit 0件。調査時の34件/25件を解消した。
+[全依存の修正後原本](audit-fixed-full.json)、[本番依存の修正後原本](audit-fixed-production.json)。
+原本のerrorなし、両auditおよびnpm ls --all --jsonは終了コード0。
+検出0は取得時点のnpmアドバイザリとの照合結果であり、将来の問題や全攻撃経路の不存在を保証するものではない。
+
+### 実装した内容
+
+| 対象 | 修正内容 |
+| --- | --- |
+| HTTP処理 | Multer 2.4.0、Express 4.22.3、morgan 1.12.1へ更新 |
+| Express子依存 | body-parser 1.20.8、qs 6.16.1、proxy-addr 2.0.8 |
+| IP・日時・CLI子依存 | ip-address 10.7.4、moment 2.31.0、js-cookie 3.0.8 |
+| テンプレート | EJSを3.1.10へ更新。ルートviews/error.ejsが存在するため削除せず互換APIを維持 |
+| テスト・開発 | Vitest/coverage-v8 4.1.12、tsx 4.23.15、esbuild 0.28.2、Vite 8.3.5等へ更新 |
+| Sequelize子依存 | Sequelizeに限定したoverridesでuuidを11.1.1へ。Sequelize本体は6.37.8を維持 |
+| 不要依存 | sequelize-auto-migrations、sequelize-mig、sequelize-typescript-migration、nodemon、ts-node-devを削除 |
+| ビルド | srcの独自path alias importがないことを確認しtsc-aliasを削除。buildはtscのみ。typescript/ts-nodeはdevへ移動 |
+| 認証先行 | shopSignupの身分証PATCHを認証→既存レート制限→params→multipart→bodyの順へ修正 |
+
+uuidはCommonJSのrequireエントリを持つ11系の修正版に限定した。旧ORM4/5・mysql2等は旧生成ツールとともに除去。
+この依存構成にはbraces/chokidar/globby/fast-glob/micromatchの指摘経路が残らない。
+API追加・新ライブラリ・DB定義変更・既存migration変更は行っていない。
+
+### マイグレーション生成手順の変更
+
+旧ライブラリによるモデル差分生成を廃止し、既存sequelize-cliの雛形生成へ統一した。
+`mig:generate`は`migration:generate`と同じエイリアス。**生成には名前が必要で、自動モデル差分は生成しない。**
+
+```bash
+cd server
+npm run migration:generate -- --name change-description
+```
+
+生成した雛形はリポジトリ規約に従ってESMのup/downへ整え、内容をレビューしてから使用する。
+今回、生成コマンドの実行・migration適用・undoは行っていない（確認は--helpのみ）。
+`config/cli-options.json`で従来と同じconfig/config.cjsとmigrationsを指定し、4つのnpm migrationコマンドで明示読込みする。
+これはNode.js 26で旧.sequelizercを自動読込みするとrequireが未定義になるため、置換後のnpmコマンドを起動可能にする対応。
+直接のnpx呼出し等の旧.sequelizerc経路、実DB接続先とESM migrationの履歴管理の検証は
+[既存CLI互換性Todo](../../todo/P3-techdebt/sequelize-cli-node26-esm-compatibility.md)に残す。
+DB変更を伴う確認は今回の修正範囲には含めていない。
+
+### 検証結果
+
+Node.js 26.12.1 / npm 11.20.0 / Vitest 4.1.12。
+
+- npm run lint、npm run typecheck、tsc --noEmit -p test/tsconfig.json、npm run buildが成功。
+- 最終結合実行: 70ファイル、1965件中1963件成功・2件失敗・skip 0。
+  対象は全src単体、multipart/security、security/dependencyCompatibility、ErrorHandler、auth/refreshToken/jwt.test.ts。
+- 失敗2件はsrc/services/itemDraft/test/deleteItemDraft.test.tsの既知item_id取得カラム不一致。
+  依存更新前の調査と同一の差分で、対象本番コード・fixture・期待値は変更していない。
+  [既存Todo](../../todo/P3-techdebt/align-delete-item-draft-service-test-columns.md)で別管理する。
+- 今回追加: multipart 2ファイル10件、Sequelize/uuid 1ファイル5件が全件成功（上記集計内）。
+  既存ErrorHandler/JWTの34件も全件成功（同じ集計内）。
+- 実Routerで認証拒否401・制限拒否429が解析に先行し、両通過時は同一不正multipartが400になることを確認。
+  認証・Redis・controllerの先は境界モック。実JWT/Redisの内部動作やDB/AWSはこのRouter試験で保証しない。
+- 上流修正と同じ巨大配列index＋push入力でINVALID_FIELD_NAMEと後続正常処理を確認。
+  深さ・indexの新上限は追加していない。深いフィールドの負荷・実TCP途中切断・長時間メモリ回収は未検証。
+- Sequelize実ModelのUUIDv1/v4既定値生成とvalidation、PostgreSQL transaction ID生成、
+  ORM配下uuidのv3/v5における出力buffer境界超過のRangeErrorを確認。DB接続・SQL・実transactionは未実施。
+- 最終本番Dockerイメージproject-server-security-checkのnpm ci（builder/本番依存）・buildが成功し、両段でaudit 0件。
+  初回のDocker credential helper一時エラーは再実行で解消した。
+- 完成イメージ内でSequelize/uuid・bcrypt/JWT・EJSエスケープ・IPv4/IPv6キー生成が成功。
+  同イメージでmigration:generate -- --helpも成功。ホストではgenerate/run/revertの--helpが成功。
+  外部ネットワーク・DB接続・migration適用・本番デプロイは行っていない。
+- テスト詳細: [multipart](../../../server/test/docs/report/multipart/security.md)、
+  [Sequelize互換性](../../../server/test/docs/report/security/dependencyCompatibility.md)。カバレッジは未取得。
+
+最終集計の一時原本は/tmp/server-security-final-results.json。上記件数・対象・残る失敗を本書に保存した。
+本番反映には更新イメージのビルド・デプロイが必要。
+
+修正後lockfile SHA256: `c1d086e7bc6899175cd3490162d23d12dbf147d8250fddfa0580c03bcb97e9b0`

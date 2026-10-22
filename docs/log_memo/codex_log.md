@@ -879,3 +879,12 @@
 - 修正版候補と修正順序、uuid/bracesの残課題を報告書・指定Todoへ記録。
 - 調査のみで依存・コードの更新なし。修正/再検証は未着手のためTodoをP1に保持。
 - 既存のcreateItemDraft-deleteItemDraft-test-mock Todo移動は保持し、今回のコミット対象外。
+
+## 20261022_backend-coding_バックエンド依存脆弱性修正
+
+- 全依存34件/本番依存25件を0件へ。Multer/Express等の更新、旧生成・監視ツールとtsc-aliasの削除、uuid限定overrideを実施。
+- ショップ身分証PATCHの認証/制限を解析前へ移動。生成コマンドをsequelize-cliへ揃え、JSON optionsでNode26の起動を確認。
+- lint・本番/テスト型検査・build・本番Docker buildと完成イメージ内の主要依存基本動作が成功。
+- 最終1965件中1963件成功。今回追加15件と関連34件成功。既知item_id不一致2件は対象外Todoで継続管理。
+- 監査原本・報告書・テスト文書を更新し指定Todoをdoneへ。並列エージェントのルート修正/回帰試験をworktreeで統合。
+- DB接続・migration適用/undo・本番デプロイは未実施。CLIのESM/履歴管理検証は既存Todoへ残す。

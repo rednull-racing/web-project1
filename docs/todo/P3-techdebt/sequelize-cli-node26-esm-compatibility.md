@@ -39,3 +39,11 @@ ReferenceError: require is not defined in ES module scope
 - Node.js要件内の環境で通常のCLI設定読込みが成功し、ESM migrationと履歴管理を含む適用／復旧手順を検証・記録している。
 - 環境別の接続先を確認し、未許可のDB変更や既存データ／適用履歴の破壊を行っていない。
 - 本依頼では記録のみ。設定・コマンド・依存関係は未変更、CLI互換性の修正と再検証は未実施。
+
+## 2026-10-22 依存脆弱性修正に伴う部分対応
+
+旧生成ライブラリの除去に伴い、npmのmig:generate/migration:generateはsequelize-cliの雛形生成へ変更した。
+4つのmigration用npmコマンドに`--options-path config/cli-options.json`を追加し、旧.sequelizercの自動読込みを回避。
+Node.js 26.12.1でgenerate/run/revertの`--help`が成功。DB操作、実環境の接続先検査、既存ESM migrationと履歴管理は未検証。
+直接`npx sequelize-cli ...`で旧.sequelizercを読む経路は未変更。明示optionsを付けるかnpmコマンドを使う。
+この部分対応だけでは本Todoの完了条件を満たさないためP3へ保持する。

@@ -1,5 +1,7 @@
 # Multipart脆弱性修正の検証結果
 
+最新: 統合後も2ファイル10件成功（Node.js 26.12.1、Multer 2.4.0）。以下は各段階の記録。
+
 2026-10-22: Node.js 26.12.1でM01〜M05（M03は2件）、合計6件成功。
 
 - `npm run test:run -- test/integration/usecases/multipart/security/route.test.ts`: 6件成功。
@@ -18,3 +20,5 @@
 - 初期候補のtext field入力は例外条件を満たさず204になったため、上流の正確な再現条件を確認して修正。
 - 深さ・配列indexの新上限は未設定。既存Zodの未知キー除去は解析時の資源制限とは区別する。
 - 深いfield負荷・TCP途中切断・長時間メモリ回収は未検証。
+
+統合後の全体検証結果は[依存修正報告](../../../../../docs/security/server-dependencies-20261022/report.md)を参照。
