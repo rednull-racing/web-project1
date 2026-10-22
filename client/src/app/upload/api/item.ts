@@ -1,7 +1,7 @@
 import { apiFetch } from "../../../lib/api/client";
 import { Body } from "../types/uploadType";
 
-type PresignedPost = {
+export type PresignedPost = {
     url: string;
     fields: Record<string, string>;
 };
@@ -18,7 +18,11 @@ type UploadResponse = {
     attributesImageSignedUrls: Record<string, string>;
 };
 
-export const fetchDraft = async (itemEditingId: string, body: Body): Promise<UploadResponse> => {
+type DraftUploadResponse = UploadResponse & {
+    itemDraftId: number;
+};
+
+export const fetchDraft = async (itemEditingId: string, body: Body): Promise<DraftUploadResponse> => {
     return apiFetch("/item-draft", {
         method: "POST",
         body: JSON.stringify({ ...body, itemEditingId: Number(itemEditingId) }),
