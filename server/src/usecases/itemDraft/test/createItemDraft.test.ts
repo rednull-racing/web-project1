@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
     getMyItemEditing: vi.fn(),
     CreateItemDraft: vi.fn<typeof CreateItemDraft>(),
     updateItemDraftImage: vi.fn(),
+    deleteItemEditing: vi.fn(),
     buildSignedUrls: vi.fn(),
     validateNumber: vi.fn(),
     validateMaster: vi.fn(),
@@ -19,6 +20,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../../../db.js", () => ({ default: { transaction: mocks.transaction } }));
 vi.mock("../../../services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
+vi.mock("../../../services/itemEditing/command.js", () => ({ deleteItemEditing: mocks.deleteItemEditing }));
 vi.mock("../../../services/itemDraft/command.js", () => ({
     CreateItemDraft: mocks.CreateItemDraft,
     updateItemDraftImage: mocks.updateItemDraftImage,
@@ -66,6 +68,7 @@ beforeEach(() => {
     mocks.resolveBrand.mockResolvedValue({ brand: { id: 61 }, alias: { id: 71 } });
     mocks.CreateItemDraft.mockResolvedValue(draft);
     mocks.updateItemDraftImage.mockResolvedValue(undefined);
+    mocks.deleteItemEditing.mockResolvedValue(undefined);
     mocks.transaction.mockImplementation(async (callback: (t: typeof transaction) => Promise<number>) =>
         callback(transaction),
     );
@@ -158,9 +161,11 @@ describe("P0: usecaseの作成と処理順序", () => {
             urls: ["image-a", "image-b"],
             transaction,
         });
+        expect(mocks.deleteItemEditing).toHaveBeenCalledExactlyOnceWith({ itemEditing: item, transaction });
         expect(mocks.transaction).toHaveBeenCalledOnce();
         expect(mocks.CreateItemDraft.mock.calls[0][0].transaction).toBe(transaction);
         expect(mocks.updateItemDraftImage.mock.calls[0][0].transaction).toBe(transaction);
+        expect(mocks.deleteItemEditing.mock.calls[0][0].transaction).toBe(transaction);
         const order = [
             mocks.getMyItemEditing,
             mocks.buildSignedUrls,
@@ -170,6 +175,7 @@ describe("P0: usecaseの作成と処理順序", () => {
             mocks.resolveBrand,
             mocks.CreateItemDraft,
             mocks.updateItemDraftImage,
+            mocks.deleteItemEditing,
         ].map((m) => m.mock.invocationCallOrder[0]);
         order.splice(5, 0, mocks.getMyItemEditing.mock.invocationCallOrder[1]);
         expect(order).toEqual([...order].sort((a, b) => a - b));
@@ -337,6 +343,7 @@ describe("P0: 失敗伝播と後続未実行", () => {
         "resolveBrand",
         "CreateItemDraft",
         "updateItemDraftImage",
+        "deleteItemEditing",
     ] as const;
     const failures = [
         ["E08", "getMyItemEditing"],
@@ -346,6 +353,7 @@ describe("P0: 失敗伝播と後続未実行", () => {
         ["E09", "resolveBrand"],
         ["E10", "CreateItemDraft"],
         ["E11", "updateItemDraftImage"],
+        ["AF-CONSUME02", "deleteItemEditing"],
     ] as const;
     it.each(failures)("%s AF-NAME01 T08: %sの例外をそのまま伝え後続を実行しない", async (_id, stage) => {
         const error = new Error(stage);
@@ -369,13 +377,16 @@ describe("P0: 失敗伝播と後続未実行", () => {
         expect(mocks.resolveBrand).toHaveBeenCalledTimes(phase === "開始" ? 0 : 1);
         expect(mocks.CreateItemDraft).toHaveBeenCalledTimes(phase === "開始" ? 0 : 1);
         expect(mocks.updateItemDraftImage).toHaveBeenCalledTimes(phase === "開始" ? 0 : 1);
+        expect(mocks.deleteItemEditing).toHaveBeenCalledTimes(phase === "開始" ? 0 : 1);
     });
-    it("T02: 本体・画像・transactionの完了をそれぞれ待つ", async () => {
+    it("AF-CONSUME03 T02: 本体・画像・元行削除・transactionの完了をそれぞれ待つ", async () => {
         const main = deferred<Awaited<ReturnType<typeof CreateItemDraft>>>(),
             images = deferred<void>(),
+            deletion = deferred<void>(),
             commit = deferred<void>();
         const mainStarted = deferred<void>(),
             imageStarted = deferred<void>(),
+            deletionStarted = deferred<void>(),
             commitStarted = deferred<void>();
         mocks.CreateItemDraft.mockImplementation(() => {
             mainStarted.resolve();
@@ -385,8 +396,14 @@ describe("P0: 失敗伝播と後続未実行", () => {
             imageStarted.resolve();
             return images.promise;
         });
+        mocks.deleteItemEditing.mockImplementation(() => {
+            deletionStarted.resolve();
+            return deletion.promise;
+        });
+        let commitReached = false;
         mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<number>) => {
             const id = await cb(transaction);
+            commitReached = true;
             commitStarted.resolve();
             await commit.promise;
             return id;
@@ -403,7 +420,13 @@ describe("P0: 失敗伝播と後続未実行", () => {
             main.resolve(draft);
             await imageStarted.promise;
             expect(settled).toBe(false);
+            expect(mocks.deleteItemEditing).not.toHaveBeenCalled();
             images.resolve();
+            await deletionStarted.promise;
+            await Promise.resolve();
+            expect(commitReached).toBe(false);
+            expect(settled).toBe(false);
+            deletion.resolve();
             await commitStarted.promise;
             expect(settled).toBe(false);
             commit.resolve();
@@ -412,6 +435,7 @@ describe("P0: 失敗伝播と後続未実行", () => {
         } finally {
             main.resolve(draft);
             images.resolve();
+            deletion.resolve();
             commit.resolve();
             await result;
         }
@@ -571,6 +595,8 @@ describe("P0: F2〜F4の修正後契約", () => {
         // 再認可は追加するが、初回snapshotから確定したメディアを使う契約を維持する。
         expect(data().original_url).toBe("https://media.test/new-video");
         expect(mocks.updateItemDraftImage.mock.calls[0][0].urls).toEqual(["image-a", "image-b"]);
+        expect(mocks.deleteItemEditing).toHaveBeenCalledExactlyOnceWith({ itemEditing: fresh, transaction });
+        expect(mocks.deleteItemEditing.mock.calls[0][0].itemEditing).toBe(fresh);
     });
     it("AF-AUTH02 AF-AUTH03: 再取得なしはtransaction内で404、ブランド・本体・画像なし", async () => {
         mocks.getMyItemEditing.mockResolvedValueOnce(item).mockResolvedValueOnce(null);
@@ -578,6 +604,7 @@ describe("P0: F2〜F4の修正後契約", () => {
         expect(mocks.getMyItemEditing).toHaveBeenNthCalledWith(2, { itemEditingId: 11, userId: 7, transaction });
         for (const fn of [mocks.resolveBrand, mocks.CreateItemDraft, mocks.updateItemDraftImage])
             expect(fn).not.toHaveBeenCalled();
+        expect(mocks.deleteItemEditing).not.toHaveBeenCalled();
         await expect(mocks.transaction.mock.results[0].value).rejects.toMatchObject({
             code: "ITEM_EDITING_NOT_FOUND",
             statusCode: 404,
@@ -589,6 +616,7 @@ describe("P0: F2〜F4の修正後契約", () => {
         await expect(run()).rejects.toBe(error);
         for (const fn of [mocks.resolveBrand, mocks.CreateItemDraft, mocks.updateItemDraftImage])
             expect(fn).not.toHaveBeenCalled();
+        expect(mocks.deleteItemEditing).not.toHaveBeenCalled();
         await expect(mocks.transaction.mock.results[0].value).rejects.toBe(error);
     });
 });

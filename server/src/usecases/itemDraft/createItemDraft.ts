@@ -1,6 +1,7 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
 import { CreateItemDraft, updateItemDraftImage } from "../../services/itemDraft/command.js";
+import { deleteItemEditing } from "../../services/itemEditing/command.js";
 import { getMyItemEditing } from "../../services/itemEditing/query.js";
 import type { CreateItemDraftBody } from "../../validators/body/itemDraft.js";
 import { buildSignedUrls } from "../shared/buildSignedUrls.js";
@@ -137,6 +138,7 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
         });
 
         await updateItemDraftImage({ itemDraft, urls: finalImageUrls, transaction: t });
+        await deleteItemEditing({ itemEditing: currentItemEditing, transaction: t });
         return itemDraft.id;
     });
 
