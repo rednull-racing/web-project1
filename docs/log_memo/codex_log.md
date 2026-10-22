@@ -871,3 +871,11 @@
 - server単体1816件成功・2件失敗。client lintは29エラー・40警告。旧Nodeでも同じ失敗を確認しTodo化。
 - server/clientの本番Docker内npm ci・buildが成功。ホストNext buildは長時間compileのため中止。
 - README・更新記録を追加。npm依存の脆弱性34件は別Todoへ記録。本番デプロイ・migrationは未実施。
+
+## 20261022_documents_バックエンド依存脆弱性調査
+
+- npm audit全依存34件・本番依存25件を再取得し、原本・依存経路・全件一覧を保存。
+- Multerの未認証到達経路を優先事項として確認。Criticalの設定条件・旧ORM経路を現行APIと区別。
+- 修正版候補と修正順序、uuid/bracesの残課題を報告書・指定Todoへ記録。
+- 調査のみで依存・コードの更新なし。修正/再検証は未着手のためTodoをP1に保持。
+- 既存のcreateItemDraft-deleteItemDraft-test-mock Todo移動は保持し、今回のコミット対象外。
