@@ -192,4 +192,4 @@ utilityのcleanupは成功保存より前であり、失敗時は最新要求だ
 
 業務仕様の確認待ちと必要DB前提の不一致は解消済み。
 初回はUser日時列のNULL制約で中断したが、2026-10-22の明示依頼によるmigration適用後に全接続ガード・保存・rollback・競合・cleanup・closeを確認した。
-他Modelと両DBのNULL制約棚卸しは依頼どおり[Todo](../../../../todo/P3-techdebt/user-video-timestamps-db-nullability.md)へ記録し、今回のAPI実装範囲へ広げていない。
+他Modelと両DBのNULL制約棚卸しは依頼どおり[Todo](../../../../todo/done/user-video-timestamps-db-nullability.md)へ記録し、今回のAPI実装範囲へ広げていない。

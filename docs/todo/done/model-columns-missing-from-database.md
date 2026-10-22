@@ -1,5 +1,11 @@
 # Modelに存在して実DB・test_dbに存在しない列の整合方針を決める
 
+## 2026-10-22 完了: 列不存在として検出した2属性の整合完了
+
+ユーザーがpaid_info_id→orders_idの改名と、transfer.account_idの関連付け削除を指定。両DBへmigration適用し、全738属性の列存在・NULL制約一致を確認。transfer_idは誤記との回答により保持。
+詳細は[今回の結果](../../log_memo/20261022-report-transfer-alignment.md)。以下の未完了・残件記載は対応前の履歴。NULL以外のFK削除動作差異は別Todoで管理する。
+
+
 発見日: 2026-10-22。優先度: P3-techdebt。
 
 ## 問題と確認済みの原因

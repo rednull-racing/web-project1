@@ -909,3 +909,10 @@
 - 下書きDB期待値・fixture・取得列・旧FK検査・nullableケースを削除し、設計とレポートを更新。本番コードに該当依存なし。
 - 対象264件、追加65件成功。lint・本番/テスト型検査・変更TS追加lint成功。
 - 起点と類似Todoをdoneへ移動。別件のsharedIdRoutesモック不足6件は別Todoへ記録。
+
+## 20261022_backend-model_報告注文列リネームと振込口座関連の整合
+
+- paid_info_id→orders_idの新規migrationを両DBへ適用。全行の値・既存制約・索引保持と履歴を確認。
+- BankAccount→Transferのaccount_id関連付けを削除。transfer_id・bank_snapshotは保持。
+- 両DB全83モデル738属性の列存在・NULL制約一致、実Model SELECT、DB回帰161件、lint/typecheck成功。
+- 関連Todo2件をdoneへ移動。既存orders FKの削除動作差異は別Todo。詳細は20261022-report-transfer-alignment.md。

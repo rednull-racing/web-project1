@@ -13,7 +13,7 @@
 
 [詳細設計](../../../../../docs/design/backend/detail/itemEditing/convertItemEditingVideo.md) /
 [テスト設計](../../architecture/itemEditing/convertItemEditingVideo.md) /
-[再発防止Todo](../../../../../docs/todo/P3-techdebt/user-video-timestamps-db-nullability.md)
+[再発防止Todo](../../../../../docs/todo/done/user-video-timestamps-db-nullability.md)
 
 ## 最新の変更とmigration（F7）
 
@@ -120,7 +120,7 @@ developへ統合しない。仕様の確認待ちは解消済みであり、現�
 
 [詳細設計](../../../../../docs/design/backend/detail/itemEditing/convertItemEditingVideo.md) /
 [テスト設計](../../architecture/itemEditing/convertItemEditingVideo.md) /
-[阻害要因Todo](../../../../../docs/todo/P3-techdebt/user-video-timestamps-db-nullability.md)
+[阻害要因Todo](../../../../../docs/todo/done/user-video-timestamps-db-nullability.md)
 
 ## 実装した範囲
 

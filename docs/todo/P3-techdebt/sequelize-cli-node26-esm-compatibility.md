@@ -22,7 +22,7 @@ ReferenceError: require is not defined in ES module scope
 ## 対象・参照
 
 - 対象候補: `server/.sequelizerc`、`server/config/config.cjs`、`server/package.json` のmigrationコマンド。必要な検証・運用手順も対象とする。
-- 参照: `server/migrations/AGENTS.md`、`server/migrations/20261021071500-enforce-item-timestamps-not-null.js`、`server/package-lock.json`、`docs/todo/P3-techdebt/user-video-timestamps-db-nullability.md`。
+- 参照: `server/migrations/AGENTS.md`、`server/migrations/20261021071500-enforce-item-timestamps-not-null.js`、`server/package-lock.json`、`docs/todo/done/user-video-timestamps-db-nullability.md`。
 - 関連Todoと `done/` を検索し、同じCLI起動不具合の既存記録は見つからなかった。NULL制約差異とは原因・対応範囲が異なるため、本Todoへ分けて記録する。
 
 ## 修正方針と実装内容
