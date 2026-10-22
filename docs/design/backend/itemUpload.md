@@ -147,7 +147,7 @@
 - usecase: item_draftに一時保管のvideoをhls変換
 
 - 認可:
-    - item_draft_.seller_id === userId
+    - item_draft.seller_id === userId
 
 - 成功後:
     - item_draft.converted_urlに変換済み動画のurlを保管

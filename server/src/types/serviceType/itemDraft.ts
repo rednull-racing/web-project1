@@ -83,3 +83,14 @@ export type ItemDraftTransactionParams = {
     itemDraft: InstanceType<typeof ItemDraft>;
     transaction?: Transaction;
 };
+
+export type UpdateItemDraftVideoData =
+    | { video_status: "processing" }
+    | { video_status: "converted"; converted_url: string; duration: number }
+    | { video_status: "failed"; converted_url: null };
+
+export type UpdateItemDraftVideoParams = {
+    itemDraft: InstanceType<typeof ItemDraft>;
+    data: UpdateItemDraftVideoData;
+    transaction: Transaction;
+};

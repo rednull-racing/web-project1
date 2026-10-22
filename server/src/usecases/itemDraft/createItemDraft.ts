@@ -58,7 +58,7 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
     });
 
     // データ更新
-    await sequelize.transaction(async (t) => {
+    const itemDraftId = await sequelize.transaction(async (t) => {
         // 作成直前に再認可し、commitまで参照元の削除・所有者変更を待機させる。
         const currentItemEditing = await getMyItemEditing({ itemEditingId, userId, transaction: t });
         if (!currentItemEditing) {
@@ -137,9 +137,11 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
         });
 
         await updateItemDraftImage({ itemDraft, urls: finalImageUrls, transaction: t });
+        return itemDraft.id;
     });
 
     return {
+        itemDraftId,
         videoSignedUrl,
         thumbnailSignedUrl,
         itemImageSignedUrls,

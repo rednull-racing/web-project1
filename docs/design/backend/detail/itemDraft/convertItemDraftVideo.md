@@ -2,12 +2,16 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
+監査・更新日: 2026-10-22。ユーザー指定のitem_editing版と同じ契約をitem_draftへ適用する。
+コピー元の実施済み記述・下書きIDの表現を修正し、下書き作成APIのID返却とフロント接続を追加対象とした。
+今回の実行結果は[テストレポート](../../../../../server/test/docs/report/itemDraft/convertItemDraftVideo.md)へ記録する。
+
 ## 1. 概要
 
-item_draft.original_urlの動画をHLSへ変換し、S3のplaylist公開URLと秒数を同じ編集行に保存する。
+item_draft.original_urlの動画をHLSへ変換し、S3のplaylist公開URLと秒数を同じ下書き行に保存する。
 成功時video_statusはconverted。失敗時failed・converted_url=null・duration維持（ユーザー確認済み）。
 original_urlと他の商品情報は編集しない。本APIはvideo_statusにnullを書き込まない。既存nullは受付禁止条件ではない。
-処理中・変換済み・失敗済みからも再変換可能。同じ認証所有者・編集IDの新要求は旧処理を中断する。
+処理中・変換済み・失敗済みからも再変換可能。同じ認証所有者・下書きIDの新要求は旧処理を中断する。
 HTTP 202は変換完了・永続ジョブ登録を保証しない。商品/Video/下書きの作成・削除、通知は対象外。
 
 ## 2. API仕様
@@ -40,11 +44,11 @@ Authorization: Bearer <token>
 | limiter    | middleware/rateLimit/itemDraftRateLimit.ts、convertItemDraftVideoRateLimit               | 新規export                                                           |
 | controller | controllers/itemDraft/itemDraft.ts、convertItemDraftVideoController                    | 新規export。認証IDと検証済みidをrunDetachedTaskへ渡し202応答         |
 | usecase    | usecases/itemDraft/convertItemDraftVideo.ts、convertItemDraftVideoUseCase              | 新規。要求差替え・所有者/元動画確認・transaction・状態遷移           |
-| query      | services/itemDraft/query.ts、getMyItemDraft                                              | 既存。所有者条件、transaction指定時UPDATEロック                      |
+| query      | services/itemDraft/query.ts、getMyItemDraft                                              | 既存。所有者条件、必須transactionのUPDATEロック                      |
 | command    | services/itemDraft/command.ts、updateItemDraftVideo                                      | 新規。動画3列だけのDTOとtransactionを受けてインスタンス更新          |
 | 型         | types/serviceType/itemDraft.ts                                                             | 更新DTO。video_statusはprocessing/converted/failedのみ               |
 | utility    | utils/itemDraftVideoConversion.ts、convertItemDraftVideo                                 | 新規。AbortSignal対応の子プロセス・通信・cleanup                     |
-| S3         | utils/s3/videoConvert.ts                                                                     | 既存download/uploadへ任意AbortSignal追加。旧呼出しの契約を維持       |
+| S3         | utils/s3/videoConvert.ts                                                                     | 任意AbortSignal対応済みのdownload/uploadを変更せず再利用       |
 | 非同期境界 | utils/runDetachedTask.ts                                                                     | 既存利用。内部例外の捕捉・記録。HTTP再送信なし                       |
 
 route/controller/usecaseの三行コメント:
@@ -55,20 +59,27 @@ route/controller/usecaseの三行コメント:
 // page: /upload/[id]
 ```
 
+### 下書き保存フローの接続変更
+
+- `POST /item-draft` は既存の200と署名URL群を維持し、commit済みの `itemDraftId: number` を追加で返す。transaction内で作成IDを返し、外側Promiseの完了後に公開する。
+- フロントは動画を署名済みPOSTのfieldsとFileを含むFormDataでS3へ送信し、成功した場合だけ返却されたitemDraftIdで本APIを呼ぶ。新規動画がなければアップロード・変換要求を行わない。
+- 通常保存の動画変換はitem_editingのAPIとIDを引き続き使用する。下書き保存後は既存の下書き一覧へ遷移する。
+- 既存の下書き作成APIでの元編集セッションの保持／削除や、画面GET API全体の移行は今回変更しない。
+
 ## 3. 認証・認可
 
 req.user.idのみを所有者に採用する。body/queryの所有者・IDは無視する。
 取得・更新前再取得ともwhere: { id: itemDraftId, seller_id: userId }。
 不存在・他人・所有者nullは内部ITEM_DRAFT_NOT_FOUND/404で停止し、S3・更新を実行しない。
 元動画なしは内部ORIGINAL_URL_NOT_FOUND/400で停止。業務確認はHTTP応答後のためフロント応答は受付202のまま。
-中断キーは認証userIdと編集IDの組とし、他人のIDを指定して所有者のジョブを中断できない。
+中断キーは認証userIdと下書きIDの組とし、他人のIDを指定して所有者のジョブを中断できない。
 最終保存・失敗記録でも所有者を再確認し、削除・所有者変更後の行を更新・復元しない。
 
 ## 4. 処理フロー
 
 1. 対象PATCHのHTTP 202境界をparserより前に設定。parser→認証→limiter→paramsの拒否は後続未実行。
 2. controllerはrunDetachedTaskでUseCase全体を起動し202応答。UseCase内部のPromiseは回収・awaitする。
-3. 最初のawait前に所有者/編集IDの新ジョブを登録し旧ジョブをabort。旧処理の終了とcleanupを回収する。
+3. 最初のawait前に所有者/下書きIDの新ジョブを登録し旧ジョブをabort。旧処理の終了とcleanupを回収する。
 4. 自身が既に中断済みなら開始しない。短いtransactionでgetMyItemDraftをロック取得し、元動画を確認してprocessingを保存、commitを待つ。
 5. ロックを保持せずdownload→ffprobe→ffmpeg→S3 upload。各段階とファイルごとの前後で中断確認。子プロセスclose・通信終了を回収し、utilityのfinallyで自作一時パスだけcleanupしてから結果を返す。
 6. 短いtransactionで所有者・元URLを再確認し、最新要求かつ同じ元動画のときだけconverted・URL・durationを保存してcommitを待つ。
@@ -103,7 +114,7 @@ flowchart TD
 ## 5. DB操作仕様
 
 本APIは既存ItemDraft Modelの列だけを使用し、Model・associateの変更は不要。
-全3接続のtest_dbと必要スキーマの検査完了後に実DBテストを実行済み。Model存在だけをDB反映済みの根拠にしていない。
+実DB反映状況は今回のガード付きテスト開始時に検査する。全3接続のtest_dbと必要スキーマの検査完了後にのみfixtureを書き込む。Model存在だけをDB反映済みの根拠にしない。
 
 | 段階         | 更新列                                                                            | 保持列                                        |
 | ------------ | --------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -114,10 +125,10 @@ flowchart TD
 
 updatedAtはSequelize通常更新に従う。ID・所有者・createdAtは保持。Video.statusやItemは更新しない。
 S3キー: video/converted/item-draft/{userId}/{itemDraftId}/{requestUUID}/index.m3u8とseg\_%03d.ts。
-一時パスもUUIDで分離し、生成した元動画と出力ディレクトリだけを削除する。
+一時パスはtmp/item_draft_original_{requestUUID}とtmp/item_draft_converted_{requestUUID}を使い、item_editing版と名前空間を分離する。UUIDで要求を分離し、生成した元動画と出力ディレクトリだけを削除する。
 MIMEはplaylistがapplication/vnd.apple.mpegurl、segmentがvideo/mp2t。
 HLSは既存参考API同様H264 baseline・AAC・最大幅1280・偶数高さ・10秒segment・vod。音声トラックは任意。
-ffprobe値は有限・非負の数を整数へ切り捨て。取得失敗は0で隠さず変換失敗とする。
+ffprobe値は有限・非負かつ2147483647以下の数を整数へ切り捨て。取得失敗は0で隠さず変換失敗とする。
 元S3オブジェクトは複製・削除しない。失敗・中断時の部分アップロードはDBへ公開しない。
 S3はDB rollbackの対象外で、既送信オブジェクトの一括削除・補償削除は追加しない。
 
@@ -132,7 +143,8 @@ HTTP送信失敗で確定済みDBを戻さない。失敗記録の障害は元�
 ### 排他・再送
 
 現行docker-compose.prod.ymlは単一serverサービス、npm startは単一Node.jsプロセス。
-プロセス内で所有者/編集ID別にAbortController・完了Promiseを保持し、新要求は旧処理中断と回収後に実行する。
+item_editing版とは別のジョブMapを使い、同じ所有者・同じ数値IDでも互いを中断しない。
+プロセス内で所有者/下書きID別にAbortController・完了Promiseを保持し、新要求は旧処理中断と回収後に実行する。
 3要求以上は最後の要求だけ継続する。別IDは独立。別所有者のID偽装では所有者ジョブを中断できない。
 旧要求の結果は新要求へ混入させない。失敗は各要求の共通境界が捕捉する。
 

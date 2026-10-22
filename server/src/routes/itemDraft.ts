@@ -1,13 +1,32 @@
 import { Router } from "express";
-import { createItemDraftController, deleteItemDraftController } from "../controllers/itemDraft/itemDraft.js";
+import {
+    convertItemDraftVideoController,
+    createItemDraftController,
+    deleteItemDraftController,
+} from "../controllers/itemDraft/itemDraft.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
-import { createItemDraftRateLimit, deleteItemDraftRateLimit } from "../middleware/rateLimit/itemDraftRateLimit.js";
+import {
+    convertItemDraftVideoRateLimit,
+    createItemDraftRateLimit,
+    deleteItemDraftRateLimit,
+} from "../middleware/rateLimit/itemDraftRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { createItemDraftBodySchema } from "../validators/body/itemDraft.js";
 import { idParamSchema } from "../validators/params/id.js";
 
 const router = Router();
+
+// PATCH /item-draft/:id/convert
+// summary: 下書き商品動画HLS変換
+// page: /upload/[id]
+router.patch(
+    "/:id/convert",
+    authenticateToken,
+    convertItemDraftVideoRateLimit,
+    validateParams(idParamSchema),
+    convertItemDraftVideoController,
+);
 
 // POST /item-draft
 // summary: 下書き商品作成
