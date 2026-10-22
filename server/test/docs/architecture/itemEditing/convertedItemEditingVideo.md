@@ -107,4 +107,3 @@ npm run lint、npm run typecheck、./node_modules/.bin/tsc --noEmit -p test/tsco
 
 現在は実DB前提ガード（親User.createdAtのNULL制約差異）で中断。D系は本体未実行、I系の実DB usecase接続は未実装・未実行。
 DBガードの調整やschema補正で通過させず、差異の解消・方針確定後に再開する。
-

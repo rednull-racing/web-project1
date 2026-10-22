@@ -267,4 +267,3 @@ describe("convertedItemEditingVideo usecase P0 要求差替え", () => {
         expect(mocks.update.mock.calls.map(([p]) => p.data.video_status)).toEqual(["processing", "processing", "converted"]);
     });
 });
-

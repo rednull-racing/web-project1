@@ -62,6 +62,12 @@ npm run test:run -- src/usecases/itemEditing/test/convertedItemEditingVideo.test
 専用fixtureはtest/fixtures/itemEditing/convertedItemEditingVideo/databaseSetup.tsとdatabaseFixtures.ts。
 実DBケースはtest/integration/database/itemEditing/convertedItemEditingVideo/database.test.ts。
 
+DB担当worktreeのserver/で3回とも次を実行した。--maxWorkers=1はfixtureのhook/env/cleanupのファイル間干渉を抑える指定で、D06内の独立transaction並列検証を置き換えない。
+
+```bash
+npm run test:run -- test/integration/database/itemEditing/convertedItemEditingVideo/database.test.ts --maxWorkers=1
+```
+
 接続前にserver/.env.test由来・NODE_ENV=test・PostgreSQL URLのtest_dbを検査する。
 src/db.ts、models/indexのSequelize、observerの3接続を列挙し、全接続の設定名・実DB名・必要スキーマの検査完了後だけsafeを立てる設計。
 最終停止時は最初のsrc/db.ts接続の設定名/SELECT current_database()がtest_dbと確認でき、
@@ -98,6 +104,7 @@ seed前停止でテスト作成行0、cleanup DELETE0。safe不成立時にclean
 | F3 | DB fixtureのFK情報型がobjectでテストtsc失敗 | 型付き情報スキーマSELECTへ変更。テスト型検査成功。DBガード失敗とは別のテストコード問題 |
 | F4 | 初回DB fixtureが無関係なVideo/Itemまでseed・全列照合しVideo.createdAtで停止 | 非対象依存を除き本APIのItemEditing/必要親Userへ限定。APIの必要ガードは維持。次に必要親User.createdAtで停止、ここからDB再実行停止 |
 | F5 | 既存User日時NULL定義不一致 | 未修正。対象外のschema変更やガード緩和をせず中断、Todo作成 |
+| F6 | 新規3ファイルの末尾空行をstaged差分検査で検出 | 末尾空行だけ削除。挙動変更なし、差分検査再成功 |
 | 環境 | HTTP listen EPERM、DB socket EPERM | 承認手順で同じガード/対象を制限外実行。HTTP成功、DBはschemaガード停止 |
 | 検査コマンド | 初回追加ESLintのflat configにextendsを直接渡して起動失敗 | tseslint.configによる展開へ修正。リポジトリ共有設定変更なし、追加6ファイル0 errors/0 warnings |
 
@@ -131,4 +138,3 @@ test/integration/usecases/itemEditing/convertedItemEditingVideo/http.test.ts。
 
 単体のtransactionモック成功を実DBの永続化/rollback/ロック成功と扱わず、
 S3モック成功を実送信/配信成功と扱わない。現在の中断状態でAPI開発完了とはしない。
-
