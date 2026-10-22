@@ -226,7 +226,7 @@ describe("P0/P1 専用レート制限と優先順位", () => {
 });
 
 describe("P1 app接続と対象パス境界", () => {
-    it.each(["/api/item-draft/101/convert/", "/API/ITEM-EDITING/101/CONVERT"])(
+    it.each(["/api/item-draft/101/convert/", "/API/ITEM-DRAFT/101/CONVERT"])(
         "H10: Expressが受ける%sも202境界を適用する",
         async (path) => {
             const result = await request(app).patch(path);

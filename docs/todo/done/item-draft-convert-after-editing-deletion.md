@@ -2,6 +2,17 @@
 
 発見日: 2026-10-22
 
+## 完了結果（2026-10-22）
+
+- item_editing版と同じ契約の `PATCH /item-draft/:id/convert` を実装。下書きID返却とフロント接続も完了した。
+- 新規動画は署名済みFormData POST成功後に返却itemDraftIdで変換し、編集中の動画変換とはID・ジョブ・S3/一時パス・制限枠を分離。
+- 新API実DB36件、DB非接続と関連回帰676件、作成API実DB148件が成功。静的検査とclient簡易検証も成功。
+- 実AWS/ffmpeg・ブラウザの保存→編集再開→公開の通し確認は未実施。画面GET API全体の移行は今回の対象外。
+- 現行の下書き作成は元編集行を保持しており、以下の「削除する」は基本設計上の想定。実装との差は[別Todo](../P1-bug/create-item-draft-retains-editing-session.md)へ分離した。
+- [詳細設計](../../design/backend/detail/itemDraft/convertItemDraftVideo.md)・[テスト結果](../../../server/test/docs/report/itemDraft/convertItemDraftVideo.md)を参照。
+
+以下は対応前の問題・方針の記録。API実装と接続の未対応記述は上記の結果で解消済み。
+
 ## 問題と原因
 
 `POST /item-draft` は成功時に元のitem_editingを削除するが、フロントの下書き保存処理はその後に動画アップロードと `PATCH /item-editing/:id/convert` を呼び出している。
@@ -28,4 +39,4 @@
 
 ## 注意事項
 
-下書き作成と動画変換APIそれぞれの成功だけで、下書き動画の変換成功とみなさない。今回は修正・実動検証を行っていない。
+下書き作成と動画変換APIそれぞれの成功だけで、下書き動画の変換成功とみなさない。初回のAPI URL置換時点では修正・実動検証を行っていなかった。今回の実装・検証範囲は冒頭に記録。

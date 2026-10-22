@@ -4,7 +4,7 @@
 
 監査・更新日: 2026-10-22。ユーザー指定のitem_editing版と同じ契約をitem_draftへ適用する。
 コピー元の実施済み記述・下書きIDの表現を修正し、下書き作成APIのID返却とフロント接続を追加対象とした。
-今回の実行結果は[テストレポート](../../../../../server/test/docs/report/itemDraft/convertItemDraftVideo.md)へ記録する。
+実装・必要検証を完了。DB非接続676件・新API実DB36件・作成API実DB回帰148件が成功。今回の実行結果は[テストレポート](../../../../../server/test/docs/report/itemDraft/convertItemDraftVideo.md)へ記録する。
 
 ## 1. 概要
 
@@ -114,7 +114,7 @@ flowchart TD
 ## 5. DB操作仕様
 
 本APIは既存ItemDraft Modelの列だけを使用し、Model・associateの変更は不要。
-実DB反映状況は今回のガード付きテスト開始時に検査する。全3接続のtest_dbと必要スキーマの検査完了後にのみfixtureを書き込む。Model存在だけをDB反映済みの根拠にしない。
+全3接続のtest_db、必要スキーマ、READ COMMITTEDを今回のガード付きテスト開始時に検査し、完了後にのみfixtureを書き込んだ。実DB36件と自作行限定cleanup・接続closeが成功。Model存在だけをDB反映済みの根拠にしていない。
 
 | 段階         | 更新列                                                                            | 保持列                                        |
 | ------------ | --------------------------------------------------------------------------------- | --------------------------------------------- |

@@ -945,3 +945,11 @@
 - ユーザー指定のTodoを、item_editingと同様のitem_draft用動画変換APIを新規作成する方針へ更新。
 - 下書きIDの返却・受け渡しとフロントの呼び出し変更を対応内容に記載。API実装は未着手。
 - 文書差分とgit diff --checkを確認。
+
+## 20261022_backend-coding_下書き動画変換APIを監査実装
+
+- 詳細設計のコピー残りを監査修正し、item_draft用HLS変換API・作成ID返却・フロント接続を実装。
+- Editing版とジョブ/S3/一時パス/制限枠を分離。署名済み動画送信をFormData POSTへ整合。
+- 単体/HTTP/回帰676件、新API実DB36件、作成実DB148件成功。lint・両型検査・追加TS lint・client簡易検証成功。
+- 全接続test_dbガード、実ロック/rollback、自作行限定cleanupとcloseを確認。実AWS/ffmpeg・ブラウザE2Eは未実施。
+- 起点Todoをdoneへ移動。元編集行の削除がない既存の設計差分は別Todo。詳細はconvertItemDraftVideoのレポートを参照。

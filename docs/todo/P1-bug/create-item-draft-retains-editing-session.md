@@ -21,7 +21,7 @@
 - `server/src/services/itemEditing/command.ts`：deleteItemEditing。
 - `server/test/docs/architecture/itemDraft/createItemDraft.md`
 - `server/test/docs/report/itemDraft/createItemDraft.md`
-- `docs/todo/P1-bug/item-draft-convert-after-editing-deletion.md`（動画変換API接続の起点。完了後はdone配下を参照）。
+- `docs/todo/done/item-draft-convert-after-editing-deletion.md`（動画変換API接続の完了記録）。
 
 ## 注意事項
 
