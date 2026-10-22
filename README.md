@@ -187,6 +187,16 @@ graph TD
 
 ローカル開発・テストは Docker コンテナ上で動作確認しています。
 
+Node.jsは26.12.1（2026-10-21公開のセキュリティ修正版、Current）を使用します。
+Dockerを使わない場合は、リポジトリルートで `nvm install` → `nvm use` を実行し、
+ルート・`client`・`server`それぞれで `npm ci` を実行してください。
+Linuxの公式バイナリには `libatomic` が必要です（Ubuntu/Debian: `libatomic1`）。
+Docker利用時は `docker compose build --pull` でイメージを再ビルドしてください。
+本番環境への反映には、更新イメージのビルド・デプロイが必要です。
+
+- [Node.js公式リリース](https://github.com/nodejs/node/releases/tag/v26.12.1)
+- [Linuxの実行要件](https://github.com/nodejs/node/blob/main/BUILDING.md)
+
 ---
 
 # プロジェクト構成
