@@ -1,4 +1,4 @@
-FROM node:22 AS builder
+FROM node:26.12.1 AS builder
 
 RUN apt-get update && apt-get install -y ffmpeg
 
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 
-FROM node:22
+FROM node:26.12.1
 
 RUN apt-get update && apt-get install -y ffmpeg
 

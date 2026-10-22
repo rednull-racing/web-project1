@@ -841,3 +841,11 @@
 - 実DB3ファイル125件・DB非接続8ファイル534件が成功。HTTP待受けEPERMは制限外再実行で解消。
 - lint、本番/テスト型検査、変更DBテスト追加lint、差分検査が成功。本番コード・DB制約の変更なし。
 - テスト設計・レポートを更新し、対象Todoを完了記録付きでdoneへ移動。
+
+## 20261022_backend-architecture_Node.js26セキュリティ更新
+
+- 最新Currentの26.12.1へDocker開発/本番・engines・.nvmrcを統一。Node型定義とlockfileも26系へ更新。
+- Node 26でserver lint・本番/テスト型検査・build、client型検査、主要依存の基本動作が成功。
+- server単体1816件成功・2件失敗。client lintは29エラー・40警告。旧Nodeでも同じ失敗を確認しTodo化。
+- server/clientの本番Docker内npm ci・buildが成功。ホストNext buildは長時間compileのため中止。
+- README・更新記録を追加。npm依存の脆弱性34件は別Todoへ記録。本番デプロイ・migrationは未実施。
