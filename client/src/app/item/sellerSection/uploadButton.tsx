@@ -19,7 +19,7 @@ export const UploadButton = ({ id }: Props) => {
         try {
             const data = await fetchCopyUpload(id);
 
-            const url = `/upload/copy/${String(data.newItemId)}`;
+            const url = `/upload/${data.itemEditingId}`;
             router.push(url);
         } catch (err) {
             if (err instanceof ApiError) {

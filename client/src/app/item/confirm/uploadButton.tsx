@@ -28,12 +28,12 @@ export const UploadButton = ({ id }: Props) => {
         }
 
         try {
-            await fetchPublishItem(id);
+            const data = await fetchPublishItem(id);
 
             toast.success("商品を出品しました");
             await sleep(1500);
 
-            router.push(`/upload/ok/${id}`);
+            router.push(`/upload/ok/${data.itemId}`);
         } catch (err) {
             if (err instanceof ApiError) {
                 toast.error("サーバーエラーが発生しました。通信状況を確認し、もう一度ボタンをクリックしてください");

@@ -18,15 +18,15 @@ type UploadResponse = {
     attributesImageSignedUrls: Record<string, string>;
 };
 
-export const fetchDraft = async (itemId: string, body: Body): Promise<UploadResponse> => {
-    return apiFetch(`/items/${itemId}?mode=draft`, {
-        method: "PUT",
-        body: JSON.stringify(body),
+export const fetchDraft = async (itemEditingId: string, body: Body): Promise<UploadResponse> => {
+    return apiFetch("/item-draft", {
+        method: "POST",
+        body: JSON.stringify({ ...body, itemEditingId: Number(itemEditingId) }),
     });
 };
 
-export const fetchMain = async (itemId: string, body: Body): Promise<UploadResponse> => {
-    return apiFetch(`/items/${itemId}?mode=main`, {
+export const fetchMain = async (itemEditingId: string, body: Body): Promise<UploadResponse> => {
+    return apiFetch(`/item-editing/${itemEditingId}`, {
         method: "PUT",
         body: JSON.stringify(body),
     });

@@ -10,7 +10,7 @@ type SignedUrlItem = {
 };
 
 type VideoArgs = {
-    videoId?: string | number;
+    itemEditingId: string;
     videoFile: File | null;
     videoSignedUrl?: string;
 };
@@ -33,8 +33,8 @@ type AttributesImageArgs = {
 export const useFileUpload = () => {
     // 動画
     const videoUploadAndConvert = useCallback(
-        async ({ videoFile, videoSignedUrl, videoId }: VideoArgs): Promise<boolean> => {
-            if (!videoSignedUrl || !(videoFile instanceof File) || !videoId) {
+        async ({ videoFile, videoSignedUrl, itemEditingId }: VideoArgs): Promise<boolean> => {
+            if (!videoSignedUrl || !(videoFile instanceof File) || !itemEditingId) {
                 return true;
             }
 
@@ -53,7 +53,7 @@ export const useFileUpload = () => {
             }
 
             // ffmpeg変換
-            await fetchVideoConvert(String(videoId));
+            await fetchVideoConvert(itemEditingId);
 
             return true;
         },

@@ -244,7 +244,7 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
             const videoOk = await videoUploadAndConvert({
                 videoFile: videoInput.videoFile,
                 videoSignedUrl: data.videoSignedUrl?.url,
-                videoId: item.Video?.id,
+                itemEditingId: itemId,
             });
 
             if (!videoOk) {
@@ -366,7 +366,7 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
             const videoOk = await videoUploadAndConvert({
                 videoFile: videoInput.videoFile,
                 videoSignedUrl: data.videoSignedUrl?.url,
-                videoId: item.Video?.id,
+                itemEditingId: itemId,
             });
 
             if (!videoOk) {

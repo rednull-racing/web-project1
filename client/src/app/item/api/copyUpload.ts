@@ -1,11 +1,12 @@
 import { apiFetch } from "../../../lib/api/client";
 
 type CopyUploadResponse = {
-    newItemId: number;
+    itemEditingId: number;
 };
 
 export const fetchCopyUpload = async (itemId: string): Promise<CopyUploadResponse> => {
-    return apiFetch(`/items/${itemId}/copy-upload`, {
+    return apiFetch("/item-editing/copy", {
         method: "POST",
+        body: JSON.stringify({ itemId: Number(itemId) }),
     });
 };
