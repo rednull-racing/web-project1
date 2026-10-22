@@ -923,3 +923,9 @@
 - Node26.12.1でCLI・ESM up/down・履歴の隔離テスト5件、lint/typecheck成功。
 - neondb/test_dbの実DB名を読取り確認。実DBのmigration・履歴変更なし。
 - 運用手順を追記し、Todoをdoneへ移動。実DBでの適用/復旧には別途対象と実行許可が必要。
+
+## 20261022_backend-test_sharedIdRoutesのcontrollerモック補完
+
+- 動画変換controllerのexportモック不足を補完し、共有ID回帰6件が成功。
+- lint、本番／テスト型検査、変更TS追加lint成功。HTTP待受制限は権限付き再実行で確認。
+- レポート・参照先を更新しTodoをdoneへ移動。本番仕様・期待値の変更なし。

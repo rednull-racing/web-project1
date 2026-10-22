@@ -1,5 +1,16 @@
 # deleteItemDraft テスト実装・実行レポート
 
+## 最新結果：sharedIdRoutesのcontrollerモック補完（2026-10-22）
+
+`test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts` に現行Routerがimportする `convertItemEditingVideoController` の観測用モックを追加。O05の期待値・共有ID上限・認証・本番Routerは変更なし。
+
+- `server/` で `npm run test:run -- test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts` を実行し、1ファイル6件成功、失敗・skip・todo・未処理例外0件。初回はHTTP待受のsandbox EPERMにより6件失敗・未処理例外6件、権限付き同一コマンドで成功。
+- O05：読取／更新の各id=1・2147483647でcontroller到達とvalidatedParams、2147483648で400/INVALID_PARAMSとcontroller未実行を確認。最小Expressで実Router・認証・rate・validator・errorHandlerを使用し、controllerとdotenvをモック。DB接続・実業務処理・動画変換は検証対象外。
+- `npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` は成功。通常lint対象外の変更TSはESLint APIで既存typescript-eslint recommendedを適用し、追加lintも成功。
+- カバレッジ未取得。今回の再実行は上記6件のみで、過去のDB・機能全体の結果とは合算しない。Todoは `docs/todo/done/shared-id-routes-controller-mock-export.md` へ移動。
+
+以下は今回の修正前の履歴。
+
 ## 2026-10-22 item_draft.item_id削除後の回帰
 
 削除migrationと現行Modelに従い、DB保存結果のitem_id:null期待値、既存下書きfixture入力、取得カラム一覧、nullable参照ケース、共有fixtureの旧FK検査を削除。本番コードには該当依存がなく変更なし。AF-OWN02の未知キー入力・所有者保存検証は維持し、item_id非存在を確認する。
@@ -7,7 +18,7 @@
 server/で以下を実行（--maxWorkers=1は共有fixture・hookのファイル間干渉を避けるため）。
 
 - `npm run test:run -- test/integration/database/itemDraft/createItemDraft/database.test.ts test/integration/database/itemDraft/deleteItemDraft/database.test.ts src/services/itemDraft/test/ src/usecases/itemDraft/test/createItemDraft.test.ts --maxWorkers=1`: 6ファイル264件成功（DB148+15、非DB101）。
-- `npm run test:run -- test/integration/database/itemEditing/createItemEditingDraft/ test/integration/usecases/itemEditing/createItemEditingDraft/ test/integration/usecases/itemDraft/deleteItemDraft/ --maxWorkers=1`: 8ファイル207件成功、sharedIdRoutesの6件失敗。旧nullableケース除去前の結果。controllerモックのconvertItemEditingVideoController不足は別Todo `docs/todo/P3-techdebt/shared-id-routes-controller-mock-export.md` に記録し未修正。
+- `npm run test:run -- test/integration/database/itemEditing/createItemEditingDraft/ test/integration/usecases/itemEditing/createItemEditingDraft/ test/integration/usecases/itemDraft/deleteItemDraft/ --maxWorkers=1`: 8ファイル207件成功、sharedIdRoutesの6件失敗。旧nullableケース除去前の結果。controllerモックのconvertItemEditingVideoController不足は別Todo `docs/todo/done/shared-id-routes-controller-mock-export.md` に記録（当時未修正。2026-10-22にモック補完・対象6件成功、deleteItemDraftレポートの最新結果参照）。
 - `npm run test:run -- test/integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts test/integration/database/itemEditing/createItemEditingDraft/database.test.ts --maxWorkers=1`: 最終変更後2ファイル65件成功。上記実行との重複を合算しない。
 - `npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` 成功。変更したtest配下TS6ファイルはESLint APIと既存typescript-eslint recommendedで追加検査し成功。
 

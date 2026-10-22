@@ -27,4 +27,4 @@ Node.js更新作業では取得仕様やテスト期待値を変更せず、既�
 
 ## 完了（2026-10-22）
 
-削除済みitem_draft.item_idへの期待値・入力・取得列・FK依存を除去。本番コードに依存なし。対象264件および追加65件成功、lint・本番/テスト型検査・変更TS追加lint成功。詳細は `server/test/docs/report/itemDraft/createItemDraft.md`。対象外のsharedIdRoutesモック不足6件は別Todo `docs/todo/P3-techdebt/shared-id-routes-controller-mock-export.md` に記録。
+削除済みitem_draft.item_idへの期待値・入力・取得列・FK依存を除去。本番コードに依存なし。対象264件および追加65件成功、lint・本番/テスト型検査・変更TS追加lint成功。詳細は `server/test/docs/report/itemDraft/createItemDraft.md`。対象外のsharedIdRoutesモック不足6件は別Todo `docs/todo/done/shared-id-routes-controller-mock-export.md` に記録。
