@@ -18,6 +18,16 @@ const makeApp = () => {
 };
 
 describe("P0: multipart実parserとHTTP境界（DB/AWSなし）", () => {
+    it("M09: 細工したtext field名による配列長超過例外を拒否し、次の正常送信を処理する", async () => {
+        const { app, controller } = makeApp();
+        // 上流87a584eの再現条件: 最大配列長の疎配列へ追加するとRangeErrorになる。
+        const result = await request(app).post("/upload").field("payload[4294967294]", "a").field("payload[]", "overflow");
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ code: "INVALID_FIELD_NAME" });
+        expect(controller).not.toHaveBeenCalled();
+        expect((await request(app).post("/upload").attach("frontIdCard", Buffer.from("ok"), "ok.png")).status).toBe(204);
+        expect(controller).toHaveBeenCalledTimes(1);
+    });
     it("M01: 稼働multipartルートは認証とレート制限を解析より先に実行する", () => {
         for (const name of ["shopSignup", "shopInfoEdit", "users", "idCard"]) {
             const source = readFileSync(new URL(`../../../../../src/routes/${name}.ts`, import.meta.url), "utf8");
