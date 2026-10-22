@@ -2,8 +2,8 @@ import { randomBytes } from "node:crypto";
 import type { Application } from "express";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { videoHttpMocks as mocks } from "../../../../fixtures/itemEditing/convertedItemEditingVideo/httpMocks.js";
-import { deferred, makeVideoHttpApp, makeVideoToken, patchVideo } from "../../../../fixtures/itemEditing/convertedItemEditingVideo/httpFixtures.js";
+import { videoHttpMocks as mocks } from "../../../../fixtures/itemEditing/convertItemEditingVideo/httpMocks.js";
+import { deferred, makeVideoHttpApp, makeVideoToken, patchVideo } from "../../../../fixtures/itemEditing/convertItemEditingVideo/httpFixtures.js";
 
 // 実appのparser順を検証するケースだけが使う。cron・対象外Routerの起動を遮断する。
 vi.mock("../../../../../src/cron/index.js", () => ({ startAllCrons: vi.fn() }));
@@ -100,7 +100,7 @@ describe("P0 実Router・認証・params・202境界", () => {
         expect(result.status).toBe(202);
         expect(result.body).toEqual(accepted);
         expect(log).toHaveBeenCalledExactlyOnceWith("Detached task failed", {
-            taskName: "convertedItemEditingVideo", target: { userId: 7, itemEditingId: 101 }, error,
+            taskName: "convertItemEditingVideo", target: { userId: 7, itemEditingId: 101 }, error,
         });
         if (error instanceof AppError) expect(error.statusCode).toBe(status);
     });

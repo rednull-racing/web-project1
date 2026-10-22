@@ -1,11 +1,11 @@
-import "../../../../fixtures/itemEditing/convertedItemEditingVideo/databaseSetup.js";
+import "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
     ItemEditing, protectedSnapshot, seed, snapshot,
-} from "../../../../fixtures/itemEditing/convertedItemEditingVideo/databaseFixtures.js";
-import type { DbFixture } from "../../../../fixtures/itemEditing/convertedItemEditingVideo/databaseFixtures.js";
+} from "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.js";
+import type { DbFixture } from "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.js";
 import { AppError } from "../../../../../src/errors.js";
-import { convertedItemEditingVideoUseCase as run } from "../../../../../src/usecases/itemEditing/convertedItemEditingVideo.js";
+import { convertItemEditingVideoUseCase as run } from "../../../../../src/usecases/itemEditing/convertItemEditingVideo.js";
 
 const mocks = vi.hoisted(() => ({
     convert: vi.fn<typeof import("../../../../../src/utils/itemEditingVideoConversion.js").convertItemEditingVideo>(),

@@ -1,11 +1,12 @@
-# convertedItemEditingVideo 詳細設計
+# convertItemEditingVideo 詳細設計
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
 更新日: 2026-10-22。ユーザー回答を優先し、旧案のdone・失敗時DB不変・処理中409を廃止。
 本ファイルconvertItemEditingVideo.mdを継続使用する。旧Video APIは変更しない。
-設計検証: API契約・責務・Model列・受付順・中断・保存条件を照合済み。実行結果は後続のレポートへ記載する。
-現在の状態: 実DBテストの必須親User.createdAtのNULL制約不一致で中断。初期実装は作業ブランチに保持し、検証完了・develop統合は行っていない。
+設計検証: API契約・責務・Model列・受付順・中断・保存条件を照合済み。
+現在の状態: 実装・必要テスト・静的検査は完了。名称をconvertItemEditingVideoへ統一し、DB非接続263件と実DB36件が成功した。
+旧中断のUser日時制約はユーザー指示の新規migrationを両DBへ適用して解消。詳細は[レポート](../../../../../server/test/docs/report/itemEditing/convertItemEditingVideo.md)を参照。
 
 ## 1. 概要
 
@@ -42,9 +43,9 @@ Authorization: Bearer <token>
 | 初期化 | app.ts、middleware/itemEditingVideoResponse.ts | 変更/新規。対象PATCHの202境界をparserより前に接続。他APIは変更しない |
 | route | routes/itemEditing.ts | 新規PATCH。authenticateToken→専用limiter→validateParams→controller |
 | 認証・検証 | middleware/authMiddleware.ts、middleware/validate/validateParams.ts、validators/params/id.ts | 既存利用 |
-| limiter | middleware/rateLimit/itemEditingRateLimit.ts、convertedItemEditingVideoRateLimit | 新規export |
-| controller | controllers/itemEditing/itemEditing.ts、convertedItemEditingVideoController | 新規export。認証IDと検証済みidをrunDetachedTaskへ渡し202応答 |
-| usecase | usecases/itemEditing/convertedItemEditingVideo.ts、convertedItemEditingVideoUseCase | 新規。要求差替え・所有者/元動画確認・transaction・状態遷移 |
+| limiter | middleware/rateLimit/itemEditingRateLimit.ts、convertItemEditingVideoRateLimit | 新規export |
+| controller | controllers/itemEditing/itemEditing.ts、convertItemEditingVideoController | 新規export。認証IDと検証済みidをrunDetachedTaskへ渡し202応答 |
+| usecase | usecases/itemEditing/convertItemEditingVideo.ts、convertItemEditingVideoUseCase | 新規。要求差替え・所有者/元動画確認・transaction・状態遷移 |
 | query | services/itemEditing/query.ts、getMyItemEditing | 既存。所有者条件、transaction指定時UPDATEロック |
 | command | services/itemEditing/command.ts、updateItemEditingVideo | 新規。動画3列だけのDTOとtransactionを受けてインスタンス更新 |
 | 型 | types/serviceType/itemEditing.ts | 更新DTO。video_statusはprocessing/converted/failedのみ |
@@ -107,8 +108,9 @@ flowchart TD
 
 ## 5. DB操作仕様
 
-既存ItemEditing Modelの列だけを使用。Model・associate・migrationの変更は不要。
-Model存在をDB反映済みとはみなさず、実DBスキーマはテスト前に検査する。
+本APIは既存ItemEditing Modelの列だけを使用し、Model・associateの変更は不要。
+前提検査で発見したUser日時列のNULL制約は、明示依頼された20261022080000-enforce-user-timestamps-not-null.jsをneondb/test_dbへ適用してModelと整合させた。
+全3接続のtest_dbと必要スキーマの検査完了後に実DBテストを実行済み。Model存在だけをDB反映済みの根拠にしていない。
 
 | 段階 | 更新列 | 保持列 |
 | --- | --- | --- |
@@ -172,7 +174,7 @@ utilityのcleanupは成功保存より前であり、失敗時は最新要求だ
 
 ## 8. テスト設計
 
-詳細ID・fixture・実行コマンドはserver/test/docs/architecture/itemEditing/convertedItemEditingVideo.mdへ記載する。
+詳細ID・fixture・実行コマンドはserver/test/docs/architecture/itemEditing/convertItemEditingVideo.mdへ記載する。
 
 - 正常: processing→converted、URL・秒数対応、original_urlと非対象情報保持、HTTPの非待機。
 - 状態: original/processing/converted/failed/nullから受付、null書込み禁止、逐次再変換。
@@ -188,8 +190,6 @@ utilityのcleanupは成功保存より前であり、失敗時は最新要求だ
 
 ## 9. 未決定事項
 
-業務仕様の確認待ちは解消済み。実DBスキーマとテスト環境は後続の実行前検査で確認する。
-問題判明時はスキルの中断条件に従い、後続工程を完了扱いにしない。
-
-2026-10-22の実DB前提検査で、User.createdAtはModelのallowNull:falseに対しtest_dbはNULL許容と判明し中断。
-fixture書込み前の停止であり、DB補正は行わない。詳細と再開条件は[テストレポート](../../../../../server/test/docs/report/itemEditing/convertedItemEditingVideo.md)を参照。
+業務仕様の確認待ちと必要DB前提の不一致は解消済み。
+初回はUser日時列のNULL制約で中断したが、2026-10-22の明示依頼によるmigration適用後に全接続ガード・保存・rollback・競合・cleanup・closeを確認した。
+他Modelと両DBのNULL制約棚卸しは依頼どおり[Todo](../../../../todo/P3-techdebt/user-video-timestamps-db-nullability.md)へ記録し、今回のAPI実装範囲へ広げていない。

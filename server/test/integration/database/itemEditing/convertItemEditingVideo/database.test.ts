@@ -1,4 +1,4 @@
-import "../../../../fixtures/itemEditing/convertedItemEditingVideo/databaseSetup.js";
+import "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseSetup.js";
 import { performance } from "node:perf_hooks";
 import { setImmediate } from "node:timers/promises";
 import { QueryTypes } from "sequelize";
@@ -6,7 +6,7 @@ import type { Transaction } from "sequelize";
 import { describe, expect, it } from "vitest";
 import {
     ItemEditing, observer, protectedSnapshot, seed, sequelize, snapshot,
-} from "../../../../fixtures/itemEditing/convertedItemEditingVideo/databaseFixtures.js";
+} from "../../../../fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.js";
 import { getMyItemEditing } from "../../../../../src/services/itemEditing/query.js";
 import { updateItemEditingVideo } from "../../../../../src/services/itemEditing/command.js";
 import type { UpdateItemEditingVideoData } from "../../../../../src/types/serviceType/itemEditing.js";

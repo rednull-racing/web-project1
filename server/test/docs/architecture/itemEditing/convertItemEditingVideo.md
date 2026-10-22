@@ -1,22 +1,22 @@
-# convertedItemEditingVideo テスト設計
+# convertItemEditingVideo テスト設計
 
 設計日: 2026-10-22。[詳細設計](../../../../../docs/design/backend/detail/itemEditing/convertItemEditingVideo.md)とユーザー回答を根拠とする。
-対象はPATCH /api/item-editing/:id/convert。以下のパスはserver/基準。実行結果は[レポート](../../../docs/report/itemEditing/convertedItemEditingVideo.md)へ記載する。
+対象はPATCH /api/item-editing/:id/convert。以下のパスはserver/基準。実行結果は[レポート](../../../docs/report/itemEditing/convertItemEditingVideo.md)へ記載する。
 既存旧Video APIは契約を維持する。成功converted、失敗failed/URL null/duration保持、新要求で旧処理を中断し、公開HTTPすべて202。
 
 ## 配置・境界
 
 | レベル | 配置 | 実処理とモック境界 |
 | --- | --- | --- |
-| usecase単体 | src/usecases/itemEditing/test/convertedItemEditingVideo.test.ts | 実usecase・要求管理、DB transaction/serviceと変換utilityをモック |
+| usecase単体 | src/usecases/itemEditing/test/convertItemEditingVideo.test.ts | 実usecase・要求管理、DB transaction/serviceと変換utilityをモック |
 | utility単体 | src/utils/test/itemEditingVideoConversion.test.ts | 実utility、spawn/fs/S3/cleanupを境界モック |
 | S3単体 | src/utils/s3/test/itemEditingVideoConversion.test.ts | 実S3 utility、SDK・streamを境界制御 |
-| service単体 | src/services/itemEditing/test/convertedItemEditingVideo.test.ts | 実service、Modelインスタンス境界 |
-| controller単体 | src/controllers/itemEditing/test/convertedItemEditingVideo.test.ts | 実controller・runDetachedTask、usecase境界 |
+| service単体 | src/services/itemEditing/test/convertItemEditingVideo.test.ts | 実service、Modelインスタンス境界 |
+| controller単体 | src/controllers/itemEditing/test/convertItemEditingVideo.test.ts | 実controller・runDetachedTask、usecase境界 |
 | middleware単体 | src/middleware/test/itemEditingVideoResponse.test.ts | 実202境界、部分req/res |
-| HTTP接続 | test/integration/usecases/itemEditing/convertedItemEditingVideo/http.test.ts | 実Router・JWT・limiter・parser・errorHandler、usecase境界 |
-| 実DB | test/integration/database/itemEditing/convertedItemEditingVideo/database.test.ts | 実Model/query/command/PostgreSQL、外部通信なし |
-| usecaseと実DB | test/integration/usecases/itemEditing/convertedItemEditingVideo/database.test.ts | 実usecase・service・transaction、変換utility境界のみモック |
+| HTTP接続 | test/integration/usecases/itemEditing/convertItemEditingVideo/http.test.ts | 実Router・JWT・limiter・parser・errorHandler、usecase境界 |
+| 実DB | test/integration/database/itemEditing/convertItemEditingVideo/database.test.ts | 実Model/query/command/PostgreSQL、外部通信なし |
+| usecaseと実DB | test/integration/usecases/itemEditing/convertItemEditingVideo/database.test.ts | 実usecase・service・transaction、変換utility境界のみモック |
 
 実DBでは専用fixture/setupを使用し、.env.test由来・全接続test_db・必要スキーマ確認後に自作IDだけseed/cleanupする。
 単体のModel代用やtransaction callback成功を実SQL・commit・rollback・ロック保証と扱わない。
@@ -94,6 +94,26 @@ service S01〜S04: processing/converted/failedのDTO完全一致、同一イン�
 実DB D01〜: 全接続ガード・スキーマ、3状態の保存・保持列、所有者条件、不存在、rollback、元URL差替えと実ロック待機。
 実usecase DB I01〜: 正常・失敗値・他人・元動画なし、最終元URL差替え、重複要求の旧結果抑止、実transaction失敗時rollbackと再試行。
 
+### 実UseCaseとDBの接続ケース（P0）
+
+変換utilityのみをモックし、UseCase・service・Model・transactionは実処理を通す。
+既存の3接続ガード・自作ID追跡・cleanup/close fixtureを再利用する。実UPDATE後の障害はModel hookで注入し、SQLとobserver可視性を検証する。
+
+| ID | 前提・手順 | 期待結果・展開件数 |
+| --- | --- | --- |
+| I01 | original/processing/converted/failed/nullから実行・逐次再送 | processingのcommit後に変換、convertedだけ保存・保持列不変・signal別参照、5件 |
+| I02 | 変換失敗、既存duration17/null、再試行 | failed/URL null・duration保持、元例外、再試行成功、2件 |
+| I03 | 他人ユーザー/他人ID/所有者null/自作削除ID | 404、変換/更新なし、全行保持、4件 |
+| I04 | 元URL null/空文字 | 400、processingも保存しない、2件 |
+| I05 | 変換中に元URL差替え、旧変換成功/失敗 | 旧converted/failedを保存しない、変更後行保持、2件 |
+| I06 | 旧変換終了gate中の新要求 | 旧signal中断・終了回収後だけ新要求、旧結果なし、1件 |
+| I07 | 旧終了待ちで3要求 | 中間の変換なし、最後だけ保存、1件 |
+| I08 | 別IDと他人による同一ID要求 | 別ID独立、所有者のsignalは中断されない、1件 |
+| I09 | processingの実UPDATE後にhook例外 | transaction rollback・変換なし、再試行成功、1件 |
+| I10 | convertedの実UPDATE後にhook例外 | 成功保存rollback→failed補償、元duration維持、再試行成功、1件 |
+| I11 | 変換中の所有者変更/削除 | 最終保存禁止、他人/削除行の更新・復元なし、2件 |
+| I12 | 完了UPDATE後に新要求でabort | 旧callback rollback、新要求が結果保存、1件 |
+
 JSONB変換・商品コピー・通知は対象処理がないため対象外。
 実AWSのアップロード・配信、複数Node.jsプロセス間中断、永続ジョブ復旧は保証範囲外。
 実COMMIT応答喪失は模擬rejectと区別し、必ずrollbackしたとの保証は行わない。
@@ -105,5 +125,6 @@ npm run lint、npm run typecheck、./node_modules/.bin/tsc --noEmit -p test/tsco
 通常lint対象外のtest/**/*.tsは既存ESLint/typescript-eslintで追加検査し共有設定を変更しない。
 必要ケース成功、未回収Promise/skip/未実行/失敗なし、DB cleanupとclose成功、文書整合を完了条件とする。
 
-現在は実DB前提ガード（親User.createdAtのNULL制約差異）で中断。D系は本体未実行、I系の実DB usecase接続は未実装・未実行。
-DBガードの調整やschema補正で通過させず、差異の解消・方針確定後に再開する。
+2026-10-22のユーザー指示に基づきUser日時2列のNOT NULL migrationを両DBへ適用後に再開済み。
+D01〜D07の13件とI01〜I12の23件を実行し、全接続/必要スキーマガード・cleanup・closeを含め成功した。
+名称統一後のDB非接続263件と静的検査も成功。履歴と最新結果は対応レポートを参照。

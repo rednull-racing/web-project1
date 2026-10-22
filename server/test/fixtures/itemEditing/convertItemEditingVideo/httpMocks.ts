@@ -3,8 +3,8 @@ import { vi } from "vitest";
 const videoHttpMocks = vi.hoisted(() => ({ convert: vi.fn(), create: vi.fn() }));
 export { videoHttpMocks };
 
-vi.mock("../../../../src/usecases/itemEditing/convertedItemEditingVideo.js", () => ({
-    convertedItemEditingVideoUseCase: videoHttpMocks.convert,
+vi.mock("../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: videoHttpMocks.convert,
 }));
 vi.mock("../../../../src/usecases/itemEditing/createItemEditing.js", () => ({
     createItemEditingUseCase: videoHttpMocks.create,

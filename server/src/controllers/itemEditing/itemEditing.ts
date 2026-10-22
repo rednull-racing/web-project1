@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
-import { convertedItemEditingVideoUseCase } from "../../usecases/itemEditing/convertedItemEditingVideo.js";
+import { convertItemEditingVideoUseCase } from "../../usecases/itemEditing/convertItemEditingVideo.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
 import { createItemEditingUseCase } from "../../usecases/itemEditing/createItemEditing.js";
 import { createItemEditingCopyUseCase } from "../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js";
@@ -11,7 +11,7 @@ import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
 // PATCH /item-editing/:id/convert
 // summary: 編集セッション動画HLS変換
 // page: /upload/[id]
-export const convertedItemEditingVideoController = async (
+export const convertItemEditingVideoController = async (
     req: Request,
     res: Response,
     next: NextFunction,
@@ -21,9 +21,9 @@ export const convertedItemEditingVideoController = async (
         const { id: itemEditingId } = req.validatedParams as { id: number };
 
         runDetachedTask({
-            taskName: "convertedItemEditingVideo",
+            taskName: "convertItemEditingVideo",
             target: { userId, itemEditingId },
-            task: () => convertedItemEditingVideoUseCase({ userId, itemEditingId }),
+            task: () => convertItemEditingVideoUseCase({ userId, itemEditingId }),
         });
 
         res.status(202).json({ message: "変換処理を受け付けました" });

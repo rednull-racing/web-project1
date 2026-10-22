@@ -1,13 +1,21 @@
 # Codexログ
 
-## 20261022_backend-coding_convertedItemEditingVideo初期実装とDB検査中断
+## 20261022_backend-coding_convertItemEditingVideo完了とUser日時NOT_NULL適用
+
+- User日時2列をNOT NULLへ変更する新規ESM migrationをneondb/test_dbへ適用し、型/default保持・NULL0件・履歴各1件を確認。
+- 中断した実DB検証を再開し、名称・ファイル・関数・参照をconvertItemEditingVideoへ統一。
+- DB非接続263件・実DB36件の計299件、lint、本番/テスト型検査、追加TS lint11件、migration構文・差分検査が成功。
+- 全Modelと両DBのNULL制約をModelに合わせる再発防止方針、および既存CLIのNode26互換問題をTodoへ記録。
+- 実AWS/ffmpeg配信と全ModelのDB是正は対象外。詳細設計・テスト設計・統合レポートを最新結果へ更新。
+
+## 20261022_backend-coding_convertItemEditingVideo初期実装とDB検査中断
 
 - ユーザー確定仕様を詳細設計に反映し、全HTTP202・converted統一・再変換と旧処理中断を初期実装。
 - テスト設計・コード・統合レポート作成。DB非接続19ファイル263件（新規139/回帰124）成功。
 - lint、本番/テスト型検査、追加TS lint、差分検査成功。実DB13件は必要親User日時NULL制約差異で準備段階停止。
 - DB書込み・migration実行なし。既存差異をTodoへ記録し、作業ブランチに保持して中断。developへは未統合。
 
-## 20261022_backend-architecture_convertedItemEditingVideo仕様確認で中断
+## 20261022_backend-architecture_convertItemEditingVideo仕様確認で中断
 
 - 実在するconvertItemEditingVideo.mdと基本設計・動画変換参考実装・ItemEditing Modelを照合。
 - 成功状態・失敗時更新・202前の認可・再送と競合の未確定事項を詳細設計第9章へ記録。

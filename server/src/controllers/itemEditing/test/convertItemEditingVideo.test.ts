@@ -1,9 +1,9 @@
 import type { Request, Response } from "express-serve-static-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { videoHttpMocks as mocks } from "../../../../test/fixtures/itemEditing/convertedItemEditingVideo/httpMocks.js";
-import { deferred } from "../../../../test/fixtures/itemEditing/convertedItemEditingVideo/httpFixtures.js";
+import { videoHttpMocks as mocks } from "../../../../test/fixtures/itemEditing/convertItemEditingVideo/httpMocks.js";
+import { deferred } from "../../../../test/fixtures/itemEditing/convertItemEditingVideo/httpFixtures.js";
 import { AppError } from "../../../errors.js";
-import { convertedItemEditingVideoController } from "../itemEditing.js";
+import { convertItemEditingVideoController } from "../itemEditing.js";
 
 const prepare = () => {
     const req = {
@@ -13,7 +13,7 @@ const prepare = () => {
     const json = vi.fn(), status = vi.fn(), next = vi.fn();
     const res = { status, json } as unknown as Response;
     status.mockReturnValue(res);
-    return { json, status, next, run: () => convertedItemEditingVideoController(req, res, next) };
+    return { json, status, next, run: () => convertItemEditingVideoController(req, res, next) };
 };
 
 beforeEach(() => { vi.resetAllMocks(); mocks.convert.mockResolvedValue(undefined); });
@@ -51,7 +51,7 @@ describe("P0/P1 非同期変換controller", () => {
         await f.run();
         await caught.promise;
         expect(log).toHaveBeenCalledExactlyOnceWith("Detached task failed", {
-            taskName: "convertedItemEditingVideo", target: { userId: 7, itemEditingId: 101 }, error,
+            taskName: "convertItemEditingVideo", target: { userId: 7, itemEditingId: 101 }, error,
         });
         expect(log.mock.calls[0][1].error).toBe(error);
         expect(f.json).toHaveBeenCalledOnce();

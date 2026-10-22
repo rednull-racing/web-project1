@@ -15,7 +15,7 @@ import type { DbFixture } from "../../../../fixtures/itemEditing/createItemEditi
 import { makeHttpApp, postCopy } from "../../../../fixtures/itemEditing/createItemEditingCopy/httpFixtures.js";
 
 // 対象copyは実処理。他エンドポイントの初期化だけを切り離す。
-vi.mock("../../../../../src/usecases/itemEditing/convertedItemEditingVideo.js", () => ({ convertedItemEditingVideoUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({ convertItemEditingVideoUseCase: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
     createItemEditingDraftUseCase: vi.fn(),

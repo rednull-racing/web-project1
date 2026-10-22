@@ -1,7 +1,7 @@
 import rateLimit from "express-rate-limit";
 import type { AuthUser } from "../authMiddleware.js";
 
-export const convertedItemEditingVideoRateLimit = rateLimit({
+export const convertItemEditingVideoRateLimit = rateLimit({
     windowMs: 1000 * 60 * 10,
     limit: 5,
     standardHeaders: true,

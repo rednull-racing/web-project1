@@ -1,10 +1,10 @@
 import {
-    convertedItemEditingVideoController,
+    convertItemEditingVideoController,
     createItemEditingCopyController,
     createItemEditingDraftController,
 } from "../controllers/itemEditing/itemEditing.js";
 import {
-    convertedItemEditingVideoRateLimit,
+    convertItemEditingVideoRateLimit,
     createItemEditingCopyRateLimit,
     createItemEditingDraftRateLimit,
 } from "../middleware/rateLimit/itemEditingRateLimit.js";
@@ -32,9 +32,9 @@ const router = Router();
 router.patch(
     "/:id/convert",
     authenticateToken,
-    convertedItemEditingVideoRateLimit,
+    convertItemEditingVideoRateLimit,
     validateParams(idParamSchema),
-    convertedItemEditingVideoController,
+    convertItemEditingVideoController,
 );
 
 // POST /item-editing

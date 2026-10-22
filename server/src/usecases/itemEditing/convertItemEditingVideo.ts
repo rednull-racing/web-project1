@@ -76,7 +76,7 @@ const runConversion = async (params: Params, signal: AbortSignal): Promise<void>
 // PATCH /item-editing/:id/convert
 // summary: 編集セッション動画HLS変換
 // page: /upload/[id]
-export const convertedItemEditingVideoUseCase = async (params: Params): Promise<void> => {
+export const convertItemEditingVideoUseCase = async (params: Params): Promise<void> => {
     const key = `${params.userId}:${params.itemEditingId}`;
     const previous = jobs.get(key);
     const controller = new AbortController();

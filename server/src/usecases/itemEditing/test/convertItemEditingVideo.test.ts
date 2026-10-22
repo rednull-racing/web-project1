@@ -12,7 +12,7 @@ vi.mock("../../../services/itemEditing/query.js", () => ({ getMyItemEditing: moc
 vi.mock("../../../services/itemEditing/command.js", () => ({ updateItemEditingVideo: mocks.update }));
 vi.mock("../../../utils/itemEditingVideoConversion.js", () => ({ convertItemEditingVideo: mocks.convert }));
 
-import { convertedItemEditingVideoUseCase as run } from "../convertedItemEditingVideo.js";
+import { convertItemEditingVideoUseCase as run } from "../convertItemEditingVideo.js";
 
 const params = { userId: 7, itemEditingId: 19 };
 const source = "https://media.test/original";
@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-describe("convertedItemEditingVideo usecase P0 状態・停止・待機", () => {
+describe("convertItemEditingVideo usecase P0 状態・停止・待機", () => {
     it.each(["original", "processing", "converted", "failed", null])("U01 %sからprocessingとconvertedのみ保存する", async (status) => {
         const first = { ...row(), video_status: status };
         const latest = { ...row(), video_status: "processing" };
@@ -161,7 +161,7 @@ describe("convertedItemEditingVideo usecase P0 状態・停止・待機", () => 
     });
 });
 
-describe("convertedItemEditingVideo usecase P0 要求差替え", () => {
+describe("convertItemEditingVideo usecase P0 要求差替え", () => {
     it.each([2, 3])("U12/U13 %i要求は旧処理回収後に最後だけ変換する", async (requests) => {
         const entered = deferred<void>();
         const aborted = deferred<void>();
