@@ -91,7 +91,7 @@ ItemBuyerReport.init(
                 key: "id",
             },
             onUpdate: "CASCADE",
-            onDelete: "CASCADE",
+            onDelete: "NO ACTION",
         },
         checked: {
             type: DataTypes.BOOLEAN,
