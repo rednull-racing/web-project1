@@ -18,16 +18,16 @@
 本番変更は `src/usecases/itemDraft/createItemDraft.ts` の既存deleteItemEditing利用だけ。
 service/Model/Routerの仕様やDBスキーマ、フロント、S3オブジェクトは変更しない。migration/syncの実行なし。
 
-| ケース | 確認内容 |
-| --- | --- |
+| ケース                | 確認内容                                                                                      |
+| --------------------- | --------------------------------------------------------------------------------------------- |
 | N01/T01・AF-CONSUME01 | 保存・画像更新後に再認可済み元行を同一transactionで削除し、成功後は元行不存在。非対象行は保持 |
-| AF-CONSUME02 | 削除失敗の元例外がtransaction外へ伝播し成功応答を返さない。実DBでは先行の下書き保存をrollback |
-| AF-CONSUME03/T02 | 本体・画像・削除・外側commitを個別gateで保留し、後続・返却が先行しない |
-| Q01/Q05 | 成功後の同ID再送404・下書き追加なし。新規別編集IDの要求は独立して成功 |
-| AF-CONSUME04/Q01/Q05 | 初回成功後の再送404、追加書込みなし・先行下書き全列保持を実DBで確認 |
-| AF-CONSUME05 | 実DELETE後の例外で元行全列を復元、下書き/新規別名rollbackと再試行成功 |
-| AF-CONSUME06/P01 | 両先行順で独立PID間の実ロック待機→先行commit・後続404、保存1行 |
-| AF-CONSUME07/P03 | 先行DELETE後の実ロック待機→先行rollback・後続だけ成功/元行消費 |
+| AF-CONSUME02          | 削除失敗の元例外がtransaction外へ伝播し成功応答を返さない。実DBでは先行の下書き保存をrollback |
+| AF-CONSUME03/T02      | 本体・画像・削除・外側commitを個別gateで保留し、後続・返却が先行しない                        |
+| Q01/Q05               | 成功後の同ID再送404・下書き追加なし。新規別編集IDの要求は独立して成功                         |
+| AF-CONSUME04/Q01/Q05  | 初回成功後の再送404、追加書込みなし・先行下書き全列保持を実DBで確認                           |
+| AF-CONSUME05          | 実DELETE後の例外で元行全列を復元、下書き/新規別名rollbackと再試行成功                         |
+| AF-CONSUME06/P01      | 両先行順で独立PID間の実ロック待機→先行commit・後続404、保存1行                                |
+| AF-CONSUME07/P03      | 先行DELETE後の実ロック待機→先行rollback・後続だけ成功/元行消費                                |
 
 usecase単体はtransaction/service/helper境界のモック、HTTPはusecase境界をモックする。DBの保存・削除・rollback・ロックは実DB側で分けて保証する。
 実AWSアップロード・S3配信、ブラウザ全画面の通し操作、実COMMIT応答喪失、カバレッジ計測は今回の検証外。

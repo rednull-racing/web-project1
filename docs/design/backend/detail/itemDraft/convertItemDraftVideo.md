@@ -38,17 +38,17 @@ Authorization: Bearer <token>
 
 | 層         | ファイル・関数                                                                               | 区分・責務                                                           |
 | ---------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 初期化     | app.ts、middleware/itemDraftVideoResponse.ts                                               | 変更/新規。対象PATCHの202境界をparserより前に接続。他APIは変更しない |
-| route      | routes/itemDraft.ts                                                                        | 新規PATCH。authenticateToken→専用limiter→validateParams→controller   |
+| 初期化     | app.ts、middleware/itemDraftVideoResponse.ts                                                 | 変更/新規。対象PATCHの202境界をparserより前に接続。他APIは変更しない |
+| route      | routes/itemDraft.ts                                                                          | 新規PATCH。authenticateToken→専用limiter→validateParams→controller   |
 | 認証・検証 | middleware/authMiddleware.ts、middleware/validate/validateParams.ts、validators/params/id.ts | 既存利用                                                             |
-| limiter    | middleware/rateLimit/itemDraftRateLimit.ts、convertItemDraftVideoRateLimit               | 新規export                                                           |
-| controller | controllers/itemDraft/itemDraft.ts、convertItemDraftVideoController                    | 新規export。認証IDと検証済みidをrunDetachedTaskへ渡し202応答         |
-| usecase    | usecases/itemDraft/convertItemDraftVideo.ts、convertItemDraftVideoUseCase              | 新規。要求差替え・所有者/元動画確認・transaction・状態遷移           |
-| query      | services/itemDraft/query.ts、getMyItemDraft                                              | 既存。所有者条件、必須transactionのUPDATEロック                      |
-| command    | services/itemDraft/command.ts、updateItemDraftVideo                                      | 新規。動画3列だけのDTOとtransactionを受けてインスタンス更新          |
-| 型         | types/serviceType/itemDraft.ts                                                             | 更新DTO。video_statusはprocessing/converted/failedのみ               |
-| utility    | utils/itemDraftVideoConversion.ts、convertItemDraftVideo                                 | 新規。AbortSignal対応の子プロセス・通信・cleanup                     |
-| S3         | utils/s3/videoConvert.ts                                                                     | 任意AbortSignal対応済みのdownload/uploadを変更せず再利用       |
+| limiter    | middleware/rateLimit/itemDraftRateLimit.ts、convertItemDraftVideoRateLimit                   | 新規export                                                           |
+| controller | controllers/itemDraft/itemDraft.ts、convertItemDraftVideoController                          | 新規export。認証IDと検証済みidをrunDetachedTaskへ渡し202応答         |
+| usecase    | usecases/itemDraft/convertItemDraftVideo.ts、convertItemDraftVideoUseCase                    | 新規。要求差替え・所有者/元動画確認・transaction・状態遷移           |
+| query      | services/itemDraft/query.ts、getMyItemDraft                                                  | 既存。所有者条件、必須transactionのUPDATEロック                      |
+| command    | services/itemDraft/command.ts、updateItemDraftVideo                                          | 新規。動画3列だけのDTOとtransactionを受けてインスタンス更新          |
+| 型         | types/serviceType/itemDraft.ts                                                               | 更新DTO。video_statusはprocessing/converted/failedのみ               |
+| utility    | utils/itemDraftVideoConversion.ts、convertItemDraftVideo                                     | 新規。AbortSignal対応の子プロセス・通信・cleanup                     |
+| S3         | utils/s3/videoConvert.ts                                                                     | 任意AbortSignal対応済みのdownload/uploadを変更せず再利用             |
 | 非同期境界 | utils/runDetachedTask.ts                                                                     | 既存利用。内部例外の捕捉・記録。HTTP再送信なし                       |
 
 route/controller/usecaseの三行コメント:
@@ -125,7 +125,7 @@ flowchart TD
 
 updatedAtはSequelize通常更新に従う。ID・所有者・createdAtは保持。Video.statusやItemは更新しない。
 S3キー: video/converted/item-draft/{userId}/{itemDraftId}/{requestUUID}/index.m3u8とseg\_%03d.ts。
-一時パスはtmp/item_draft_original_{requestUUID}とtmp/item_draft_converted_{requestUUID}を使い、item_editing版と名前空間を分離する。UUIDで要求を分離し、生成した元動画と出力ディレクトリだけを削除する。
+一時パスはtmp/item*draft_original*{requestUUID}とtmp/item*draft_converted*{requestUUID}を使い、item_editing版と名前空間を分離する。UUIDで要求を分離し、生成した元動画と出力ディレクトリだけを削除する。
 MIMEはplaylistがapplication/vnd.apple.mpegurl、segmentがvideo/mp2t。
 HLSは既存参考API同様H264 baseline・AAC・最大幅1280・偶数高さ・10秒segment・vod。音声トラックは任意。
 ffprobe値は有限・非負かつ2147483647以下の数を整数へ切り捨て。取得失敗は0で隠さず変換失敗とする。
@@ -167,7 +167,7 @@ cleanupは子プロセス・通信終了後。旧callbackは中断後に成功�
 | 制限超過                       | limiter429、Retry-After        | 既存limiter応答。変換・中断なし               |
 | params不正                     | INVALID_PARAMS/400             | 既存errorHandler JSON。変換開始なし           |
 | 不正JSON                       | parser400、INVALID_JSON        | 既存errorHandler JSON。認証前に停止           |
-| 不存在・他人                   | ITEM_DRAFT_NOT_FOUND/404     | 受付本文のまま。DB・S3変更なし                |
+| 不存在・他人                   | ITEM_DRAFT_NOT_FOUND/404       | 受付本文のまま。DB・S3変更なし                |
 | 元動画なし                     | ORIGINAL_URL_NOT_FOUND/400     | 受付本文のまま。DB・S3変更なし                |
 | 変換失敗・出力不備             | VIDEO_CONVERSION_FAILED/422    | 受付本文のまま。最新要求だけfailed            |
 | timeout                        | VIDEO_CONVERSION_TIMEOUT/408   | 同上                                          |

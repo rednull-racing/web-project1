@@ -146,10 +146,16 @@ describe("P0/P1: 実transactionの原子性・可視性", () => {
         const error = new Error("編集削除の意図した障害");
         const deletion = vi.spyOn(editingCommand, "deleteItemEditing").mockImplementationOnce(async (params) => {
             if (!params.transaction) throw new Error("Expected deletion transaction");
-            const drafts = await ItemDraft.findAll({ where: { seller_id: f.owner.id }, transaction: params.transaction });
+            const drafts = await ItemDraft.findAll({
+                where: { seller_id: f.owner.id },
+                transaction: params.transaction,
+            });
             expect(drafts).toHaveLength(1);
             expect(drafts[0].image_url).toHaveLength(2);
-            const aliases = await BrandAliases.findAll({ where: { name_normalized: name }, transaction: params.transaction });
+            const aliases = await BrandAliases.findAll({
+                where: { name_normalized: name },
+                transaction: params.transaction,
+            });
             expect(aliases).toHaveLength(1);
             if (afterDelete) {
                 await real(params);
@@ -192,7 +198,9 @@ describe("P0/P1: 実transactionの原子性・可視性", () => {
         try {
             await Promise.race([
                 entered.promise,
-                pending.then(() => { throw new Error("削除待合せに到達せず完了しました"); }),
+                pending.then(() => {
+                    throw new Error("削除待合せに到達せず完了しました");
+                }),
             ]);
             expect(completed).toBe(false);
             expect(await editingSnapshot(f.editing.id)).toEqual(before);

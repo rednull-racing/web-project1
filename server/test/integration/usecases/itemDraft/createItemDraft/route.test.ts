@@ -5,7 +5,9 @@ import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeBody, makeDuplicateUiIdBody } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn(), remove: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemDraft/convertItemDraftVideo.js", () => ({ convertItemDraftVideoUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemDraft/convertItemDraftVideo.js", () => ({
+    convertItemDraftVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("../../../../../src/usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
 vi.mock("../../../../../src/db.js", () => {

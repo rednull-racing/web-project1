@@ -17,6 +17,10 @@ export const deleteItemDraft = async ({ itemDraft, transaction }: ItemDraftTrans
     await itemDraft.destroy({ transaction });
 };
 
-export const updateItemDraftVideo = async ({ itemDraft, data, transaction }: UpdateItemDraftVideoParams): Promise<void> => {
+export const updateItemDraftVideo = async ({
+    itemDraft,
+    data,
+    transaction,
+}: UpdateItemDraftVideoParams): Promise<void> => {
     await itemDraft.update(data, { transaction });
 };

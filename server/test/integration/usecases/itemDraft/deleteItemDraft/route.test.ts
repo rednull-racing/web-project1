@@ -12,7 +12,9 @@ import {
 import { makeBody } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ remove: vi.fn(), create: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemDraft/convertItemDraftVideo.js", () => ({ convertItemDraftVideoUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemDraft/convertItemDraftVideo.js", () => ({
+    convertItemDraftVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../../../src/usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
 vi.mock("../../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));

@@ -13,10 +13,7 @@ type SignedUrlItem = {
 type VideoArgs = {
     videoFile: File | null;
     videoSignedUrl: PresignedPost | null;
-} & (
-    | { target: "editing"; itemEditingId: string }
-    | { target: "draft"; itemDraftId: number }
-);
+} & ({ target: "editing"; itemEditingId: string } | { target: "draft"; itemDraftId: number });
 
 type ThumbnailArgs = {
     thumbnailFile: File | null;
@@ -35,41 +32,38 @@ type AttributesImageArgs = {
 
 export const useFileUpload = () => {
     // 動画
-    const videoUploadAndConvert = useCallback(
-        async (args: VideoArgs): Promise<boolean> => {
-            const { videoFile, videoSignedUrl } = args;
-            if (!videoSignedUrl || !(videoFile instanceof File)) {
-                return true;
-            }
-
-            // s3直接アップロード
-            const formData = new FormData();
-            Object.entries(videoSignedUrl.fields).forEach(([name, value]) => {
-                formData.append(name, value);
-            });
-            formData.append("file", videoFile);
-
-            const uploadRes = await fetch(videoSignedUrl.url, {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!uploadRes.ok) {
-                toast.error("動画のアップロードに失敗しました");
-                return false;
-            }
-
-            // ffmpeg変換
-            if (args.target === "draft") {
-                await fetchDraftVideoConvert(args.itemDraftId);
-            } else {
-                await fetchVideoConvert(args.itemEditingId);
-            }
-
+    const videoUploadAndConvert = useCallback(async (args: VideoArgs): Promise<boolean> => {
+        const { videoFile, videoSignedUrl } = args;
+        if (!videoSignedUrl || !(videoFile instanceof File)) {
             return true;
-        },
-        [],
-    );
+        }
+
+        // s3直接アップロード
+        const formData = new FormData();
+        Object.entries(videoSignedUrl.fields).forEach(([name, value]) => {
+            formData.append(name, value);
+        });
+        formData.append("file", videoFile);
+
+        const uploadRes = await fetch(videoSignedUrl.url, {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!uploadRes.ok) {
+            toast.error("動画のアップロードに失敗しました");
+            return false;
+        }
+
+        // ffmpeg変換
+        if (args.target === "draft") {
+            await fetchDraftVideoConvert(args.itemDraftId);
+        } else {
+            await fetchVideoConvert(args.itemEditingId);
+        }
+
+        return true;
+    }, []);
 
     // サムネイル
     const thumbnailUpload = useCallback(

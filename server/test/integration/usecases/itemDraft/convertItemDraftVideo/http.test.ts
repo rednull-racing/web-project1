@@ -56,9 +56,7 @@ afterEach(() => {
 
 describe("P0 実Router・認証・params・202境界", () => {
     it("H01: body/queryの所有者やIDを無視して認証ID・paramsだけを渡す", async () => {
-        const result = await patch()
-            .query({ userId: 8, id: 999 })
-            .send({ userId: 8, seller_id: 8, itemDraftId: 888 });
+        const result = await patch().query({ userId: 8, id: 999 }).send({ userId: 8, seller_id: 8, itemDraftId: 888 });
         expect(result.status).toBe(202);
         expect(result.body).toEqual(accepted);
         expect(mocks.convert).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemDraftId: 101 });
@@ -236,8 +234,7 @@ describe("P1 app接続と対象パス境界", () => {
         },
     );
     it.each(["POST", "PUT"])("H10: 対象外%sのJSON拒否は従来400を維持する", async (method) => {
-        const req =
-            method === "POST" ? request(app).post("/api/item-draft") : request(app).put("/api/item-draft/101");
+        const req = method === "POST" ? request(app).post("/api/item-draft") : request(app).put("/api/item-draft/101");
         const result = await req.set("Content-Type", "application/json").send("{");
         expect(result.status).toBe(400);
         expect(result.body).toEqual({ code: "INVALID_JSON", message: "JSONの形式を確認してください。" });
@@ -264,7 +261,6 @@ describe("P1 app接続と対象パス境界", () => {
         expect(mocks.convert).not.toHaveBeenCalled();
     });
 });
-
 
 describe("P0: 既存編集動画変換のレート枠との分離", () => {
     it("H13: 同一所有者でも下書き5回と編集5回を独立して受け付ける", async () => {

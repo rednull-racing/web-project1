@@ -930,23 +930,28 @@
 - lint、本番／テスト型検査、変更TS追加lint成功。HTTP待受制限は権限付き再実行で確認。
 - レポート・参照先を更新しTodoをdoneへ移動。本番仕様・期待値の変更なし。
 
-## 20261022_frontend-apiFetch_商品アップロード主要APIのURL整合
+## 20261022*frontend-apiFetch*商品アップロード主要APIのURL整合
 
 ### 作業内容
+
 - 主要APIのURL・method・body・IDと公開／コピー後の遷移を設計に合わせ、下書き編集APIと遷移を追加。
+
 ### 変更目的
+
 - itemEditing／itemDraftを使用する設計に主要API呼び出しを統一。作成済みセッション開始URLは変更不要。
+
 ### 注意点・その他留意事項
+
 - ユーザー確認に従い共有関数全体へ適用。下書き保存後の変換は維持し、削除済みセッション参照をTodoへ記録。
 - 変更TS/TSX 11ファイルの構文確認と差分確認成功。clientのlint・全体型検査・実通信は未実施。
 
-## 20261022_documents_下書き動画変換APIの作成方針を追記
+## 20261022*documents*下書き動画変換APIの作成方針を追記
 
 - ユーザー指定のTodoを、item_editingと同様のitem_draft用動画変換APIを新規作成する方針へ更新。
 - 下書きIDの返却・受け渡しとフロントの呼び出し変更を対応内容に記載。API実装は未着手。
 - 文書差分とgit diff --checkを確認。
 
-## 20261022_backend-coding_下書き動画変換APIを監査実装
+## 20261022*backend-coding*下書き動画変換APIを監査実装
 
 - 詳細設計のコピー残りを監査修正し、item_draft用HLS変換API・作成ID返却・フロント接続を実装。
 - Editing版とジョブ/S3/一時パス/制限枠を分離。署名済み動画送信をFormData POSTへ整合。
@@ -954,7 +959,7 @@
 - 全接続test_dbガード、実ロック/rollback、自作行限定cleanupとcloseを確認。実AWS/ffmpeg・ブラウザE2Eは未実施。
 - 起点Todoをdoneへ移動。元編集行の削除がない既存の設計差分は別Todo。詳細はconvertItemDraftVideoのレポートを参照。
 
-## 20261022_backend-coding_下書き保存成功時に元編集セッションを削除
+## 20261022*backend-coding*下書き保存成功時に元編集セッションを削除
 
 - 下書き本体・画像保存と同じtransactionで再認可・ロック済み元編集行を削除し、成功後の再送を404へ整合。
 - 削除前後の失敗rollback・削除待機・非対象行保持・同ID競合のcommit/rollback後再判定を検証。

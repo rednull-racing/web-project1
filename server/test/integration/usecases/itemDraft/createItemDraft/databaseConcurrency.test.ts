@@ -217,7 +217,10 @@ describe("P2: 下書き作成の並行処理", () => {
         const first = order === "A→B" ? 0 : 1;
         const failure = expectAppError(operations[1 - first], "ITEM_EDITING_NOT_FOUND", 404);
         try {
-            await reach(Promise.all(entered.map((gate) => gate.promise)).then(() => {}), operations);
+            await reach(
+                Promise.all(entered.map((gate) => gate.promise)).then(() => {}),
+                operations,
+            );
             release[first].resolve();
             await reach(holding.promise, operations);
             release[1 - first].resolve();

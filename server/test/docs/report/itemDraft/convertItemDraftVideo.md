@@ -16,9 +16,9 @@
 
 ## 監査と実装範囲
 
-item_editing版の契約をItemDraft Model、既存の所有者限定query、transaction、Router登録、共通S3/非同期境界と照合した。
+item*editing版の契約をItemDraft Model、既存の所有者限定query、transaction、Router登録、共通S3/非同期境界と照合した。
 仕様判断を要する相違はなく、コピー時に残っていた「実DBテスト実行済み」の記述を今回の検査予定・結果への参照に変更し、編集ID等の表現、共通S3の実装済み区分を訂正した。
-基本設計の認可カラム表記item_draft_.seller_idをitem_draft.seller_idへ訂正した。
+基本設計の認可カラム表記item_draft*.seller_idをitem_draft.seller_idへ訂正した。
 
 PATCH /api/item-draft/:id/convertを追加。所有者付きロック検索、processing→converted、失敗時failed/URL null/duration保持、同一所有者・下書きIDの新要求で旧要求を中断する。
 公開HTTPは認証・入力・制限の拒否も202とする元設計を維持し、拒否本文・内部status・必要ヘッダーを保持。拒否後の変換は実行しない。
@@ -32,20 +32,20 @@ Model・associate・DBスキーマの変更はなく、migration/syncは実行�
 
 ## ケース対応・結果
 
-| ケース | 実行対象・確認範囲 | 結果 |
-| --- | --- | --- |
-| U01〜U18 | 実usecase。transaction/service/変換をモック。全状態、認可拒否、元URL変更、失敗記録、中断・3要求・待機・再送 | 26件成功 |
-| U19 | isolatedJobs.test.ts。Editing/Draft両実usecase、同一所有者/ID、逆順完了、signal・保存先独立 | 1件成功 |
-| V01〜V14 | Draft実utility。spawn/fs/S3境界モック。秒数・HLS引数・送信順・各障害・timeout/abort・close/cleanup・同UUIDのパス分離 | 39件成功 |
-| A01〜A06 | 共通S3 utilityの既存テスト。signal/SDK/pipeline・stream解放・原因保持 | 16件成功 |
-| S01〜S04 | 所有者条件・取得列・必須transaction/ロック、3列DTO、待機・元例外 | 6件成功 |
-| C01〜C04 | 実controller/共通非同期境界。認証/検証済みID採用、応答非待機、例外捕捉、再応答なし | 6件成功 |
-| M01/M02 | 対象method/pathだけ公開202、内部status/header保持 | 5件成功 |
-| H01〜H13 | 実JWT/Router/limiter/parser/errorHandler。入力境界、窓/計上順、拒否後停止、対象パス、実app接続、Editingと制限枠独立 | 42件成功 |
-| D01〜D07 | 実所有者限定query/更新service/PostgreSQL。保存3列・保持列・他行不変、rollback、実ロック待機、SQLSTATE22003 | 13件成功 |
-| I01〜I12 | 実usecase/service/Model/transaction、変換utilityのみモック。元URL/所有者変更・削除、競合、中断後更新抑止、実UPDATE後の障害と再試行 | 23件成功 |
-| F01 | 下書き作成usecase/controller/HTTP/実DB。作成ID返却と実保存ID一致、transaction外側完了前は返却しない | 既存回帰内で成功 |
-| F02/F03 | client API・hookの実処理とformの受渡し照合。Draft/EditingのURL/ID分離、fields/file、upload失敗/通信失敗時の変換禁止、変換拒否伝播、動画未変更skip。保存失敗はformのtry/catchと呼出し順のコード確認 | 簡易検証成功。ブラウザ未実行 |
+| ケース   | 実行対象・確認範囲                                                                                                                                                                                 | 結果                         |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| U01〜U18 | 実usecase。transaction/service/変換をモック。全状態、認可拒否、元URL変更、失敗記録、中断・3要求・待機・再送                                                                                        | 26件成功                     |
+| U19      | isolatedJobs.test.ts。Editing/Draft両実usecase、同一所有者/ID、逆順完了、signal・保存先独立                                                                                                        | 1件成功                      |
+| V01〜V14 | Draft実utility。spawn/fs/S3境界モック。秒数・HLS引数・送信順・各障害・timeout/abort・close/cleanup・同UUIDのパス分離                                                                               | 39件成功                     |
+| A01〜A06 | 共通S3 utilityの既存テスト。signal/SDK/pipeline・stream解放・原因保持                                                                                                                              | 16件成功                     |
+| S01〜S04 | 所有者条件・取得列・必須transaction/ロック、3列DTO、待機・元例外                                                                                                                                   | 6件成功                      |
+| C01〜C04 | 実controller/共通非同期境界。認証/検証済みID採用、応答非待機、例外捕捉、再応答なし                                                                                                                 | 6件成功                      |
+| M01/M02  | 対象method/pathだけ公開202、内部status/header保持                                                                                                                                                  | 5件成功                      |
+| H01〜H13 | 実JWT/Router/limiter/parser/errorHandler。入力境界、窓/計上順、拒否後停止、対象パス、実app接続、Editingと制限枠独立                                                                                | 42件成功                     |
+| D01〜D07 | 実所有者限定query/更新service/PostgreSQL。保存3列・保持列・他行不変、rollback、実ロック待機、SQLSTATE22003                                                                                         | 13件成功                     |
+| I01〜I12 | 実usecase/service/Model/transaction、変換utilityのみモック。元URL/所有者変更・削除、競合、中断後更新抑止、実UPDATE後の障害と再試行                                                                 | 23件成功                     |
+| F01      | 下書き作成usecase/controller/HTTP/実DB。作成ID返却と実保存ID一致、transaction外側完了前は返却しない                                                                                                | 既存回帰内で成功             |
+| F02/F03  | client API・hookの実処理とformの受渡し照合。Draft/EditingのURL/ID分離、fields/file、upload失敗/通信失敗時の変換禁止、変換拒否伝播、動画未変更skip。保存失敗はformのtry/catchと呼出し順のコード確認 | 簡易検証成功。ブラウザ未実行 |
 
 新規Draftケースは125件。残るDB非接続551件は共通S3・作成/削除・Editing版の回帰であり、新規APIのテスト件数へ重複加算しない。
 JSONにはファイルごとの件数があり、ケースIDの範囲数と展開後件数は異なる。
@@ -81,7 +81,7 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-通常lint対象外の変更test/**/*.ts 12ファイルを、既存ESLint APIとtypescript-eslint推奨規則で追加検査。0 errors/0 warnings。共有設定の変更なし。
+通常lint対象外の変更test/\*_/_.ts 12ファイルを、既存ESLint APIとtypescript-eslint推奨規則で追加検査。0 errors/0 warnings。共有設定の変更なし。
 clientはリポジトリルートから `node /tmp/item-draft-client-check.cjs` を実行。
 TypeScriptで変更4ファイルを構文確認し、実API/hookをVMへロード、React useCallback・apiFetch・fetchのみ依存境界を置換した。S3実通信の成功は保証しない。
 
@@ -96,12 +96,12 @@ D06は独立transactionごとのPIDを取得し、observerのpg_blocking_pidsと
 
 ## 修正・再検証の履歴
 
-| ID | 初回結果・原因 | 修正/再実行と最終結果 |
-| --- | --- | --- |
-| 環境DB | sandboxの接続EPERM。36件はsetupでpending、本体未実行 | 同じガードと対象を権限付き再実行、36件成功 |
-| 環境HTTP | sandboxのlisten拒否で503件中61件失敗、442件成功 | 権限付きで再実行し、待受問題を解消 |
-| F1/H10 | 上記再実行は502成功/1失敗。Draft HTTPテストの大文字URLだけITEM-EDITINGが残存 | ITEM-DRAFTへ訂正。関連回帰を含む最終676件成功 |
-| 環境lint | 追加lintの対象取得用子プロセスがEPERM | 同じ検査を権限付き再実行、12ファイル0診断 |
+| ID       | 初回結果・原因                                                               | 修正/再実行と最終結果                         |
+| -------- | ---------------------------------------------------------------------------- | --------------------------------------------- |
+| 環境DB   | sandboxの接続EPERM。36件はsetupでpending、本体未実行                         | 同じガードと対象を権限付き再実行、36件成功    |
+| 環境HTTP | sandboxのlisten拒否で503件中61件失敗、442件成功                              | 権限付きで再実行し、待受問題を解消            |
+| F1/H10   | 上記再実行は502成功/1失敗。Draft HTTPテストの大文字URLだけITEM-EDITINGが残存 | ITEM-DRAFTへ訂正。関連回帰を含む最終676件成功 |
+| 環境lint | 追加lintの対象取得用子プロセスがEPERM                                        | 同じ検査を権限付き再実行、12ファイル0診断     |
 
 ## 対象外の残件
 

@@ -1,9 +1,6 @@
 import type { Transaction } from "sequelize";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type {
-    UpdateItemDraftVideoData,
-    UpdateItemDraftVideoParams,
-} from "../../../types/serviceType/itemDraft.js";
+import type { UpdateItemDraftVideoData, UpdateItemDraftVideoParams } from "../../../types/serviceType/itemDraft.js";
 
 const mocks = vi.hoisted(() => ({ findOne: vi.fn() }));
 vi.mock("../../../models/index.js", () => ({ ItemDraft: { findOne: mocks.findOne } }));

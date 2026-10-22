@@ -420,7 +420,6 @@ describe("P1: cleanup障害も主原因も保持", () => {
     });
 });
 
-
 describe("P0: 既存編集動画変換との保存先分離", () => {
     it("V14: 同じ所有者・行ID・UUIDでもS3キーと一時パスは別で互いの出力を削除しない", async () => {
         const draftParams = makeParams();
@@ -434,19 +433,19 @@ describe("P0: 既存編集動画変換との保存先分離", () => {
                 signal: editingSignal,
             }),
         ]);
-        expect(draft.convertedUrl).toBe(
-            "https://media.test/video/converted/item-draft/7/23/request-uuid/index.m3u8",
-        );
+        expect(draft.convertedUrl).toBe("https://media.test/video/converted/item-draft/7/23/request-uuid/index.m3u8");
         expect(editing.convertedUrl).toBe(
             "https://media.test/video/converted/item-editing/7/23/request-uuid/index.m3u8",
         );
         expect(mocks.download.mock.calls).toEqual([
             [{ key: "video/original/source.mp4", filePath: originalFilePath, signal: draftParams.signal }],
-            [{
-                key: "video/original/source.mp4",
-                filePath: "tmp/item_editing_original_request-uuid",
-                signal: editingSignal,
-            }],
+            [
+                {
+                    key: "video/original/source.mp4",
+                    filePath: "tmp/item_editing_original_request-uuid",
+                    signal: editingSignal,
+                },
+            ],
         ]);
         for (const [upload] of mocks.upload.mock.calls) {
             const draftCall = upload.signal === draftParams.signal;
@@ -456,18 +455,18 @@ describe("P0: 既存編集動画変換との保存先分離", () => {
                     : /^video\/converted\/item-editing\/7\/23\/request-uuid\//,
             );
             expect(upload.filePath).toMatch(
-                draftCall
-                    ? /^tmp\/item_draft_converted_request-uuid\//
-                    : /^tmp\/item_editing_converted_request-uuid\//,
+                draftCall ? /^tmp\/item_draft_converted_request-uuid\// : /^tmp\/item_editing_converted_request-uuid\//,
             );
         }
         expect(mocks.upload).toHaveBeenCalledTimes(6);
-        expect(mocks.rm.mock.calls).toEqual(expect.arrayContaining([
-            [originalFilePath, { force: true }],
-            [convertedDir, { recursive: true, force: true }],
-            ["tmp/item_editing_original_request-uuid", { force: true }],
-            ["tmp/item_editing_converted_request-uuid", { recursive: true, force: true }],
-        ]));
+        expect(mocks.rm.mock.calls).toEqual(
+            expect.arrayContaining([
+                [originalFilePath, { force: true }],
+                [convertedDir, { recursive: true, force: true }],
+                ["tmp/item_editing_original_request-uuid", { force: true }],
+                ["tmp/item_editing_converted_request-uuid", { recursive: true, force: true }],
+            ]),
+        );
         expect(mocks.rm).toHaveBeenCalledTimes(4);
         expectReleased();
     });
