@@ -8,6 +8,7 @@ import {
 } from "../../../../fixtures/itemEditing/createItemEditingCopy/httpFixtures.js";
 
 const mocks = vi.hoisted(() => ({ copy: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/convertedItemEditingVideo.js", () => ({ convertedItemEditingVideoUseCase: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
     createItemEditingCopyUseCase: mocks.copy,
 }));

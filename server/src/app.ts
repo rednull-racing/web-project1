@@ -12,6 +12,7 @@ startAllCrons();
 const app = express();
 
 import { errorHandler } from "./middleware/errorHandler.js";
+import { itemEditingVideoResponse } from "./middleware/itemEditingVideoResponse.js";
 import { notFound } from "./middleware/notFount.js";
 import { registerRoutes } from "./routes/index.js";
 
@@ -26,6 +27,7 @@ app.set("trust proxy", 1);
 const allowedOrigins = [process.env.CLIENT_URL, process.env.CLIENT_URL_PROD, process.env.CLIENT_URL_DEV];
 
 app.use(logger("dev"));
+app.use(itemEditingVideoResponse);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

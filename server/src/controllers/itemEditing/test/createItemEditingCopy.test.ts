@@ -4,6 +4,7 @@ import { AppError } from "../../../errors.js";
 import { deferred } from "../../../usecases/itemEditing/createItemEditingCopy/test/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ copy: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/convertedItemEditingVideo.js", () => ({ convertedItemEditingVideoUseCase: vi.fn() }));
 vi.mock("../../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
     createItemEditingCopyUseCase: mocks.copy,
 }));
