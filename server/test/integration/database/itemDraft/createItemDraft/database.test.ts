@@ -28,7 +28,7 @@ beforeEach(async () => {
 const inv = (n: number) => ({ initial: n, current: n, low_stock_ratio: 0.2 });
 
 describe("P0: 実DBへの下書き作成", () => {
-    it("AF-OWN01 N02 N05 D01 D03 D10 ST01 O02: 全保存列・認証所有者・非対象行不変", async () => {
+    it("AF-OWN01 N02 N05 D01 D03 D10 ST01 O02 F01: 作成ID返却・全保存列・認証所有者・非対象行不変", async () => {
         const before = await editingSnapshot(f.editing.id),
             other = await editingSnapshot(f.otherEditing.id),
             published = f.item.toJSON();
@@ -50,13 +50,16 @@ describe("P0: 実DBへの下書き作成", () => {
         ];
         f.body.itemImages.push({ name: "2枚目", type: "image/png", uploaded: true });
         const count = await Item.count({ where: { seller_id: f.owner.id } });
-        expect(await run(f)).toEqual({
+        const result = await run(f);
+        const draft = await onlyDraft();
+        expect(result).toEqual({
+            itemDraftId: draft.id,
             videoSignedUrl: null,
             thumbnailSignedUrl: null,
             itemImageSignedUrls: [],
             attributesImageSignedUrls: {},
         });
-        expect(await onlyDraft()).toEqual({
+        expect(draft).toEqual({
             id: expect.any(Number),
             seller_id: f.owner.id,
             name: "商品名",
