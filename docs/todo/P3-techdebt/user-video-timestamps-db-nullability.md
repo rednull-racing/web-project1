@@ -7,7 +7,7 @@ User・Videoの日時列の差異を起点に、同じ問題の再発防止と�
 ## 現在の方針と対応範囲
 
 - ユーザーは、Modelと実DB・テストDBでNOT NULL制約が異なる箇所を、Modelに合わせる方針を明示した。ModelとDBのどちらを正とするかは確認済みであり、未確定ではない。
-- `user.createdAt`・`user.updatedAt` を実DBと `test_db` でNOT NULLにする新規migrationの作成・実行は、convertedItemEditingVideo開発の再開に必要な今回の作業として対応中。結果は対応レポートと本Todoへ追記する。
+- `user.createdAt`・`user.updatedAt` は、新規migration `20261022080000-enforce-user-timestamps-not-null.js` を `neondb`／`test_db` へ適用して2026-10-22に対応完了。両DBで2列のNOT NULL、型 `timestamp with time zone` とdefault `now()` の保持、適用履歴各1件を確認した。事前NULL件数は両列とも0で、既存行の補完・削除は行っていない。
 - その他の列は、本依頼ではTodoへの記録まで。`video.createdAt`・`video.updatedAt` と全Modelの棚卸し・整合は未完了であり、本Todoを `done/` へ移動しない。
 - Modelの `allowNull: false` に対しDBがNULL許容の差異と、ModelがNULL許容なのにDBがNOT NULLの差異を両方調べ、DB側をModelへ揃える。差異の解消目的でModelの制約を緩和しない。
 
@@ -23,9 +23,10 @@ User・Videoの日時列の差異を起点に、同じ問題の再発防止と�
 
 - 調査対象: `server/src/models/` の全Modelと、実DB・`test_db` の対応テーブル／カラム。日時列やUser・Videoだけに限定しない。Modelのテーブル名・`field`・自動生成属性・関連付け適用後の実効 `allowNull` も確認する。
 - 変更対象: 調査で確定した差異に対応する `server/migrations/` の新規ESM migration、必要な検証・結果文書。既存Model・APIの業務仕様変更や、NULL制約以外のスキーマ整合は本Todoの対象外。
-- 起点Model: `server/src/models/user.ts`、`server/src/models/video.ts`。関連fixture: `server/test/fixtures/itemEditing/convertedItemEditingVideo/databaseFixtures.ts`。
-- 検証・結果の参照: `server/test/integration/database/itemEditing/convertedItemEditingVideo/database.test.ts`、`server/test/docs/report/itemEditing/convertedItemEditingVideo.md`。
+- 起点Model: `server/src/models/user.ts`、`server/src/models/video.ts`。関連fixture: `server/test/fixtures/itemEditing/convertItemEditingVideo/databaseFixtures.ts`。
+- 検証・結果の参照: `server/test/integration/database/itemEditing/convertItemEditingVideo/database.test.ts`、`server/test/docs/report/itemEditing/convertItemEditingVideo.md`。
 - 関連完了履歴: `docs/todo/done/item-uploaded-at-db-nullability.md` と `server/migrations/20261021071500-enforce-item-timestamps-not-null.js`。Itemの対応済み履歴をUser・Videoや他Modelの解消根拠にしない。
+- 別件: `docs/todo/P3-techdebt/sequelize-cli-node26-esm-compatibility.md` はNode.js 26でのCLI設定読込み停止。NULL制約差異と原因を分けて扱う。
 - 着手時は本Todo全文、対象に適用されるAGENTS.md、関連migration・設計・最新レポートを読み、既存Todo／`done/` と適用済みmigration履歴を照合して重複対応を避ける。
 
 ## 修正方針と実装内容
