@@ -888,3 +888,10 @@
 - 最終1965件中1963件成功。今回追加15件と関連34件成功。既知item_id不一致2件は対象外Todoで継続管理。
 - 監査原本・報告書・テスト文書を更新し指定Todoをdoneへ。並列エージェントのルート修正/回帰試験をworktreeで統合。
 - DB接続・migration適用/undo・本番デプロイは未実施。CLIのESM/履歴管理検証は既存Todoへ残す。
+
+## 20261022_backend-migration_全Model日時列のNULL制約整合
+
+- 83モデルの日時120列を両DBと比較し、38テーブル76列をNOT NULL化。
+- ユーザー指定で実DBのupdatedAt NULL49件を各createdAtで補完し、両DBへmigration適用・履歴を確認。
+- 全対象の一致とNULL0件、型/default/制約/索引保持を確認。DB回帰13件・lint/typecheck成功。
+- 詳細は20261022-timestamp-nullability.md。日時以外の比較は元Todoの残件。downは補完値を戻さない・未実行。

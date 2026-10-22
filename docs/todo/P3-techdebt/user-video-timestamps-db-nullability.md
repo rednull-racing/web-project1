@@ -4,6 +4,14 @@
 User・Videoの日時列の差異を起点に、同じ問題の再発防止として全Modelへ調査対象を広げる。
 既存レポートから参照されるため、ファイル名は維持する。
 
+## 2026-10-22 日時列の全Model調査・適用完了
+
+- 今回の依頼は全テーブルの `createdAt` / `updatedAt` に限定。83モデルを調査し、対象60テーブル120列のうち両DBで38テーブル76列の差異を検出した。
+- 新規 `20261022100000-enforce-model-timestamps-not-null.js` をneondb / test_dbへ適用。実DBのupdatedAt NULL49件は、ユーザーの明示指定で各行のcreatedAtをコピーして補完。test_dbはNULL0件、補完0件。
+- 両DBの対象120列はすべてModelと一致、NULL0件。型/default/既存制約/索引を保持し、適用履歴は各1件。動画変換DB回帰13件、lint/typecheck成功。
+- 全列比較・補完内訳・適用手順・復旧の制限は [結果記録](../../log_memo/20261022-timestamp-nullability.md) を参照。
+- **残件: 日時列以外の全Model属性のNULL制約比較・是正。** 元Todo全体の完了条件は未達のためP3に残す。以下の「未完了」「未変更」は今回以前の履歴として読む。
+
 ## 現在の方針と対応範囲
 
 - ユーザーは、Modelと実DB・テストDBでNOT NULL制約が異なる箇所を、Modelに合わせる方針を明示した。ModelとDBのどちらを正とするかは確認済みであり、未確定ではない。
