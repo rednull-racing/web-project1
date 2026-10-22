@@ -2,6 +2,15 @@
 
 発見日: 2026-10-22
 
+## 完了結果（2026-10-22）
+
+- 下書き本体・画像の保存後、再認可・ロック済み元編集行を同じtransactionで削除するよう修正。
+- 成功後の同ID再送404、削除失敗/実DELETE後のrollbackによる元行復元、同時要求の先行commit/rollback後再判定を検証。
+- 単体/HTTP357件・実DB180件（計537件）、lint・両型検査・変更test TS追加lint・差分検査が成功。
+- [テスト設計](../../../server/test/docs/architecture/itemDraft/createItemDraft.md)・[検証結果](../../../server/test/docs/report/itemDraft/createItemDraft.md)を更新。自作行限定cleanup・全3接続test_db確認とclose成功、migration実行なし。
+
+以下は対応前の問題・修正方針の記録。
+
 ## 問題と原因
 
 `docs/design/backend/itemUpload.md` のcreateItemDraftは、下書き作成と同一transactionで元のitem_editingを削除する設計。
@@ -25,4 +34,4 @@
 
 ## 注意事項
 
-動画変換API追加作業では、元行の保持／削除は変更していない。下書き動画変換は作成APIが返すitemDraftIdを使用するため、元行消費の有無に依存させない。
+動画変換API追加作業の時点では、元行の保持／削除は変更していなかった。本Todoの修正で成功時の元行削除を適用した。下書き動画変換は作成APIが返すitemDraftIdを使用するため、元行消費の有無に依存させない。

@@ -1,5 +1,74 @@
 # createItemDraft テスト報告・修正記録
 
+## 2026-10-22 元編集セッションの消費（今回の最新結果）
+
+対象: `docs/todo/done/create-item-draft-retains-editing-session.md` に基づく既存バグ修正。
+基本設計の元行消費を適用し、下書き本体・画像の保存後に、再認可・UPDATEロック済みの元item_editingを同一transactionで削除する。
+削除完了と外側transactionのcommitが終わってから、既存の200・itemDraftId・署名URL群を返す。
+失敗時は新規下書き・新規ブランド別名の作成と元編集行の削除を一緒にrollbackする。
+
+- DB非接続: usecase80件・controller5件・helper接続253件・HTTP19件、4ファイル357件成功。
+- 実DB: 保存148件・transaction20件・競合12件、3ファイル180件成功。合計7ファイル537件成功。失敗・skip/pending・todo・未処理例外0。
+- lint・本番typecheck・テストtypecheck・通常lint対象外の変更TS5ファイル追加lintが成功。過去や途中の重複実行は合算していない。
+- 同じ編集IDの成功後再送は404。別編集IDからの下書き作成・ブランド別名再利用は維持する。
+- 以前の元行保持・同じ編集IDで複数行を作るQ01/Q05/P01等は旧契約。今回の期待値は[更新済みテスト設計](../../architecture/itemDraft/createItemDraft.md)を優先する。
+
+### 変更と検証境界
+
+本番変更は `src/usecases/itemDraft/createItemDraft.ts` の既存deleteItemEditing利用だけ。
+service/Model/Routerの仕様やDBスキーマ、フロント、S3オブジェクトは変更しない。migration/syncの実行なし。
+
+| ケース | 確認内容 |
+| --- | --- |
+| N01/T01・AF-CONSUME01 | 保存・画像更新後に再認可済み元行を同一transactionで削除し、成功後は元行不存在。非対象行は保持 |
+| AF-CONSUME02 | 削除失敗の元例外がtransaction外へ伝播し成功応答を返さない。実DBでは先行の下書き保存をrollback |
+| AF-CONSUME03/T02 | 本体・画像・削除・外側commitを個別gateで保留し、後続・返却が先行しない |
+| Q01/Q05 | 成功後の同ID再送404・下書き追加なし。新規別編集IDの要求は独立して成功 |
+| AF-CONSUME04/Q01/Q05 | 初回成功後の再送404、追加書込みなし・先行下書き全列保持を実DBで確認 |
+| AF-CONSUME05 | 実DELETE後の例外で元行全列を復元、下書き/新規別名rollbackと再試行成功 |
+| AF-CONSUME06/P01 | 両先行順で独立PID間の実ロック待機→先行commit・後続404、保存1行 |
+| AF-CONSUME07/P03 | 先行DELETE後の実ロック待機→先行rollback・後続だけ成功/元行消費 |
+
+usecase単体はtransaction/service/helper境界のモック、HTTPはusecase境界をモックする。DBの保存・削除・rollback・ロックは実DB側で分けて保証する。
+実AWSアップロード・S3配信、ブラウザ全画面の通し操作、実COMMIT応答喪失、カバレッジ計測は今回の検証外。
+
+### 実行コマンド・結果・保証範囲
+
+実行ディレクトリはserver/。Node.js 26.12.1を使用するため、次のPATH/共有ライブラリを設定した。
+
+```bash
+export PATH=/tmp/node-v26.12.1-linux-x64/bin:$PATH
+export LD_LIBRARY_PATH=/tmp/node26-libs/usr/lib/x86_64-linux-gnu
+npm run test:run -- src/usecases/itemDraft/test/createItemDraft.test.ts src/controllers/itemDraft/test/createItemDraft.test.ts test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts test/integration/usecases/itemDraft/createItemDraft/route.test.ts --maxWorkers=1 --reporter=json --outputFile=/tmp/item-draft-consume-nondb-results.json
+```
+
+最終の上記実行は357件すべて成功、失敗・skip/pending・todo・未処理例外0。先行の333件実行は重複加算しない。
+
+```bash
+npm run test:run -- test/integration/database/itemDraft/createItemDraft/database.test.ts test/integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts test/integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts --maxWorkers=1 --reporter=json --outputFile=/tmp/item-draft-consume-db-results.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+実DB180件と静的検査はすべてexit 0。--maxWorkers=1は共有fixture/hook/envのファイル間干渉防止で、ケース内の並行transactionは維持。
+追加lintは既存ESLint APIとtypescript-eslint推奨規則を用い、変更したtest配下のDB fixture・DB3ファイル・masterBrandの計5TSを検査した。0 errors/0 warnings、共有設定変更なし。
+
+DB import前にserver/.env.test由来・NODE_ENV=test・設定DB名test_dbを検査し、src/db・models用sequelize・observerの全3接続で設定DB名とcurrent_database()=test_dbを確認してから書込みを許可した。
+今回のseed前スキーマ検査は使用Model全列の存在まで。型/NULL/ENUM/FK等の実DB制約は既存の直接SQL/Modelケースで確認する範囲と区別し、全接続全制約の事前照合済みとは扱わない。
+競合はREAD COMMITTEDと独立transactionのPIDを確認し、pg_stat_activityのLock/対象SQLとpg_blocking_pidsの相手PIDで実待機を観測した。時間経過だけで成立としない。
+全Promise/transaction回収後、自作ID限定cleanup・残存0件・hook/spy解除・3接続close・env復元まで成功。
+
+Q02/Q03/P04〜06は独立した別編集行を使い、従来のメディア/別名再利用・別名ロックの検証を維持した。
+旧P01の2行保存や、旧Q01/Q05の同ID再送成功を通すための期待値緩和はしていない。元行消費の明示契約へ期待値を移行した。
+
+初回HTTPはsandbox待受拒否のため停止。同じ対象を権限付き再実行して成功した。
+/tmpのJSONは一時成果物でGit管理外。必要な集計・手順・結果は本文へ残す。
+
+---
+
+以下は今回の修正前に行った過去の実行記録。各節の「現行」「最新」等はその実行時点を指す。
+
 ## 2026-10-22 item_draft.item_id削除後の回帰
 
 削除migrationと現行Modelに従い、DB保存結果のitem_id:null期待値、既存下書きfixture入力、取得カラム一覧、nullable参照ケース、共有fixtureの旧FK検査を削除。本番コードには該当依存がなく変更なし。AF-OWN02の未知キー入力・所有者保存検証は維持し、item_id非存在を確認する。

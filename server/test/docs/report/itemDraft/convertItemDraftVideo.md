@@ -105,6 +105,6 @@ D06は独立transactionごとのPIDを取得し、observerのpg_blocking_pidsと
 
 ## 対象外の残件
 
-基本設計のcreateItemDraftは元item_editingを削除するが、現行usecaseは元行を保持している。
-動画変換は返却されたitemDraftIdを使うため元行保持に依存しない。今回は削除動作を変えず、[別Todo](../../../../../docs/todo/P1-bug/create-item-draft-retains-editing-session.md)へ記録した。
+動画変換API追加時点では、基本設計のcreateItemDraftが元item_editingを削除する一方、実装は元行を保持していた。
+動画変換は返却されたitemDraftIdを使うため元行保持に依存しない。動画変換API追加時には削除動作を変えず、[別Todo](../../../../../docs/todo/done/create-item-draft-retains-editing-session.md)へ記録した。その後の元編集セッション消費の修正で解消済み（当該Todoの完了記録参照）。
 画面GET API全体の新テーブルへの移行とブラウザでの保存→編集再開→公開の通し確認は今回の検証外。

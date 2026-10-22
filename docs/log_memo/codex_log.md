@@ -953,3 +953,11 @@
 - 単体/HTTP/回帰676件、新API実DB36件、作成実DB148件成功。lint・両型検査・追加TS lint・client簡易検証成功。
 - 全接続test_dbガード、実ロック/rollback、自作行限定cleanupとcloseを確認。実AWS/ffmpeg・ブラウザE2Eは未実施。
 - 起点Todoをdoneへ移動。元編集行の削除がない既存の設計差分は別Todo。詳細はconvertItemDraftVideoのレポートを参照。
+
+## 20261022_backend-coding_下書き保存成功時に元編集セッションを削除
+
+- 下書き本体・画像保存と同じtransactionで再認可・ロック済み元編集行を削除し、成功後の再送を404へ整合。
+- 削除前後の失敗rollback・削除待機・非対象行保持・同ID競合のcommit/rollback後再判定を検証。
+- 単体/HTTP357件・実DB180件成功。lint・本番/テスト型検査・変更test TS5ファイル追加lint・差分検査成功。
+- .env.test由来test_dbの全3接続ガード、自作ID限定cleanup・残存0・close確認。migration実行なし。
+- テスト設計・統合レポートを更新しTodoをdoneへ移動。実AWS・ブラウザE2E・COMMIT応答喪失は未検証。

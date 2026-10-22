@@ -2,7 +2,7 @@
 
 ## 契約の更新（2026-10-22）
 
-[基本設計 createItemDraft](../../../../../docs/design/backend/itemUpload.md) と [元編集セッション残存の修正指示](../../../../../docs/todo/P1-bug/create-item-draft-retains-editing-session.md) に合わせ、下書き本体・画像の保存後、再認可・ロック取得した元 `item_editing` を同じ transaction で削除する。成功後の同一編集 ID 再送は `ITEM_EDITING_NOT_FOUND / 404` とし、下書きを追加しない。失敗時は作成先を rollback し、元行を保持する。
+[基本設計 createItemDraft](../../../../../docs/design/backend/itemUpload.md) と [元編集セッション残存の修正指示](../../../../../docs/todo/done/create-item-draft-retains-editing-session.md) に合わせ、下書き本体・画像の保存後、再認可・ロック取得した元 `item_editing` を同じ transaction で削除する。成功後の同一編集 ID 再送は `ITEM_EDITING_NOT_FOUND / 404` とし、下書きを追加しない。失敗時は作成先を rollback し、元行を保持する。
 
 本書は現行契約を記載する。元行保持・同一 ID から複数作成・所有者未保存・再認可なし・旧 Router 不整合などの初回観測は、[統合レポートの初回結果](../../report/itemDraft/createItemDraft.md#initial-report) と [改善・再実行履歴](../../report/itemDraft/createItemDraft.md#follow-up) を参照する。旧結果を現在の期待値として扱わない。`item_draft` / `item_editing` の削除済み `item_id` を保存・取得・FK・nullable 参照として要求しない。未知入力の除去・非混入の確認は維持する。
 
