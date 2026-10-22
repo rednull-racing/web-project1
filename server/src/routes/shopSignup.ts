@@ -80,6 +80,8 @@ router.patch(
 // page: /shop-signup/step3/[id]
 router.patch(
     "/:id/id-card",
+    authenticateToken,
+    signup3RateLimit,
     validateParams(idParamSchema),
     ...parseMultipartBody([
         { name: "frontIdCard", maxCount: 1 },
@@ -87,8 +89,6 @@ router.patch(
         { name: "permitFiles", maxCount: 10 },
     ]),
     validateBody(shopSignup3BodySchema),
-    authenticateToken,
-    signup3RateLimit,
     updateShopSignup3Controller,
 );
 
