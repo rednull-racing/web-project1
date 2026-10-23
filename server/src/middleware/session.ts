@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express-serve-static-core";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "node:crypto";
+import type { NextFunction, Request, Response } from "express-serve-static-core";
 
 declare module "express-serve-static-core" {
     interface Request {
@@ -11,7 +11,7 @@ export function sessionMiddleware(req: Request, res: Response, next: NextFunctio
     let sessionId = req.cookies?.session_id;
 
     if (!sessionId) {
-        sessionId = uuidv4();
+        sessionId = randomUUID();
         res.cookie("session_id", sessionId, {
             httpOnly: true,
             secure: false,

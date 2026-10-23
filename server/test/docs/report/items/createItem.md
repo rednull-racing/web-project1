@@ -650,4 +650,8 @@ npm run typecheck
 
 B06の保存済み空文字を実usecase・service・Model・PostgreSQL経由で拒否し、HTTP公開応答も確認済み。通知はモックであり実送信・通知永続化は対象外。実S3・URL実体・動画変換・ブラウザE2E・COMMIT応答喪失は未検証。カバレッジは未取得。createItem以外の空文字制約・空白trimの導入は行っていない。
 
-対象外のuuid実行時依存不足は`docs/todo/P1-bug/resolve-session-uuid-runtime-dependency.md`へ記録した。
+対象外のuuid実行時依存不足は`docs/todo/done/resolve-session-uuid-runtime-dependency.md`へ記録した。
+
+## 2026-10-23 後続修正：sessionのuuid依存を解消
+
+sessionMiddlewareをnode:cryptoのrandomUUIDへ置換し、共通HTTP fixtureのsessionモックを削除した。session単体/HTTPとcreateItem/updateItemのroute/registrationを合わせた6ファイル80件、lint・本番/テスト型検査・追加lintが成功。実DBはこの後続修正では再実行していない。詳細は[sessionレポート](../middleware/session.md)を参照。上記の未解決という記録は修正前の履歴。

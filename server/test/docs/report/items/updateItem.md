@@ -94,10 +94,14 @@ JSONは一時成果物であり、件数はnumTotalTests/numPassedTestsとtestRe
 
 sandbox内ではHTTP listen/DB接続/追加lintの子プロセスにEPERMが発生した。ガードやassertionは変えず、環境の承認手順で同じ対象を外側で再実行し成功した。統合後非DBのsandbox実行は692成功/72失敗・EPERM由来未処理例外72で、同じ764件の承認再実行は全成功・未処理例外0。これは最終失敗件数へ混ぜず、環境失敗の履歴として残す。
 
-対象外sessionMiddlewareのuuid実行時依存不足は、HTTP fixtureで対象外sessionだけをモックして分離した。実JWT/認証/parser/limit/schema/controller/errorHandlerは維持。依存追加や本番session修正は行わず、[Todo](../../../../../docs/todo/P1-bug/resolve-session-uuid-runtime-dependency.md)へ記録した。
+対象外sessionMiddlewareのuuid実行時依存不足は、HTTP fixtureで対象外sessionだけをモックして分離した。実JWT/認証/parser/limit/schema/controller/errorHandlerは維持。依存追加や本番session修正は行わず、[Todo](../../../../../docs/todo/done/resolve-session-uuid-runtime-dependency.md)へ記録した。
 
 ## 保証範囲と完了条件
 
 必要な設計ケースと関連回帰・静的検査は成功し、未実装/未実行の必須ケース・未解決の対象内失敗はない。非対象不変の実DB検証は、対象のitem/3つのFKが指す行以外の行と、独立した関連IDを持つ別商品を対象とする。共有関連へのunique制約追加・共有データ時の新たな拒否仕様は今回導入していない。
 
 実通知の永続化・実AWS/URL実体・動画変換・ブラウザE2E・アプリ全体起動・実COMMIT通信断/応答喪失・負荷試験は対象外。HTTP応答送信失敗からcommit済みDBの巻戻しは保証しない。最小Express/実registerRoutes接続の成功をアプリ全体起動や実外部送信の成功とは扱っていない。
+
+## 2026-10-23 後続修正：sessionのuuid依存を解消
+
+sessionMiddlewareをnode:cryptoのrandomUUIDへ置換し、共通HTTP fixtureのsessionモックを削除した。session単体/HTTPとcreateItem/updateItemのroute/registrationを合わせた6ファイル80件、lint・本番/テスト型検査・追加lintが成功。実DBはこの後続修正では再実行していない。詳細は[sessionレポート](../middleware/session.md)を参照。上記の未解決という記録は修正前の履歴。

@@ -1015,3 +1015,9 @@
 - 詳細設計・テスト設計・統合レポートを整備。非DB764件・実DB349件、lint・両型検査・追加TS lintが成功。
 - 全3接続test_dbガード・実ロック待機・rollback・自作ID限定cleanup/残存0/closeを確認。migrationなし。
 - 対象外sessionのuuid依存不足はTodoへ記録。実AWS・アプリ全体起動・実COMMIT通信断は対象外。
+
+## 20261023_backend-coding_sessionのUUID生成をNode組込みへ変更
+
+- sessionMiddlewareをnode:cryptoのrandomUUIDへ置換し、不要な@types/uuid・ambient宣言を削除。
+- Cookie引継ぎ/属性を維持し、既存APIテストのsessionモックを除去。単体/HTTP回帰80件成功。
+- lint・本番/テスト型検査・変更test TS追加lint成功。Todoをdoneへ移動し設計/レポートを記録。

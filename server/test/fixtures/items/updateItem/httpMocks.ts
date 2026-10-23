@@ -17,4 +17,3 @@ vi.mock("../../../../src/usecases/items/sortNumber/sortNumber.js", () => ({
 vi.mock("../../../../src/middleware/isAdmin.js", () => ({ isAdmin: vi.fn() }));
 
 vi.mock("../../../../src/usecases/items/create/createItem.js", () => ({ createItemUseCase: vi.fn() }));
-vi.mock("../../../../src/middleware/session.js", () => ({ sessionMiddleware: vi.fn() }));
