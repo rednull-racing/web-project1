@@ -1000,3 +1000,18 @@
 - status=editではitem_editing.item_idにコピー元itemIdを保存し、normalではnullを維持。
 - コピー用service型・詳細設計・テスト設計・単体/DB HTTPテストを更新。editでもitemId欠落/nullは既存validatorで400。
 - 関連11ファイル364件、server lint・本番/テスト型検査・変更結合テストの追加lint成功。migrationは未実行。
+
+## 20261023_documents_updateItemの仕様確認で中断
+
+- api-developmentスキルに沿って基本・詳細設計、現行Model・取得service・コピー/公開usecaseを照合。
+- updateItem詳細設計へ確認済み事実、更新対象/状態・所有権・在庫・公開必須条件の未決定事項と提案を記録。
+- feature/update-itemで回答待ち。本番/テストコード・DBは未変更、テスト・静的検査は未実行。
+- 未完了のためcommit・develop統合は行わず、回答後に詳細設計工程から再開する。
+
+## 20261023_backend-coding_updateItemの詳細設計実装と検証完了
+
+- 回答を反映しPUT /itemsを実装。商品/編集双方を認可し既存関連更新・在庫復元・元行削除を同一transactionで実行。
+- 更新前の商品statusを制限せず復元後在庫でactive/soldoutを決定。createItemもname/title空文字を拒否。
+- 詳細設計・テスト設計・統合レポートを整備。非DB764件・実DB349件、lint・両型検査・追加TS lintが成功。
+- 全3接続test_dbガード・実ロック待機・rollback・自作ID限定cleanup/残存0/closeを確認。migrationなし。
+- 対象外sessionのuuid依存不足はTodoへ記録。実AWS・アプリ全体起動・実COMMIT通信断は対象外。

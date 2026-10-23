@@ -214,6 +214,9 @@ export const getMyItemForUpdate = async ({ itemId, userId, transaction }: GetMyI
     const options = { transaction, lock: transaction.LOCK.UPDATE };
     const video = item.video_id === null ? null : await Video.findByPk(item.video_id, { ...options, attributes: ["id"] });
     const sale = item.sale_id === null ? null : await Sale.findByPk(item.sale_id, { ...options, attributes: ["id"] });
-    const shipping = item.shipping_id === null ? null : await ItemShippingProfile.findByPk(item.shipping_id, { ...options, attributes: ["id"] });
+    const shipping =
+        item.shipping_id === null
+            ? null
+            : await ItemShippingProfile.findByPk(item.shipping_id, { ...options, attributes: ["id"] });
     return { item, video, sale, shipping };
 };

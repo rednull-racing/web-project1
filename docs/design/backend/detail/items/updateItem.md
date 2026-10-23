@@ -50,11 +50,11 @@
     - item取得: /services/items/query/relation.ts
         - getMyItemForUpdate（新規。所有者条件・transaction必須で商品と各関連を順にロック）
     - video更新: /services/video/video.ts
-        - updateVideo（変更。明示DTO・transactionで更新。現行本番呼出し元はなし）
+        - updateVideo（既存関数を再利用し、DTO型を拡張。今回の追加前に本番呼出し元なし）
     - sale更新: /services/sale/sale.ts
-        - updateSale（変更。明示DTO・transactionで更新。現行本番呼出し元はなし）
+        - updateSale（変更。既定の割引値をusecaseの明示DTOへ移動。今回の追加前に本番呼出し元なし）
     - item_shipping_profile更新: /services/itemShippingProfile/itemShippingProfile.ts
-        - updateShipping（変更。明示DTO・transactionで更新。現行本番呼出し元はなし）
+        - updateShipping（既存。明示DTO・transactionを受け取る既存実装を再利用）
     - item更新: /services/items/command/update.ts
         - updateItem（新規）
     - itemEditing削除: /services/itemEditing/command.ts
@@ -162,7 +162,10 @@ flowchart TD
 - item_editing
 - item
 - user
-- categories
+- categories（親を含む）、item_condition_option、shipping_day_option、shipping_service_option、todouhuken_option
+- video、sale、item_shipping_profile（更新対象の既存関連）
+
+getMyItemEditingはコピー元の全保存列を取得する。getMyItemForUpdateはitemのid/seller_id/status/video_id/sale_id/shipping_idだけを取得し、関連は各idだけを取得する。所有者検索・ロック後のインスタンスへ明示DTOで更新し、未指定の管理列を保存対象へ混入させない。
 
 ### 書き込みテーブル
 
@@ -191,7 +194,7 @@ name/titleの空文字拒否はcreateItemにも反映する。他のcreateItem�
 
 ### コピー仕様
 
-- 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で作成前に停止する。商品inventoryは必須。色inventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
+- 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で更新前に停止する。商品inventoryは必須。色inventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
 - 既存itemとvideo/sale/shippingのid・FK・createdAtを維持し、updatedAtはSequelize更新日時とする。新規関連行は作らない。
 - itemのseller_id・views_count・sort_number・sort_buzz_number・uploaded_at・early_sell・checked・report_score、video.play_countを維持する。その他テーブル・他商品・他セッション・下書きは変更しない。
 - item.save_atはusecase内の更新日時nowを保存する。

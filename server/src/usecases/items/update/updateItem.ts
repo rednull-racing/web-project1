@@ -50,7 +50,9 @@ const resetCurrentInventory = (inventory: NonNullable<ItemAttributes["inventory"
     inventory.current = inventory.initial;
 };
 
-const resetInventory = (source: ItemAttributes): ItemAttributes & { inventory: NonNullable<ItemAttributes["inventory"]> } => {
+const resetInventory = (
+    source: ItemAttributes,
+): ItemAttributes & { inventory: NonNullable<ItemAttributes["inventory"]> } => {
     // 保存済みJSONBはModelのTypeScript型だけでは構造を保証できない。
     if (!hasCopyableInventory(source)) {
         throw new AppError(
@@ -120,8 +122,13 @@ export const updateItemUseCase = async ({ userId, itemEditingId }: Params): Prom
     const { itemId, name, firstImageUrl } = await sequelize.transaction(async (transaction) => {
         const itemEditing = await getMyItemEditing({ itemEditingId, userId, transaction });
         if (!itemEditing) throw new AppError("ITEM_EDITING_NOT_FOUND", 404);
-        if (itemEditing.status !== "edit" || itemEditing.item_id === null ||
-            !Number.isInteger(itemEditing.item_id) || itemEditing.item_id < 1 || itemEditing.item_id > 2147483647) {
+        if (
+            itemEditing.status !== "edit" ||
+            itemEditing.item_id === null ||
+            !Number.isInteger(itemEditing.item_id) ||
+            itemEditing.item_id < 1 ||
+            itemEditing.item_id > 2147483647
+        ) {
             throw new AppError("ITEM_EDITING_STATE_INVALID", 400, "編集する商品を選び直してください。");
         }
         const target = await getMyItemForUpdate({ itemId: itemEditing.item_id, userId, transaction });
@@ -140,8 +147,8 @@ export const updateItemUseCase = async ({ userId, itemEditingId }: Params): Prom
             placeId: itemEditing.shipping_place_id,
             transaction,
         });
-        const parentCategory = category?.parent_id != null
-            ? await getCategories({ categoryId: category.parent_id, transaction }) : null;
+        const parentCategory =
+            category?.parent_id != null ? await getCategories({ categoryId: category.parent_id, transaction }) : null;
         const searchText = `
     ${itemEditing.name}
     ${itemEditing.title ?? ""}
@@ -149,56 +156,74 @@ export const updateItemUseCase = async ({ userId, itemEditingId }: Params): Prom
     ${parentCategory?.name ?? ""}
     ${user.user_name ?? ""}
     `;
-        await updateVideo({ video, data: {
-            thumbnail_url: itemEditing.thumbnail_url,
-            title: itemEditing.title,
-            summary: itemEditing.summary,
-            duration: itemEditing.duration,
-            original_url: itemEditing.original_url,
-            converted_url: itemEditing.converted_url,
-            status: itemEditing.video_status,
-        }, transaction });
-        await updateSale({ sale, data: {
-            before_price: itemEditing.before_price,
-            discount_rate: null,
-            discount_amount: null,
-            sale_flag: false,
-        }, transaction });
-        await updateShipping({ shipping, data: {
-            shipping_day_id: itemEditing.shipping_day_id,
-            shipping_service_id: itemEditing.shipping_service_id,
-            shipping_place_id: itemEditing.shipping_place_id,
-            shipping_service_free_text: itemEditing.shipping_service_free_text,
-        }, transaction });
-        await updateItem({ item, data: {
-            name: itemEditing.name,
-            detail: itemEditing.detail,
-            image_url: itemEditing.image_url,
-            price: itemEditing.price,
-            item_condition_id: itemEditing.item_condition_id,
-            first_image_url: itemEditing.first_image_url,
-            gender_type: itemEditing.gender_type,
-            age_type: itemEditing.age_type,
-            recommend: itemEditing.recommend,
-            category_id: itemEditing.category_id,
-            brand_id: itemEditing.brand_id,
-            brand_aliases_id: itemEditing.brand_aliases_id,
-            attributes,
-            search_text: normalizeJapanese(searchText),
-            status: attributes.inventory.current >= 1 ? "active" : "soldout",
-            save_at: new Date(),
-        }, transaction });
+        await updateVideo({
+            video,
+            data: {
+                thumbnail_url: itemEditing.thumbnail_url,
+                title: itemEditing.title,
+                summary: itemEditing.summary,
+                duration: itemEditing.duration,
+                original_url: itemEditing.original_url,
+                converted_url: itemEditing.converted_url,
+                status: itemEditing.video_status,
+            },
+            transaction,
+        });
+        await updateSale({
+            sale,
+            data: {
+                before_price: itemEditing.before_price,
+                discount_rate: null,
+                discount_amount: null,
+                sale_flag: false,
+            },
+            transaction,
+        });
+        await updateShipping({
+            shipping,
+            data: {
+                shipping_day_id: itemEditing.shipping_day_id,
+                shipping_service_id: itemEditing.shipping_service_id,
+                shipping_place_id: itemEditing.shipping_place_id,
+                shipping_service_free_text: itemEditing.shipping_service_free_text,
+            },
+            transaction,
+        });
+        await updateItem({
+            item,
+            data: {
+                name: itemEditing.name,
+                detail: itemEditing.detail,
+                image_url: itemEditing.image_url,
+                price: itemEditing.price,
+                item_condition_id: itemEditing.item_condition_id,
+                first_image_url: itemEditing.first_image_url,
+                gender_type: itemEditing.gender_type,
+                age_type: itemEditing.age_type,
+                recommend: itemEditing.recommend,
+                category_id: itemEditing.category_id,
+                brand_id: itemEditing.brand_id,
+                brand_aliases_id: itemEditing.brand_aliases_id,
+                attributes,
+                search_text: normalizeJapanese(searchText),
+                status: attributes.inventory.current >= 1 ? "active" : "soldout",
+                save_at: new Date(),
+            },
+            transaction,
+        });
         await deleteItemEditing({ itemEditing, transaction });
         return { itemId: item.id, name: itemEditing.name, firstImageUrl: itemEditing.first_image_url };
     });
     // 通知は更新の成立条件に含めず、commit成功後にだけ開始する。
-    createNotification({ data: {
-        read_user_id: userId,
-        url: `/item/${itemId}`,
-        message_image: firstImageUrl,
-        message: `商品「${name}」が更新されました。商品の詳細はこちらの商品ページからご確認ください。`,
-        type: "ITEM",
-    } }).catch((error: unknown) => {
+    createNotification({
+        data: {
+            read_user_id: userId,
+            url: `/item/${itemId}`,
+            message_image: firstImageUrl,
+            message: `商品「${name}」が更新されました。商品の詳細はこちらの商品ページからご確認ください。`,
+            type: "ITEM",
+        },
+    }).catch((error: unknown) => {
         console.error("service createNotification error", error);
     });
     return itemId;
