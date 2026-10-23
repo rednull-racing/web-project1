@@ -31,7 +31,7 @@ import { createItemEditingCopyUseCase } from "../createItemEditingCopy.js";
 let item: ReturnType<typeof makeItem>;
 let transaction: Transaction;
 let events: string[];
-const run = () => createItemEditingCopyUseCase({ userId: 7, itemId: 101 });
+const run = (status: "normal" | "edit" = "normal") => createItemEditingCopyUseCase({ userId: 7, itemId: 101, status });
 const data = () => mocks.create.mock.calls[0][0].data;
 beforeEach(() => {
     vi.resetAllMocks();
@@ -162,9 +162,9 @@ describe("P0 正常コピー・全引渡し項目", () => {
             expect(data().first_image_url).toBe(item.first_image_url);
         },
     );
-    it("N10: 元ID・日時・関連IDを含めず商品状態をnormalに初期化する", async () => {
-        await run();
-        expect(data().status).toBe("normal");
+    it.each(["normal", "edit"] as const)("N10 QSTATUS04: 元ID・日時・関連IDを含めず指定状態%sを保存する", async (status) => {
+        await run(status);
+        expect(data().status).toBe(status);
         for (const key of [
             "id",
             "createdAt",

@@ -23,6 +23,8 @@ import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { updateItemEditingConfirmBodySchema } from "../validators/body/itemEditing.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { validateQuery } from "../middleware/validate/validateQuery.js";
+import { createItemEditingCopyQuerySchema } from "../validators/query/itemEditing.js";
 
 const router = Router();
 
@@ -72,6 +74,7 @@ router.post(
     "/copy",
     authenticateToken,
     createItemEditingCopyRateLimit,
+    validateQuery(createItemEditingCopyQuerySchema),
     validateBody(createItemEditingCopyBodySchema),
     createItemEditingCopyController,
 );

@@ -13,8 +13,14 @@ export const makeHttpApp = async () => {
 };
 export const makeToken = (secret: string, id = 7, expiresIn = 7200) =>
     jwt.sign({ id, email: "copy-test@example.test", admin: false }, secret, { expiresIn });
-export const postCopy = (app: ReturnType<typeof express>, secret: string, body: object = { itemId: 101 }, userId = 7) =>
+export const postCopy = (
+    app: ReturnType<typeof express>,
+    secret: string,
+    body: object = { itemId: 101 },
+    userId = 7,
+    query = "?status=normal",
+) =>
     request(app)
-        .post("/api/item-editing/copy")
+        .post("/api/item-editing/copy" + query)
         .set("Authorization", "Bearer " + makeToken(secret, userId))
         .send(body);

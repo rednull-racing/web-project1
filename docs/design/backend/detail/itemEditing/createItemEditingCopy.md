@@ -1,6 +1,8 @@
 # createItemEditingCopy 詳細設計
 
-基本設計: ../../itemUpload.md
+基本設計: [itemUpload.md](../../itemUpload.md)
+
+更新: 2026-10-23。基本設計と変更依頼に従い、statusクエリを必須とし保存値へ反映する。
 
 ## 1. 概要
 
@@ -13,7 +15,7 @@
 ## 2. API仕様
 
 - Method: POST
-- Endpoint: /item-editing/copy
+- Endpoint: /item-editing/copy?status=normal（またはstatus=edit）
 - 認証: 必須
 - 認可: コピー元のItem所有者のみ（item.seller_idが認証済みuserIdと一致すること）
 - Content-Type: application/json
@@ -33,9 +35,14 @@
     - type: CreateItemEditingCopyBody
     - wrapper: /middleware/validate/validateBody.ts
         - validateBody
+- queryバリデーション: /validators/query/itemEditing.ts
+    - createItemEditingCopyQuerySchema
+    - type: CreateItemEditingCopyQuery
+    - wrapper: /middleware/validate/validateQuery.ts
+        - validateQuery
 - controller: /controllers/itemEditing/itemEditing.ts
     - createItemEditingCopyController
-- usecase: /usecases/itemEditing/createItemEditingCopy.ts
+- usecase: /usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.ts
     - createItemEditingCopyUseCase
 - service:
     - item取得: /services/items/index.ts
@@ -44,6 +51,12 @@
         - createItemEditingCopy
         - serviceType: /types/serviceType/itemEditing.ts
             - CreateItemEditingCopyParams
+
+### queryリクエスト
+
+- status: `"normal" | "edit"`、必須。省略時のdefaultは設けない。
+- URL例: `POST /api/item-editing/copy?status=normal`。値に引用符を含めない。
+- フロントのコピー出品はnormal、商品編集ボタンはeditを指定し、返されたitemEditingIdでそれぞれ `/upload/[id]`、`/upload/edit/[id]` へ遷移する。
 
 ### bodyリクエスト
 
@@ -55,8 +68,9 @@
 
 ### バリデーション
 
-- validatedBody使用（既存関数）
-    - validatedBody内でzodを適用
+- validateQueryでstatusを先に検証し、validateBodyでitemIdを検証する。検証結果はreq.validatedQuery / req.validatedBodyへ保存する。
+- controllerは検証済みstatusをusecaseへ渡し、item_editing.statusへそのまま保存する。bodyのstatusやraw queryは採用しない。
+- statusの欠落・空文字・許可値以外・配列・オブジェクトは400（INVALID_QUERY）。未知キーは除去する。
 - itemId: 1〜2147483647の整数、必須（DBのINTEGER範囲）
 - 不正なリクエストは400を返す
 
@@ -75,7 +89,7 @@
 ### 三行コメント
 
 ```ts
-// POST /item-editing/copy?status=""
+// POST /item-editing/copy
 // summary: 販売中商品からitem_editingへのコピー
 // page: /item/[id]
 ```
@@ -105,13 +119,13 @@ where: {
 前提: authenticateTokenで認証済みであること。未認証の場合は401を返し、以下の処理を実行しない。
 
 1. レート制限を確認（認証ユーザー単位で10分間に5回、超過時は429を返す）
-2. リクエストのバリデーション
+2. query、bodyの順でリクエストを検証（両方が不正な場合はINVALID_QUERYを優先）
 3. 認証ユーザーの取得
 4. DBトランザクション開始
 5. itemを行ロック付きで取得
 6. 存在確認・所有者認可を確認
 7. item.statusが"active"でない場合は404。コピー取得ではロック検索・関連再取得の両方でdeleted_at=nullを条件にし、論理削除済みも404
-8. item_editingの新規レコードを作成
+8. 検証済みstatusをitem_editing.statusに設定して新規レコードを作成
 9. itemの対象データをitem_editingへコピー
 10. トランザクションをコミット
 11. 作成したitemEditingIdを返却
@@ -163,6 +177,7 @@ flowchart TD
 ### コピー仕様
 
 - 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で作成前に停止する。商品/色のinventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
+- statusは検証済みstatusクエリの値（normalまたはedit）をそのまま使用する。コピー元item.statusは引き継がない。
 - seller_idは認証済みユーザーのIDを使用する
 - item_editing.idは新規採番する
 - createdAt、updatedAtは新規生成する
@@ -282,6 +297,7 @@ const item = await Item.findOne({
 | ---------------------- | ---- | ---------------------------------- |
 | 未認証                 | 401  | UNAUTHORIZED                       |
 | レート制限超過         | 429  | レート制限ミドルウェアの規約に従う |
+| statusクエリの欠落・不正 | 400 | INVALID_QUERY |
 | 不正なitemId           | 400  | INVALID_BODY                       |
 | Itemが存在しない       | 404  | ITEM_NOT_FOUND                     |
 | DB操作失敗             | 500  | INTERNAL_SERVER_ERROR              |
@@ -293,6 +309,7 @@ const item = await Item.findOne({
 
 ### 正常系
 
+- status=normal / editのそれぞれで指定値がitem_editing.statusに保存される
 - 所有者がitemからitem_editingを生成できる
 - itemのデータが正しく引き継がれる
 - 新しいitemEditingIdが返却される
@@ -301,6 +318,7 @@ const item = await Item.findOne({
 
 - 存在しないitemIdを指定した場合
 - 他人のitemIdを指定した場合
+- statusクエリの欠落・空文字・許可値以外・重複指定時は400でusecase/DB未開始。bodyのstatusでは補完しない
 - itemIdの型が不正な場合
 - item_editing作成中にDBエラーが発生した場合
 

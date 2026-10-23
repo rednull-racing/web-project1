@@ -25,3 +25,7 @@ lint・typecheck・buildを確認し、必要な画面動作を検証する。
 ## 注意事項
 
 Node.js更新作業では修正対象外とし、既存のlint違反として記録した。
+
+## 2026-10-23 再確認
+
+createItemEditingCopyのstatusクエリ対応時もclient全体lintは29エラー・36警告で失敗した。変更したcopyUpload.tsとsellerSection/uploadButton.tsxの個別lintは成功。既存のrefs・set-state-in-effect・immutability・anyの違反は今回の修正範囲外として維持する。

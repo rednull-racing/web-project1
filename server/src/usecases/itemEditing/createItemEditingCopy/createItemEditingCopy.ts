@@ -3,10 +3,12 @@ import { AppError } from "../../../errors.js";
 import { createItemEditingCopy } from "../../../services/itemEditing/command.js";
 import { getMyItemWithVideoSaleShipping } from "../../../services/items/index.js";
 import type { ItemAttributes } from "../../../types/itemAttributes.js";
+import type { CreateItemEditingCopyQuery } from "../../../validators/query/itemEditing.js";
 
 type Params = {
     userId: number;
     itemId: number;
+    status: CreateItemEditingCopyQuery["status"];
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -61,7 +63,7 @@ const resetInventory = (source: ItemAttributes): ItemAttributes => {
 // POST /item-editing/copy
 // summary: 販売中商品からitem_editingへのコピー
 // page: /item/[id]
-export const createItemEditingCopyUseCase = async ({ userId, itemId }: Params): Promise<number> => {
+export const createItemEditingCopyUseCase = async ({ userId, itemId, status }: Params): Promise<number> => {
     return await sequelize.transaction(async (transaction) => {
         const item = await getMyItemWithVideoSaleShipping({ itemId, userId, transaction });
         if (!item || item.status !== "active") {
@@ -70,7 +72,7 @@ export const createItemEditingCopyUseCase = async ({ userId, itemId }: Params): 
 
         const itemEditing = await createItemEditingCopy({
             data: {
-                status: "normal",
+                status,
                 item_id: null,
                 seller_id: userId,
                 name: item.name,

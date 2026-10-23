@@ -33,7 +33,7 @@ beforeEach(() => {
     mocks.create.mockResolvedValue(editingResult());
 });
 const run = async () => {
-    await createItemEditingCopyUseCase({ userId: 7, itemId: 101 });
+    await createItemEditingCopyUseCase({ userId: 7, itemId: 101, status: "normal" });
     return mocks.create.mock.calls[0][0].data.attributes;
 };
 const inventoryCases = [
@@ -161,7 +161,7 @@ describe("P0/P1 在庫復元と複製（実usecase経由）", () => {
             // 型に反する保存済みJSONBを意図的に再現する。
             item.attributes = { colorVariants: [{ sizes: [{ size: "M", inventory }] }] } as unknown as ItemAttributes;
             await expectAppError(
-                createItemEditingCopyUseCase({ userId: 7, itemId: 101 }),
+                createItemEditingCopyUseCase({ userId: 7, itemId: 101, status: "normal" }),
                 "ITEM_ATTRIBUTES_INVALID",
                 500,
             );
@@ -189,7 +189,7 @@ describe("P1 AF-INV01 保存済み在庫構造の防御", () => {
     ])("%sをAppErrorで拒否し元データも作成も変更しない", async (_label, attributes) => {
         item.attributes = attributes as unknown as ItemAttributes;
         const before = structuredClone(item.attributes);
-        await expectAppError(createItemEditingCopyUseCase({ userId: 7, itemId: 101 }), "ITEM_ATTRIBUTES_INVALID", 500);
+        await expectAppError(createItemEditingCopyUseCase({ userId: 7, itemId: 101, status: "normal" }), "ITEM_ATTRIBUTES_INVALID", 500);
         expect(mocks.create).not.toHaveBeenCalled();
         expect(item.attributes).toEqual(before);
     });

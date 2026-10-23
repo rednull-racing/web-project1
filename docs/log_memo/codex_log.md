@@ -987,3 +987,10 @@
 - 指示に従い、旧deleted_atに依存するDB/HTTP各1件と論理削除競合2件を削除。残る更新・所有権変更・物理削除等の競合10件は維持。
 - コピー・下書き結合を除外条件なしで一括実行し、9ファイル268件成功（失敗・skip・todoなし）。
 - lint・本番/テスト型検査・変更TS3ファイルの追加ESLint検査成功。設計・レポート更新、指定Todoをdoneへ移動。
+
+## 20261023_backend-coding_createItemEditingCopyのstatusクエリ必須化
+
+- 詳細設計・query schema・Router・controller・usecase・型・関連テストを更新し、normal/editをitem_editing.statusへ反映。
+- コピー出品はstatus=normal、商品編集はbuttonからstatus=editで作成し、返された編集セッションIDへ遷移。
+- 関連11ファイル362件、server lint・本番/テスト型検査、client変更箇所lint・typecheck成功。
+- client全体lintの既存29エラー・36警告は既存Todoへ追記。migrationは未実行。

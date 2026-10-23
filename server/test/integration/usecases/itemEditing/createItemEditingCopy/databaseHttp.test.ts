@@ -48,6 +48,26 @@ afterEach(() => {
 });
 const post = (body: object = { itemId: f.item.id }) => postCopy(app, secret, body, f.owner.id);
 
+describe("P0 statusクエリの永続化", () => {
+    it.each(["normal", "edit"] as const)("QSTATUS06: %sを保存しコピー元と既存行を保持する", async (status) => {
+        const before = await protectedSnapshot(f);
+        const result = await postCopy(app, secret, { itemId: f.item.id, status: "soldout" }, f.owner.id, "?status=" + status);
+        expect(result.status).toBe(201);
+        await expectCopy(result.body.itemEditingId, { ...expectedCopy(f), status });
+        expect(await protectedSnapshot(f)).toEqual(before);
+    });
+    it("QSTATUS07: query欠落は400でDBを開始せず既存データを保持する", async () => {
+        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const transaction = vi.spyOn(sequelize, "transaction");
+        const result = await postCopy(app, secret, { itemId: f.item.id, status: "normal" }, f.owner.id, "");
+        expect(result.status).toBe(400);
+        expect(result.body.code).toBe("INVALID_QUERY");
+        expect(transaction).not.toHaveBeenCalled();
+        expect(await editingIds(f)).toEqual(ids);
+        expect(await protectedSnapshot(f)).toEqual(before);
+    });
+});
+
 describe("P1/P2 実HTTPと実usecase・DBの接続", () => {
     it.each([401, 400, 404])("D07: %sで停止して新規行・既存データを変更しない", async (status) => {
         const before = await protectedSnapshot(f),

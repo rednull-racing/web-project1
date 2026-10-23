@@ -1,3 +1,4 @@
+import type { CreateItemEditingCopyQuery } from "../../validators/query/itemEditing.js";
 import type { Transaction } from "sequelize";
 import type ItemEditing from "../../models/item_editing.js";
 import { BodyCategory, Layer, LifeStyleCategory } from "../itemAttributes.js";
@@ -138,7 +139,8 @@ export type CreateItemEditingDraftParams = {
 };
 
 export type CreateItemEditingCopyParams = {
-    data: CreateItemEditingDraftParams["data"] & {
+    data: Omit<CreateItemEditingDraftParams["data"], "status"> & {
+        status: CreateItemEditingCopyQuery["status"];
         discount_rate: null;
         discount_amount: null;
         sale_flag: false;

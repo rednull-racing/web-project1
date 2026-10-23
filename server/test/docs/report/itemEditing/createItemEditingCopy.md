@@ -1,5 +1,27 @@
 # createItemEditingCopy 結合テストレポート
 
+## 2026-10-23 statusクエリ必須化の検証（最新）
+
+詳細設計・query schema・Router・controller・usecase・コピー用service型・fixture・テストを更新。query.statusはnormal/editのみ必須で保存値へ引き渡す。フロントのコピーはnormal、編集ボタンはeditでPOSTし、返されたitemEditingIdで各画面へ遷移する。以下は過去の実行履歴として保持する。
+
+server/で実行（ファイル間のDB fixture/hook干渉を抑えるためmaxWorkers=1。ケース内の並行transactionは維持）：
+
+```bash
+npm run test:run -- src/validators/query/test/createItemEditingCopy.test.ts src/validators/body/test/createItemEditingCopy.test.ts src/controllers/itemEditing/test/createItemEditingCopy.test.ts src/usecases/itemEditing/createItemEditingCopy/test src/services/itemEditing/test/createItemEditingCopy.test.ts test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts test/integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts test/integration/database/itemEditing/createItemEditingCopy test/integration/usecases/itemEditing/createItemEditingCopy/databaseTransactions.test.ts test/integration/usecases/itemEditing/createItemEditingCopy/databaseConcurrency.test.ts --maxWorkers=1
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+- 最終結果: 11ファイル362件成功、失敗・skip・未処理例外なし。QSTATUS01〜07、N10および既存コピー・在庫・所有権・再送・transaction・競合回帰を確認した。カバレッジ未取得。
+- 初回のHTTP待受EPERMは制限外再実行で解消。旧期待値2件へのstatus追加漏れと、コピーservice型のnormal固定を修正後、上記全対象が成功。リポジトリルートでの初回コマンドはtest:run未定義で停止し、server/から実行し直した。
+- server lint・本番/テスト型検査は成功。通常lint対象外の変更したfixture/結合TS計4ファイルは既存ESLint・typescript-eslint recommendedとNode globalsをNode APIから追加適用し、エラー・警告0件。初回の追加検査設定エラーはtseslint.configによるflat configへ修正した。
+- DB非接続単体ではservice/transaction/usecase依存をモック。HTTPでは実Router・認証・レート制限・schema・controller・errorHandlerを接続し、usecaseのみモック。DB HTTPはcopy usecaseから実DBまで実行し、両statusの別接続SELECT・query欠落時のDB未開始・保護行不変を確認した。
+- 実DBは既存databaseSetupのserver/.env.test由来test_db設定ガードと、sequelize/models/observer各接続のcurrent_database・スキーマ・READ COMMITTED検査をfixture書込み前に通過。自作ID限定cleanup・残存確認・全接続closeを含むsuiteが成功。migration/sync/DB作成は実行していない。
+- client/の変更2ファイル個別lintは成功。typecheckは古い.next/typesが削除済みupload/draftルートを参照して一度失敗し、既存next typegenで生成し直した後に成功した。全体lintは既存29エラー・36警告で失敗し、[既存Todo](../../../../../docs/todo/P3-techdebt/restore-client-lint-baseline.md)へ再確認を記録した。実ブラウザでのクリック操作は未実施。
+- 実行環境はNode 20.20.2（package指定は26系）。今回の対象テストと型検査はこの環境で実施した。
+
+
 ## 2026-10-23 旧deleted_atケース削除後の一括検証（最新）
 
 ユーザー指示により、旧item.deleted_atに依存するDB/HTTPのO05 AF-DEL01各1件と、競合AF-DEL02の論理削除commit/rollback計2件を削除した。P03〜P07/AF-DB01の残る10件（更新・soldout・所有者変更・物理削除・複合変更×commit/rollback）は維持。旧ケースの期待値緩和やskip化は行わず、本番コード・DBスキーマは変更していない。前節までの失敗・除外は過去の実行履歴であり、この結果で残件を解消した。

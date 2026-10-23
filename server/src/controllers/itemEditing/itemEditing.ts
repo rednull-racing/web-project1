@@ -7,6 +7,7 @@ import { createItemEditingDraftUseCase } from "../../usecases/itemEditing/create
 import { updateItemEditingConfirmUseCase } from "../../usecases/itemEditing/updateConfirm.js";
 import type { CreateItemEditingCopyBody, CreateItemEditingDraftBody } from "../../validators/body/itemEditing.js";
 import { ItemEditingConfirmBody } from "../../validators/body/itemEditing.js";
+import type { CreateItemEditingCopyQuery } from "../../validators/query/itemEditing.js";
 
 // PATCH /item-editing/:id/convert
 // summary: 編集セッション動画HLS変換
@@ -108,7 +109,9 @@ export const createItemEditingCopyController = async (
         const userId = req.user!.id;
         const { itemId } = req.validatedBody as CreateItemEditingCopyBody;
 
-        const itemEditingId = await createItemEditingCopyUseCase({ userId, itemId });
+        const { status } = req.validatedQuery as CreateItemEditingCopyQuery;
+
+        const itemEditingId = await createItemEditingCopyUseCase({ userId, itemId, status });
 
         res.status(201).json({ itemEditingId });
     } catch (err) {

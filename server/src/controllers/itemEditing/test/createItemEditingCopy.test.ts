@@ -15,11 +15,13 @@ vi.mock("../../../usecases/itemEditing/createItemEditingDraft.js", () => ({ crea
 vi.mock("../../../usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
 import { createItemEditingCopyController } from "../itemEditing.js";
 
-const request = () =>
+const request = (status: "normal" | "edit" = "normal") =>
     ({
         user: { id: 7 },
         body: { itemId: 999, seller_id: 8, userId: 8, price: 1, itemEditingId: 999 },
         validatedBody: { itemId: 101 },
+        query: { status: status === "normal" ? "edit" : "normal", userId: "8" },
+        validatedQuery: { status },
     }) as unknown as Request;
 const response = () => {
     const status = vi.fn(),
@@ -34,11 +36,11 @@ beforeEach(() => {
 });
 
 describe("P1 controllerの入力境界・応答", () => {
-    it("C01 C02 V05: 認証IDとvalidatedBodyだけを渡し新規IDのみ201で返す", async () => {
+    it.each(["normal", "edit"] as const)("C01 C02 V05 QSTATUS03: 認証IDと検証済み入力の%sを渡し新規IDのみ201で返す", async (editingStatus) => {
         const { res, status, json } = response(),
             next = vi.fn();
-        await createItemEditingCopyController(request(), res, next);
-        expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101 });
+        await createItemEditingCopyController(request(editingStatus), res, next);
+        expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101, status: editingStatus });
         expect(status).toHaveBeenCalledExactlyOnceWith(201);
         expect(json).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 456 });
         expect(next).not.toHaveBeenCalled();

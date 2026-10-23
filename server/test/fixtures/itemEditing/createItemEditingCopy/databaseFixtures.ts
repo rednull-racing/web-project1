@@ -247,7 +247,7 @@ export const seed = async () => {
 };
 export type DbFixture = Awaited<ReturnType<typeof seed>>;
 export const run = (f: DbFixture, itemId = f.item.id, userId = f.owner.id) =>
-    createItemEditingCopyUseCase({ itemId, userId });
+    createItemEditingCopyUseCase({ itemId, userId, status: "normal" });
 export const expectedCopy = (f: DbFixture): CreateItemEditingCopyParams["data"] => ({
     ...expectedData(),
     seller_id: f.owner.id,

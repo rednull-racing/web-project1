@@ -57,7 +57,7 @@ describe("P1 実Router・認証・validator・共通errorHandler", () => {
         });
         expect(result.status).toBe(201);
         expect(result.body).toEqual({ itemEditingId: 456 });
-        expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101 });
+        expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101, status: "normal" });
     });
     it.each(["なし", "Bearer空", "不正署名", "期限切れ"])("R02: %sと不正bodyでは401を優先する", async (mode) => {
         const req = request(app).post("/api/item-editing/copy");
@@ -97,6 +97,32 @@ describe("P1 実Router・認証・validator・共通errorHandler", () => {
                 : { error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" },
         );
         expect(JSON.stringify(result.body)).not.toContain("secret SQL detail");
+    });
+});
+
+describe("P0 必須statusクエリ", () => {
+    it.each(["normal", "edit"])("QSTATUS03: queryの%sを採用しbodyのstatusでは上書きしない", async (status) => {
+        const result = await postCopy(app, secret, { itemId: 101, status: "soldout" }, 7, "?status=" + status + "&userId=8");
+        expect(result.status).toBe(201);
+        expect(result.body).toEqual({ itemEditingId: 456 });
+        expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101, status });
+    });
+    it.each(["", "?status=", "?status=active", "?status=NORMAL", "?status=%22normal%22", "?status=normal&status=edit", "?status[value]=edit"])(
+        "QSTATUS02: %sはbodyのstatusで補完せず400で停止する", async (query) => {
+            const result = await postCopy(app, secret, { itemId: 101, status: "normal" }, 7, query);
+            expect(result.status).toBe(400);
+            expect(result.body).toEqual({ code: "INVALID_QUERY", message: "INVALID_QUERY" });
+            expect(mocks.copy).not.toHaveBeenCalled();
+        },
+    );
+    it("QSTATUS05: queryとbodyがともに不正ならqueryを先に拒否し枠を消費する", async () => {
+        for (let i = 0; i < 5; i++) {
+            const result = await postCopy(app, secret, {}, 7, "");
+            expect(result.status).toBe(400);
+            expect(result.body.code).toBe("INVALID_QUERY");
+        }
+        expect((await post()).status).toBe(429);
+        expect(mocks.copy).not.toHaveBeenCalled();
     });
 });
 
@@ -154,5 +180,5 @@ it.each([2147483646, 2147483647])("AF-ID02: INTEGER上限付近%sはHTTPでも�
     const result = await post({ itemId });
     expect(result.status).toBe(201);
     expect(result.body).toEqual({ itemEditingId: 456 });
-    expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId });
+    expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId, status: "normal" });
 });

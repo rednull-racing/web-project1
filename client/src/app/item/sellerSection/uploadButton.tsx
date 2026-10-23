@@ -1,7 +1,6 @@
 "use client";
 
 import clsx from "clsx";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { ApiError } from "../../../lib/api/apiError";
@@ -15,11 +14,11 @@ type Props = {
 export const UploadButton = ({ id }: Props) => {
     const router = useRouter();
 
-    const copy = async () => {
+    const copy = async (status: "normal" | "edit") => {
         try {
-            const data = await fetchCopyUpload(id);
+            const data = await fetchCopyUpload(id, status);
 
-            const url = `/upload/${data.itemEditingId}`;
+            const url = status === "edit" ? `/upload/edit/${data.itemEditingId}` : `/upload/${data.itemEditingId}`;
             router.push(url);
         } catch (err) {
             if (err instanceof ApiError) {
@@ -33,12 +32,12 @@ export const UploadButton = ({ id }: Props) => {
 
     return (
         <div className={styles.buttonDiv}>
-            <button type="button" className={styles.grayButton} onClick={copy}>
+            <button type="button" className={styles.grayButton} onClick={() => copy("normal")}>
                 コピー出品
             </button>
-            <Link href={`/upload/edit/${id}`} className={clsx(styles.grayButton, styles.edit)}>
+            <button type="button" className={clsx(styles.grayButton, styles.edit)} onClick={() => copy("edit")}>
                 商品を編集する
-            </Link>
+            </button>
         </div>
     );
 };
