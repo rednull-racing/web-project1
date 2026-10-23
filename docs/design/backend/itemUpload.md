@@ -158,6 +158,31 @@
     - item_draft.converted_url = null
     - item_draft.original_urlは編集しない
 
+### itemUpdate（itemEditingからitemへコピーして更新）
+
+- フロント: /item/confirm/edit/[id]
+- route: PUT /items
+- usecase: item_editingの内容をitemにコピーして上書き
+
+- 認可:
+    - itemEditing.seller_id === userId
+
+- transaction:
+    - item
+    - video
+    - sale
+    - itemShippingProfile
+    - その他関連レコード
+      → 全て同一Transaction
+
+- 成功後:
+    - itemEditing削除
+
+- 失敗時:
+    - DB変更をrollback
+    - itemEditingは保持
+    - itemsは変更しない
+
 ### getItemEditingForm（商品アップロード入力フォーム初期値取得）
 
 - フロント: /upload/[id]・/upload/edit/[id]
