@@ -20,3 +20,10 @@
 ## 実装時の注意・完了条件
 
 .env.test由来test_dbと全接続ガードを維持し、自作ID限定cleanupとcloseを確認する。今回の方針で指定したモデル・DB・作成処理の変更に範囲を限定し、既存のstatus normal指定を維持する。全作成経路の単体・関連DBテストでitem_id nullを確認し、lint・本番/テスト型検査を実行する。DB反映結果とテスト結果・未確認範囲をレポートへ記録する。必要な実装・検証が完了するまでTodoをdoneへ移動しない。
+
+## 2026-10-23 実装・反映結果（一部検証残件）
+
+- モデルはユーザー追加済みの定義を維持。新規migrationを実DB・テストDBへ適用し、nullableなitem_idとモデルどおりの外部キーを確認した。全3作成usecase・service引数型にitem_id nullを必須指定した。
+- 単体199件、新規/下書きDB54件成功。コピーDBは93成功・旧deleted_atケース1失敗。usecase結合は111成功・旧deleted_at HTTPケース1失敗・先行変更競合12件除外。lint・本番/テスト型検査成功。
+- 残件：削除済みitem.deleted_atを使用する旧論理削除/復元テスト（DB O05 AF-DEL01、HTTP同名、競合P03〜P07 AF-DEL02 AF-DB01）を現在の削除仕様に合わせて再設計し、結合全件を再検証する。今回の指示はitem_id追加とnull指定のため、削除仕様と旧テストは変更していない。
+- 詳細・中断した一括実行の限界はserver/test/docs/report/itemEditing/createItemEditingCopy.mdの2026-10-23節に記録。全検証未完了のためdoneへ移動しない。

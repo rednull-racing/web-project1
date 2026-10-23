@@ -38,6 +38,7 @@ export const copyColumns = [
 export const makeBody = (itemDraftId = 11): CreateItemEditingDraftBody => ({ itemDraftId });
 export const makeData = (overrides: Partial<CopyData> = {}): CopyData => ({
     status: "normal",
+    item_id: null,
     seller_id: 7,
     name: "下書きの商品名",
     detail: "下書きの説明",

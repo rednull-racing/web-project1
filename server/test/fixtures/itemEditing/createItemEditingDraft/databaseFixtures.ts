@@ -305,6 +305,7 @@ export const expectCopied = (
     expect(saved).not.toBeNull();
     for (const column of copyColumns) expect(saved![column], column).toEqual(original[column]);
     expect(saved!.seller_id).toBe(owner);
+    expect(saved!.item_id).toBeNull();
 };
 export const replaceDraft = async (f: DbFixture, values: Partial<CopyData>) => {
     await f.draft.update(values);

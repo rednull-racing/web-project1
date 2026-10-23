@@ -12,7 +12,7 @@ describe("P0: 新規編集セッションの初期状態", () => {
 
         expect(await createItemEditingUseCase({ userId: 7 })).toBe(456);
         expect(mocks.create).toHaveBeenCalledExactlyOnceWith({
-            data: { status: "normal", seller_id: 7 },
+            data: { status: "normal", item_id: null, seller_id: 7 },
         });
     });
 });

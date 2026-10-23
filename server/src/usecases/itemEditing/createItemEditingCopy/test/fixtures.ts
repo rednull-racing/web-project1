@@ -150,6 +150,7 @@ export const transactionFixture = (): Transaction => ({ LOCK: { UPDATE: "UPDATE"
 
 export const expectedData = (): CreateItemEditingCopyParams["data"] => ({
     status: "normal",
+    item_id: null,
     seller_id: 7,
     name: "公開商品",
     detail: "商品説明\n日本語",

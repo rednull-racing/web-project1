@@ -28,6 +28,17 @@ beforeEach(async () => {
     f = await seed();
 });
 describe("P0/P1: 実DBのコピー・削除・所有権・再実行", () => {
+    it("ITEM-ID01: 新規作成はitem_id nullで保存する", async () => {
+        const { createItemEditingUseCase } = await vi.importActual<
+            typeof import("../../../../../src/usecases/itemEditing/createItemEditing.js")
+        >("../../../../../src/usecases/itemEditing/createItemEditing.js");
+        const before = await protectedRows(f);
+        const id = await createItemEditingUseCase({ userId: f.owner.id });
+        const saved = await snapshot("item_editing", id);
+        expect(saved).toMatchObject({ id, item_id: null, seller_id: f.owner.id, status: "normal" });
+        expect(await protectedRows(f)).toEqual(before);
+    });
+
     it("N01 N02 N09 ST01 ST06: 全項目をコピーして元下書きだけを削除し新規行IDを返す", async () => {
         const original = (await snapshot("item_draft", f.draft.id))!;
         const protectedBefore = await protectedRows(f),

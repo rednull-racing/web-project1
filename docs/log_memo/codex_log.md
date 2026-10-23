@@ -974,3 +974,10 @@
 - 単体308件・下書きDB53件、lint・本番/テスト型検査・変更test TS追加lintが成功。
 - コピーDB94件は既存fixtureの削除済みitem_id参照で準備時停止。対象外としてTodoへ記録。
 - 詳細はserver/test/docs/report/itemEditing/status.md。
+
+## 20261023_backend-migration_itemEditingItemId追加
+
+- nullableなitem_idとモデルどおりの外部キーを新規ESM migrationで実DB・テストDBへ反映。
+- 新規・下書き・商品コピーの作成dataとservice型へitem_id nullを指定し、fixture・検証文書を更新。
+- 単体199件、新規/下書きDB54件成功。コピーDB93成功/旧論理削除1失敗、usecase結合111成功/旧論理削除1失敗/12除外。
+- lint・本番/テスト型検査成功。旧deleted_at前提テストと全件再検証は指定Todoに残した。

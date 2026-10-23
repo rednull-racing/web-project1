@@ -15,6 +15,7 @@ export type ItemEditingTransactionParams = {
 export type CreateItemEditingParams = {
     data: {
         status: "normal";
+        item_id: null;
         seller_id: number;
     };
     transaction?: Transaction;
@@ -132,7 +133,7 @@ export type CreateItemEditingDraftParams = {
         | "shipping_service_id"
         | "shipping_place_id"
         | "shipping_service_free_text"
-    > & { seller_id: number; status: "normal" };
+    > & { seller_id: number; status: "normal"; item_id: null };
     transaction: Transaction;
 };
 
