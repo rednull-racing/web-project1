@@ -75,7 +75,7 @@
 ### 三行コメント
 
 ```ts
-// POST /item-editing/copy
+// POST /item-editing/copy?status=""
 // summary: 販売中商品からitem_editingへのコピー
 // page: /item/[id]
 ```
