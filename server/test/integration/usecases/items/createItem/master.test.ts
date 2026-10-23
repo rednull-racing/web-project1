@@ -1,6 +1,6 @@
 import { mocks, setup, transaction } from "../../../../fixtures/items/createItem/usecaseMocks.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createItemUseCase } from "../../../../../src/usecases/itemEditing/createItem.js";
+import { createItemUseCase } from "../../../../../src/usecases/items/create/createItem.js";
 const master = vi.hoisted(() => ({ condition: vi.fn(), day: vi.fn(), service: vi.fn(), place: vi.fn() }));
 vi.mock("../../../../../src/services/itemConditionOption/itemConditionOption.js", () => ({
     getItemCondition: master.condition,

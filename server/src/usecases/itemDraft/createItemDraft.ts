@@ -1,6 +1,7 @@
 import sequelize from "../../db.js";
 import { AppError } from "../../errors.js";
 import { CreateItemDraft, updateItemDraftImage } from "../../services/itemDraft/command.js";
+import { deleteItemEditing } from "../../services/itemEditing/command.js";
 import { getMyItemEditing } from "../../services/itemEditing/query.js";
 import type { CreateItemDraftBody } from "../../validators/body/itemDraft.js";
 import { buildSignedUrls } from "../shared/buildSignedUrls.js";
@@ -58,7 +59,7 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
     });
 
     // データ更新
-    await sequelize.transaction(async (t) => {
+    const itemDraftId = await sequelize.transaction(async (t) => {
         // 作成直前に再認可し、commitまで参照元の削除・所有者変更を待機させる。
         const currentItemEditing = await getMyItemEditing({ itemEditingId, userId, transaction: t });
         if (!currentItemEditing) {
@@ -137,9 +138,12 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
         });
 
         await updateItemDraftImage({ itemDraft, urls: finalImageUrls, transaction: t });
+        await deleteItemEditing({ itemEditing: currentItemEditing, transaction: t });
+        return itemDraft.id;
     });
 
     return {
+        itemDraftId,
         videoSignedUrl,
         thumbnailSignedUrl,
         itemImageSignedUrls,

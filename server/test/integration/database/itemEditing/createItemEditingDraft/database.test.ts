@@ -56,18 +56,16 @@ describe("P0/P1: 実DBのコピー・削除・所有権・再実行", () => {
         expect(await snapshot("item_draft", f.draft.id)).toBeNull();
         expect(await savedEditings(f)).toHaveLength(1);
     });
-    it.each([
-        { item_id: null },
-        { brand_id: null, brand_aliases_id: null },
-        { brand_id: null },
-        { brand_aliases_id: null },
-    ])("N08: nullable参照%jを保存し参照先を変更しない", async (values) => {
-        await replaceDraft(f, values);
-        const original = (await snapshot("item_draft", f.draft.id))!,
-            protectedBefore = await protectedRows(f);
-        expectCopied(await snapshot("item_editing", await run(f)), original, f.owner.id);
-        expect(await protectedRows(f)).toEqual(protectedBefore);
-    });
+    it.each([{ brand_id: null, brand_aliases_id: null }, { brand_id: null }, { brand_aliases_id: null }])(
+        "N08: nullable参照%jを保存し参照先を変更しない",
+        async (values) => {
+            await replaceDraft(f, values);
+            const original = (await snapshot("item_draft", f.draft.id))!,
+                protectedBefore = await protectedRows(f);
+            expectCopied(await snapshot("item_editing", await run(f)), original, f.owner.id);
+            expect(await protectedRows(f)).toEqual(protectedBefore);
+        },
+    );
     it("E01: 不存在IDは404で既存データを変更しない", async () => {
         const original = (await snapshot("item_draft", f.draft.id))!,
             protectedBefore = await protectedRows(f);

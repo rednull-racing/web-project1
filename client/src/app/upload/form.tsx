@@ -242,9 +242,10 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
 
             // 動画アップロード
             const videoOk = await videoUploadAndConvert({
+                target: "editing",
                 videoFile: videoInput.videoFile,
-                videoSignedUrl: data.videoSignedUrl?.url,
-                videoId: item.Video?.id,
+                videoSignedUrl: data.videoSignedUrl,
+                itemEditingId: itemId,
             });
 
             if (!videoOk) {
@@ -364,9 +365,10 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
 
             // 動画アップロード
             const videoOk = await videoUploadAndConvert({
+                target: "draft",
                 videoFile: videoInput.videoFile,
-                videoSignedUrl: data.videoSignedUrl?.url,
-                videoId: item.Video?.id,
+                videoSignedUrl: data.videoSignedUrl,
+                itemDraftId: data.itemDraftId,
             });
 
             if (!videoOk) {

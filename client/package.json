@@ -24,7 +24,7 @@
         "@types/bcrypt": "^6.0.0",
         "@types/hls.js": "^0.13.3",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^22.19.15",
+        "@types/node": "^26.6.5",
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "@vercel/analytics": "^1.6.0",
@@ -58,6 +58,6 @@
         "eslint-config-next": "^16.2.2"
     },
     "engines": {
-        "node": "22.x"
+        "node": ">=26.12.1 <27"
     }
 }

@@ -1,5 +1,27 @@
 # Codexログ
 
+## 20261022_backend-coding_convertItemEditingVideo完了とUser日時NOT_NULL適用
+
+- User日時2列をNOT NULLへ変更する新規ESM migrationをneondb/test_dbへ適用し、型/default保持・NULL0件・履歴各1件を確認。
+- 中断した実DB検証を再開し、名称・ファイル・関数・参照をconvertItemEditingVideoへ統一。
+- DB非接続263件・実DB36件の計299件、lint、本番/テスト型検査、追加TS lint11件、migration構文・差分検査が成功。
+- 全Modelと両DBのNULL制約をModelに合わせる再発防止方針、および既存CLIのNode26互換問題をTodoへ記録。
+- 実AWS/ffmpeg配信と全ModelのDB是正は対象外。詳細設計・テスト設計・統合レポートを最新結果へ更新。
+
+## 20261022_backend-coding_convertItemEditingVideo初期実装とDB検査中断
+
+- ユーザー確定仕様を詳細設計に反映し、全HTTP202・converted統一・再変換と旧処理中断を初期実装。
+- テスト設計・コード・統合レポート作成。DB非接続19ファイル263件（新規139/回帰124）成功。
+- lint、本番/テスト型検査、追加TS lint、差分検査成功。実DB13件は必要親User日時NULL制約差異で準備段階停止。
+- DB書込み・migration実行なし。既存差異をTodoへ記録し、作業ブランチに保持して中断。developへは未統合。
+
+## 20261022_backend-architecture_convertItemEditingVideo仕様確認で中断
+
+- 実在するconvertItemEditingVideo.mdと基本設計・動画変換参考実装・ItemEditing Modelを照合。
+- 成功状態・失敗時更新・202前の認可・再送と競合の未確定事項を詳細設計第9章へ記録。
+- 仕様確認待ちのため設計確定・本番実装・テスト工程を中断。DB・S3への接続なし。
+- 文書差分を確認。テスト・lint・型検査は未実行。未完了のためdevelopへの統合なし。
+
 ## 20261014*documents*バックエンドコーディング規約の参照パス修正
 
 ### 作業内容
@@ -799,3 +821,148 @@
 
 - 依頼された工程に実行範囲を限定する旨を明記。参照先2件と差分を確認。
 - 文書のみのためテスト・lint・型検査は未実行。
+
+## 20261021*documents*マイグレーション実行ルール更新
+
+### 作業内容
+
+- server/migrations/AGENTS.mdの実行禁止記載2か所を削除し、特別な指示がない限り実DBとテストDBの両方に適用する規定へ変更。
+
+### 変更目的
+
+- マイグレーション実行時の適用先を明確化。
+
+### 注意点・その他留意事項
+
+- 差分と空白エラーを確認。文書のみのためテスト・lint・型検査は未実行。マイグレーションの実行なし。
+
+## 20261021_backend-coding_cronDeleteItemEditing実装と検証
+
+- 作成から72時間以上のitem_editingを毎日12時JSTに同一transactionで削除する詳細設計・Cron・usecase・serviceを実装。
+- テスト設計・単体/実DBテスト・統合レポートを作成し、競合監視SQLとfixture型の不備を修正。
+- ユーザー指示で新migrationをneondb/test_dbへ適用し、item.createdAt/updatedAtのNOT NULL・NULL0件・履歴を確認。
+- 新規単体14件・既存回帰374件・実DB7件が成功。lint・本番/テスト型検査・追加lint・migration構文検査が成功。
+
+## 20261021_backend-coding_createItem_usecase配置変更
+
+- createItem usecaseをitems/createへ移動し、単体テストを同配下のtestへ移動。
+- 詳細設計・controller・関連テスト/fixture・文書の参照パスを更新。処理内容は変更なし。
+- 関連5ファイル418件、lint、本番/テスト型検査、差分検査が成功。HTTP待受制限は制限外で再検証。
+- 既存のdocs/design/backend/itemUpload.mdの未コミット変更は保持し、コミット対象外。
+
+## 20261021_backend-coding_updateConfirm動画状態更新
+
+- updateConfirm呼出しのdataとservice引数型にvideo_status: "original"を追加し、単体・実DBテストの期待値を更新。
+- DB非接続291件、lint、本番/テスト型検査、変更DBテストの追加lintが成功。
+- 実DBは63/92件成功。ST06全4件と全保存項目が成功し、対象外の旧数値契約29件の失敗はTodoへ記録。
+- テスト設計・レポートを更新。既存の未追跡convertItemEditingVideo.mdは変更・コミット対象外。
+
+## 20261021_backend-test_updateConfirm実DB数値契約修正
+
+- I03/I04の旧DB観測を共有数値契約へ移行。不正ID42件の400・未更新、空白6件の既存参照null更新を検証。
+- 実DB3ファイル125件・DB非接続8ファイル534件が成功。HTTP待受けEPERMは制限外再実行で解消。
+- lint、本番/テスト型検査、変更DBテスト追加lint、差分検査が成功。本番コード・DB制約の変更なし。
+- テスト設計・レポートを更新し、対象Todoを完了記録付きでdoneへ移動。
+
+## 20261022_backend-architecture_Node.js26セキュリティ更新
+
+- 最新Currentの26.12.1へDocker開発/本番・engines・.nvmrcを統一。Node型定義とlockfileも26系へ更新。
+- Node 26でserver lint・本番/テスト型検査・build、client型検査、主要依存の基本動作が成功。
+- server単体1816件成功・2件失敗。client lintは29エラー・40警告。旧Nodeでも同じ失敗を確認しTodo化。
+- server/clientの本番Docker内npm ci・buildが成功。ホストNext buildは長時間compileのため中止。
+- README・更新記録を追加。npm依存の脆弱性34件は別Todoへ記録。本番デプロイ・migrationは未実施。
+
+## 20261022*documents*バックエンド依存脆弱性調査
+
+- npm audit全依存34件・本番依存25件を再取得し、原本・依存経路・全件一覧を保存。
+- Multerの未認証到達経路を優先事項として確認。Criticalの設定条件・旧ORM経路を現行APIと区別。
+- 修正版候補と修正順序、uuid/bracesの残課題を報告書・指定Todoへ記録。
+- 調査のみで依存・コードの更新なし。修正/再検証は未着手のためTodoをP1に保持。
+- 既存のcreateItemDraft-deleteItemDraft-test-mock Todo移動は保持し、今回のコミット対象外。
+
+## 20261022*backend-coding*バックエンド依存脆弱性修正
+
+- 全依存34件/本番依存25件を0件へ。Multer/Express等の更新、旧生成・監視ツールとtsc-aliasの削除、uuid限定overrideを実施。
+- ショップ身分証PATCHの認証/制限を解析前へ移動。生成コマンドをsequelize-cliへ揃え、JSON optionsでNode26の起動を確認。
+- lint・本番/テスト型検査・build・本番Docker buildと完成イメージ内の主要依存基本動作が成功。
+- 最終1965件中1963件成功。今回追加15件と関連34件成功。既知item_id不一致2件は対象外Todoで継続管理。
+- 監査原本・報告書・テスト文書を更新し指定Todoをdoneへ。並列エージェントのルート修正/回帰試験をworktreeで統合。
+- DB接続・migration適用/undo・本番デプロイは未実施。CLIのESM/履歴管理検証は既存Todoへ残す。
+
+## 20261022*backend-migration*全Model日時列のNULL制約整合
+
+- 83モデルの日時120列を両DBと比較し、38テーブル76列をNOT NULL化。
+- ユーザー指定で実DBのupdatedAt NULL49件を各createdAtで補完し、両DBへmigration適用・履歴を確認。
+- 全対象の一致とNULL0件、型/default/制約/索引保持を確認。DB回帰13件・lint/typecheck成功。
+- 詳細は20261022-timestamp-nullability.md。日時以外の比較は元Todoの残件。downは補完値を戻さない・未実行。
+
+## 20261022*backend-migration*全属性NULL制約の調査と15列適用
+
+- 83モデル739属性を両DBと比較し、新規2 migrationで15列のNULL差異を解消。存在する737列すべて一致。
+- 実DBのNULLは指定値で補完。閲覧履歴2件は初回0補完後、追加指定のuser_id 6へ限定訂正。
+- 型/default/制約/索引・履歴を確認。最終lint/typecheck・動画変換DB13件成功。
+- 広めの回帰は158成功/3失敗（削除済みitem_id期待）。列不存在2件とともに別Todoへ記録。
+- 全列比較と復旧制限は20261022-all-column-nullability.md。downは補完値を戻さない・未実行。
+
+## 20261022_backend-test_item_draftの削除済みitem_id依存を除去
+
+- 下書きDB期待値・fixture・取得列・旧FK検査・nullableケースを削除し、設計とレポートを更新。本番コードに該当依存なし。
+- 対象264件、追加65件成功。lint・本番/テスト型検査・変更TS追加lint成功。
+- 起点と類似Todoをdoneへ移動。別件のsharedIdRoutesモック不足6件は別Todoへ記録。
+
+## 20261022*backend-model*報告注文列リネームと振込口座関連の整合
+
+- paid_info_id→orders_idの新規migrationを両DBへ適用。全行の値・既存制約・索引保持と履歴を確認。
+- BankAccount→Transferのaccount_id関連付けを削除。transfer_id・bank_snapshotは保持。
+- 両DB全83モデル738属性の列存在・NULL制約一致、実Model SELECT、DB回帰161件、lint/typecheck成功。
+- 関連Todo2件をdoneへ移動。既存orders FKの削除動作差異は別Todo。詳細は20261022-report-transfer-alignment.md。
+
+## 20261022_backend-coding_sequelize-cliのNode26ESM互換性修正
+
+- .sequelizercと接続設定をESM化し、直接CLIとnpm経路を復旧。testは.env.testのtest_dbを強制。
+- Node26.12.1でCLI・ESM up/down・履歴の隔離テスト5件、lint/typecheck成功。
+- neondb/test_dbの実DB名を読取り確認。実DBのmigration・履歴変更なし。
+- 運用手順を追記し、Todoをdoneへ移動。実DBでの適用/復旧には別途対象と実行許可が必要。
+
+## 20261022_backend-test_sharedIdRoutesのcontrollerモック補完
+
+- 動画変換controllerのexportモック不足を補完し、共有ID回帰6件が成功。
+- lint、本番／テスト型検査、変更TS追加lint成功。HTTP待受制限は権限付き再実行で確認。
+- レポート・参照先を更新しTodoをdoneへ移動。本番仕様・期待値の変更なし。
+
+## 20261022*frontend-apiFetch*商品アップロード主要APIのURL整合
+
+### 作業内容
+
+- 主要APIのURL・method・body・IDと公開／コピー後の遷移を設計に合わせ、下書き編集APIと遷移を追加。
+
+### 変更目的
+
+- itemEditing／itemDraftを使用する設計に主要API呼び出しを統一。作成済みセッション開始URLは変更不要。
+
+### 注意点・その他留意事項
+
+- ユーザー確認に従い共有関数全体へ適用。下書き保存後の変換は維持し、削除済みセッション参照をTodoへ記録。
+- 変更TS/TSX 11ファイルの構文確認と差分確認成功。clientのlint・全体型検査・実通信は未実施。
+
+## 20261022*documents*下書き動画変換APIの作成方針を追記
+
+- ユーザー指定のTodoを、item_editingと同様のitem_draft用動画変換APIを新規作成する方針へ更新。
+- 下書きIDの返却・受け渡しとフロントの呼び出し変更を対応内容に記載。API実装は未着手。
+- 文書差分とgit diff --checkを確認。
+
+## 20261022*backend-coding*下書き動画変換APIを監査実装
+
+- 詳細設計のコピー残りを監査修正し、item_draft用HLS変換API・作成ID返却・フロント接続を実装。
+- Editing版とジョブ/S3/一時パス/制限枠を分離。署名済み動画送信をFormData POSTへ整合。
+- 単体/HTTP/回帰676件、新API実DB36件、作成実DB148件成功。lint・両型検査・追加TS lint・client簡易検証成功。
+- 全接続test_dbガード、実ロック/rollback、自作行限定cleanupとcloseを確認。実AWS/ffmpeg・ブラウザE2Eは未実施。
+- 起点Todoをdoneへ移動。元編集行の削除がない既存の設計差分は別Todo。詳細はconvertItemDraftVideoのレポートを参照。
+
+## 20261022*backend-coding*下書き保存成功時に元編集セッションを削除
+
+- 下書き本体・画像保存と同じtransactionで再認可・ロック済み元編集行を削除し、成功後の再送を404へ整合。
+- 削除前後の失敗rollback・削除待機・非対象行保持・同ID競合のcommit/rollback後再判定を検証。
+- 単体/HTTP357件・実DB180件成功。lint・本番/テスト型検査・変更test TS5ファイル追加lint・差分検査成功。
+- .env.test由来test_dbの全3接続ガード、自作ID限定cleanup・残存0・close確認。migration実行なし。
+- テスト設計・統合レポートを更新しTodoをdoneへ移動。実AWS・ブラウザE2E・COMMIT応答喪失は未検証。

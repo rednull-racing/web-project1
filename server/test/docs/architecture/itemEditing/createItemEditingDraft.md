@@ -44,7 +44,7 @@
 
 入力 schema は usecase 外であり、usecase 直接呼出しで 400 を期待しない。DB 例外は usecase で 500 の AppError へ変換されず、元の例外が伝播して controller の `next` へ渡る。HTTP 上の 500 整形は共通 errorHandler の責務として分ける。
 
-商品画像は配列カラム、属性は JSONB でコピーする。独立した関連行の INSERT や関連行の FK 付替えは実装されていない。既存の `item_id`、マスター・ブランド ID は保持し、参照先を新しい編集セッション ID へ書き換えない。新規 ID は別テーブルで採番するため、元下書き ID と数値が必ず異なるとは期待しない。
+商品画像は配列カラム、属性は JSONB でコピーする。独立した関連行の INSERT や関連行の FK 付替えは実装されていない。既存のマスター・ブランド ID は保持し、参照先を新しい編集セッション ID へ書き換えない。新規 ID は別テーブルで採番するため、元下書き ID と数値が必ず異なるとは期待しない。
 
 ## 3. テストレベル・構成・モック
 
@@ -111,7 +111,6 @@ U の transaction モックは callback へ同一 t を渡し callback の Promi
 | 保存先                                                                              | コピー元・期待する扱い                                                           |
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | seller_id                                                                           | 認証済み userId。取得値や未検証 body の seller_id を採用しない                   |
-| item_id                                                                             | itemDraft.item_id（null も保持）                                                 |
 | name、detail                                                                        | 同名下書き値。null を空文字へ補完しない                                          |
 | image_url、first_image_url                                                          | 同名値。順序と独立した値をそのまま保持し、先頭から再計算しない                   |
 | price、before_price、discount_rate、discount_amount、sale_flag                      | 同名値。価格・割引を再計算しない                                                 |
@@ -134,7 +133,7 @@ U の transaction モックは callback へ同一 t を渡し callback の Promi
 | N05 | U/D    | price 等 nullable 数値・duration=0、recommend=false、sale_flag=false       | 0/false を欠落扱いせず保持。recommend=null は別条件にする                                                    |
 | N06 | U/D    | attributes の任意キーなし／全キーあり／配列内 optional なし                | キーの有無を保持。素材・色・サイズの順と uiId 対応が一致。DB fixture は保存済み JSON を比較元にする          |
 | N07 | U/D    | gender=men/women/unisex、age=adult/kids/both、video_status=null/既存文字列 | 各定義値と状態を保持し作成。status による取得制限・公開遷移なし。値ごとに独立展開                            |
-| N08 | D      | item_id あり／null、brand_id・brand_aliases_id あり／片方／両方 null       | 有効な FK または許可された null を保持。公開 Item・マスター・ブランドを新規作成／更新しない                  |
+| N08 | D      | brand_id・brand_aliases_id あり／片方／両方 null                           | 有効な FK または許可された null を保持。公開 Item・マスター・ブランドを新規作成／更新しない                  |
 | N09 | D      | 古い元日時、既存編集セッションを併置して成功                               | 新規編集行を返し、元日時をコピーしない。日時は呼出前後の範囲で確認し、連番や異テーブル ID の大小を仮定しない |
 | B01 | U/D    | name/title/video_status/shipping_service_free_text を各 0/254/255 文字     | 保存可能な最大長まで完全一致。各列個別展開、日本語も確認                                                     |
 | B02 | U/D    | image_url=null/0/1/10 件                                                   | 配列順と全 URL を保持。first_image_url は元値を保持する独立カラムとして検証                                  |
@@ -258,7 +257,7 @@ R では `express.json()` と実 Router を `/api/item-editing` に接続する�
 
 1. `server/` を実行ディレクトリとし、DB モジュール import 前に `.env.test` のみを読み、NODE_ENV=test・接続 URL の DB 名=test_db を検査する。継承された env や引数なし dotenv による `.env` 読込みをそのまま信用しない。
 2. `src/db.ts`、モデル初期化用 `db.sequelize`、observer、競合用の全接続を接続前に検査し、接続後の `SELECT current_database()` で test_db を確認する。全検査終了まで fixture 書込みなし。別 env 読込み・URL 差替えも停止させる。
-3. item_draft/item_editing と user/item/categories/item_condition_option/brands/brand_aliases/shipping_day_option/shipping_service_option/todouhuken_option の必要列・FK を検査する。編集 item_id の nullable 変更、ENUM、attributes/sale_flag の NOT NULL、STRING(255)、ARRAY・JSONB を確認する。画像 10 件上限はモデル validation であり DB CHECK と推定しない。
+3. item_draft/item_editing と user/item/categories/item_condition_option/brands/brand_aliases/shipping_day_option/shipping_service_option/todouhuken_option の必要列・FK を検査する。item_id 削除後の現行FK、ENUM、attributes/sale_flag の NOT NULL、STRING(255)、ARRAY・JSONB を確認する。画像 10 件上限はモデル validation であり DB CHECK と推定しない。
 4. fixture 親行を依存順に作成し、固有名・作成 ID を記録する。usecase が作る編集行も追跡し、実生成 ID と返却 ID の対応を検証する。既存共有データや固定 DB ID に依存しない。
 5. 結果は observer の新規 SELECT で取得する。rollback 前のインスタンスを判定に使わず、下書き・編集全列、JSON キー有無・配列順、非対象行を確認する。
 6. finally で処理回収後に、作成した ID だけを編集・下書き →Item→ ブランド別名・マスター → ユーザーの FK 依存順に削除し、残存なしを確認する。全 hook/spy・接続を終了し env を復元する。失敗時も既存行は削除しない。

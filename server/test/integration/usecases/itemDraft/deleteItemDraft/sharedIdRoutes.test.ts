@@ -10,6 +10,7 @@ vi.mock("../../../../../src/controllers/categories/categories.js", () => ({
     categoriesGetByIdLevel2Controller: mocks.reached,
 }));
 vi.mock("../../../../../src/controllers/itemEditing/itemEditing.js", () => ({
+    convertItemEditingVideoController: mocks.reached,
     createItemEditingController: mocks.reached,
     updateItemEditingConfirmController: mocks.reached,
     createItemEditingCopyController: mocks.reached,

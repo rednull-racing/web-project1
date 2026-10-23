@@ -146,6 +146,7 @@ describe("P0: usecaseの更新と処理順序", () => {
                 summary: "動画説明",
                 original_url: "https://media.test/new-video",
                 thumbnail_url: "https://media.test/new-thumbnail",
+                video_status: "original",
                 shipping_day_id: 41,
                 shipping_service_id: 51,
                 shipping_place_id: 13,
@@ -254,22 +255,25 @@ describe("P0: usecaseの更新と処理順序", () => {
         expect(data().attributes.colorVariants?.[0].inventory).toEqual(inventory(1));
         expect(data().attributes.colorVariants?.[0].sizes?.[0].inventory).toEqual(inventory(1));
     });
-    it.each([null, "pending", "completed"])("ST06: video_status=%sによる分岐や動画状態の更新がない", async (status) => {
-        item.video_status = status;
-        await run();
-        for (const key of [
-            "seller_id",
-            "item_id",
-            "video_status",
-            "converted_url",
-            "duration",
-            "sale_flag",
-            "discount_rate",
-            "discount_amount",
-            "createdAt",
-        ])
-            expect(data()).not.toHaveProperty(key);
-    });
+    it.each([null, "original", "pending", "completed"])(
+        "ST06: video_status=%sでもoriginalへ更新する",
+        async (status) => {
+            item.video_status = status;
+            await run();
+            expect(data().video_status).toBe("original");
+            for (const key of [
+                "seller_id",
+                "item_id",
+                "converted_url",
+                "duration",
+                "sale_flag",
+                "discount_rate",
+                "discount_amount",
+                "createdAt",
+            ])
+                expect(data()).not.toHaveProperty(key);
+        },
+    );
     describe.each([null, "old-first"])("AF-I01 E04 O01: 既存先頭画像=%s", (first) => {
         it.each([[], null, undefined])("確定画像%jなら400で数値検証以降を実行しない", async (urls) => {
             Object.assign(item, { first_image_url: first });

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeHttpApp, makeToken, post as send } from "../../../../fixtures/items/createItem/httpFixtures.js";
 let AppError: typeof import("../../../../../src/errors.js").AppError;
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/createItem.js", () => ({ createItemUseCase: mocks.create }));
+vi.mock("../../../../../src/usecases/items/create/createItem.js", () => ({ createItemUseCase: mocks.create }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: Awaited<ReturnType<typeof makeHttpApp>>, secret: string;
 const post = (body: object = { itemEditingId: 11 }, id = 7) => send(app, secret, body, id);

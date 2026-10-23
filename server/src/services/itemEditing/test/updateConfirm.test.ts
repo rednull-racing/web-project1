@@ -42,6 +42,7 @@ describe("P1: DBへ接続しないservice契約", () => {
             summary: "説明",
             thumbnail_url: "thumbnail",
             original_url: "video",
+            video_status: "original",
             before_price: 500,
             shipping_day_id: 41,
             shipping_service_id: 51,

@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
     getMyItemEditing: vi.fn(),
     CreateItemDraft: vi.fn(),
     updateItemDraftImage: vi.fn(),
+    deleteItemEditing: vi.fn(),
     getCategories: vi.fn(),
     getItemCondition: vi.fn(),
     getShippingDay: vi.fn(),
@@ -27,6 +28,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("node:crypto", () => ({ randomUUID: mocks.randomUUID }));
 vi.mock("../../../../../src/db.js", () => ({ default: { transaction: mocks.transaction } }));
 vi.mock("../../../../../src/services/itemEditing/query.js", () => ({ getMyItemEditing: mocks.getMyItemEditing }));
+vi.mock("../../../../../src/services/itemEditing/command.js", () => ({ deleteItemEditing: mocks.deleteItemEditing }));
 vi.mock("../../../../../src/services/itemDraft/command.js", () => ({
     CreateItemDraft: mocks.CreateItemDraft,
     updateItemDraftImage: mocks.updateItemDraftImage,
@@ -75,6 +77,7 @@ const noWrites = () => {
     expect(mocks.transaction).not.toHaveBeenCalled();
     expect(mocks.CreateItemDraft).not.toHaveBeenCalled();
     expect(mocks.updateItemDraftImage).not.toHaveBeenCalled();
+    expect(mocks.deleteItemEditing).not.toHaveBeenCalled();
 };
 const byName = (name: string | null = "新ブランド") => {
     body.brand = { id: null, name };
@@ -87,8 +90,9 @@ beforeEach(() => {
     item = makeItem();
     mocks.getMyItemEditing.mockResolvedValue(item);
     mocks.CreateItemDraft.mockResolvedValue(draft);
+    mocks.deleteItemEditing.mockResolvedValue(undefined);
     mocks.randomUUID.mockReturnValue("request-a");
-    mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<void>) => cb(transaction));
+    mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<number>) => cb(transaction));
     for (const key of masters) mocks[key].mockResolvedValue({ id: 1 });
     mocks.getCategories.mockResolvedValue(category);
     mocks.getBrand.mockResolvedValue(brand);
@@ -449,9 +453,10 @@ describe("P1: ブランド解決から下書き作成への接続", () => {
             return alias.promise;
         });
         let callbackCompleted = false;
-        mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<void>) => {
-            await cb(transaction);
+        mocks.transaction.mockImplementation(async (cb: (t: typeof transaction) => Promise<number>) => {
+            const itemDraftId = await cb(transaction);
             callbackCompleted = true;
+            return itemDraftId;
         });
         const pending = run();
         await started.promise;
@@ -532,6 +537,7 @@ describe("P0: 実helperとusecaseを接続した更新前チェック", () => {
         expect(keys[0]).toMatch(/^item-image\/7\/11_1_\d+_request-a$/);
         expect(keys[1]).toBe(keys[0].replace("11_1_", "11_3_"));
         expect(result).toEqual({
+            itemDraftId: 101,
             videoSignedUrl: null,
             thumbnailSignedUrl: null,
             itemImageSignedUrls: [

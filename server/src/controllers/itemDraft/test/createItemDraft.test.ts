@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../../../errors.js";
 import { deferred, makeBody } from "../../../../test/fixtures/itemDraft/createItemDraft/fixtures.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn(), remove: vi.fn() }));
+vi.mock("../../../usecases/itemDraft/convertItemDraftVideo.js", () => ({ convertItemDraftVideoUseCase: vi.fn() }));
 vi.mock("../../../usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("../../../usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: mocks.remove }));
 vi.mock("../../../db.js", () => {
@@ -24,6 +25,7 @@ const request = () =>
         validatedBody: makeBody(),
     }) as unknown as Request;
 const empty = {
+    itemDraftId: 101,
     videoSignedUrl: null,
     thumbnailSignedUrl: null,
     itemImageSignedUrls: [],
@@ -39,12 +41,13 @@ describe("P0: controllerの引渡し・応答", () => {
     it.each([
         empty,
         {
+            itemDraftId: 202,
             videoSignedUrl: { url: "post", fields: { key: "v" } },
             thumbnailSignedUrl: "thumb",
             itemImageSignedUrls: [{ index: 1, url: "signed" }],
             attributesImageSignedUrls: { red: "red" },
         },
-    ])("C01 C02 V18: 認証IDと検証済みbodyを渡し署名4項目%jだけ返す", async (result) => {
+    ])("C01 C02 V18: 認証IDと検証済みbodyを渡し下書きIDと署名4項目%jだけ返す", async (result) => {
         mocks.create.mockResolvedValue({ ...result, id: 555 });
         const req = request(),
             { res, json, status } = response(),

@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../../../errors.js";
 import { makeBody } from "../../../../test/fixtures/itemEditing/updateConfirm/fixtures.js";
 const mocks = vi.hoisted(() => ({ update: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: mocks.update,
 }));

@@ -1,6 +1,9 @@
-const path = require("path");
+import { fileURLToPath } from "node:url";
 
-module.exports = {
-    config: path.resolve("config/config.cjs"),
-    "migrations-path": path.resolve("migrations"),
+const options = {
+    config: fileURLToPath(new URL("./config/config.js", import.meta.url)),
+    "migrations-path": fileURLToPath(new URL("./migrations", import.meta.url)),
 };
+
+// sequelize-cli reads this ESM file through require() on Node.js 26.
+export { options as "module.exports" };

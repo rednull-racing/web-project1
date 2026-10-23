@@ -4,7 +4,7 @@ import type { NextFunction, Request, Response } from "express";
 import { deferred } from "../../../../test/fixtures/items/createItem/fixtures.js";
 import { AppError } from "../../../errors.js";
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("../../../usecases/itemEditing/createItem.js", () => ({ createItemUseCase: mocks.create }));
+vi.mock("../../../usecases/items/create/createItem.js", () => ({ createItemUseCase: mocks.create }));
 import { createItemController } from "../items.js";
 beforeEach(() => {
     vi.resetAllMocks();

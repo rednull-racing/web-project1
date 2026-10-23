@@ -1,6 +1,6 @@
 import "../../../../fixtures/itemEditing/updateConfirm/databaseSetup.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DatabaseError, ForeignKeyConstraintError, ValidationError } from "sequelize";
+import { ValidationError } from "sequelize";
 import {
     seed,
     run,
@@ -11,13 +11,7 @@ import {
     observer,
     ItemEditing,
     Item,
-    Categories,
     BrandAliases,
-    ItemConditionOption,
-    ShippingDayOption,
-    ShippingServiceOption,
-    TodouhukenOption,
-    Brands,
 } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
 import type { DbFixture } from "../../../../fixtures/itemEditing/updateConfirm/databaseFixtures.js";
 import { expectAppError } from "../../../../fixtures/itemEditing/updateConfirm/fixtures.js";
@@ -67,6 +61,7 @@ describe("P0 DB保存・状態遷移", () => {
             before_price: 300,
             title: "動画タイトル",
             summary: "動画説明",
+            video_status: "original",
             category_id: f.category.id,
             item_condition_id: f.condition.id,
             gender_type: "unisex",
@@ -209,16 +204,19 @@ describe("P0 DB保存・状態遷移", () => {
         });
     });
 
-    it.each([null, "pending", "completed"])("ST06: video_status=%sでも更新し変換関連値を維持", async (status) => {
-        await f.editing.update({ video_status: status, converted_url: "https://media.test/converted" });
-        await run(f);
-        expect(await snapshot(f.editing.id)).toMatchObject({
-            name: "商品名",
-            video_status: status,
-            converted_url: "https://media.test/converted",
-            duration: 20,
-        });
-    });
+    it.each([null, "original", "pending", "completed"])(
+        "ST06: video_status=%sをoriginalへ更新し変換関連値を維持",
+        async (status) => {
+            await f.editing.update({ video_status: status, converted_url: "https://media.test/converted" });
+            await run(f);
+            expect(await snapshot(f.editing.id)).toMatchObject({
+                name: "商品名",
+                video_status: "original",
+                converted_url: "https://media.test/converted",
+                duration: 20,
+            });
+        },
+    );
 
     it("ST08: 価格変更でもsale_flag・割引値を再計算しない", async () => {
         await f.editing.update({ sale_flag: true, discount_rate: 20, discount_amount: 180 });
@@ -339,45 +337,56 @@ describe("P1 DB・モデル制約とrollback", () => {
     });
 
     describe.each(["category", "condition", "day", "service", "place", "brand"] as const)("I03 I04: %s ID", (field) => {
-        it.each(["0", " ", "-1", "1.5", "Infinity"])("入力%sの実DB結果と未更新を確認", async (value) => {
-            if (field === "category") f.body.category.id = value;
-            else if (field === "condition") f.body.condition.id = value;
-            else if (field === "brand") f.body.brand = { id: value, name: null };
-            else f.body.shipping[field] = value;
-            const before = await snapshot(f.editing.id);
-            const models = {
-                category: Categories,
-                condition: ItemConditionOption,
-                day: ShippingDayOption,
-                service: ShippingServiceOption,
-                place: TodouhukenOption,
-                brand: Brands,
-            };
-            if (["0", " ", "-1"].includes(value)) {
-                expect(await models[field].findByPk(Number(value))).toBeNull();
-            }
-            const promise = run(f);
-            if (field === "brand" && ["0", " ", "-1", "1.5"].includes(value)) {
-                await promise;
-                expect(await snapshot(f.editing.id)).toMatchObject({ brand_id: null, brand_aliases_id: null });
-            } else if (["0", " "].includes(value)) {
-                await expect(promise).rejects.toBeInstanceOf(ForeignKeyConstraintError);
+        it.each(["0", "-1", "1.5", "Infinity", "abc", "NaN", "2147483648"])(
+            "不正ID=%sは400で拒否し実DBを更新しない",
+            async (value) => {
+                if (field === "category") f.body.category.id = value;
+                else if (field === "condition") f.body.condition.id = value;
+                else if (field === "brand") f.body.brand = { id: value, name: null };
+                else f.body.shipping[field] = value;
+                const before = await snapshot(f.editing.id);
+                const other = await snapshot(f.otherEditing.id);
+                const transaction = vi.spyOn(sequelize, "transaction");
+                const update = vi.spyOn(command, "updateConfirm");
+                const images = vi.spyOn(command, "updateItemEditingImage");
+
+                await expectAppError(run(f), "INVALID_NUMBER", 400);
+
+                expect(transaction).not.toHaveBeenCalled();
+                expect(update).not.toHaveBeenCalled();
+                expect(images).not.toHaveBeenCalled();
                 expect(await snapshot(f.editing.id)).toEqual(before);
-            } else if (value === "-1" || value === "1.5") {
-                const codes = {
-                    category: "CATEGORY_NOT_FOUND",
-                    condition: "ITEM_CONDITION_NOT_FOUND",
-                    day: "SHIPPING_DAY_NOT_FOUND",
-                    service: "SHIPPING_SERVICE_NOT_FOUND",
-                    place: "PLACE_NOT_FOUND",
-                    brand: "",
-                };
-                await expectAppError(promise, codes[field], 404);
-                expect(await snapshot(f.editing.id)).toEqual(before);
-            } else {
-                await expect(promise).rejects.toBeInstanceOf(DatabaseError);
-                expect(await snapshot(f.editing.id)).toEqual(before);
-            }
+                expect(await snapshot(f.otherEditing.id)).toEqual(other);
+            },
+        );
+
+        it("I03: 空白IDは既存の参照をnullへ更新し非対象行を維持する", async () => {
+            await f.editing.update({
+                category_id: f.category.id,
+                item_condition_id: f.condition.id,
+                shipping_day_id: f.day.id,
+                shipping_service_id: f.service.id,
+                shipping_place_id: f.place.id,
+                brand_id: f.brand.id,
+            });
+            if (field === "category") f.body.category.id = " ";
+            else if (field === "condition") f.body.condition.id = " ";
+            else if (field === "brand") f.body.brand = { id: " ", name: null };
+            else f.body.shipping[field] = " ";
+            const other = await snapshot(f.otherEditing.id);
+
+            await run(f);
+
+            expect(await snapshot(f.editing.id)).toMatchObject({
+                category_id: field === "category" ? null : f.category.id,
+                item_condition_id: field === "condition" ? null : f.condition.id,
+                shipping_day_id: field === "day" ? null : f.day.id,
+                shipping_service_id: field === "service" ? null : f.service.id,
+                shipping_place_id: field === "place" ? null : f.place.id,
+                brand_id: field === "brand" ? null : f.brand.id,
+                brand_aliases_id: null,
+            });
+            expect(await snapshot(f.otherEditing.id)).toEqual(other);
         });
     });
 });

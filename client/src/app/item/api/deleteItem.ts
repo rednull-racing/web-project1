@@ -20,7 +20,7 @@ export const fetchRestoreItem = async (itemId: string) => {
 };
 
 export const fetchDeleteDraftItem = async (itemId: string) => {
-    return apiFetch(`/items/${itemId}/draft`, {
+    return apiFetch(`/item-draft/${itemId}`, {
         method: "DELETE",
     });
 };

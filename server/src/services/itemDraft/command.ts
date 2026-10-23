@@ -1,4 +1,5 @@
 import type { ItemDraftTransactionParams } from "../../types/serviceType/itemDraft.js";
+import type { UpdateItemDraftVideoParams } from "../../types/serviceType/itemDraft.js";
 import { ItemDraft } from "../../models/index.js";
 import { CreateItemDraftParams, UpdateItemDraftImageParams } from "../../types/serviceType/itemDraft.js";
 
@@ -14,4 +15,12 @@ export const updateItemDraftImage = async ({ itemDraft, urls, transaction }: Upd
 
 export const deleteItemDraft = async ({ itemDraft, transaction }: ItemDraftTransactionParams): Promise<void> => {
     await itemDraft.destroy({ transaction });
+};
+
+export const updateItemDraftVideo = async ({
+    itemDraft,
+    data,
+    transaction,
+}: UpdateItemDraftVideoParams): Promise<void> => {
+    await itemDraft.update(data, { transaction });
 };

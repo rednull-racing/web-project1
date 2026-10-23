@@ -1,8 +1,46 @@
 # updateConfirm テスト報告・修正記録
 
+<a id="database-numbers-20261021"></a>
+
+## 2026-10-21 実DBの数値契約を移行（最新）
+
+旧I03/I04の29件失敗を解消。実DB125件・DB非接続534件、計659件が成功。最終実行の失敗・skip・todo・未処理例外は0件。対象Todoは[完了済み](../../../../../docs/todo/done/reconcile-update-confirm-database-number-contracts.md)へ移動した。
+
+### 修正とケース対応
+
+- `test/integration/database/itemEditing/updateConfirm/database.test.ts`の旧30件を48件へ移行。本番コード・fixture・DB制約は変更していない。仕様の根拠は2026-10-16節とe31f97a6の共有数値契約。
+- I03/I04/I05：6種ID×7不正値（0・負数・小数・Infinity・abc・NaN・上限超過）の42件でINVALID_NUMBER/400を確認。transactionと本体・画像更新のspyは実処理を置換せず、未呼出しを検証。別接続の新規SELECTで対象・非対象行の全列不変を確認した。
+- I03：6種IDの空白をnullへ保存する6件。保存済みの有効な参照から該当参照を消し、他5種の参照・非対象行を維持する。brandは名前nullでfallbackを分離。
+
+### 検証結果と再現手順
+
+実行場所は`server/`。以下の実出力を集計した。
+
+| 対象                                                                                                                                                                                                  | 結果                                                    |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `npm run test:run -- test/integration/database/itemEditing/updateConfirm/database.test.ts`                                                                                                            | 110件成功                                               |
+| `npm run test:run -- test/integration/usecases/itemEditing/updateConfirm/databaseTransactions.test.ts test/integration/usecases/itemEditing/updateConfirm/databaseConcurrency.test.ts --maxWorkers=1` | 2ファイル15件成功                                       |
+| 設計書冒頭のDB非接続回帰コマンド（単体6ファイル＋masterBrand＋route）                                                                                                                                 | 初回は7ファイル512件成功、route22件はlisten EPERMで停止 |
+| `npm run test:run -- test/integration/usecases/itemEditing/updateConfirm/route.test.ts --maxWorkers=1`                                                                                                | 制限外で22件成功。DB非接続回帰は合計8ファイル534件成功  |
+
+実DBは制限外で実行し、既存fixtureによる.env.test読込元検査、全3接続の実DB名test_db検査、追跡ID限定cleanup・残存0件・接続終了hookまで成功した。実DBの対象処理は実usecase・helper・service・Model・PostgreSQLを通し、S3署名だけをモック。ファイル間のfixture/hook干渉を避けるためmaxWorkers=1を使用し、並行処理ケース内の独立transactionは維持した。
+
+`npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`が成功。通常lint対象外の変更DBテストはESLint APIから既存recommended設定で追加検査し、警告・エラー0件。`git diff --check`も成功。
+実S3通信・アップロード、実COMMIT通信障害、負荷試験は検証していない。今回対象の失敗・未解決事項は残っていない。
+
+## 2026-10-21 video_statusをoriginalへ更新（履歴）
+
+- ユーザー指示でusecaseの更新dataとservice引数型へ`video_status: "original"`を追加。N01/N02の完全一致とST06の単体・実DB期待値を更新し、null/original/pending/completedからの更新を検証。
+- `server/`で`npm run test:run -- src/usecases/itemEditing/test/updateConfirm.test.ts src/services/itemEditing/test/updateConfirm.test.ts src/usecases/shared/test/updateConfirm.signedUrls.test.ts test/integration/usecases/itemEditing/updateConfirm/masterBrand.test.ts`：4ファイル291件成功。service・transaction・署名等をモックする単体と、実helper接続を含むDB非接続結合の結果。
+- `npm run test:run -- test/integration/database/itemEditing/updateConfirm/database.test.ts`：92件中63件成功・29件失敗。初回EPERM後に制限外で実行。動画状態変更に伴う完全一致期待値を修正して再実行し、ST06の4件と全保存項目のケースは成功。
+- 残る失敗はI03/I04の旧数値契約（0・空白・負数・小数・Infinity）。今回変更前のvalidateNumberによる正整数拒否・空白null化と期待値が不一致。この時点では修正せず[Todo](../../../../../docs/todo/done/reconcile-update-confirm-database-number-contracts.md)へ記録し、後続作業で解消（冒頭の最新結果を参照）。
+- `.env.test`読込元と接続後の`test_db`検査、自作IDのcleanup・残存確認、接続終了hookを含む既存fixtureで実行。S3はモック。migration実行なし。他の実DBテストは今回未実行。
+- `npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`成功。通常lint対象外の変更DBテストもESLint APIから既存recommended設定で追加検査し成功。
+- 以下は過去の実行履歴で、video_status維持の旧期待値は[最新設計](../../architecture/itemEditing/updateConfirm.md)冒頭の契約へ移行。
+
 <a id="contracts-20261016"></a>
 
-## 2026-10-16 共有契約の移行・DB非接続境界の修正（最新）
+## 2026-10-16 共有契約の移行・DB非接続境界の修正（履歴）
 
 関連10ファイル・542件すべて成功（失敗・skip・todo・未処理例外0件）。updateConfirmは8ファイル533件、Draft/Copyのcontroller回帰は2ファイル9件。DB接続・migration・本番コード変更なし。以下の古い結果は当時の履歴として残す。
 

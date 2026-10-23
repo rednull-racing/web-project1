@@ -1,8 +1,10 @@
 import {
+    convertItemEditingVideoController,
     createItemEditingCopyController,
     createItemEditingDraftController,
 } from "../controllers/itemEditing/itemEditing.js";
 import {
+    convertItemEditingVideoRateLimit,
     createItemEditingCopyRateLimit,
     createItemEditingDraftRateLimit,
 } from "../middleware/rateLimit/itemEditingRateLimit.js";
@@ -23,6 +25,17 @@ import { updateItemEditingConfirmBodySchema } from "../validators/body/itemEditi
 import { idParamSchema } from "../validators/params/id.js";
 
 const router = Router();
+
+// PATCH /item-editing/:id/convert
+// summary: 編集セッション動画HLS変換
+// page: /upload/[id]
+router.patch(
+    "/:id/convert",
+    authenticateToken,
+    convertItemEditingVideoRateLimit,
+    validateParams(idParamSchema),
+    convertItemEditingVideoController,
+);
 
 // POST /item-editing
 // summary: 商品データ作成

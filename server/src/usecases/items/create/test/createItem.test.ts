@@ -1,4 +1,4 @@
-import { mocks, setup, transaction } from "../../../../test/fixtures/items/createItem/usecaseMocks.js";
+import { mocks, setup, transaction } from "../../../../../test/fixtures/items/createItem/usecaseMocks.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     deferred,
@@ -7,10 +7,10 @@ import {
     requiredIdFields,
     nullableBrandCases,
     freezeDeep,
-} from "../../../../test/fixtures/items/createItem/fixtures.js";
-import { AppError } from "../../../errors.js";
+} from "../../../../../test/fixtures/items/createItem/fixtures.js";
+import { AppError } from "../../../../errors.js";
 import { createItemUseCase } from "../createItem.js";
-vi.mock("../../shared/validateMaster.js", () => ({ validateMaster: mocks.validateMaster }));
+vi.mock("../../../shared/validateMaster.js", () => ({ validateMaster: mocks.validateMaster }));
 let editing: ReturnType<typeof setup>;
 const run = () => createItemUseCase({ userId: 7, itemEditingId: 11 });
 beforeEach(() => {

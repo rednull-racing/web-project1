@@ -6,7 +6,7 @@ import type { Model, ModelStatic, Transaction } from "sequelize";
 import db from "../../../../src/models/index.js";
 import sequelize from "../../../../src/db.js";
 import { makeEditing, makeAttributes } from "./fixtures.js";
-import { createItemUseCase } from "../../../../src/usecases/itemEditing/createItem.js";
+import { createItemUseCase } from "../../../../src/usecases/items/create/createItem.js";
 export const {
     ItemEditing,
     Item,

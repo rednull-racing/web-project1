@@ -73,6 +73,7 @@ export type UpdateConfirmParams = {
         summary: string;
         thumbnail_url: string;
         original_url: string | null;
+        video_status: "original";
 
         before_price: number;
 
@@ -88,6 +89,15 @@ export type UpdateItemEditingImageParams = {
     itemEditing: InstanceType<typeof ItemEditing>;
     urls: string[];
     transaction?: Transaction;
+};
+
+export type UpdateItemEditingVideoData =
+    | { video_status: "processing" }
+    | { video_status: "converted"; converted_url: string; duration: number }
+    | { video_status: "failed"; converted_url: null };
+
+export type UpdateItemEditingVideoParams = ItemEditingTransactionParams & {
+    data: UpdateItemEditingVideoData;
 };
 
 export type CreateItemEditingDraftParams = {

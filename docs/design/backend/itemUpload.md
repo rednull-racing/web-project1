@@ -123,14 +123,48 @@
 - 失敗時:
     - itemDraftは保持
 
+### convertItemEditingVideo（itemEditingのvideoをhls変換）
+
+- フロント: /upload/[id]
+- route: PATCH /item-editing/:id/convert
+- usecase: item_editingに一時保管のvideoをhls変換
+
+- 認可:
+    - itemEditing.seller_id === userId
+
+- 成功後:
+    - item_editing.converted_urlに変換済み動画のurlを保管
+    - item_editing.original_urlは編集しない
+
+- 失敗時:
+    - item_editing.converted_url = null
+    - item_editing.original_urlは編集しない
+
+### convertItemDraftVideo（itemDraftのvideoをhls変換）
+
+- フロント: /upload/[id]
+- route: PATCH /item-draft/:id/convert
+- usecase: item_draftに一時保管のvideoをhls変換
+
+- 認可:
+    - item_draft.seller_id === userId
+
+- 成功後:
+    - item_draft.converted_urlに変換済み動画のurlを保管
+    - item_draft.original_urlは編集しない
+
+- 失敗時:
+    - item_draft.converted_url = null
+    - item_draft.original_urlは編集しない
+
 ---
 
-## その他修正事項
+## cron
 
-### cron
+### cronDeleteItemEditing
 
-- 1週間放置item削除
+- 実行間隔: 毎日　昼12時
+- usecase: 作成から3日経過したitem_editing削除
 
-　　　　　↓
-
-- 3日経過itemEditing削除
+- 失敗時:
+    - item_editing復元

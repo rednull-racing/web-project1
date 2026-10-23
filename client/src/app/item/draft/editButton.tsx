@@ -1,4 +1,9 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { fetchEditDraftItem } from "../api/draft";
 import styles from "./draft.module.css";
 
 type Props = {
@@ -6,9 +11,25 @@ type Props = {
 };
 
 export const EditButton = ({ id }: Props) => {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+
+    const edit = async () => {
+        if (loading) return;
+
+        setLoading(true);
+        try {
+            const data = await fetchEditDraftItem(id);
+            router.push(`/upload/${data.itemEditingId}`);
+        } catch {
+            toast.error("下書きの編集を開始できませんでした。時間を置いて再試行してください");
+            setLoading(false);
+        }
+    };
+
     return (
-        <Link href={`/upload/draft/${id}`} className={styles.editButton}>
+        <button type="button" onClick={edit} disabled={loading} className={styles.editButton}>
             編集する
-        </Link>
+        </button>
     );
 };

@@ -123,6 +123,7 @@ export const updateItemEditingConfirmUseCase = async ({ itemEditingId, userId, b
                 summary: videoMeta.summary ?? "",
                 original_url: videoUrl,
                 thumbnail_url: thumbnailUrl,
+                video_status: "original",
 
                 before_price: body.price,
 
