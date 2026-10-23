@@ -99,7 +99,9 @@ const validatePublishData = (itemEditing: InstanceType<typeof ItemEditing>): voi
     }
     if (
         typeof itemEditing.name !== "string" ||
+        itemEditing.name.length === 0 ||
         typeof itemEditing.title !== "string" ||
+        itemEditing.title.length === 0 ||
         !itemEditing.first_image_url ||
         itemEditing.price === null ||
         !Number.isInteger(itemEditing.price) ||

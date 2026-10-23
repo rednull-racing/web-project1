@@ -1,6 +1,12 @@
 # createItem テストレポート
 
-## 最新結果：2026-10-20（F3のrefreshToken JWT payload型エラー解消）
+## 最新結果：2026-10-23（name/titleの空文字拒否）
+
+ユーザー追加指示に従い、createItemのname/titleが空文字の場合に400 / ITEM_PUBLISH_DATA_INVALIDとして停止するよう公開前提検証を修正した。trimは追加せず空白だけの値は従来の観測を維持し、URL形式・実体の再検証は追加していない。旧O01の空文字受理をB06の拒否ケースへ移した。
+
+今回の非DB回帰は4ファイル415件、実DB回帰は6ファイル268件すべて成功（各最終実行で失敗・skip・todo・未処理例外0）。lint、本番typecheck、test用tsconfig型検査、変更test/fixture TS4ファイルの追加ESLint検査も成功。createItem全テストの再実行とはせず、下記対象と本変更の保証範囲に限定する。2026-10-20のF1〜F4結果は以下の履歴として残す。
+
+## 前回結果：2026-10-20（F3のrefreshToken JWT payload型エラー解消）
 
 F3のJWT payload検証を実装し、単体42件・実JWT接続14件の計56件が成功（失敗/skip/todo 0）。本番lint・本番typecheck・テスト用tsconfigの型検査・追加lintもすべて成功した。**F3は解消・完了。** Todoは`docs/todo/done/refreshToken-jwt-payload-typecheck.md`へ移動した。
 
@@ -591,3 +597,57 @@ Todoへ完了内容を追記し、ユーザー指定どおりP1-bugからdoneへ
 - usecaseを`src/usecases/items/create/createItem.ts`、単体テストを同配下の`test/createItem.test.ts`へ移動し、関連import・モック・参照を更新。契約・ケース・処理内容は変更なし。
 - usecase単体365件、controller単体5件、master接続14件、route33件、registration1件、合計418件が成功（DBなし、DB・通知等は既存境界でモック）。
 - lint・本番typecheck・テスト用tsconfig型検査が成功。HTTPはsandboxのlisten EPERMで初回失敗後、制限外で同じ5ファイルを再実行して成功。実DBテストは未実行。
+
+## 2026-10-23 name/title空文字拒否の実装・再検証
+
+### 変更とケース対応
+
+- `src/usecases/items/create/createItem.ts`の既存文字列型チェックにname/titleそれぞれのlength=0拒否を追加。B06は同じ400・ITEM_PUBLISH_DATA_INVALIDを使い、user・マスター参照以降の処理、商品/関連生成、元行削除、通知へ進まない。
+- 単体のB06へname/titleの空文字2条件を追加。DBの旧O01空文字受理2条件をB06の拒否へ移し、HTTP実DBへ2条件を追加した。いずれも各片方だけ空にし、別の必須項目不備で拒否が隠れないようにする。DB/HTTPは新規SELECTとassertRolledBackで元行・非対象行不変、追加商品/関連なし、通知未開始を確認する。
+- `test/fixtures/items/createItem/databaseFixtures.ts`の旧item_editing.item_id不存在ガードは、現行Modelと2026-10-23の追加反映に整合。全3接続でnullable INTEGER、itemへのFK、ON DELETE CASCADE / ON UPDATE NO ACTIONをfixture書込み前に検査する。その他の旧カラム不存在検査は維持した。
+- 対象Routerのimportが使わないsession.tsを読み込むため、`httpMocks.ts`で対象外sessionMiddlewareをモックした。実parser・認証・rate limit・validator・controller・errorHandlerは維持する。uuidの本番依存修正は今回行っていない。統合先でcontrollerが新updateItem usecaseもimportするため、同fixtureで対象外updateItemもモックしてDB非接続を維持する。最終追加後にroute/registrationの34件を再実行し全件成功した。
+- 詳細設計とテスト設計を最新契約へ更新。旧「空文字受理」および「item_editing.item_id不存在」は過去履歴と区別した。
+
+### 実行対象と最終結果
+
+実行ディレクトリは専用worktreeの`/tmp/project-create-item-required-names/server`。依存は既存server/node_modulesへのsymlinkを使い、新規ライブラリ追加はない。`.env.test`も元workspaceのserver/.env.testへリンクし、既存の読込元・値改変ガードを維持した。
+
+| 区分 | ファイル（server基準） | 最新結果 |
+| --- | --- | --- |
+| 非DB単体 | src/usecases/items/create/test/createItem.test.ts | 成功 |
+| 非DB helper接続 | test/integration/usecases/items/createItem/master.test.ts | 成功 |
+| 非DB HTTP | test/integration/usecases/items/createItem/route.test.ts | 成功 |
+| 非DB Router登録 | test/integration/usecases/items/createItem/registration.test.ts | 成功 |
+| DB | test/integration/database/items/createItem/database.test.ts | 24件成功 |
+| DB保存値/B06 | test/integration/database/items/createItem/databaseValues.test.ts | 173件成功 |
+| HTTP DB/B06 | test/integration/usecases/items/createItem/databaseHttp.test.ts | 23件成功 |
+| DB transaction | test/integration/usecases/items/createItem/databaseTransactions.test.ts | 14件成功 |
+| DB参照失敗 | test/integration/usecases/items/createItem/databaseReadFailures.test.ts | 10件成功 |
+| DB競合 | test/integration/usecases/items/createItem/databaseConcurrency.test.ts | 24件成功 |
+
+非DB4ファイルは同時実行の実出力415件を集計。DBの非HTTP5ファイル245件と、修正後HTTP DB1ファイル23件は対象が重ならないため合計268件とした。途中の実行結果を重複加算していない。
+
+```bash
+npm run test:run -- src/usecases/items/create/test/createItem.test.ts test/integration/usecases/items/createItem/master.test.ts test/integration/usecases/items/createItem/route.test.ts test/integration/usecases/items/createItem/registration.test.ts --maxWorkers=1
+npm run test:run -- test/integration/database/items/createItem test/integration/usecases/items/createItem/databaseHttp.test.ts test/integration/usecases/items/createItem/databaseTransactions.test.ts test/integration/usecases/items/createItem/databaseReadFailures.test.ts test/integration/usecases/items/createItem/databaseConcurrency.test.ts --maxWorkers=1
+npm run test:run -- test/integration/usecases/items/createItem/databaseHttp.test.ts --maxWorkers=1
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+通常lint対象外の`test/fixtures/items/createItem/{databaseFixtures,httpMocks}.ts`と`test/integration/{database/items/createItem/databaseValues,usecases/items/createItem/databaseHttp}.test.ts`は、既存ESLintとtypescript-eslintのrecommended設定をプログラムAPIで明示指定して追加検査し、エラー・警告0。共有設定は変更していない。maxWorkers=1はfixtureのファイル間状態干渉を避けるためで、既存ケース内の並行transaction検証は実行した。
+
+### 初回失敗と修正後
+
+1. 初回の非DB実行は381件成功・34件がuuid実行時依存の解決不能でimport失敗。createItemに不要なsession初期化をfixtureで分離した。同じ非DB対象のsandbox実行ではSupertest待受がlisten EPERMとなったため、同じコマンドを承認付きで再実行し415件すべて成功した。
+2. DB初回sandbox実行は接続EPERMで6ファイル268件の本体未実行。承認付き再実行では接続・スキーマガードを通過し、非HTTP245件成功・HTTP23件が上記uuidのimport失敗。fixture分離後にHTTP DB23件を再実行し全件成功した。
+3. 本番コードの変更後にlint・本番型検査成功。最終fixture修正後にtest型検査と変更TS4ファイル追加lintを再実行し成功。未解決の今回対象エラーはない。
+
+### DBガード・cleanupと保証の限界
+
+既存setupがDB import前に.env.testのDATABASE_URL由来test_db・NODE_ENV=testを検査し、別envアクセス・接続値差替えを拒否した。全3接続（アプリsequelize、models初期化用db.sequelize、observer）の設定DB名・current_database()=test_db・READ COMMITTEDとitem_id追加の必要定義を確認し、旧カラム不存在検査後だけseedした。自作ID限定のFK順cleanup・残存0・hook/spy/env復元・全接続closeは既存fixtureのassertとafterAllが成功した。migration・sync・DB作成・全件削除は実行していない。
+
+B06の保存済み空文字を実usecase・service・Model・PostgreSQL経由で拒否し、HTTP公開応答も確認済み。通知はモックであり実送信・通知永続化は対象外。実S3・URL実体・動画変換・ブラウザE2E・COMMIT応答喪失は未検証。カバレッジは未取得。createItem以外の空文字制約・空白trimの導入は行っていない。
+
+対象外のuuid実行時依存不足は`docs/todo/P1-bug/resolve-session-uuid-runtime-dependency.md`へ記録した。
