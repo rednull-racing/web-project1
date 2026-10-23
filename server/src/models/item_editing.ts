@@ -13,6 +13,7 @@ import User from "./user.js";
 
 export class ItemEditing extends Model {
     declare id: number;
+    declare status: "normal" | "edit";
     declare name: string | null;
     declare detail: string | null;
     declare image_url: string[] | null;
@@ -97,6 +98,11 @@ ItemEditing.init(
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
+        },
+        status: {
+            type: DataTypes.ENUM("normal", "edit"),
+            allowNull: false,
+            defaultValue: "normal",
         },
         name: {
             type: DataTypes.STRING(255),
