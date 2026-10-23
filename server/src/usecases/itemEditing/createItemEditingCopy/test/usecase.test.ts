@@ -176,7 +176,7 @@ describe("P0 正常コピー・全引渡し項目", () => {
         ]) {
             expect(data()).not.toHaveProperty(key);
         }
-        expect(data().item_id).toBeNull();
+        expect(data()).toEqual({ ...expectedData(), status, item_id: status === "edit" ? 101 : null });
     });
     describe.each([null, "", "processing", "ready"])("N11: video_status=%s", (status) => {
         it.each([null, "https://media.test/converted"])("converted_url=%sで再変換しない", async (converted) => {

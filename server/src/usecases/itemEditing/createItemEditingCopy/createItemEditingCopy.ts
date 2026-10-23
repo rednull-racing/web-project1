@@ -73,7 +73,7 @@ export const createItemEditingCopyUseCase = async ({ userId, itemId, status }: P
         const itemEditing = await createItemEditingCopy({
             data: {
                 status,
-                item_id: null,
+                item_id: status === "edit" ? itemId : null,
                 seller_id: userId,
                 name: item.name,
                 detail: item.detail,

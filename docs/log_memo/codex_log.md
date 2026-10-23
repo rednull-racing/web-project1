@@ -994,3 +994,9 @@
 - コピー出品はstatus=normal、商品編集はbuttonからstatus=editで作成し、返された編集セッションIDへ遷移。
 - 関連11ファイル362件、server lint・本番/テスト型検査、client変更箇所lint・typecheck成功。
 - client全体lintの既存29エラー・36警告は既存Todoへ追記。migrationは未実行。
+
+## 20261023_backend-coding_createItemEditingCopyのedit時に元商品IDを保存
+
+- status=editではitem_editing.item_idにコピー元itemIdを保存し、normalではnullを維持。
+- コピー用service型・詳細設計・テスト設計・単体/DB HTTPテストを更新。editでもitemId欠落/nullは既存validatorで400。
+- 関連11ファイル364件、server lint・本番/テスト型検査・変更結合テストの追加lint成功。migrationは未実行。

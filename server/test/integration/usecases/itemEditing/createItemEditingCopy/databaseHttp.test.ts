@@ -53,7 +53,17 @@ describe("P0 statusクエリの永続化", () => {
         const before = await protectedSnapshot(f);
         const result = await postCopy(app, secret, { itemId: f.item.id, status: "soldout" }, f.owner.id, "?status=" + status);
         expect(result.status).toBe(201);
-        await expectCopy(result.body.itemEditingId, { ...expectedCopy(f), status });
+        await expectCopy(result.body.itemEditingId, { ...expectedCopy(f), status, item_id: status === "edit" ? f.item.id : null });
+        expect(await protectedSnapshot(f)).toEqual(before);
+    });
+    it.each([{}, { itemId: null }])("EDIT-ID01: editでもbody=%jは400でDBを開始しない", async (body) => {
+        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const transaction = vi.spyOn(sequelize, "transaction");
+        const result = await postCopy(app, secret, body, f.owner.id, "?status=edit");
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ code: "INVALID_BODY", message: "INVALID_BODY" });
+        expect(transaction).not.toHaveBeenCalled();
+        expect(await editingIds(f)).toEqual(ids);
         expect(await protectedSnapshot(f)).toEqual(before);
     });
     it("QSTATUS07: query欠落は400でDBを開始せず既存データを保持する", async () => {

@@ -2,15 +2,17 @@
 
 ## 2026-10-23 statusクエリ必須化（現在の契約）
 
-基本設計と変更依頼に基づき、コピー作成はquery.status（normal/edit）を必須とし、item_editing.statusへそのまま渡す。以下のnormal固定の記述は旧契約の履歴とする。query検証はbody検証より先であり、失敗もレート枠を消費する。
+基本設計と変更依頼に基づき、コピー作成はquery.status（normal/edit）を必須とし、item_editing.statusへそのまま渡す。以下のnormal固定の記述は旧契約の履歴とする。query検証はbody検証より先であり、失敗もレート枠を消費する。追加指示によりitem_idはeditならコピー元itemId、normalならnullとする。itemIdは既存body schemaで両モードとも必須であり、欠落/nullを400・INVALID_BODYで拒否する。以下のitem_id常時nullの記述も旧契約とする。
 
 | ケース | レベル・配置（server/基準） | 期待結果 |
 | --- | --- | --- |
 | QSTATUS01/02 | validators/query/test/createItemEditingCopy.test.ts | 両値の受理、未知キー除去・入力不変、欠落/null/空文字/不正型/引用符・空白付き値の拒否 |
 | QSTATUS03 | controllers/itemEditing/test/createItemEditingCopy.test.ts、integration/usecases/itemEditing/createItemEditingCopy/route.test.ts | 検証済みqueryと認証IDを採用しraw query/bodyの偽装値を除外、201で新規IDのみ返す |
-| N10/QSTATUS04 | usecases/itemEditing/createItemEditingCopy/test/usecase.test.ts | 両statusの保存引数、元ID・日時・関連IDの除外、item_id=null |
+| N10/QSTATUS04 | usecases/itemEditing/createItemEditingCopy/test/usecase.test.ts | 両statusの全保存引数、元ID・日時・関連IDの除外、item_idはeditなら101・normalならnull |
 | QSTATUS02/05 | integration/usecases/itemEditing/createItemEditingCopy/route.test.ts | query不備で400/INVALID_QUERY・usecase未実行、複数不備の優先順位・5回消費後429 |
-| QSTATUS06/07 | integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts | 両statusの実DB再SELECT、コピー元・既存行不変、query欠落はDB未開始 |
+| QSTATUS06/07 | integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts | 両statusとitem_id（editならコピー元ID・normalならnull）の実DB再SELECT、コピー元・既存行不変、query欠落はDB未開始 |
+
+| EDIT-ID01 | integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts | editでもitemId欠落/nullは400・INVALID_BODY、DB未開始・行不変 |
 
 schema/controller/usecase単体とRouterはDB依存をモックし、永続化はDB HTTPで確認する。フロントは既存コピー出品がnormal、編集ボタンがeditで作成し、返された編集セッションIDで各画面へ遷移する。実行結果は[レポート](../../report/itemEditing/createItemEditingCopy.md)参照。
 

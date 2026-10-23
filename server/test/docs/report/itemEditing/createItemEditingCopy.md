@@ -1,5 +1,23 @@
 # createItemEditingCopy 結合テストレポート
 
+## 2026-10-23 edit時のitem_id保存（最新）
+
+追加依頼により、usecaseの保存値をeditならbody.itemId、normalならnullへ変更し、コピー専用service型のitem_idをnumber | nullに更新した。詳細設計・テスト設計を同期し、N10/QSTATUS04の完全一致期待値とQSTATUS06の実DB再SELECTを両モードで更新。EDIT-ID01としてeditでitemId欠落/nullの400・INVALID_BODY、DB未開始、編集行追加なし・保護行不変の2件を追加した。入力拒否は既存validateBodyを使用する。
+
+server/で実行：
+
+```bash
+npm run test:run -- src/validators/query/test/createItemEditingCopy.test.ts src/validators/body/test/createItemEditingCopy.test.ts src/controllers/itemEditing/test/createItemEditingCopy.test.ts src/usecases/itemEditing/createItemEditingCopy/test src/services/itemEditing/test/createItemEditingCopy.test.ts test/integration/usecases/itemEditing/createItemEditingCopy test/integration/database/itemEditing/createItemEditingCopy --maxWorkers=1
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+11ファイル364件成功、失敗・skip・未処理例外なし。server lint、本番・テスト全体型検査も成功。通常lint対象外の変更したdatabaseHttp.test.tsは既存ESLint/TypeScript recommendedとNode globalsの追加検査でエラー・警告0件。実行環境はNode 20.20.2。カバレッジ未取得。
+
+単体ではservice/transaction境界をモックし保存引数を確認。DB HTTPは実Routerからusecase/service/Model/PostgreSQLまで実行し、別接続SELECTでeditのコピー元ID・normalのnullを確認した。既存.env.test由来test_db設定・全接続の実DB名・スキーマ・READ COMMITTEDガード、自作ID限定cleanup・残存確認・全接続終了を含むsuiteが成功。ファイル間fixture干渉を抑えるためmaxWorkers=1とし、ケース内競合検証は維持。migration/sync/DB作成は未実行。フロント変更なし。以下は前回までの履歴。
+
+
 ## 2026-10-23 statusクエリ必須化の検証（最新）
 
 詳細設計・query schema・Router・controller・usecase・コピー用service型・fixture・テストを更新。query.statusはnormal/editのみ必須で保存値へ引き渡す。フロントのコピーはnormal、編集ボタンはeditでPOSTし、返されたitemEditingIdで各画面へ遷移する。以下は過去の実行履歴として保持する。

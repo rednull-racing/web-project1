@@ -2,7 +2,7 @@
 
 基本設計: [itemUpload.md](../../itemUpload.md)
 
-更新: 2026-10-23。基本設計と変更依頼に従い、statusクエリを必須とし保存値へ反映する。
+更新: 2026-10-23。基本設計と変更依頼に従い、statusクエリを必須とし保存値へ反映する。追加指示により、edit時はコピー元itemIdをitem_idへ保存する。
 
 ## 1. 概要
 
@@ -178,6 +178,7 @@ flowchart TD
 
 - 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で作成前に停止する。商品/色のinventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
 - statusは検証済みstatusクエリの値（normalまたはedit）をそのまま使用する。コピー元item.statusは引き継がない。
+- item_idはstatus=editなら検証済みbody.itemId、status=normalならnull。itemIdは両モードとも必須の正整数で、欠落/nullは既存validateBodyが400・INVALID_BODYで拒否し、DB処理を開始しない。
 - seller_idは認証済みユーザーのIDを使用する
 - item_editing.idは新規採番する
 - createdAt、updatedAtは新規生成する
@@ -195,7 +196,7 @@ flowchart TD
 
 ```
 {
-    item_id: null,
+    item_id: status === "edit" ? itemId : null,
     name,
     detail,
     image_url,
@@ -309,7 +310,8 @@ const item = await Item.findOne({
 
 ### 正常系
 
-- status=normal / editのそれぞれで指定値がitem_editing.statusに保存される
+- status=normal / editのそれぞれで指定値がitem_editing.statusに保存され、item_idはnormalならnull、editならコピー元itemIdとなる
+- status=editでもitemIdの欠落/nullは400・INVALID_BODYでDB未開始となる
 - 所有者がitemからitem_editingを生成できる
 - itemのデータが正しく引き継がれる
 - 新しいitemEditingIdが返却される

@@ -139,8 +139,9 @@ export type CreateItemEditingDraftParams = {
 };
 
 export type CreateItemEditingCopyParams = {
-    data: Omit<CreateItemEditingDraftParams["data"], "status"> & {
+    data: Omit<CreateItemEditingDraftParams["data"], "status" | "item_id"> & {
         status: CreateItemEditingCopyQuery["status"];
+        item_id: number | null;
         discount_rate: null;
         discount_amount: null;
         sale_flag: false;
