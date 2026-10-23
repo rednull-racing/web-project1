@@ -16,7 +16,8 @@ import {
 } from "../../usecases/items/sortNumber/sortNumber.js";
 import { createItemUseCase } from "../../usecases/items/create/createItem.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
-import type { CreateItemBody } from "../../validators/body/items.js";
+import { updateItemUseCase } from "../../usecases/items/update/updateItem.js";
+import type { CreateItemBody, UpdateItemBody } from "../../validators/body/items.js";
 import type {
     ItemListQuery,
     ItemPageQuery,
@@ -35,6 +36,20 @@ export const createItemController = async (req: Request, res: Response, next: Ne
 
         const itemId = await createItemUseCase({ userId, itemEditingId });
 
+        res.status(201).json({ itemId });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// PUT /items
+// summary: 商品情報編集
+// page: /item/confirm/edit/[id]
+export const updateItemController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { itemEditingId } = req.validatedBody as UpdateItemBody;
+        const itemId = await updateItemUseCase({ userId, itemEditingId });
         res.status(201).json({ itemId });
     } catch (err) {
         next(err);

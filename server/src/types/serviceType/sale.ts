@@ -17,9 +17,7 @@ export type LogicalDeleteUpdateParams = {
 
 export type UpdateSaleParams = {
     sale: InstanceType<typeof Sale>;
-    data: {
-        before_price: number;
-    };
+    data: CreateSaleParams["data"];
     transaction: Transaction;
 };
 

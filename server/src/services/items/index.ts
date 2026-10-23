@@ -1,4 +1,5 @@
 export {
+    updateItem,
     addViewsCount,
     createItem,
     destroyCronEditingItems,
@@ -31,6 +32,7 @@ export {
     getItemPageRecommendItems,
     getItemWithCategory,
     getItemWithVideoCategoriesUser,
+    getMyItemForUpdate,
     getItemWithVideoSaleShipping,
     getMetadata,
     getMyItem,

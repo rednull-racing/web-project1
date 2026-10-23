@@ -1,4 +1,5 @@
 export {
+    updateItem,
     updateSortNumber,
     updateSortBuzzNumberDecay,
     updateSortNumberDecay,

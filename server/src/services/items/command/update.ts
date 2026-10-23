@@ -1,5 +1,6 @@
 import type {
     CountUpdateParams,
+    UpdateItemParams,
     PublishUpdateParams,
     SortUpdateParams,
     UpdateSortBuzzNumberDecayParams,
@@ -48,5 +49,9 @@ export const updatePrice = async ({ item, data, transaction }: UpdatePriceParams
 };
 
 export const updateReportScore = async ({ item, data, transaction }: UpdateReportScoreParams) => {
+    await item.update(data, { transaction });
+};
+
+export const updateItem = async ({ item, data, transaction }: UpdateItemParams): Promise<void> => {
     await item.update(data, { transaction });
 };

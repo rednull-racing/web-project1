@@ -20,6 +20,7 @@ export {
     getItemHighlight,
     getItemWithCategory,
     getItemWithVideoCategoriesUser,
+    getMyItemForUpdate,
     getItemWithVideoSaleShipping,
     getMyItemWithVideoSaleShipping,
     getMyItemWithVideoCategoriesUser,

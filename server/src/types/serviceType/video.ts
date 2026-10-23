@@ -36,11 +36,6 @@ export type UpdateStatusParams = {
 
 export type UpdateVideoParams = {
     video: InstanceType<typeof Video>;
-    data: {
-        title: string;
-        summary: string;
-        original_url: string | null;
-        thumbnail_url: string | null;
-    };
+    data: Omit<CreateVideoParams["data"], "play_count">;
     transaction: Transaction;
 };

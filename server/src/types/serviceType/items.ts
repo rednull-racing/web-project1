@@ -187,3 +187,31 @@ export type UpdateReportScoreParams = {
 export type ItemDataParams = {
     item: InstanceType<typeof Item>;
 };
+
+export type GetMyItemForUpdateParams = UserItemIdParams & {
+    transaction: Transaction;
+};
+
+export type UpdateItemParams = {
+    item: InstanceType<typeof Item>;
+    data: Pick<
+        InstanceType<typeof Item>,
+        | "name"
+        | "detail"
+        | "image_url"
+        | "price"
+        | "item_condition_id"
+        | "first_image_url"
+        | "gender_type"
+        | "age_type"
+        | "recommend"
+        | "category_id"
+        | "brand_id"
+        | "brand_aliases_id"
+        | "attributes"
+        | "search_text"
+        | "status"
+        | "save_at"
+    >;
+    transaction: Transaction;
+};

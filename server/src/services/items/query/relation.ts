@@ -3,6 +3,7 @@ import { Categories, Item, ItemShippingProfile, Sale, User, Video } from "../../
 import { ItemIdParams, UserIdParams, UserItemIdParams } from "../../../types/serviceType/items.js";
 import type {
     GetMyItemWithVideoSaleShippingParams,
+    GetMyItemForUpdateParams,
     ItemWithVideoSaleShipping,
     UserSaleIdParams,
 } from "../../../types/serviceType/items.js";
@@ -198,4 +199,21 @@ export const getMyItemsWithVideoAll = ({ userId }: UserIdParams) => {
         where: { seller_id: userId },
         include: [{ model: Video }],
     });
+};
+
+export const getMyItemForUpdate = async ({ itemId, userId, transaction }: GetMyItemForUpdateParams) => {
+    const item = await Item.findOne({
+        attributes: ["id", "seller_id", "status", "video_id", "sale_id", "shipping_id"],
+        where: { id: itemId, seller_id: userId },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+    });
+    if (!item) return null;
+
+    // 外部結合のnullable側をFOR UPDATEせず、確定したFK順に既存関連をロックする。
+    const options = { transaction, lock: transaction.LOCK.UPDATE };
+    const video = item.video_id === null ? null : await Video.findByPk(item.video_id, { ...options, attributes: ["id"] });
+    const sale = item.sale_id === null ? null : await Sale.findByPk(item.sale_id, { ...options, attributes: ["id"] });
+    const shipping = item.shipping_id === null ? null : await ItemShippingProfile.findByPk(item.shipping_id, { ...options, attributes: ["id"] });
+    return { item, video, sale, shipping };
 };

@@ -27,15 +27,7 @@ export const updateLogicalDelete = async ({ sale, transaction }: LogicalDeleteUp
 };
 
 export const updateSale = async ({ sale, data, transaction }: UpdateSaleParams) => {
-    await sale.update(
-        {
-            sale_flag: false,
-            discount_rate: 0,
-            discount_amount: 0,
-            ...data,
-        },
-        { transaction },
-    );
+    await sale.update(data, { transaction });
 };
 
 export const updateSaleEdit = async ({ sale, data, transaction }: UpdateSaleEditParams) => {

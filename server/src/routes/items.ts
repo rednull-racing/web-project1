@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
     addItemSortNumberController,
     createItemController,
+    updateItemController,
     decreaseItemSortNumberController,
     deleteItemLogicallyController,
     deleteItemPerfectController,
@@ -18,6 +19,7 @@ import {
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
     createItemRateLimit,
+    updateItemRateLimit,
     editSortItemRateLimit,
     getItemHighlightRateLimit,
     getItemListRateLimit,
@@ -32,7 +34,7 @@ import {
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { validateQuery } from "../middleware/validate/validateQuery.js";
-import { createItemBodySchema } from "../validators/body/items.js";
+import { createItemBodySchema, updateItemBodySchema } from "../validators/body/items.js";
 import { idParamSchema } from "../validators/params/id.js";
 import {
     getItemPageQuerySchema,
@@ -48,6 +50,11 @@ const router = Router();
 // summary: 販売中商品作成
 // page: /item/confirm/[id]
 router.post("/", authenticateToken, createItemRateLimit, validateBody(createItemBodySchema), createItemController);
+
+// PUT /items
+// summary: 商品情報編集
+// page: /item/confirm/edit/[id]
+router.put("/", authenticateToken, updateItemRateLimit, validateBody(updateItemBodySchema), updateItemController);
 
 // PATCH /items/:id/sort-number/add?number=number
 // summary: sortNumber追加

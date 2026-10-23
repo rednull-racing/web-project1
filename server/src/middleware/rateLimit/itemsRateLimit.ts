@@ -16,6 +16,21 @@ export const createItemRateLimit = rateLimit({
     },
 });
 
+export const updateItemRateLimit = rateLimit({
+    windowMs: 1000 * 60 * 10,
+    limit: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+
+    keyGenerator: (req) => {
+        const authReq = req as unknown as {
+            user: AuthUser;
+        };
+
+        return `admin:${authReq.user.id}`;
+    },
+});
+
 export const editSortItemRateLimit = rateLimit({
     windowMs: 1000 * 60,
     limit: 100,
