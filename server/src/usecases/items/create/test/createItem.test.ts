@@ -231,7 +231,7 @@ describe("P0 保存データと早期停止", () => {
         ["B04", "image_url", [], "ITEM_IMAGE_NULL"],
         ["B04", "image_url", Array(11).fill("image"), "ITEM_IMAGE_LIMIT_EXCEEDED"],
         ...[null, 299, 1000001, 1.5, "300", NaN, Infinity].map((v) => ["B05", "price", v, "ITEM_PUBLISH_DATA_INVALID"]),
-        ...["name", "title"].flatMap((f) => [null, 1, {}].map((v) => ["B06", f, v, "ITEM_PUBLISH_DATA_INVALID"])),
+        ...["name", "title"].flatMap((f) => [null, "", 1, {}].map((v) => ["B06", f, v, "ITEM_PUBLISH_DATA_INVALID"])),
         ...[null, ""].map((v) => ["B07", "first_image_url", v, "ITEM_PUBLISH_DATA_INVALID"]),
     ])("%s: %s=%jを拒否", async (_id, field, value, code) => {
         Object.assign(editing, { [String(field)]: value });
@@ -484,7 +484,7 @@ describe("P0 I 在庫構造・非破壊", () => {
             low_stock_ratio: value,
         });
     });
-    it.each(["", "   "])("O01: 空文字・空白=%jを受理する観測", async (value) => {
+    it.each(["   "])("O01: 空白=%jを受理する観測（trimは行わない）", async (value) => {
         editing.name = value;
         editing.title = value;
         expect(await run()).toBe(456);

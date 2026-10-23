@@ -65,6 +65,17 @@ beforeAll(async () => {
         });
         if (isolation.transaction_isolation !== "read committed")
             throw new Error("DB_TEST_STOP: concurrency tests require READ COMMITTED");
+        const [itemId] = await connection.query<{ data_type: string; is_nullable: string }>(
+            "SELECT data_type,is_nullable FROM information_schema.columns WHERE table_schema='public' AND table_name='item_editing' AND column_name='item_id'",
+            { type: QueryTypes.SELECT },
+        );
+        if (itemId?.data_type !== "integer" || itemId.is_nullable !== "YES")
+            throw new Error("DB_TEST_SCHEMA_MISMATCH: item_editing.item_id must be nullable INTEGER");
+        const itemForeignKeys = await connection.query<{ target: string; on_delete: string; on_update: string }>(
+            "SELECT target.relname AS target,con.confdeltype AS on_delete,con.confupdtype AS on_update FROM pg_constraint con JOIN pg_class source ON source.oid=con.conrelid JOIN pg_namespace ns ON ns.oid=source.relnamespace JOIN pg_class target ON target.oid=con.confrelid JOIN pg_attribute a ON a.attrelid=source.oid AND a.attnum=ANY(con.conkey) WHERE ns.nspname='public' AND source.relname='item_editing' AND con.contype='f' AND a.attname='item_id'",
+            { type: QueryTypes.SELECT },
+        );
+        expect(itemForeignKeys).toEqual([{ target: "item", on_delete: "c", on_update: "a" }]);
     }
     // 旧カラムが残る環境をテスト側で自動補正しない。
     const columns = await observer.query<{
@@ -76,7 +87,6 @@ beforeAll(async () => {
     );
     for (const [table, column] of [
         ["item", "deleted_at"],
-        ["item_editing", "item_id"],
         ["item_draft", "item_id"],
         ["video", "item_id"],
         ["video", "user_id"],

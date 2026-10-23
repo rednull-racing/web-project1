@@ -6,6 +6,8 @@
 
 2026-10-20のユーザー指示で、新item.idの新規採番を確定した。同日の仕様訂正により、category/condition/day/service/placeの5種類のIDは必須、brand_id・brand_aliases_idはそれぞれnull許容（両方nullも許容）とする。またModel・DBからitem.deleted_at、item_editing/item_draft.item_idを削除済みと確認し、本書も追従する。旧item_idのnull・非null受理の記述はカラム削除により廃止。cronEditingDeleteUseCaseは対象外。
 
+2026-10-23の追加指示により、name・titleの空文字は400 / ITEM_PUBLISH_DATA_INVALIDで拒否する。trimやURL形式・実体の再検証は追加しない。同日、item_editing.item_idはnullableな外部キーとして再追加されているため、削除済みとする以下の記述は2026-10-20時点の履歴であり現行Modelの説明には適用しない。本APIは同列を新商品IDの決定・作成データに使用しない。
+
 ## 1. 概要
 
 商品編集セッション（item_editing）から公開商品（item）を生成する。
@@ -136,7 +138,7 @@ where: {
 }
 ```
 
-ItemEditingにはstatus・deleted_atがないため、それらの取得条件は追加しない。item_editing.item_idは存在しない。編集セッションのidを新商品のidに流用せず、新規商品を作成する。
+ItemEditingはstatus・nullableなitem_idを持つが、本APIの現行取得条件には使用しない。deleted_atは存在しない。編集セッションのidを新商品のidに流用せず、新規商品を作成する。
 
 ## 4. 処理フロー
 
@@ -218,7 +220,7 @@ flowchart TD
 - category_id・item_condition_id・shipping_day_id・shipping_service_id・shipping_place_idの5種類は必須。いずれかがnull、整数以外、1未満、2147483647超なら400 / INVALID_NUMBERとする。
 - brand_id・brand_aliases_idはそれぞれnullを許容し、片方だけnull・両方nullも公開可能とする。非nullなら整数1〜2147483647を要求し、undefined・文字列・小数・範囲外・非有限数値は400 / INVALID_NUMBERとする。片方のnullによって他方や必須5種類の検証を省略しない。
 - ID検証は元行をロックして取得した後、user取得・属性複製・各作成serviceより前に行う。bodyの未知キーで補完しない。
-- 公開前提の判定順はoriginal_url → thumbnail_url → image_urlの欠落・枚数超過 → 必須5種類のID → 任意brand/aliasの非null値 → name/title/first_image_url/price。複数不備では先に成立したエラーを返す。削除済みのitem_idは参照しない。
+- 公開前提の判定順はoriginal_url → thumbnail_url → image_urlの欠落・枚数超過 → 必須5種類のID → 任意brand/aliasの非null値 → name/title（文字列かつ長さ1以上）/first_image_url/price。複数不備では先に成立したエラーを返す。item_idは新商品IDの決定に使用しない。
 - 必須5種類と任意brand/aliasのID検証が正常なら、category・condition・day・service・placeは同一transactionのvalidateMasterで存在確認する。不在は既存の各404コード。brand・aliasはnullも含め保存済み値をそのままコピーし、今回新たな検索・解決・組合せ検証は追加しない。
 - Modelはname・price・動画・配送等でnullを許容するため、DB制約だけを公開必須チェックの代用にしない。
 - 基本設計の「公開必須項目がすべて存在する」「video等の必須関連データが存在する」は維持する。必須5種類と任意brand/aliasの条件は上記で確定済み。具体的な文字列の空値、配送自由記入の必須条件、動画変換の完了条件、マスターの追加再検証範囲は9章で区別する。
@@ -228,7 +230,7 @@ flowchart TD
 
 - 保存済みattributesの在庫構造が不正な場合はITEM_ATTRIBUTES_INVALID・500で作成前に停止する。商品/色のinventoryとcolorVariants/sizesの欠落は許容するが、各サイズのinventoryは必須。在庫オブジェクトのinitial/current/low_stock_ratioは有限数値とする。元データの補完・補正は行わない。
 - seller_idは認証済みユーザーのIDを使用する
-- item.idは新規採番する。item_editingにitem_idは存在せず、編集セッションのidを新itemや関連作成dataのidに使用しない。既存itemとその関連は変更しない。
+- item.idは新規採番する。item_editing.item_idを引き継がず、編集セッションのidを新itemや関連作成dataのidに使用しない。既存itemとその関連は変更しない。
 - createdAt、updatedAtは新規生成する
 - 商品入力データはitem_editingから引き継ぐ
 - attributesの在庫情報は、コピー時に以下の各inventory.currentを同じinventory内のinitialに戻す
@@ -277,7 +279,7 @@ flowchart TD
 }
 ```
 
-itemのuploaded_at・save_atにはusecase内で生成した同じ公開日時を渡す（旧updatePublishItemの動作を継承）。createdAt・updatedAtは各新規レコードの作成日時とする。item_editingのid・createdAt・updatedAtはコピーしない。item_editing/item_draftにitem_idはなく、itemにdeleted_atは保存しない。関連への参照方向以外の既存Model制約・associate定義は維持する。
+itemのuploaded_at・save_atにはusecase内で生成した同じ公開日時を渡す（旧updatePublishItemの動作を継承）。createdAt・updatedAtは各新規レコードの作成日時とする。item_editingのid・createdAt・updatedAtはコピーしない。item_editing.item_idは新商品へコピーせず、item_draftにitem_idはなく、itemにdeleted_atは保存しない。関連への参照方向以外の既存Model制約・associate定義は維持する。
 
 - item_editing → video
 
@@ -426,7 +428,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 - 所有者のセッションから201 / `{ itemId }` が返り、item・video・sale・item_shipping_profileが各1件生成され、元セッションが削除される。
 - 5章の全カラム対応、認証済みseller_id、新規ID・日時、公開status、公開日時・管理初期値、関連IDの参照方向を確認する。
-- item_idを持たない編集セッションから新item.idを採番する。別の既存商品・関連・下書きは不変で、編集セッションだけを削除する。
+- item_editing.item_idを使用せず新item.idを採番する。別の既存商品・関連・下書きは不変で、編集セッションだけを削除する。
 - セール入力値が存在してもdiscount_rate・discount_amountはnull、sale_flagはfalseとなり、before_priceのみ引き継ぐ。
 - 商品・色・サイズのinventory.currentだけがinitialへ戻り、initial・low_stock_ratio・その他JSONが保持される。元オブジェクトを変更しない。
 - 任意inventory・colorVariants・sizesの欠落、空オブジェクト・空配列、任意カラムのnullを許容する範囲で確認する。
@@ -463,7 +465,7 @@ usecaseの `sequelize.transaction(async (transaction) => ...)` を使い、次�
 
 ## 9. 未決定事項
 
-- 公開必須項目の残る定義。name・title・detail・summaryの空文字可否、配送自由記入の必須条件、動画のduration・converted_url・video_statusとアップロード実体確認の要否。category/condition/day/service/placeの5種類のIDは必須・nullは400、brand_id・brand_aliases_idはそれぞれnull許容（両方nullも許容）と確定済み。item_editing.item_idは削除済みで、新item.idは新規採番すると確定済み。
+- 公開必須項目の残る定義。detail・summaryの空文字可否、配送自由記入の必須条件、動画のduration・converted_url・video_statusとアップロード実体確認の要否。category/condition/day/service/placeの5種類のIDは必須・nullは400、brand_id・brand_aliases_idはそれぞれnull許容（両方nullも許容）と確定済み。item_editing.item_idの値にかかわらず、新item.idは新規採番すると確定済み。name・titleはnull・空文字不可と2026-10-23に確定した。
 - ブランド・別名の対応関係など、現在の5種類のマスター存在確認を超える再検証の要否。今回のID必須化だけを根拠に追加しない。価格や在庫initial等の現行判定はテスト設計書に明示し、未確定の空値条件と混同しない。
 - countSellItemの新商品自身の扱い。旧APIは既存itemを公開するため、その行が集計対象に含まれる場合がある。新APIは作成前集計となるため、同値にするための1件加算の要否を確認する。item.deleted_atは削除済みであり、削除日時による条件は設けない。
 - 仕様上は3カラムのModel・DB削除済みとされるが、2026-10-20のtest_db照合でitem.deleted_at残存を確認した。反映差分が解消されるまで実DB結合検証は未完了。詳しくは[テストレポート](../../../../../server/test/docs/report/items/createItem.md)を参照する。本作業ではmigrationを作成・実行しない。

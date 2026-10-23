@@ -237,9 +237,19 @@ describe("D I JSONB在庫構造・値域・非破壊", () => {
     });
 });
 
+describe("D B06 name/titleの空文字拒否", () => {
+    it.each(["name", "title"])("B06: %sの空文字は400で元行を保持し公開しない", async (field) => {
+        const f = await seed();
+        await f.editing.update({ [field]: "" });
+        const before = await snapshot("item_editing", f.editing.id);
+        await expect(run(f)).rejects.toMatchObject({ code: "ITEM_PUBLISH_DATA_INVALID", statusCode: 400 });
+        await assertRolledBack(f, before);
+    });
+});
+
 describe("D O 観測した保存値・未確定の業務条件", () => {
-    it.each(["name", "title"].flatMap((field) => ["", "   "].map((value) => ({ field, value }))))(
-        "O01: $field=$valueを受理する観測",
+    it.each(["name", "title"].map((field) => ({ field, value: "   " })))(
+        "O01: $fieldの空白を受理する観測（trimは行わない）",
         async ({ field, value }) => {
             const f = await seed();
             await f.editing.update({ [field]: value });

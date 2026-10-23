@@ -1,4 +1,6 @@
 import { vi } from "vitest";
+vi.mock("../../../../src/middleware/session.js", () => ({ sessionMiddleware: vi.fn() }));
+vi.mock("../../../../src/usecases/items/update/updateItem.js", () => ({ updateItemUseCase: vi.fn() }));
 vi.mock("../../../../src/usecases/items/delete/logicalDelete.js", () => ({ deleteItemLogicallyUseCase: vi.fn() }));
 vi.mock("../../../../src/usecases/items/delete/perfectDelete.js", () => ({ deleteItemPerfectUseCase: vi.fn() }));
 vi.mock("../../../../src/usecases/items/formData/getFormData.js", () => ({ getFormDataUseCase: vi.fn() }));

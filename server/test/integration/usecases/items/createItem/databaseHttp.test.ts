@@ -30,6 +30,18 @@ beforeEach(async () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
 });
 describe("D/R 実usecase・HTTP・DB", () => {
+    it.each(["name", "title"])("B06 D09: %sの空文字はHTTP400で公開せず元行保持", async (field) => {
+        const f = await seed();
+        await f.editing.update({ [field]: "" });
+        const before = await snapshot("item_editing", f.editing.id);
+        const result = await post(app, secret, { itemEditingId: f.editing.id }, f.owner.id);
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({
+            code: "ITEM_PUBLISH_DATA_INVALID",
+            message: "商品情報を確認して、もう一度保存してください。",
+        });
+        await assertRolledBack(f, before);
+    });
     it.each(["success", "missing", "url", "attributes", "insert", "notification"])(
         "D09: %sのHTTPと保存結果",
         async (mode) => {

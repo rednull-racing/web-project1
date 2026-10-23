@@ -8,7 +8,11 @@
 
 初回は2026-10-20に文書だけを作成し、同日の仕様確定依頼で本番usecase・本書・詳細設計書を更新した。今回のカラム削除追従では本番の残存参照と既存単体テスト・fixtureも修正し、関連単体テスト・lint・型検査を行う。Model・migrationは変更せず、DB接続・migrationは実行しない。本書の期待結果はcreateItemテストの実行結果ではない。後述のテスト配置とコマンドは将来の実装用。
 
-### 2026-10-20 テスト実装中の仕様訂正（最新）
+### 2026-10-23 name/titleの空文字拒否（最新）
+
+ユーザー追加指示によりname・titleの空文字を400 / ITEM_PUBLISH_DATA_INVALIDで拒否し、元行を保持して公開・通知しない。B06を単体・実DB・HTTP実DBで確認する。旧O01の空文字受理観測を本契約へ移し、空白のみはtrimを追加せず受理観測を維持する。URLの形式・実体の再検証は追加しない。item_editing.item_idは現行ModelでnullableなINTEGER外部キーとして再追加されており、DB fixtureは全接続でNULL・型・FKを検査する。以下のカラム削除記述は2026-10-20時点の履歴として読む。
+
+### 2026-10-20 テスト実装中の仕様訂正
 
 ユーザーの追加指示により、`brand_id` と `brand_aliases_id` はそれぞれnullを許容し、両方nullも許容する。必須IDはcategory/condition/day/service/placeの5種類。brand/aliasが非nullの場合は従来の整数範囲を維持する。過去の「7種類すべて必須」の記録より本訂正を優先する。最初は本番コード変更禁止としてnull拒否による失敗を記録した。その後ユーザーが本番コードのnull拒否修正を明示的に許可したため、公開前提検証だけを修正し再検証する。修正前後はレポートで区別する。
 
@@ -36,12 +40,12 @@
 | 論点                       | 調査時点の根拠・扱い                                                                                                                                                                                        | 対応ケース                 |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | 新公開APIの接続            | 新usecase・body schema・controller・10分5回の制限・POST接続が存在。旧patchPublishUseCaseの定義・import/export・ルート接続はserver/srcにない                                                                 | N01、V01〜V06、R01〜R13    |
-| 編集セッションと新規採番   | item_editing/item_draftにitem_idは存在しない。item.idを新規採番し、セッションのidを作成先へ渡さない。video/sale/配送にitem_id列を追加しない                                                                 | B01、D07、N02              |
-| 価格・公開データ           | name/titleの型、first_image_url、整数価格300〜1000000を確認。必須5種類はnull不可、brand/aliasはnull可。非nullの7種類は各1〜2147483647の整数とし、不正値は400・INVALID_NUMBER                                | B02〜B10、AF-ID01〜AF-ID03 |
+| 編集セッションと新規採番   | item_editing.item_idはnullableなFKとして再追加済みだが本APIの新規採番には使用しない。item_draftにitem_idは存在しない。item.idを新規採番し、セッションのidを作成先へ渡さない。video/sale/配送にitem_id列を追加しない                                                                 | B01、D07、N02              |
+| 価格・公開データ           | name/titleの文字列型・長さ1以上、first_image_url、整数価格300〜1000000を確認。必須5種類はnull不可、brand/aliasはnull可。非nullの7種類は各1〜2147483647の整数とし、不正値は400・INVALID_NUMBER                                | B02〜B10、AF-ID01〜AF-ID03 |
 | 在庫の構造と業務条件       | 詳細設計の構造不正500に加え、実装は各initialの負数・小数を400・`ITEM_PUBLISH_DATA_INVALID`とする。0は受理。current/ratioの値域や在庫合計の整合性は検証しない                                                | I01〜I12、O02              |
 | マスター再検証             | 公開前提で必須5種類と任意brand/aliasの非null値を検証後、category/condition/day/service/placeをvalidateMasterで再検証。brand/aliasは再解決せず既存FKをコピーする。共有helperのnull省略は公開成功条件にしない | M01〜M07、O03              |
 | 出品商品数                 | 作成前集計・1件加算なし。seller_idとstatus IN active/soldoutだけを条件とし、削除済みのdeleted_atを参照しない                                                                                                | N07、S05、D05              |
-| 文字列・動画完了の最終要件 | name/titleは空文字を拒否しない。converted_url/duration/video_statusのnullも処理可能。必須5種類と任意brand/aliasの区別と、これら未確定の公開業務要件を分ける                                                 | N04、B08、O01、O03         |
+| 文字列・動画完了の最終要件 | name/titleは空文字を拒否する（2026-10-23確定）。空白のみはtrimせず従来の受理観測を維持する。converted_url/duration/video_statusのnullも処理可能。必須5種類と任意brand/aliasの区別と、これら未確定の公開業務要件を分ける                                                 | N04、B08、O01、O03         |
 | 削除との競合               | 対象行DELETEとの排他を検証する。cronEditingDeleteUseCaseは調査・修正・テスト対象外                                                                                                                          | P05〜P08                   |
 | DB反映状態                 | モデル・migrationを参照しただけで実DBは未確認                                                                                                                                                               | 第11節、D系、P系           |
 
@@ -71,7 +75,7 @@
 1. 共通JSON parser → RouterのauthenticateToken → createItemRateLimit → validateBody(createItemBodySchema) → createItemController。JSON構文不正は認証・制限より先に停止する。
 2. controllerは `req.user.id` と `req.validatedBody.itemEditingId` だけをusecaseへ渡す。params/query/bodyの所有者情報を使用しない。
 3. managed transaction開始 → `getMyItemEditing({ itemEditingId, userId, transaction: t })`。serviceは `where: { id, seller_id }` と `lock: t.LOCK.UPDATE` を指定する。ItemEditingにはstatus/deleted_at条件やVideoのincludeを追加しない。
-4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後はoriginal_url → thumbnail_url → image_urlの欠落/空/超過 → 必須5種類のnull/整数範囲・brand/aliasの非null整数範囲 → name/title/first_image_url/priceの順に判定する。編集セッションにitem_idは存在せず、セッションidはコピー先のIDに使わない。
+4. 未取得は404・ITEM_EDITING_NOT_FOUND。取得後はoriginal_url → thumbnail_url → image_urlの欠落/空/超過 → 必須5種類のnull/整数範囲・brand/aliasの非null整数範囲 → name/title/first_image_url/priceの順に判定する。編集セッションのitem_idとidはコピー先のIDに使わない。
 5. attributes全体の構造検証 → structuredClone → 商品・各色・各サイズのinitial業務検証とcurrent復元。構造不正は500、有限数値でもinitialが負数・小数なら400。途中で失敗してもコピー元を変更しない。
 6. getUser（必要な4列のみ）→ validateMaster（category→condition→day→service→place）→ parent_idがあれば親カテゴリー → countFollower → countSellItem。すべて同じt。出品者欠落はUSER_NOT_FOUND・500。
 7. sort計算 → createVideo → createSale → createShipping → 公開日時生成・search_text正規化 → createItem → ロック済みModelのdeleteItemEditing。各書込みに同じt。
@@ -173,12 +177,12 @@ B01は正常系であり、削除済みカラムをfixtureへ追加しない。�
 | ID  | レベル | 条件／入力／手順                                                                                                              | 期待結果                                                                                                                                                                                                            |
 | --- | ------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | E01 | U/D    | 不存在/他人所有/seller_id=null/先行で消費済みの元セッション。Uでは取得serviceがnullを返す境界、Dでは実whereによる未取得を確認 | いずれも404・ITEM_EDITING_NOT_FOUND、元行の内容を返さない。transaction開始済みでrollbackし、公開前提検証・属性複製・user取得以降・全作成/削除/通知なし                                                              |
-| B01 | U/D    | item_idを持たない正常な編集セッションと、別の既存商品・下書きを用意                                                           | 新規公開へ進む。itemのcreate dataにid/item_id/deleted_atなし。セッションidを新商品・関連のIDへ流用せず、既存商品を更新しない                                                                                        |
+| B01 | U/D    | item_id=nullの正常な編集セッションと、別の既存商品・下書きを用意                                                           | 新規公開へ進む。itemのcreate dataにid/item_id/deleted_atなし。セッションidを新商品・関連のIDへ流用せず、既存商品を更新しない                                                                                        |
 | B02 | U/D    | original_url=null/空文字                                                                                                      | 400・VIDEO_URL_NULL                                                                                                                                                                                                 |
 | B03 | U/D    | thumbnail_url=null/空文字                                                                                                     | 400・THUMBNAIL_URL_NULL                                                                                                                                                                                             |
 | B04 | U/D    | image_url=null/[]、1枚/10枚/11枚                                                                                              | null/0枚はITEM_IMAGE_NULL、11枚はITEM_IMAGE_LIMIT_EXCEEDED、各400。1/10枚は後続へ進む。11枚のDはModel配列validatorとDB保存可能性を区別する                                                                          |
 | B05 | U/D    | price=null/299/300/1000000/1000001、小数/数値文字列/NaN/Infinity（後者はU）                                                   | 300/1000000受理。他は400・ITEM_PUBLISH_DATA_INVALID                                                                                                                                                                 |
-| B06 | U/D    | nameまたはtitle=null、Uではnumber/object等も注入                                                                              | 400・ITEM_PUBLISH_DATA_INVALID。空文字の扱いはO01                                                                                                                                                                   |
+| B06 | U/D    | nameまたはtitle=null/空文字、Uではnumber/object等も注入                                                                              | 400・ITEM_PUBLISH_DATA_INVALID。空文字は2026-10-23に拒否へ確定。空白の扱いはO01                                                                                                                                                                   |
 | B07 | U/D    | first_image_url=null/空文字                                                                                                   | 400・ITEM_PUBLISH_DATA_INVALID。image_urlから自動補完しない                                                                                                                                                         |
 | B08 | U/H    | 7種類のIDの非null値を各1/2147483647にする                                                                                     | 範囲判定を通過。category/condition/day/service/placeはマスター検証へ進み、不存在ならM02の404。brand/aliasは再検索せずコピーし、実DBで存在しないFKはD08で区別。必須IDのnullはAF-ID01、brand/aliasのnullはAF-BR01〜03 |
 | B09 | U      | 7種類のIDの非null不正値を各0/-1/2147483648/1.5/"1"/undefined/NaN/Infinityにする                                               | 400・INVALID_NUMBER。helperが0検索を省くことを公開APIの受理仕様にしない。getUser/validateMaster/集計/作成/削除/通知未実行                                                                                           |
@@ -230,7 +234,7 @@ Iは実usecase内の変換を実行する。全異常系でgetUser以降が未�
 1. `server/` を実行ディレクトリとし、DB関連importより前に `server/.env.test` 由来の設定、NODE_ENV=test、PostgreSQLのDB名=test_dbを検査する。src/db.tsに加え、モデル初期化・observer・competitorの全接続を対象に、設定DB名と接続後の `SELECT current_database()` を照合してからfixtureを書き込む。
 2. 引数なしdotenv.config、別envの明示読込、接続URL差替え、ガード後の変更を検出する。別env/test_db以外/読込元・接続先不明では中断してユーザー判断を待つ。値を黙って差し替えず、接続URL/認証情報をログへ出さない。接続不明のまま後片付けのDELETEもしない。
 3. 用意済みの反映済みスキーマを検査する。item_editing、item、video、sale、item_shipping_profile、user、categories、follow、item_draft、5種類のマスター・ブランド/別名などfixtureの親行が必要。カテゴリのpath/layer等のNOT NULLも満たす。自動DB作成/migration/sync/truncate/全件削除は行わない。
-4. itemのvideo_id/sale_id/shipping_idが各関連を参照し、関連側に旧item_idやvideo.user_idがないこと、item.deleted_atおよびitem_editing/item_draft.item_idが存在しないこと、JSONB/配列/ENUM/整数、外部キーと削除動作を実DBで照合する。現在のModelではitemの3関連FKはON DELETE SET NULL。編集セッション・下書きからitemへの旧FKは存在しない。逆方向の連鎖削除を想定してcleanupを省略しない。差があれば環境不一致を報告し、期待値を合わせない。
+4. itemのvideo_id/sale_id/shipping_idが各関連を参照し、関連側に旧item_idやvideo.user_idがないこと、item.deleted_atおよびitem_draft.item_idが存在しないこと、item_editing.item_idがnullableなINTEGERであること、JSONB/配列/ENUM/整数、外部キーと削除動作を実DBで照合する。現在のModelではitemの3関連FKはON DELETE SET NULL。編集セッションのitem_idはitemへのFK（ON DELETE CASCADE / ON UPDATE NO ACTION）を持つ。下書きからitemへの旧FKは存在しない。逆方向の連鎖削除を想定してcleanupを省略しない。差があれば環境不一致を報告し、期待値を合わせない。
 5. 実接続のisolationを確認し、Pの「待機後に更新/削除済み行を再判定」はREAD COMMITTEDで検証する。別isolationでserialization failure等が出た場合に404と同一視しない。集計元全体のスナップショット固定を要求しない。
 6. fixtureと本処理が作ったIDを追跡する。失敗してrollbackされた関連IDも控え、observerの新規SELECTで残存0を確認する。通知は原則モックし、公開結果の検査と非同期通知のcleanup競合を避ける。既存商品・下書き・別セッションのsnapshotと行数差分も比較する。
 7. rollback/commitの検査を外側のrollback専用テストtransactionで包まない。usecase自身のtransactionと独立したobserverで、commit前後/rollback後を読む。処理したインスタンスだけで保存成功を判定しない。DECIMALのraw取得は文字列になり得るため比較時の表現を統一する。
@@ -270,7 +274,7 @@ TのUはmanaged transactionをモックし、callbackの完了とtransaction外�
 | D04 | D/T    | 途中失敗→元行が保持されることを確認→障害を外して同じIDで再試行                                                               | 後続は1組だけ生成して成功、元行削除、通知開始は成功回だけ1回。失敗で消費されたsequence値を巻き戻さない                                                                                                 |
 | D05 | D      | count対象としてAのactive/soldoutとBの行、両方向followを用意                                                                  | 第10節の条件で集計し新商品の自己加算なし。sortを独立した件数から照合。既存行のstatus等は変更しない                                                                                                     |
 | D06 | D      | 成功後同じセッションIDで再送、消費済み/不存在/他人IDも比較                                                                   | 各404・ITEM_EDITING_NOT_FOUND、本文も同一。追加4行0・通知0、最初の公開商品は維持                                                                                                                       |
-| D07 | D/R    | item_idを持たない編集セッションと、別の既存item・関連・下書きを用意して公開                                                  | 201で新itemと3関連が各1件。新item.idは新規採番、既存item/関連/下書き不変、元セッションだけ削除。セッションidとの数値の不一致自体は要求せず、独立した採番を確認する。新IDを通知/応答へ使用し、再送は404 |
+| D07 | D/R    | item_id=nullの編集セッションと、別の既存item・関連・下書きを用意して公開                                                  | 201で新itemと3関連が各1件。新item.idは新規採番、既存item/関連/下書き不変、元セッションだけ削除。セッションidとの数値の不一致自体は要求せず、独立した採番を確認する。新IDを通知/応答へ使用し、再送は404 |
 | D08 | D/T    | モデルvalidation失敗／実DBのFK・NOT NULL等の制約失敗を作成段階へ注入                                                         | 通常Error500、全rollback・元行保持。実serviceに渡すdataだけをspyで壊す等の注入範囲を明記。既存制約を削除しない。Model拒否とDBが拒否したケースを区別                                                    |
 | D09 | D/R    | 正常・不存在・URL欠落・属性構造破損・途中作成失敗・通知失敗の代表条件                                                        | HTTPとDBの双方がN/B/I/Tの契約に一致。エラー応答は開始済みtransactionのrollback後、正常応答はcommit後。モックだけのRと別集計                                                                            |
 | D10 | D/R    | 実usecaseを接続したHTTPで401/429/INVALID_BODY/INVALID_JSONを個別発生させる。429は同一ユーザーの不正body5回で枠を消費して準備 | 対象公開用sequelize.transactionの呼出し0、4テーブル追加0・元行と保護対象不変・通知0。fixture準備のDB処理を呼出し数に含めず、リクエスト直前に観測を開始                                                 |
@@ -326,7 +330,7 @@ Pは実PostgreSQLで独立transaction/接続を使う。A/Bの開始・実ロッ
 
 | ID  | レベル            | 条件／入力／手順                                                                               | 観測内容・固定しない保証                                                                                                                                                                     |
 | --- | ----------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| O01 | U/D               | name/titleが空文字/空白、URLが空白、first_image_urlとimage_url[0]不一致、画像要素が空文字/重複 | 現行の型/falsy/枚数判定でどこまで通るかと保存結果を記録。文字列trim、URL形式/所有S3キー/先頭画像一致/画像実体確認を行う保証はない。業務上許容する最終要件は未確定                            |
+| O01 | U/D               | name/titleが空白、URLが空白、first_image_urlとimage_url[0]不一致、画像要素が空文字/重複 | 現行の型/falsy/枚数判定でどこまで通るかと保存結果を記録。文字列trim、URL形式/所有S3キー/先頭画像一致/画像実体確認を行う保証はない。業務上許容する最終要件は未確定                            |
 | O02 | I/D               | currentが負数/小数、ratioが負数/1超、在庫階層の合計不一致、非在庫属性の不正な追加値            | 有限numberならcurrentはinitialに戻りratioは維持。全属性schemaや階層合計の検証はない。initialの負数/小数拒否と混同しない                                                                      |
 | O03 | U/H/D             | 必須5種類と非nullのbrand/alias IDを有効にし、動画未変換、brand/aliasの組合せ不整合             | 現行が受理する範囲を記録。動画変換完了/ブランド対応関係の再検証は今回追加しない。必須5種類のnull拒否はAF-ID01、brand/aliasのnull許容はAF-BR01〜03、存在しないFKは実DB制約に従いD08として分離 |
 | O04 | U／将来の障害検証 | COMMIT送信後の応答喪失、commit後のHTTP接続切断                                                 | モックの外側rejectはT08に限定。実通信障害は今回は未実施で、成否不明をrollback成功にしない。既にcommit済みなら元行消費済み・再送404となり得る。公開済みDBをHTTP失敗で巻き戻せる保証なし       |
