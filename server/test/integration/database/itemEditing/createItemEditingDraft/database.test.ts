@@ -36,6 +36,7 @@ describe("P0/P1: 実DBのコピー・削除・所有権・再実行", () => {
             after = Date.now();
         const saved = await snapshot("item_editing", id);
         expectCopied(saved, original, f.owner.id);
+        expect(saved!.status).toBe("normal");
         expect(saved!.id).toBe(id);
         for (const column of ["createdAt", "updatedAt"]) {
             expect(saved![column]).toBeInstanceOf(Date);

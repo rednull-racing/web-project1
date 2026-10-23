@@ -966,3 +966,11 @@
 - 単体/HTTP357件・実DB180件成功。lint・本番/テスト型検査・変更test TS5ファイル追加lint・差分検査成功。
 - .env.test由来test_dbの全3接続ガード、自作ID限定cleanup・残存0・close確認。migration実行なし。
 - テスト設計・統合レポートを更新しTodoをdoneへ移動。実AWS・ブラウザE2E・COMMIT応答喪失は未検証。
+
+## 20261023_backend-migration_item_editingのstatus追加
+
+- モデル準拠のstatus追加migration（up/down）を作成し、実DB・テストDBへ今回分だけ適用、適用履歴と定義を確認。
+- 新規・下書き・商品コピーの全作成dataとservice引数型へstatus normalを追加。
+- 単体308件・下書きDB53件、lint・本番/テスト型検査・変更test TS追加lintが成功。
+- コピーDB94件は既存fixtureの削除済みitem_id参照で準備時停止。対象外としてTodoへ記録。
+- 詳細はserver/test/docs/report/itemEditing/status.md。

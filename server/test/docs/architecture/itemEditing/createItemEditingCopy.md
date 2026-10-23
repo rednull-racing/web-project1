@@ -1,5 +1,9 @@
 # createItemEditingCopy テスト設計書
 
+## 2026-10-23 status追加の契約
+
+作成dataへ`status: "normal"`を明示する。コピー元の商品状態は引き継がない。以下の旧記述と矛盾する場合は本契約を優先する。単体の完全一致期待値と、下書き作成のDB再SELECTで確認する。新規作成N01・コピーN10・既存回帰の結果は[status追加レポート](../../report/itemEditing/status.md)を参照。
+
 ## 2026-10-19 修正後の契約（最新）
 
 初回レポートのF1〜F4に対する本番修正・再検証の依頼に基づく更新。以下と矛盾する後続の表・観測記述は修正前の履歴とし、今回の契約と[修正レポート](../../report/itemEditing/createItemEditingCopy.md#fix-20261019)を優先する。

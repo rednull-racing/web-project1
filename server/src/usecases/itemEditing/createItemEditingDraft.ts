@@ -21,6 +21,7 @@ export const createItemEditingDraftUseCase = async ({ userId, itemDraftId }: Par
 
         const itemEditing = await createItemEditingDraft({
             data: {
+                status: "normal",
                 seller_id: userId,
                 name: itemDraft.name,
                 detail: itemDraft.detail,

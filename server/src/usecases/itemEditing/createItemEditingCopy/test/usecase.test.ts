@@ -162,13 +162,13 @@ describe("P0 正常コピー・全引渡し項目", () => {
             expect(data().first_image_url).toBe(item.first_image_url);
         },
     );
-    it("N10: 元ID・日時・関連ID・商品状態を作成dataに含めない", async () => {
+    it("N10: 元ID・日時・関連IDを含めず商品状態をnormalに初期化する", async () => {
         await run();
+        expect(data().status).toBe("normal");
         for (const key of [
             "id",
             "createdAt",
             "updatedAt",
-            "status",
             "video_id",
             "sale_id",
             "shipping_id",

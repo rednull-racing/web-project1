@@ -149,6 +149,7 @@ export const editingResult = (id = 456): ItemEditing => ({ id }) as ItemEditing;
 export const transactionFixture = (): Transaction => ({ LOCK: { UPDATE: "UPDATE" } }) as Transaction;
 
 export const expectedData = (): CreateItemEditingCopyParams["data"] => ({
+    status: "normal",
     seller_id: 7,
     name: "公開商品",
     detail: "商品説明\n日本語",

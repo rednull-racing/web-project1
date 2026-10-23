@@ -12,6 +12,7 @@ export const createItemEditingUseCase = async ({ userId }: Params) => {
     // itemEditing作成
     const itemEditing = await createItemEditing({
         data: {
+            status: "normal",
             seller_id: userId,
         },
     });
