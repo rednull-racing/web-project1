@@ -105,6 +105,7 @@
 
 - フロント: /item/[id]
 - route: POST /item-editing/copy
+    - queryにstatus（"normal" | "edit"）
     - bodyにitemId
 - usecase: itemEditingテーブルを作成し、itemからコピー
 
