@@ -158,7 +158,7 @@
     - item_draft.converted_url = null
     - item_draft.original_urlは編集しない
 
-### itemUpdate（itemEditingからitemへコピーして更新）
+### updateItem（itemEditingからitemへコピーして更新）
 
 - フロント: /item/confirm/edit/[id]
 - route: PUT /items
