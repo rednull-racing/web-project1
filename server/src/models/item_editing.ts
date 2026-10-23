@@ -5,6 +5,7 @@ import type { ItemAttributes } from "../types/itemAttributes.js";
 import BrandAliases from "./brand_aliases.js";
 import Brands from "./brands.js";
 import Categories from "./categories.js";
+import Item from "./item.js";
 import ItemConditionOption from "./item_condition_option.js";
 import ShippingDayOption from "./shipping_day_option.js";
 import ShippingServiceOption from "./shipping_service_option.js";
@@ -13,6 +14,7 @@ import User from "./user.js";
 
 export class ItemEditing extends Model {
     declare id: number;
+    declare item_id: number | null;
     declare status: "normal" | "edit";
     declare name: string | null;
     declare detail: string | null;
@@ -51,6 +53,9 @@ export class ItemEditing extends Model {
     declare updatedAt: Date;
 
     static associate() {
+        ItemEditing.belongsTo(Item, {
+            foreignKey: "item_id",
+        });
         ItemEditing.belongsTo(User, {
             foreignKey: "seller_id",
         });
@@ -80,6 +85,7 @@ export class ItemEditing extends Model {
     }
 
     static associations: {
+        Item: Association<ItemEditing, Item>;
         User: Association<ItemEditing, User>;
         ItemConditionOption: Association<ItemEditing, ItemConditionOption>;
         Categories: Association<ItemEditing, Categories>;
@@ -98,6 +104,16 @@ ItemEditing.init(
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
+        },
+        item_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "item",
+                key: "id",
+            },
+            onUpdate: "NO ACTION",
+            onDelete: "CASCADE",
         },
         status: {
             type: DataTypes.ENUM("normal", "edit"),
