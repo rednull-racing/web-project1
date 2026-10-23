@@ -108,18 +108,7 @@ describe("P1 修正後のHTTP・DB境界", () => {
         expect(await editingIds(f)).toEqual(ids);
         expect(await protectedSnapshot(f)).toEqual(before);
     });
-    it("O05 AF-DEL01: activeの論理削除済み商品は404で作成しない", async () => {
-        await f.item.update({ deleted_at: new Date("2020-01-01T00:00:00Z") });
-        const before = await protectedSnapshot(f),
-            ids = await editingIds(f);
-        const create = vi.spyOn(ItemEditing, "create");
-        const response = await post();
-        expect(response.status).toBe(404);
-        expect(response.body).toEqual({ code: "ITEM_NOT_FOUND", message: "ITEM_NOT_FOUND" });
-        expect(create).not.toHaveBeenCalled();
-        expect(await editingIds(f)).toEqual(ids);
-        expect(await protectedSnapshot(f)).toEqual(before);
-    });
+
     it("O01 AF-INV01: 破損した保存済みサイズ在庫は明示的な500で作成しない", async () => {
         await f.item.update({
             attributes: { colorVariants: [{ sizes: [{ size: "M" }] }] } as unknown as typeof f.item.attributes,

@@ -233,10 +233,10 @@ describe("P2 同一商品・別商品の並行コピー", () => {
 });
 
 describe("P2 先行する更新・所有権変更・削除とロック後の再評価", () => {
-    const changes = ["商品と関連更新", "soldout", "所有者変更", "削除", "論理削除", "複合変更"] as const;
+    const changes = ["商品と関連更新", "soldout", "所有者変更", "削除", "複合変更"] as const;
     describe.each(changes)("%s", (change) => {
         it.each(["commit", "rollback"] as const)(
-            "P03 P04 P05 P06 P07 AF-DEL02 AF-DB01: 先行変更の%s後のデータでコピーまたは404にする",
+            "P03 P04 P05 P06 P07 AF-DB01: 先行変更の%s後のデータでコピーまたは404にする",
             async (outcome) => {
                 const writerReady = deferred<number>(),
                     writerRelease = deferred<void>();
@@ -290,11 +290,6 @@ describe("P2 先行する更新・所有権変更・削除とロック後の再�
                         await Item.update({ status: "soldout" }, { where: { id: f.item.id }, transaction });
                     } else if (change === "所有者変更") {
                         await Item.update({ seller_id: f.other.id }, { where: { id: f.item.id }, transaction });
-                    } else if (change === "論理削除") {
-                        await Item.update(
-                            { deleted_at: new Date("2020-01-01T00:00:00Z") },
-                            { where: { id: f.item.id }, transaction },
-                        );
                     } else {
                         await Item.destroy({ where: { id: f.item.id }, transaction });
                     }

@@ -447,21 +447,4 @@ describe("P2 逐次再実行と観測", () => {
         expect(await protectedSnapshot(f)).toEqual(before);
         expect(await editingIds(f)).toEqual(ids);
     });
-    it("O05 AF-DEL01: 論理削除後は404で既存コピーを保持し復元後は再試行できる", async () => {
-        const first = await run(f),
-            copied = await snapshot("item_editing", first);
-        await f.item.update({ deleted_at: new Date("2020-01-01T00:00:00Z") });
-        const before = await protectedSnapshot(f),
-            ids = await editingIds(f);
-        const create = vi.spyOn(ItemEditing, "create");
-        await expectAppError(run(f));
-        expect(create).not.toHaveBeenCalled();
-        expect(await protectedSnapshot(f)).toEqual(before);
-        expect(await editingIds(f)).toEqual(ids);
-        await expectUnlocked(f.item.id);
-        await f.item.update({ deleted_at: null });
-        const { id } = await verifyRun();
-        expect(id).not.toBe(first);
-        expect(await snapshot("item_editing", first)).toEqual(copied);
-    });
 });

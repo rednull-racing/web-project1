@@ -16,4 +16,4 @@
 - コピー作成DBとの初回同時実行は2ファイル中1成功・1失敗、53成功・94 skipped。コピーのfixtureが削除済みitem_id列のallowNullを参照してbeforeAllで停止。本体94件は未実行。この停止箇所より前にseed書込みはない。既存afterAllによる接続終了処理は実行された。DBテスト全体の成功とはしない。
 - `npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`: 成功。変更したtest配下TSは既存ESLint/typescript-eslint推奨規則で追加検査成功。
 
-新規usecaseテストはservice境界をモックし、DB保存までは保証しない。コピーDBテストの停止理由はリポジトリルートdocs/todo/P3-techdebt/item-editing-copy-db-fixture-deleted-item-id.mdへ記録した。今回、コピーの競合・HTTP等の全結合テスト、カバレッジ、実AWSは未実行。Node v20.20.2で実行し、AWS SDKのNodeバージョン警告あり。
+新規usecaseテストはservice境界をモックし、DB保存までは保証しない。コピーDBテストの停止理由はリポジトリルートdocs/todo/done/item-editing-copy-db-fixture-deleted-item-id.mdへ記録した。今回、コピーの競合・HTTP等の全結合テスト、カバレッジ、実AWSは未実行。Node v20.20.2で実行し、AWS SDKのNodeバージョン警告あり。

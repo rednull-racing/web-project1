@@ -1,5 +1,10 @@
 # item_editingへnullableなitem_idを追加し作成時にnullを指定する
 
+## 完了：2026-10-23
+
+item_id追加・両DB反映・全作成経路のnull指定は前回完了。今回のユーザー指示に従い、旧deleted_at前提のDB/HTTP各1件と競合の論理削除2件を削除し、残る競合10件を維持した。コピー・下書きの結合テストを除外なしで一括実行し、9ファイル268件成功、失敗・skip・todoなし。lint・本番/テスト型検査・変更TS3ファイルの追加ESLint検査成功。詳細はserver/test/docs/report/itemEditing/createItemEditingCopy.mdの最新節を参照。以下は当時の調査・部分実施履歴として残す。
+
+
 発見日: 2026-10-23。優先度: P3-techdebt。
 
 方針更新日: 2026-10-23。ユーザー指示により、item_idの検査を削除する従来案から、nullableなitem_idをモデル・DBへ追加する方針へ変更した。今回はTodoのみ更新し、以下の実装・DB反映・テストは未実施。

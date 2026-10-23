@@ -1,5 +1,10 @@
 # createItemEditingCopy テスト設計書
 
+## 2026-10-23 旧deleted_at結合ケースの削除
+
+ユーザー指示により、削除済みitem.deleted_atに依存するDB・HTTPのO05 AF-DEL01各1件と、先行論理削除のAF-DEL02 commit/rollback各1件を削除した。P03〜P07/AF-DB01の更新・soldout・所有者変更・物理削除・複合変更の10件は維持する。過去のF3/O05/AF-DEL01/AF-DEL02の記述は当時の設計履歴であり、現行の結合検証対象から外す。商品削除の本番仕様は変更しない。
+
+
 ## 2026-10-23 item_id追加契約
 
 新規・下書き・商品コピーの作成dataへ`item_id: null`を明示する。service引数型はnullを必須とし、serviceはdataをそのままModelへ渡す。単体の完全一致と、DBの再SELECTで確認する。nullableなINTEGERとitem.idへのFK（ON UPDATE NO ACTION / ON DELETE CASCADE）は新規migrationで追加する。以下の過去のスキーマ記述より本契約を優先する。

@@ -1,5 +1,22 @@
 # createItemEditingCopy 結合テストレポート
 
+## 2026-10-23 旧deleted_atケース削除後の一括検証（最新）
+
+ユーザー指示により、旧item.deleted_atに依存するDB/HTTPのO05 AF-DEL01各1件と、競合AF-DEL02の論理削除commit/rollback計2件を削除した。P03〜P07/AF-DB01の残る10件（更新・soldout・所有者変更・物理削除・複合変更×commit/rollback）は維持。旧ケースの期待値緩和やskip化は行わず、本番コード・DBスキーマは変更していない。前節までの失敗・除外は過去の実行履歴であり、この結果で残件を解消した。
+
+`server/`で以下を除外条件なしに一括実行し、**9ファイル268件すべて成功、失敗・skip・todo・未処理例外0件、終了コード0（27.85秒）**。
+
+```bash
+npm run test:run -- test/integration/database/itemEditing/createItemEditingCopy test/integration/usecases/itemEditing/createItemEditingCopy test/integration/database/itemEditing/createItemEditingDraft test/integration/usecases/itemEditing/createItemEditingDraft --maxWorkers=1
+```
+
+- 実DBのコピー・新規/下書き作成・null保存・所有権・非対象行保持・DB制約・commit/rollback・競合・HTTP接続、およびDB非接続Routerを対象とした。コピーDBは93件、新規/下書きDBは54件、usecase結合2ディレクトリは121件。過去の実行との重複加算なし。
+- `.env.test`由来のNODE_ENV=test・設定DB名と、アプリ/Model/observer/下書きcompetitorの実DB名test_dbを既存ガードで確認し、必要なスキーマ検査後にfixtureを書き込んだ。今回の自作ID限定cleanup・残存0検査・全接続closeがhookを含め成功。並行ケースはbackend PIDとpg_blocking_pidsによる実待機確認を維持した。過去の中断実行で作成した行の一括削除は実施していない。
+- `npm run lint`・`npm run typecheck`・`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`成功。通常lint対象外の変更した結合テスト3ファイルは、既存ESLint/@eslint/js/typescript-eslint recommendedをNode APIのoverrideConfigで適用して追加検査し、警告・エラー0件。共有設定は変更なし。
+- Node v20.20.2でAWS SDKのNodeバージョン警告あり。カバレッジ・実AWS通信は未検証。将来のitem_trash削除/復元仕様は今回の対象外。
+
+
+
 ## 2026-10-23 item_id追加・DB反映結果
 
 - `20261023100000-add-item-editing-item-id.js`を追加し、development（neondb）・test（test_db）へこの1件だけUmzugのSequelize履歴管理で適用した。テストDBの過去の未記録migrationは適用していない。両DBでINTEGER・nullable・item(id)へのFK・ON UPDATE NO ACTION（既定）/ON DELETE CASCADEを確認。適用直前/直後の既存編集行は各0件。downは実装済み・DB上では未実行。
