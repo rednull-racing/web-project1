@@ -39,7 +39,7 @@ type Props = {
     allService: ShippingServiceOption[];
     allPlace: TodouhukenOption[];
     hasShop: boolean;
-    page: "normal" | "draft" | "edit";
+    page: "normal" | "edit";
 };
 
 type ItemImage = {

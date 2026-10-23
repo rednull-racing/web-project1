@@ -157,6 +157,14 @@
     - item_draft.converted_url = null
     - item_draft.original_urlは編集しない
 
+### getItemEditingForm（商品アップロード入力フォーム初期値取得）
+
+- フロント: /upload/[id]・/upload/edit/[id]
+- route: GET /item-editing/:id/form
+
+- 認可:
+    - itemEditing.seller_id === userId
+
 ---
 
 ## cron
