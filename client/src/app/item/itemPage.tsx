@@ -30,6 +30,7 @@ type Props = {
     userId: string | null;
     loggedIn: boolean;
     me?: User | null;
+    confirmPage?: "normal" | "edit";
 };
 
 export const ItemPage = ({
@@ -45,6 +46,7 @@ export const ItemPage = ({
     userId,
     loggedIn,
     me,
+    confirmPage,
 }: Props) => {
     if (!["normal", "admin", "draft", "confirm", "deleted"].includes(page)) {
         console.error("ページ信号が正しくありません。page：", page);
@@ -111,7 +113,7 @@ export const ItemPage = ({
                         <DeleteItem id={id} page={page} />
                     </>
                 )}
-                {page === "confirm" && <UploadButton id={id} />}
+                {page === "confirm" && confirmPage && <UploadButton id={id} page={confirmPage} />}
                 {page === "deleted" && (
                     <>
                         <Restore id={id} item={item} />

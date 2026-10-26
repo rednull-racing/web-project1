@@ -42,5 +42,5 @@ export default async function Page({ params }: Props) {
         redirect(`/item/${id}`);
     }
 
-    return <ItemPage id={id} item={item} page="confirm" sellerMe loggedIn userId={userId || ""} />;
+    return <ItemPage id={id} item={item} page="confirm" sellerMe loggedIn userId={userId || ""} confirmPage="normal" />;
 }

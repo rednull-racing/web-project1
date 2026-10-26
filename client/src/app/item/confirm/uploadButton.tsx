@@ -8,14 +8,15 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ApiError } from "../../../lib/api/apiError";
 import { sleep } from "../../../lib/sleep";
-import { fetchPublishItem } from "../api/confirm";
+import { fetchCreateItem, fetchEditItem } from "../api/confirm";
 import styles from "./confirm.module.css";
 
 type Props = {
     id: string;
+    page: "normal" | "edit";
 };
 
-export const UploadButton = ({ id }: Props) => {
+export const UploadButton = ({ id, page }: Props) => {
     const [popup, setPopup] = useState(false);
     const [check, setCheck] = useState(false);
     const router = useRouter();
@@ -27,7 +28,7 @@ export const UploadButton = ({ id }: Props) => {
         }
 
         try {
-            const data = await fetchPublishItem(id);
+            const data = await fetchCreateItem(id);
 
             toast.success("商品を出品しました");
             await sleep(1500);
@@ -42,6 +43,31 @@ export const UploadButton = ({ id }: Props) => {
             alert("システムエラーが発生しました。時間をおいて再試行してください");
         }
     };
+
+    const edit = async () => {
+        if (!check) {
+            alert("利用規約に同意し、チェックしてください");
+            return;
+        }
+
+        try {
+            const data = await fetchEditItem(id);
+
+            toast.success("商品情報を更新しました");
+            await sleep(1500);
+
+            router.push(`/item/${data.itemId}`);
+        } catch (err) {
+            if (err instanceof ApiError) {
+                toast.error("サーバーエラーが発生しました。通信状況を確認し、もう一度ボタンをクリックしてください");
+                return;
+            }
+
+            alert("システムエラーが発生しました。時間をおいて再試行してください");
+        }
+    };
+
+    const fetch = page === "normal" ? upload : edit;
 
     return (
         <>
@@ -199,7 +225,7 @@ export const UploadButton = ({ id }: Props) => {
                             <p className={styles.checkText}>この商品は利用規約を遵守しております。</p>
                         </label>
 
-                        <button type="button" className={styles.popupButton} onClick={upload}>
+                        <button type="button" className={styles.popupButton} onClick={fetch}>
                             出品する
                         </button>
                     </div>
