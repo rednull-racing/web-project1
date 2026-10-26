@@ -1021,3 +1021,9 @@
 - sessionMiddlewareをnode:cryptoのrandomUUIDへ置換し、不要な@types/uuid・ambient宣言を削除。
 - Cookie引継ぎ/属性を維持し、既存APIテストのsessionモックを除去。単体/HTTP回帰80件成功。
 - lint・本番/テスト型検査・変更test TS追加lint成功。Todoをdoneへ移動し設計/レポートを記録。
+## 20261026_documents_確認下書きページのID互換性調査
+
+- confirm系のitemEditingId、draftのitemDraftId利用をページ・共有部品・API・Modelから静的調査。
+- 表示用レスポンスの整形とAPI更新で共有部品は再利用可能。権限不一致時の遷移・編集導線は画面側の修正も必要。
+- nullable値・保存日時・動画/セール/配送の平坦カラムと入れ子レスポンスの差異を確認。
+- API・コンポーネントは未変更。調査のみのためテスト・lint・型検査は未実行。
