@@ -39,7 +39,7 @@ export default async function Page({ params }: Props) {
     const sellerId = String(item.seller_id).trim();
 
     if (userId !== sellerId) {
-        redirect(`/item/${id}`);
+        redirect("/");
     }
 
     return <ItemPage id={id} item={item} page="confirm" sellerMe loggedIn userId={userId || ""} confirmPage="edit" />;
