@@ -1,3 +1,18 @@
+.dateFlex {
+    display: flex;
+    align-items: center;
+}
+.countNumber {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--h-color);
+}
+.countText {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+}
+
 .editButton {
     display: flex;
     align-items: center;
@@ -18,4 +33,100 @@
 .editButton:hover {
     background-color: var(--action-hover);
     transform: translateY(1px);
+}
+
+.deleteText {
+    margin-top: 2.5rem;
+    margin-bottom: 150px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    cursor: pointer;
+}
+.deleteText:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--overlay);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    z-index: 4000;
+}
+
+.popup {
+    position: fixed;
+    width: calc(100% - 2rem);
+    max-width: 380px;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--background);
+    border-radius: 14px;
+    z-index: 5000;
+    padding: 1.5rem 1.25rem;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.x {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 28px;
+    height: 28px;
+    padding: 4px;
+    color: var(--gray-50);
+    cursor: pointer;
+    border-radius: 50%;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.1s ease;
+}
+.x:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--theme);
+}
+.x:active {
+    transform: scale(0.92);
+}
+
+.popupTitle {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin: 1em 0;
+}
+
+.popupButton {
+    display: block;
+    margin: 1.5rem auto;
+    width: 150px;
+    height: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.04em;
+    background-color: var(--action);
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+.popupButton:hover {
+    background-color: var(--action-hover);
+    transform: translateY(1px);
+}
+
+.text13 {
+    font-size: 13px;
 }

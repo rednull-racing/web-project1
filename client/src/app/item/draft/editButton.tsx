@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { fetchEditDraftItem } from "../api/draft";
+import { fetchEditDraftItem } from "./api/client";
 import styles from "./draft.module.css";
 
 type Props = {

@@ -59,6 +59,7 @@ export type User = {
 export type ItemEditing = {
     id: string;
     status: "normal" | "edit";
+    item_id: number;
     seller_id: number;
     name: string;
     detail: string | null;

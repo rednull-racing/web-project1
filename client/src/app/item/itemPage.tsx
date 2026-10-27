@@ -44,7 +44,7 @@ export const ItemPage = ({
     loggedIn,
     me,
 }: Props) => {
-    if (!["normal", "admin", "draft", "confirm", "deleted"].includes(page)) {
+    if (!["normal", "admin", "draft", "deleted"].includes(page)) {
         console.error("ページ信号が正しくありません。page：", page);
         return;
     }

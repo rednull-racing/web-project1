@@ -2,8 +2,9 @@ import { authOptions } from "@/lib/auth";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { fetchItemMetadata, fetchItemPageSeller } from "../../api/server";
-import { ItemPage } from "../../itemPage";
+import { fetchItemMetadata } from "../../api/server";
+import { fetchItemDraftPage } from "../api/server";
+import { ItemDraftPage } from "../itemDraftPage";
 
 type Props = {
     params: { id: string };
@@ -32,15 +33,14 @@ export default async function Page({ params }: Props) {
 
     if (!session) redirect("/login");
 
-    const data = await fetchItemPageSeller(id, "draft");
-    const item = data.item;
+    const data = await fetchItemDraftPage(id);
 
     const userId = String(session?.user?.id).trim();
-    const sellerId = String(item.seller_id).trim();
+    const sellerId = String(data.itemDraft.seller_id).trim();
 
     if (userId !== sellerId) {
         redirect("/");
     }
 
-    return <ItemPage id={id} item={item} page="draft" sellerMe loggedIn userId={userId || ""} />;
+    return <ItemDraftPage id={id} itemDraft={data.itemDraft} />;
 }
