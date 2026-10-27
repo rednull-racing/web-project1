@@ -58,32 +58,32 @@ export type User = {
 
 export type ItemDraft = {
     id: string;
-    seller_id: number;
-    name: string;
+    seller_id: number | null;
+    name: string | null;
     detail: string | null;
-    price: number;
-    image_url: string[];
-    first_image_url: string;
+    price: number | null;
+    image_url: string[] | null;
+    first_image_url: string | null;
     gender_type: "men" | "women" | "unisex";
     age_type: "adult" | "kids" | "both";
-    recommend: boolean;
+    recommend: boolean | null;
     attributes: ItemAttributes;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
     ItemConditionOption?: ItemConditionOption;
     User?: User;
     Category?: Categories;
     Brand?: Brand;
 
-    thumbnail_url: string;
-    title: string;
+    thumbnail_url: string | null;
+    title: string | null;
     summary: string | null;
-    duration: string | null;
-    original_url: string;
+    duration: number | null;
+    original_url: string | null;
     converted_url: string | null;
-    video_status: string;
+    video_status: string | null;
 
-    before_price: number;
+    before_price: number | null;
     discount_rate: number | null;
     discount_amount: number | null;
     sale_flag: boolean;

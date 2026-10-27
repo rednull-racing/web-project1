@@ -2,6 +2,8 @@ import CStyles from "../itemCommon.module.css";
 import { Container } from "../../../components";
 import { DeleteItemDraft } from "./delete";
 import { EditButton } from "./editButton";
+import { VideoSection } from "./videoSection";
+import { ItemSection } from "./itemSection";
 import { ItemDraft } from "./types";
 
 type Props = {
@@ -17,8 +19,8 @@ export const ItemDraftPage = ({ id, itemDraft }: Props) => {
             <EditButton id={id} />
 
             <main className={CStyles.main2column}>
-                {/* videoSection */}
-                {/* itemSection */}
+                <VideoSection itemDraft={itemDraft} soldout={soldout} />
+                <ItemSection itemDraft={itemDraft} soldout={soldout} />
             </main>
 
             <EditButton id={id} />
