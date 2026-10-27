@@ -42,5 +42,5 @@ export default async function Page({ params }: Props) {
         redirect("/");
     }
 
-    return <ItemConfirmPage id={id} itemEditing={data.itemEditing} page="normal" />;
+    return <ItemConfirmPage id={id} itemEditing={data.itemEditing} page="edit" />;
 }
