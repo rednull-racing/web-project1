@@ -12,6 +12,8 @@
 
 出品中商品の更新する商品情報を確認する。
 
+---
+
 ## 各コンポーネント役割
 
 ### コンポーネント構成図
@@ -164,3 +166,39 @@ flowchart TD
     - 発送までの日数
     - （在庫）
     - （素材）
+
+### 出品確認ポップアップ
+
+---
+
+## API
+
+### SSR getApi（itemEditingデータ取得）
+
+### CSR 商品作成・更新API
+
+---
+
+## デザイン・CSS
+
+### confirmページ専用CSS
+
+- item/confirm/confirm.module.css
+
+/confirmで使用する際のインポート参考
+
+```ts
+import styles from "./confirm.module.css"
+```
+
+### itemページ共通CSS
+
+- item/itemCommon.module.css
+
+/confirmで使用する際のインポート参考
+
+```ts
+import CStyles from "../itemCommon.module.css"
+```
+
+
