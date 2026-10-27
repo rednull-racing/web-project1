@@ -5,6 +5,21 @@
     text-align: center;
 }
 
+.dateFlex {
+    display: flex;
+    align-items: center;
+}
+.countNumber {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--h-color);
+}
+.countText {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+}
+
 .uploadButton {
     margin: 3rem auto 0;
     display: block;

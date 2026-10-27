@@ -3,33 +3,36 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchItemSortAdd } from "../api/itemSection";
 import styles from "../itemCommon.module.css";
-import { Item } from "../itemPageTypes";
 
 type Props = {
-    id: string;
-    item: Item;
+    data: {
+        itemId: string | null;
+        summary: string;
+        soldout: boolean;
+    };
     sellerMe?: boolean;
     page: "normal" | "admin" | "draft" | "confirm" | "deleted";
 };
 
-export const Summary = ({ id, item, sellerMe, page }: Props) => {
+export const Summary = ({ data, sellerMe, page }: Props) => {
     const [expanded, setExpanded] = useState(false);
     const [overflowing, setOverflowing] = useState(false);
+    const [summaryHeight, setSummaryHeight] = useState(0);
     const summaryRef = useRef<HTMLParagraphElement>(null);
-    const summaryText = item.Video?.summary || "";
 
     useEffect(() => {
         const el = summaryRef.current;
         if (el) {
+            setSummaryHeight(el.scrollHeight);
             setOverflowing(el.scrollHeight > el.clientHeight);
         }
-    }, [summaryText]);
+    }, [data.summary]);
 
     const expand = async () => {
         setExpanded(!expanded);
-        if (item.status === "soldout" || expanded || sellerMe || page !== "normal") return;
+        if (data.soldout || !data.itemId || expanded || sellerMe || page !== "normal") return;
 
-        fetchItemSortAdd(id, 5);
+        fetchItemSortAdd(data.itemId, 5);
     };
 
     return (
@@ -40,11 +43,11 @@ export const Summary = ({ id, item, sellerMe, page }: Props) => {
                     ref={summaryRef}
                     className={`${styles.summary} ${!expanded ? styles.clamp : ""}`}
                     style={{
-                        maxHeight: expanded ? summaryRef.current?.scrollHeight : "calc(1.75em * 2)",
+                        maxHeight: expanded ? `${summaryHeight}px` : "calc(1.75em * 2)",
                         transition: "max-height 0.3s ease",
                     }}
                 >
-                    {summaryText}
+                    {data.summary}
                 </p>
                 {overflowing && (
                     <button type="button" onClick={expand} className={styles.moreButton}>

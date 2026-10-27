@@ -2,19 +2,19 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Item } from "../itemPageTypes";
+import { ItemAttributes } from "../../../types/itemAttributes";
 import styles from "./variants.module.css";
 
 type Props = {
-    item: Item;
+    itemAttributes: ItemAttributes;
 };
 
-export const VariantsList = ({ item }: Props) => {
+export const VariantsList = ({ itemAttributes }: Props) => {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
         <section className={styles.variantList}>
-            {item.attributes.colorVariants?.map((variant, i) => {
+            {itemAttributes.colorVariants?.map((variant, i) => {
                 if (!variant) return null;
                 const initialInventory = variant.inventory?.initial ?? 0;
                 const currentInventory = variant.inventory?.current ?? 0;

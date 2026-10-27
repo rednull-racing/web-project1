@@ -3,23 +3,27 @@
 import Hls from "hls.js";
 import { useEffect, useRef } from "react";
 import { fetchOnPlay } from "../api/video";
-import { Item } from "../itemPageTypes";
 import styles from "./video.module.css";
 
 type Props = {
-    item: Item;
     sellerMe?: boolean;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
+    normalPage: boolean;
+    data: {
+        videoId?: string;
+        thumbnailUrl: string;
+        convertedUrl: string | null;
+        originalUrl: string;
+    };
 };
 
-export const VideoElem = ({ item, sellerMe, page }: Props) => {
+export const VideoElem = ({ sellerMe, normalPage, data }: Props) => {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         const videoEl = videoRef.current;
         if (!videoEl) return;
 
-        const url = item.Video?.converted_url ?? item.Video?.original_url;
+        const url = data.convertedUrl ?? data.originalUrl;
         if (!url) return;
 
         let hls: Hls | null = null;
@@ -35,21 +39,21 @@ export const VideoElem = ({ item, sellerMe, page }: Props) => {
         return () => {
             if (hls) hls.destroy();
         };
-    }, [item.Video]);
+    }, [data]);
 
     const playCount = async () => {
-        if (sellerMe || page !== "normal" || !item.Video?.id) return;
+        if (sellerMe || !normalPage || !data.videoId) return;
 
-        fetchOnPlay(item.Video.id);
+        fetchOnPlay(data.videoId);
     };
 
     return (
         <>
-            {item.Video?.converted_url || item.Video?.original_url ? (
+            {data.convertedUrl || data.originalUrl ? (
                 <video
                     ref={videoRef}
                     controls
-                    poster={item.Video.thumbnail_url ?? "/no-image(16x9).png"}
+                    poster={data.thumbnailUrl ?? "/no-image(16x9).png"}
                     playsInline
                     onPlay={playCount}
                     className={styles.videoPlayer}

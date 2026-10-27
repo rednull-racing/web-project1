@@ -1,13 +1,19 @@
-import { Item } from "../itemPageTypes";
+import { ItemAttributes } from "../../../types/itemAttributes";
 import styles from "./item.module.css";
 
 type Props = {
-    item: Item;
+    data: {
+        itemAttributes: ItemAttributes;
+        condition: string;
+        shippingService: string;
+        shippingPlace: string;
+        shippingDay: string;
+    };
 };
 
-export const DeliverySection = ({ item }: Props) => {
-    const inventory = item.attributes.inventory;
-    const materials = item.attributes.materials;
+export const DeliverySection = ({ data }: Props) => {
+    const inventory = data.itemAttributes.inventory;
+    const materials = data.itemAttributes.materials;
     const materialTotalRatio = materials?.reduce((sum, m) => sum + (m.ratio ?? 0), 0);
 
     return (
@@ -16,22 +22,22 @@ export const DeliverySection = ({ item }: Props) => {
 
             <div className={styles.infoRow}>
                 <span className={styles.label}>商品の状態</span>
-                <span className={styles.value}>{item.ItemConditionOption?.name}</span>
+                <span className={styles.value}>{data.condition}</span>
             </div>
 
             <div className={styles.infoRow}>
                 <span className={styles.label}>配送の方法</span>
-                <span className={styles.value}>{item.ItemShippingProfile?.ShippingServiceOption?.name}</span>
+                <span className={styles.value}>{data.shippingService}</span>
             </div>
 
             <div className={styles.infoRow}>
                 <span className={styles.label}>発送元地域</span>
-                <span className={styles.value}>{item.ItemShippingProfile?.TodouhukenOption?.name}</span>
+                <span className={styles.value}>{data.shippingPlace}</span>
             </div>
 
             <div className={styles.infoRow}>
                 <span className={styles.label}>発送までの日数</span>
-                <span className={styles.value}>{item.ItemShippingProfile?.ShippingDayOption?.name}</span>
+                <span className={styles.value}>{data.shippingDay}</span>
             </div>
 
             {inventory && inventory.initial >= 2 && (

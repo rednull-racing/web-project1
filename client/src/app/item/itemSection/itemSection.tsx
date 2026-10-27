@@ -23,12 +23,40 @@ export const ItemSection = ({ id, item, sellerMe, page, loggedIn }: Props) => {
     return (
         <section className={styles.itemSection}>
             <Slideshow images={item.image_url} />
-            <ItemHeader item={item} page={page} />
+            <ItemHeader
+                data={{
+                    itemName: item.name,
+                    price: item.price,
+                    genderType: item.gender_type,
+                    ageType: item.age_type,
+                    recommend: item.recommend,
+                    soldout: item.status === "soldout",
+                    saleFlag: item.Sale?.sale_flag ?? false,
+                    beforePrice: item.Sale?.before_price ?? item.price,
+                    discountRate: item.Sale?.discount_rate ?? 0,
+                    discountAmount: item.Sale?.discount_amount ?? 0,
+                }}
+                page={page}
+            />
             {!sellerMe && page === "normal" && !(status === "soldout") && <BuySection id={id} loggedIn={loggedIn} />}
-            {variants && variants.length > 0 && <VariantsList item={item} />}
-            <Detail id={id} item={item} sellerMe={sellerMe} page={page} />
-            <CategoryText item={item} />
-            {!(status === "soldout") && <DeliverySection item={item} />}
+            {variants && variants.length > 0 && <VariantsList itemAttributes={item.attributes} />}
+            <Detail
+                data={{ itemId: id, detail: item.detail, soldout: item.status === "soldout" }}
+                sellerMe={sellerMe}
+                page={page}
+            />
+            <CategoryText categoryName={item.Category?.name ?? ""} />
+            {status !== "soldout" && (
+                <DeliverySection
+                    data={{
+                        itemAttributes: item.attributes,
+                        condition: item.ItemConditionOption?.name ?? "-",
+                        shippingService: item.ItemShippingProfile?.ShippingServiceOption?.name ?? "-",
+                        shippingPlace: item.ItemShippingProfile?.TodouhukenOption?.name ?? "-",
+                        shippingDay: item.ItemShippingProfile?.ShippingDayOption?.name ?? "-",
+                    }}
+                />
+            )}
         </section>
     );
 };

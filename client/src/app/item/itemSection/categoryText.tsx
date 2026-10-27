@@ -1,16 +1,15 @@
 import CStyles from "../itemCommon.module.css";
-import { Item } from "../itemPageTypes";
 import styles from "./item.module.css";
 
 type Props = {
-    item: Item;
+    categoryName: string;
 };
 
-export const CategoryText = ({ item }: Props) => {
+export const CategoryText = ({ categoryName }: Props) => {
     return (
         <>
             <p className={CStyles.semiTitle}>カテゴリー</p>
-            <p className={styles.categoryText}>{item.Category?.name}</p>
+            <p className={styles.categoryText}>{categoryName}</p>
         </>
     );
 };

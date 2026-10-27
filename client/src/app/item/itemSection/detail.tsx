@@ -3,33 +3,36 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchItemSortAdd } from "../api/itemSection";
 import styles from "../itemCommon.module.css";
-import { Item } from "../itemPageTypes";
 
 type Props = {
-    id: string;
-    item: Item;
+    data: {
+        itemId: string | null;
+        detail: string;
+        soldout: boolean;
+    };
     sellerMe?: boolean;
     page: "normal" | "admin" | "draft" | "confirm" | "deleted";
 };
 
-export const Detail = ({ id, item, sellerMe, page }: Props) => {
+export const Detail = ({ data, sellerMe, page }: Props) => {
     const [expanded, setExpanded] = useState(false);
     const [overflowing, setoverflowing] = useState(false);
+    const [detailHeight, setDetailHeight] = useState(0);
     const detailRef = useRef<HTMLParagraphElement>(null);
-    const detailText = item.detail;
 
     useEffect(() => {
         const el = detailRef.current;
         if (el) {
             setoverflowing(el.scrollHeight > el.clientHeight);
+            setDetailHeight(el.scrollHeight);
         }
-    }, [detailText]);
+    }, [data.detail]);
 
     const expand = async () => {
         setExpanded(!expanded);
-        if (item.status === "soldout" || expanded || sellerMe || page !== "normal") return;
+        if (data.soldout || !data.itemId || expanded || sellerMe || page !== "normal") return;
 
-        fetchItemSortAdd(id, 5);
+        fetchItemSortAdd(data.itemId, 5);
     };
 
     return (
@@ -40,11 +43,11 @@ export const Detail = ({ id, item, sellerMe, page }: Props) => {
                     ref={detailRef}
                     className={`${styles.summary} ${!expanded ? styles.clamp : ""}`}
                     style={{
-                        maxHeight: expanded ? detailRef.current?.scrollHeight : "calc(1.75em * 2)",
+                        maxHeight: expanded ? detailHeight : "calc(1.75em * 2)",
                         transition: "max-height 0.3s ease",
                     }}
                 >
-                    {detailText}
+                    {data.detail}
                 </p>
                 {overflowing && (
                     <button type="button" onClick={expand} className={styles.moreButton}>

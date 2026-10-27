@@ -1,14 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { Item } from "../itemPageTypes";
 import styles from "./peek.module.css";
 
 type Props = {
-    item: Item;
+    data: {
+        itemName: string;
+        price: number | string;
+        firstImageUrl: string;
+        genderType: "men" | "women" | "unisex";
+        ageType: "adult" | "kids" | "both";
+        soldout: boolean;
+    };
 };
 
-export const ItemPeek = ({ item }: Props) => {
+export const ItemPeek = ({ data }: Props) => {
     const handleScroll = () => {
         const target = document.getElementById("itemName");
         target?.scrollIntoView({
@@ -20,20 +26,20 @@ export const ItemPeek = ({ item }: Props) => {
     return (
         <section className={styles.itemPeek} onClick={handleScroll} role="button" aria-label="商品説明へスクロール">
             <div className={styles.imageName}>
-                <Image src={item.first_image_url} alt="商品画像1枚目" width={45} height={45} className={styles.image} />
+                <Image src={data.firstImageUrl} alt="商品画像1枚目" width={45} height={45} className={styles.image} />
 
                 <div className={styles.nameType}>
-                    <p className={styles.name}>{item.name}</p>
+                    <p className={styles.name}>{data.itemName}</p>
 
-                    {(["men", "women", "unisex"].includes(item.gender_type) || item.age_type === "kids") && (
+                    {(["men", "women", "unisex"].includes(data.genderType) || data.ageType === "kids") && (
                         <div className={styles.typeRow}>
-                            {item.gender_type === "men" && <span className={styles.typeText}>メンズ</span>}
-                            {item.gender_type === "women" && <span className={styles.typeText}>レディース</span>}
-                            {item.gender_type === "unisex" && <span className={styles.typeText}>ユニセックス</span>}
+                            {data.genderType === "men" && <span className={styles.typeText}>メンズ</span>}
+                            {data.genderType === "women" && <span className={styles.typeText}>レディース</span>}
+                            {data.genderType === "unisex" && <span className={styles.typeText}>ユニセックス</span>}
 
-                            {item.age_type === "kids" && (
+                            {data.ageType === "kids" && (
                                 <>
-                                    {["men", "women", "unisex"].includes(item.gender_type) && (
+                                    {["men", "women", "unisex"].includes(data.genderType) && (
                                         <span className={styles.typeText}>/</span>
                                     )}
                                     <span className={styles.typeText}>キッズ</span>
@@ -46,9 +52,9 @@ export const ItemPeek = ({ item }: Props) => {
 
             <p
                 className={`${styles.price}
-            ${item.status === "soldout" ? `${styles.sold}` : ""}`}
+            ${data.soldout ? `${styles.sold}` : ""}`}
             >
-                {item.status === "soldout" ? "SOLD OUT" : `￥${item.price.toLocaleString()}`}
+                {data.soldout ? "SOLD OUT" : `￥${data.price.toLocaleString()}`}
             </p>
         </section>
     );

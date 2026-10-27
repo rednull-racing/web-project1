@@ -69,7 +69,7 @@ export const ItemPage = ({
 
             <Container header={page === "normal"}>
                 {page === "deleted" && <Restore id={id} item={item} />}
-                {page === "confirm" && <Title />}
+                {page === "confirm" && confirmPage && <Title page={confirmPage} />}
                 {page === "draft" && <EditButton id={id} />}
                 {page === "admin" && <DeleteButton id={id} item={item} />}
                 {["normal", "admin", "draft"].includes(page) && <Back />}

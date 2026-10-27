@@ -8,7 +8,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ApiError } from "../../../lib/api/apiError";
 import { sleep } from "../../../lib/sleep";
-import { fetchCreateItem, fetchEditItem } from "../api/confirm";
+import { fetchCreateItem, fetchEditItem } from "./api/client";
 import styles from "./confirm.module.css";
 
 type Props = {

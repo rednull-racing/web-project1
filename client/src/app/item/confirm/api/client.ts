@@ -1,4 +1,4 @@
-import { apiFetch } from "../../../lib/api/client";
+import { apiFetch } from "../../../../lib/api/client";
 
 export const fetchCreateItem = async (itemEditingId: string): Promise<{ itemId: number }> => {
     return apiFetch("/items", {
