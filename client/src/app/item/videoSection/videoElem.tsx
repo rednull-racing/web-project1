@@ -7,7 +7,7 @@ import styles from "./video.module.css";
 
 type Props = {
     sellerMe?: boolean;
-    normalPage: boolean;
+    normalPage?: boolean;
     data: {
         videoId?: string;
         thumbnailUrl: string;

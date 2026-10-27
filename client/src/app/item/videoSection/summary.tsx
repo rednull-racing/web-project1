@@ -11,10 +11,10 @@ type Props = {
         soldout: boolean;
     };
     sellerMe?: boolean;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
+    normalPage?: boolean;
 };
 
-export const Summary = ({ data, sellerMe, page }: Props) => {
+export const Summary = ({ data, sellerMe, normalPage }: Props) => {
     const [expanded, setExpanded] = useState(false);
     const [overflowing, setOverflowing] = useState(false);
     const [summaryHeight, setSummaryHeight] = useState(0);
@@ -30,7 +30,7 @@ export const Summary = ({ data, sellerMe, page }: Props) => {
 
     const expand = async () => {
         setExpanded(!expanded);
-        if (data.soldout || !data.itemId || expanded || sellerMe || page !== "normal") return;
+        if (data.soldout || !data.itemId || expanded || sellerMe || !normalPage) return;
 
         fetchItemSortAdd(data.itemId, 5);
     };

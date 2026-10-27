@@ -1,6 +1,5 @@
-import { faFire } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "./item.module.css";
+import { ItemName } from "./itemName";
 
 type Props = {
     data: {
@@ -21,12 +20,13 @@ type Props = {
 export const ItemHeader = ({ data, page }: Props) => {
     return (
         <div className={styles.itemHeader}>
-            <div id="itemName" className={styles.itemNameDiv}>
-                <h1 className={styles.itemName}>{data.itemName}</h1>
-                {data.recommend && ["normal", "admin"].includes(page) && (
-                    <FontAwesomeIcon icon={faFire} className={styles.recommendFire} />
-                )}
-            </div>
+            <ItemName
+                data={{
+                    itemName: data.itemName,
+                    recommend: data.recommend,
+                }}
+                page={page}
+            />
 
             <div className={styles.priceBlock}>
                 {data.soldout ? (

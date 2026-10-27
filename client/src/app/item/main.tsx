@@ -8,7 +8,7 @@ type Props = {
     id: string;
     item: Item;
     sellerMe?: boolean;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
+    page: "normal" | "admin" | "draft" | "deleted";
     likeCount?: number;
     isLike?: boolean;
     reportCount?: number;

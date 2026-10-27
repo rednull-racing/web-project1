@@ -14,7 +14,7 @@ type Props = {
     sellerMe?: boolean;
     likeCount?: number;
     isLike?: boolean;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
+    page: "normal" | "admin" | "draft" | "deleted";
     reportCount?: number;
     userId: string | null;
     loggedIn: boolean;
@@ -57,7 +57,7 @@ export const VideoSection = ({ id, item, sellerMe, likeCount, isLike, page, repo
             <Summary
                 data={{ itemId: id, summary: item.Video.summary, soldout: item.status === "soldout" }}
                 sellerMe={sellerMe}
-                page={page}
+                normalPage={page === "normal"}
             />
             {["normal", "admin"].includes(page) && (
                 <>

@@ -5,8 +5,6 @@ import { Items } from "@/types/itemListTypes";
 import Link from "next/link";
 import { DeleteButton } from "./admin/deleteButton";
 import { CommentSection } from "./commentSection/commentSection";
-import { Title } from "./confirm/title";
-import { UploadButton } from "./confirm/uploadButton";
 import { PerfectDelete } from "./deleted/perfectDelete";
 import { Restore } from "./deleted/restore";
 import { EditButton } from "./draft/editButton";
@@ -22,7 +20,7 @@ type Props = {
     item: Item;
     itemList?: Items[];
     sellerMe?: boolean;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
+    page: "normal" | "admin" | "draft" | "deleted";
     commentCount?: number;
     likeCount?: number;
     isLike?: boolean;
@@ -30,7 +28,6 @@ type Props = {
     userId: string | null;
     loggedIn: boolean;
     me?: User | null;
-    confirmPage?: "normal" | "edit";
 };
 
 export const ItemPage = ({
@@ -46,7 +43,6 @@ export const ItemPage = ({
     userId,
     loggedIn,
     me,
-    confirmPage,
 }: Props) => {
     if (!["normal", "admin", "draft", "confirm", "deleted"].includes(page)) {
         console.error("ページ信号が正しくありません。page：", page);
@@ -69,7 +65,6 @@ export const ItemPage = ({
 
             <Container header={page === "normal"}>
                 {page === "deleted" && <Restore id={id} item={item} />}
-                {page === "confirm" && confirmPage && <Title page={confirmPage} />}
                 {page === "draft" && <EditButton id={id} />}
                 {page === "admin" && <DeleteButton id={id} item={item} />}
                 {["normal", "admin", "draft"].includes(page) && <Back />}
@@ -113,7 +108,6 @@ export const ItemPage = ({
                         <DeleteItem id={id} page={page} />
                     </>
                 )}
-                {page === "confirm" && confirmPage && <UploadButton id={id} page={confirmPage} />}
                 {page === "deleted" && (
                     <>
                         <Restore id={id} item={item} />

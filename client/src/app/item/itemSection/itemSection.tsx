@@ -43,7 +43,7 @@ export const ItemSection = ({ id, item, sellerMe, page, loggedIn }: Props) => {
             <Detail
                 data={{ itemId: id, detail: item.detail, soldout: item.status === "soldout" }}
                 sellerMe={sellerMe}
-                page={page}
+                normalPage={page === "normal"}
             />
             <CategoryText categoryName={item.Category?.name ?? ""} />
             {status !== "soldout" && (

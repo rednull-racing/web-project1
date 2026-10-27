@@ -16,8 +16,6 @@ export const VideoSection = ({ itemEditing, soldout }: Props) => {
     return (
         <section className={CStyles.videoSection}>
             <VideoElem
-                sellerMe={false}
-                normalPage={false}
                 data={{
                     thumbnailUrl: itemEditing.thumbnail_url,
                     originalUrl: itemEditing.original_url,
@@ -45,8 +43,6 @@ export const VideoSection = ({ itemEditing, soldout }: Props) => {
                     summary: itemEditing.summary ?? "",
                     soldout,
                 }}
-                sellerMe={false}
-                page="confirm"
             />
         </section>
     );

@@ -9,7 +9,7 @@ type Props = {
     sellerMe?: boolean;
     likeCount?: number;
     isLike?: boolean;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
+    page: "normal" | "admin" | "draft" | "deleted";
     loggedIn: boolean;
 };
 
@@ -41,7 +41,7 @@ export const CountElem = ({ id, item, sellerMe, likeCount, isLike, page, loggedI
                 </>
             )}
 
-            {["draft", "confirm"].includes(page) && (
+            {page === "draft" && (
                 <div className={styles.dateFlex}>
                     <p className={styles.countText}>保存日時：</p>
                     <p className={styles.countNumber}>{formatRelativeTime(item.save_at)}</p>

@@ -35,9 +35,11 @@ export const ItemSection = ({ itemEditing, soldout }: Props) => {
             />
             {variants && variants.length > 0 && <VariantsList itemAttributes={itemEditing.attributes} />}
             <Detail
-                data={{ itemId: null, detail: itemEditing.detail ?? "", soldout }}
-                sellerMe={false}
-                page="confirm"
+                data={{
+                    itemId: null,
+                    detail: itemEditing.detail ?? "",
+                    soldout,
+                }}
             />
             <CategoryText categoryName={itemEditing.Category?.name ?? ""} />
             <DeliverySection
