@@ -7,12 +7,10 @@ import { DeleteButton } from "./admin/deleteButton";
 import { CommentSection } from "./commentSection/commentSection";
 import { PerfectDelete } from "./deleted/perfectDelete";
 import { Restore } from "./deleted/restore";
-import { EditButton } from "./draft/editButton";
 import styles from "./itemCommon.module.css";
 import { ItemListSection } from "./itemListSection";
 import { Item, User } from "./itemPageTypes";
 import { Main } from "./main";
-import { DeleteItem } from "./sellerSection/deleteItem";
 import { SellerSectionBottom } from "./sellerSection/sellerSectionBottom";
 
 type Props = {
@@ -20,7 +18,7 @@ type Props = {
     item: Item;
     itemList?: Items[];
     sellerMe?: boolean;
-    page: "normal" | "admin" | "draft" | "deleted";
+    page: "normal" | "admin" | "deleted";
     commentCount?: number;
     likeCount?: number;
     isLike?: boolean;
@@ -65,7 +63,6 @@ export const ItemPage = ({
 
             <Container header={page === "normal"}>
                 {page === "deleted" && <Restore id={id} item={item} />}
-                {page === "draft" && <EditButton id={id} />}
                 {page === "admin" && <DeleteButton id={id} item={item} />}
                 {["normal", "admin", "draft"].includes(page) && <Back />}
 
@@ -98,14 +95,7 @@ export const ItemPage = ({
                             item={item}
                             me={me ?? null}
                         />
-                        {sellerMe && page === "normal" && <SellerSectionBottom id={id} item={item} page={page} />}
-                    </>
-                )}
-
-                {page === "draft" && (
-                    <>
-                        <EditButton id={id} />
-                        <DeleteItem id={id} page={page} />
+                        {sellerMe && page === "normal" && <SellerSectionBottom id={id} item={item} />}
                     </>
                 )}
                 {page === "deleted" && (

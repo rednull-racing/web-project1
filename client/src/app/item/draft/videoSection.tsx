@@ -29,9 +29,7 @@ export const VideoSection = ({ itemDraft, soldout }: Props) => {
                     itemName: itemDraft.name || "商品名未入力",
                     price: itemDraft.price ?? "-",
                     firstImageUrl:
-                        itemDraft.first_image_url ||
-                        itemDraft.image_url?.find((url) => url) ||
-                        "/no-image(1x1).png",
+                        itemDraft.first_image_url || itemDraft.image_url?.find((url) => url) || "/no-image(1x1).png",
                     genderType: itemDraft.gender_type,
                     ageType: itemDraft.age_type,
                     soldout,

@@ -12,7 +12,7 @@ type Props = {
     id: string;
     item: Item;
     sellerMe?: boolean;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
+    page: "normal" | "admin" | "deleted";
     loggedIn: boolean;
 };
 

@@ -14,7 +14,7 @@ type Props = {
     sellerMe?: boolean;
     likeCount?: number;
     isLike?: boolean;
-    page: "normal" | "admin" | "draft" | "deleted";
+    page: "normal" | "admin" | "deleted";
     reportCount?: number;
     userId: string | null;
     loggedIn: boolean;

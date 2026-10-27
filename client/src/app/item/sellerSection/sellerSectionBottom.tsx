@@ -7,15 +7,14 @@ import { UploadButton } from "./uploadButton";
 type Props = {
     id: string;
     item: Item;
-    page: "normal" | "admin" | "draft" | "confirm" | "deleted";
 };
 
-export const SellerSectionBottom = ({ id, item, page }: Props) => {
+export const SellerSectionBottom = ({ id, item }: Props) => {
     return (
         <nav className={styles.sellerSectionBottom}>
             <UploadButton id={id} />
             <SaleButton item={item} />
-            <DeleteItem id={id} page={page} />
+            <DeleteItem id={id} />
         </nav>
     );
 };
