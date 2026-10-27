@@ -162,22 +162,17 @@ describe("P0 正常コピー・全引渡し項目", () => {
             expect(data().first_image_url).toBe(item.first_image_url);
         },
     );
-    it.each(["normal", "edit"] as const)("N10 QSTATUS04: 元ID・日時・関連IDを含めず指定状態%sを保存する", async (status) => {
-        await run(status);
-        expect(data().status).toBe(status);
-        for (const key of [
-            "id",
-            "createdAt",
-            "updatedAt",
-            "video_id",
-            "sale_id",
-            "shipping_id",
-            "views_count",
-        ]) {
-            expect(data()).not.toHaveProperty(key);
-        }
-        expect(data()).toEqual({ ...expectedData(), status, item_id: status === "edit" ? 101 : null });
-    });
+    it.each(["normal", "edit"] as const)(
+        "N10 QSTATUS04: 元ID・日時・関連IDを含めず指定状態%sを保存する",
+        async (status) => {
+            await run(status);
+            expect(data().status).toBe(status);
+            for (const key of ["id", "createdAt", "updatedAt", "video_id", "sale_id", "shipping_id", "views_count"]) {
+                expect(data()).not.toHaveProperty(key);
+            }
+            expect(data()).toEqual({ ...expectedData(), status, item_id: status === "edit" ? 101 : null });
+        },
+    );
     describe.each([null, "", "processing", "ready"])("N11: video_status=%s", (status) => {
         it.each([null, "https://media.test/converted"])("converted_url=%sで再変換しない", async (converted) => {
             item.Video!.status = status;

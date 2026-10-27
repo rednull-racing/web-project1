@@ -6,15 +6,15 @@
 
 [テスト設計](../../architecture/middleware/session.md)、[完了Todo](../../../../../docs/todo/done/resolve-session-uuid-runtime-dependency.md)を参照。パスはserver/基準。
 
-| ケース | ファイル | 成功 |
-| --- | --- | ---: |
-| S01〜S03 | `src/middleware/test/session.test.ts` | 5 |
-| H01〜H03 | `test/integration/usecases/middleware/session/route.test.ts` | 3 |
-| R01 | `test/integration/usecases/items/createItem/route.test.ts` | 33 |
-| R01 | `test/integration/usecases/items/createItem/registration.test.ts` | 1 |
-| R01 | `test/integration/usecases/items/updateItem/route.test.ts` | 37 |
-| R01 | `test/integration/usecases/items/updateItem/registration.test.ts` | 1 |
-| 合計 | 6ファイル | 80 |
+| ケース   | ファイル                                                          | 成功 |
+| -------- | ----------------------------------------------------------------- | ---: |
+| S01〜S03 | `src/middleware/test/session.test.ts`                             |    5 |
+| H01〜H03 | `test/integration/usecases/middleware/session/route.test.ts`      |    3 |
+| R01      | `test/integration/usecases/items/createItem/route.test.ts`        |   33 |
+| R01      | `test/integration/usecases/items/createItem/registration.test.ts` |    1 |
+| R01      | `test/integration/usecases/items/updateItem/route.test.ts`        |   37 |
+| R01      | `test/integration/usecases/items/updateItem/registration.test.ts` |    1 |
+| 合計     | 6ファイル                                                         |   80 |
 
 最終実行は全80件成功、失敗・skip/todo・未処理例外0。単体では実crypto/実middlewareと部分Request/Response、HTTPでは実Express・cookie-parser・sessionMiddlewareを使用。Cookie属性・後続要求での引継ぎ・独立要求のID差を検証した。UUIDの数学的な衝突不在は保証しない。
 

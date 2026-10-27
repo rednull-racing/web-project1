@@ -8,7 +8,9 @@ const makeApp = () => {
     const app = express();
     app.use(cookieParser());
     app.use(sessionMiddleware);
-    app.get("/session", (req, res) => { res.json({ sessionId: req.sessionId }); });
+    app.get("/session", (req, res) => {
+        res.json({ sessionId: req.sessionId });
+    });
     return app;
 };
 
@@ -32,7 +34,9 @@ describe("実cookie-parser・sessionMiddleware・HTTPの接続", () => {
         expect(second.headers["set-cookie"]).toBeUndefined();
     });
     it("H02: 既存形式のIDも書き換えず利用する", async () => {
-        const result = await request(makeApp()).get("/session").set("Cookie", "session_id=existing-session; other=ignored");
+        const result = await request(makeApp())
+            .get("/session")
+            .set("Cookie", "session_id=existing-session; other=ignored");
         expect(result.status).toBe(200);
         expect(result.body).toEqual({ sessionId: "existing-session" });
         expect(result.headers["set-cookie"]).toBeUndefined();
@@ -41,7 +45,8 @@ describe("実cookie-parser・sessionMiddleware・HTTPの接続", () => {
         const app = makeApp();
         const first = await request(app).get("/session");
         const second = await request(app).get("/session");
-        expect(first.status).toBe(200); expect(second.status).toBe(200);
+        expect(first.status).toBe(200);
+        expect(second.status).toBe(200);
         expect(first.body.sessionId).not.toBe(second.body.sessionId);
     });
 });

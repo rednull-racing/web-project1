@@ -95,15 +95,22 @@ beforeAll(async () => {
             const actual = await qi.describeTable(model.getTableName(), { logging: false });
             for (const [key, column] of Object.entries(model.getAttributes())) {
                 if (!actual[key] || actual[key].allowNull !== (column.allowNull !== false && !column.primaryKey)) {
-                    throw new Error("DB_TEST_STOP: required model column/NULL differs: " + model.getTableName() + "." + key);
+                    throw new Error(
+                        "DB_TEST_STOP: required model column/NULL differs: " + model.getTableName() + "." + key,
+                    );
                 }
             }
             const table = model.getTableName();
-            if (["item", "item_editing", "item_draft", "video", "sale", "item_shipping_profile"].includes(String(table))) {
-                if (!actual.id.type.toUpperCase().includes("INTEGER")) throw new Error("DB_TEST_STOP: primary key type mismatch");
-                if (actual.attributes && actual.attributes.type.toUpperCase() !== "JSONB") throw new Error("DB_TEST_STOP: attributes type mismatch");
+            if (
+                ["item", "item_editing", "item_draft", "video", "sale", "item_shipping_profile"].includes(String(table))
+            ) {
+                if (!actual.id.type.toUpperCase().includes("INTEGER"))
+                    throw new Error("DB_TEST_STOP: primary key type mismatch");
+                if (actual.attributes && actual.attributes.type.toUpperCase() !== "JSONB")
+                    throw new Error("DB_TEST_STOP: attributes type mismatch");
                 for (const key of ["item_id", "video_id", "sale_id", "shipping_id", "seller_id"]) {
-                    if (actual[key] && !actual[key].type.toUpperCase().includes("INTEGER")) throw new Error("DB_TEST_STOP: reference type mismatch");
+                    if (actual[key] && !actual[key].type.toUpperCase().includes("INTEGER"))
+                        throw new Error("DB_TEST_STOP: reference type mismatch");
                 }
             }
         }
@@ -176,11 +183,19 @@ afterAll(async () => {
 export const seed = async () => {
     assertEnvironment();
     const prefix = "update" + randomUUID().replaceAll("-", "");
-    const owner = await User.create({ email: prefix + "@example.test", password: "unused-test-value", user_name: "SellerＡ" });
+    const owner = await User.create({
+        email: prefix + "@example.test",
+        password: "unused-test-value",
+        user_name: "SellerＡ",
+    });
     const other = await User.create({ email: prefix + "-other@example.test", password: "unused-test-value" });
     const parent = await Categories.create({
-        name: "親カタカナＡ", level: 0, path: prefix + "parent",
-        body_category: "top", lifestyle_category: "casual", layer: "middle",
+        name: "親カタカナＡ",
+        level: 0,
+        path: prefix + "parent",
+        body_category: "top",
+        lifestyle_category: "casual",
+        layer: "middle",
     });
     const category = await Categories.create({
         parent_id: parent.id,
@@ -263,17 +278,30 @@ export const seed = async () => {
         status: "edit",
         item_id: catalog.item.id,
         seller_id: owner.id,
-        name: "新商品Ａ", title: "動画Ｂ", detail: "新しい説明",
-        price: 12345, before_price: 15432,
-        category_id: category.id, brand_id: brand.id, brand_aliases_id: alias.id,
+        name: "新商品Ａ",
+        title: "動画Ｂ",
+        detail: "新しい説明",
+        price: 12345,
+        before_price: 15432,
+        category_id: category.id,
+        brand_id: brand.id,
+        brand_aliases_id: alias.id,
         item_condition_id: condition.id,
-        shipping_day_id: day.id, shipping_service_id: service.id, shipping_place_id: place.id,
+        shipping_day_id: day.id,
+        shipping_service_id: service.id,
+        shipping_place_id: place.id,
         image_url: ["https://media.test/new-2", "https://media.test/new-1"],
         first_image_url: "https://media.test/new-first",
-        original_url: "https://media.test/new-original", thumbnail_url: "https://media.test/new-thumb",
-        converted_url: "https://media.test/new-converted", summary: "新しい動画説明", duration: 87,
-        shipping_service_free_text: "新しい配送文", video_status: "processing",
-        discount_rate: 25, discount_amount: 3000, sale_flag: true,
+        original_url: "https://media.test/new-original",
+        thumbnail_url: "https://media.test/new-thumb",
+        converted_url: "https://media.test/new-converted",
+        summary: "新しい動画説明",
+        duration: 87,
+        shipping_service_free_text: "新しい配送文",
+        video_status: "processing",
+        discount_rate: 25,
+        discount_amount: 3000,
+        sale_flag: true,
         attributes: makeAttributes(),
     };
     const editing = await ItemEditing.create(data);
@@ -317,15 +345,24 @@ export const snapshot = async (table: SnapshotTable, id: number, transaction?: T
     });
     return row ?? null;
 };
-export const targetSnapshot = (f: DbFixture) => Promise.all([
-    snapshot("item", f.item.id), snapshot("video", f.video.id), snapshot("sale", f.sale.id),
-    snapshot("item_shipping_profile", f.shipping.id), snapshot("item_editing", f.editing.id),
-]);
-export const nonTargetSnapshot = (f: DbFixture) => Promise.all([
-    snapshot("item", f.otherItem.id), snapshot("video", f.otherVideo.id), snapshot("sale", f.otherSale.id),
-    snapshot("item_shipping_profile", f.otherShipping.id), snapshot("item_editing", f.existing.id),
-    snapshot("item_editing", f.otherEditing.id), snapshot("item_draft", f.draft.id),
-]);
+export const targetSnapshot = (f: DbFixture) =>
+    Promise.all([
+        snapshot("item", f.item.id),
+        snapshot("video", f.video.id),
+        snapshot("sale", f.sale.id),
+        snapshot("item_shipping_profile", f.shipping.id),
+        snapshot("item_editing", f.editing.id),
+    ]);
+export const nonTargetSnapshot = (f: DbFixture) =>
+    Promise.all([
+        snapshot("item", f.otherItem.id),
+        snapshot("video", f.otherVideo.id),
+        snapshot("sale", f.otherSale.id),
+        snapshot("item_shipping_profile", f.otherShipping.id),
+        snapshot("item_editing", f.existing.id),
+        snapshot("item_editing", f.otherEditing.id),
+        snapshot("item_draft", f.draft.id),
+    ]);
 export const expectUnlocked = async (itemId: number) => {
     await observer.transaction(async (transaction) => {
         await observer.query("SELECT id FROM item WHERE id = :id FOR UPDATE NOWAIT", {

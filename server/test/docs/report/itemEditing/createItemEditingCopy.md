@@ -17,7 +17,6 @@ npm run typecheck
 
 単体ではservice/transaction境界をモックし保存引数を確認。DB HTTPは実Routerからusecase/service/Model/PostgreSQLまで実行し、別接続SELECTでeditのコピー元ID・normalのnullを確認した。既存.env.test由来test_db設定・全接続の実DB名・スキーマ・READ COMMITTEDガード、自作ID限定cleanup・残存確認・全接続終了を含むsuiteが成功。ファイル間fixture干渉を抑えるためmaxWorkers=1とし、ケース内競合検証は維持。migration/sync/DB作成は未実行。フロント変更なし。以下は前回までの履歴。
 
-
 ## 2026-10-23 statusクエリ必須化の検証（最新）
 
 詳細設計・query schema・Router・controller・usecase・コピー用service型・fixture・テストを更新。query.statusはnormal/editのみ必須で保存値へ引き渡す。フロントのコピーはnormal、編集ボタンはeditでPOSTし、返されたitemEditingIdで各画面へ遷移する。以下は過去の実行履歴として保持する。
@@ -39,7 +38,6 @@ npm run typecheck
 - client/の変更2ファイル個別lintは成功。typecheckは古い.next/typesが削除済みupload/draftルートを参照して一度失敗し、既存next typegenで生成し直した後に成功した。全体lintは既存29エラー・36警告で失敗し、[既存Todo](../../../../../docs/todo/P3-techdebt/restore-client-lint-baseline.md)へ再確認を記録した。実ブラウザでのクリック操作は未実施。
 - 実行環境はNode 20.20.2（package指定は26系）。今回の対象テストと型検査はこの環境で実施した。
 
-
 ## 2026-10-23 旧deleted_atケース削除後の一括検証（最新）
 
 ユーザー指示により、旧item.deleted_atに依存するDB/HTTPのO05 AF-DEL01各1件と、競合AF-DEL02の論理削除commit/rollback計2件を削除した。P03〜P07/AF-DB01の残る10件（更新・soldout・所有者変更・物理削除・複合変更×commit/rollback）は維持。旧ケースの期待値緩和やskip化は行わず、本番コード・DBスキーマは変更していない。前節までの失敗・除外は過去の実行履歴であり、この結果で残件を解消した。
@@ -55,8 +53,6 @@ npm run test:run -- test/integration/database/itemEditing/createItemEditingCopy 
 - `npm run lint`・`npm run typecheck`・`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`成功。通常lint対象外の変更した結合テスト3ファイルは、既存ESLint/@eslint/js/typescript-eslint recommendedをNode APIのoverrideConfigで適用して追加検査し、警告・エラー0件。共有設定は変更なし。
 - Node v20.20.2でAWS SDKのNodeバージョン警告あり。カバレッジ・実AWS通信は未検証。将来のitem_trash削除/復元仕様は今回の対象外。
 
-
-
 ## 2026-10-23 item_id追加・DB反映結果
 
 - `20261023100000-add-item-editing-item-id.js`を追加し、development（neondb）・test（test_db）へこの1件だけUmzugのSequelize履歴管理で適用した。テストDBの過去の未記録migrationは適用していない。両DBでINTEGER・nullable・item(id)へのFK・ON UPDATE NO ACTION（既定）/ON DELETE CASCADEを確認。適用直前/直後の既存編集行は各0件。downは実装済み・DB上では未実行。
@@ -67,8 +63,6 @@ npm run test:run -- test/integration/database/itemEditing/createItemEditingCopy 
 - usecase結合：コピー・下書きの2ディレクトリを`--maxWorkers=1 -t '^(?!.*P03 P04 P05 P06 P07 AF-DEL02 AF-DB01)'`で実行し、7ファイル111成功・1失敗・12除外。失敗はコピーdatabaseHttpの同じ旧論理削除ケース（期待404/実際201）。除外12件は既存の先行変更競合ケース。最初の一括実行ではそのケースが約55秒待機して失敗し進行が止まったため中断した。一括実行のcleanup/close完遂は未確認であり、最終集計へ合算しない。
 - `npm run lint`・`npm run typecheck`・`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`は成功。カバレッジ未取得。実行環境Node 20（package要求は26）のためAWS SDK警告あり。通常lint対象外のテストTSへ追加ESLint検査は未実施。
 - item_idの追加・保存契約は反映済み。旧deleted_atテストの見直しと結合テスト全件成功は残件として指定Todoへ記録し、Todoは未完了一覧に残す。削除・復元の本番仕様は今回変更していない。
-
-
 
 **最新：2026-10-19 修正後は11ファイル・343件すべて成功。** 本番コードのF1〜F3とテスト補完F4を実装した。詳細は末尾の[修正・再検証レポート](#fix-20261019)を参照。以下の初回143件と未実装修正案は当時の履歴として保持する。
 

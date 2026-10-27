@@ -4,7 +4,6 @@
 
 新規・下書き・商品コピーの作成dataへ`item_id: null`を明示する。service引数型はnullを必須とし、serviceはdataをそのままModelへ渡す。単体の完全一致と、DBの再SELECTで確認する。nullableなINTEGERとitem.idへのFK（ON UPDATE NO ACTION / ON DELETE CASCADE）は新規migrationで追加する。以下の過去のスキーマ記述より本契約を優先する。
 
-
 ## 2026-10-23 status追加の契約
 
 作成dataへ`status: "normal"`を明示する。コピー元の商品状態は引き継がない。以下の旧記述と矛盾する場合は本契約を優先する。単体の完全一致期待値と、下書き作成のDB再SELECTで確認する。新規作成N01・コピーN10・既存回帰の結果は[status追加レポート](../../report/itemEditing/status.md)を参照。

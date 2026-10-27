@@ -22,24 +22,24 @@
 
 P0は認可・入力・原子性、P1は接続・境界・副作用。表のIDとit.each展開件数は別集計。
 
-| ID / 優先度 | レベル | 条件・手順 | 期待結果・停止位置 |
-| --- | --- | --- | --- |
-| N01 / P0 | U/D/H | 所有editセッションを更新 | 201/既存itemId、4行同ID更新、全コピー列・保持列・元セッション消費・非対象不変 |
-| N02 / P0 | U/D | 商品/色/サイズinitialとcurrentが異なる、商品initial=0/1、更新前active/soldout | currentのみ復元し0=soldout、1以上=active。編集セッションstatusとの混同なし。元JSON不変・別参照 |
-| N03 / P1 | U/D | 全半角/カタカナ/空白、親なし/不在、user_name=null、通知保留/失敗 | search_text正規化、fallback、commit後のみ通知・非待機・失敗捕捉、更新結果維持 |
-| V01 / P0 | V/H | itemEditingId=1/2147483647、0/負数/小数/型/欠落、body外IDと偽装所有者 | 厳密数値・不正400、未知キー除去、body以外で補完なし、拒否後usecase未実行 |
-| H01 / P0 | C/H | 実JWT/Controller引渡し/公開応答・例外/保留 | 認証済みuserIdとvalidatedBodyのみ採用、201、next同一例外、完了まで応答なし |
-| H02 / P0 | H | 不正JSON/未認証/schema拒否/業務失敗、5/6回、窓境界、ユーザー・IP/token/ID/POST変更 | parser→認証→制限→schema、拒否順・消費・独立性・標準header・共通errorHandler |
-| E01 / P0 | U/D | sessionなし/他人/normal/item_id不正、商品なし/他人、各関連なし | 404/400/500の所定code、更新/元行消費/通知なし |
-| E02 / P0 | U/D/M | 空name/title、URL欠落、画像0/1/10/11、価格299/300/1000000/1000001、必須/任意IDとマスター | 所定400/404、公開検証順、更新なし。name/title空白のみはtrimを追加しない |
-| E03 / P0 | U/D | attributes全体/各階層/後方要素不正、商品inventory欠落、各inventoryキー欠落/null/不正/非有限、initial負数/小数 | 構造500/業務400、後続と元データ変更なし。NaN/undefined等はU直接注入と明示 |
-| T01 / P0 | U | 各取得/更新/削除reject、依存保留、開始/外側transaction rejectと保留、通知reject | 同一t、後続停止、外側完了まで通知/成功なし。モックのrollback保証なし |
-| S01 / P1 | S | 所有者検索・FKごとの取得、null FK/取得欠落、各検索reject/保留、各instance更新 | 正しいwhere/列/ロック順/同一t、元例外、更新完了待ち。実ロックはP |
-| M01 / P1 | M | 実validateMasterの各マスター不在/存在/取得失敗 | 個別404、順序・同一t、後続更新なし。親欠落は許容 |
-| D01 / P0 | D | 実DBで正常更新・保存境界・所有権と状態拒否・再送 | 新規SELECTの全4行とFK・保持列・元行消費・非対象不変 |
-| D02 / P0 | D | 各更新後/削除後の注入失敗、修復再試行 | 先行書込みの実実行後にrollback、全行復元・再試行成功 |
-| P01 / P0 | P | 同一セッションcommit/rollback・別セッション同商品・別商品 | pg_blocking_pidsで実待機、先行commit後404/rollback後成功、別セッションは順に成功 |
-| P02 / P0 | P | セッション保存/所有者変更/削除・商品所有者変更/削除を先行 | 待機後の最新値で更新または404、古いsnapshotで更新なし |
+| ID / 優先度 | レベル | 条件・手順                                                                                                    | 期待結果・停止位置                                                                             |
+| ----------- | ------ | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| N01 / P0    | U/D/H  | 所有editセッションを更新                                                                                      | 201/既存itemId、4行同ID更新、全コピー列・保持列・元セッション消費・非対象不変                  |
+| N02 / P0    | U/D    | 商品/色/サイズinitialとcurrentが異なる、商品initial=0/1、更新前active/soldout                                 | currentのみ復元し0=soldout、1以上=active。編集セッションstatusとの混同なし。元JSON不変・別参照 |
+| N03 / P1    | U/D    | 全半角/カタカナ/空白、親なし/不在、user_name=null、通知保留/失敗                                              | search_text正規化、fallback、commit後のみ通知・非待機・失敗捕捉、更新結果維持                  |
+| V01 / P0    | V/H    | itemEditingId=1/2147483647、0/負数/小数/型/欠落、body外IDと偽装所有者                                         | 厳密数値・不正400、未知キー除去、body以外で補完なし、拒否後usecase未実行                       |
+| H01 / P0    | C/H    | 実JWT/Controller引渡し/公開応答・例外/保留                                                                    | 認証済みuserIdとvalidatedBodyのみ採用、201、next同一例外、完了まで応答なし                     |
+| H02 / P0    | H      | 不正JSON/未認証/schema拒否/業務失敗、5/6回、窓境界、ユーザー・IP/token/ID/POST変更                            | parser→認証→制限→schema、拒否順・消費・独立性・標準header・共通errorHandler                    |
+| E01 / P0    | U/D    | sessionなし/他人/normal/item_id不正、商品なし/他人、各関連なし                                                | 404/400/500の所定code、更新/元行消費/通知なし                                                  |
+| E02 / P0    | U/D/M  | 空name/title、URL欠落、画像0/1/10/11、価格299/300/1000000/1000001、必須/任意IDとマスター                      | 所定400/404、公開検証順、更新なし。name/title空白のみはtrimを追加しない                        |
+| E03 / P0    | U/D    | attributes全体/各階層/後方要素不正、商品inventory欠落、各inventoryキー欠落/null/不正/非有限、initial負数/小数 | 構造500/業務400、後続と元データ変更なし。NaN/undefined等はU直接注入と明示                      |
+| T01 / P0    | U      | 各取得/更新/削除reject、依存保留、開始/外側transaction rejectと保留、通知reject                               | 同一t、後続停止、外側完了まで通知/成功なし。モックのrollback保証なし                           |
+| S01 / P1    | S      | 所有者検索・FKごとの取得、null FK/取得欠落、各検索reject/保留、各instance更新                                 | 正しいwhere/列/ロック順/同一t、元例外、更新完了待ち。実ロックはP                               |
+| M01 / P1    | M      | 実validateMasterの各マスター不在/存在/取得失敗                                                                | 個別404、順序・同一t、後続更新なし。親欠落は許容                                               |
+| D01 / P0    | D      | 実DBで正常更新・保存境界・所有権と状態拒否・再送                                                              | 新規SELECTの全4行とFK・保持列・元行消費・非対象不変                                            |
+| D02 / P0    | D      | 各更新後/削除後の注入失敗、修復再試行                                                                         | 先行書込みの実実行後にrollback、全行復元・再試行成功                                           |
+| P01 / P0    | P      | 同一セッションcommit/rollback・別セッション同商品・別商品                                                     | pg_blocking_pidsで実待機、先行commit後404/rollback後成功、別セッションは順に成功               |
+| P02 / P0    | P      | セッション保存/所有者変更/削除・商品所有者変更/削除を先行                                                     | 待機後の最新値で更新または404、古いsnapshotで更新なし                                          |
 
 ## 実DBの前提と後片付け
 
@@ -59,6 +59,6 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-maxWorkers=1はfixture hookやモック・接続準備のファイル間干渉を抑えるため。ケース内競合の代用ではない。通常lint外の変更test/**/*.tsはtypescript-eslint推奨ルールで別途検査。createItemの空文字拒否関連回帰も別途実行する。
+maxWorkers=1はfixture hookやモック・接続準備のファイル間干渉を抑えるため。ケース内競合の代用ではない。通常lint外の変更test/\*_/_.tsはtypescript-eslint推奨ルールで別途検査。createItemの空文字拒否関連回帰も別途実行する。
 
 全必要ケース・静的検査成功、schema/cleanup/close成功、未処理例外・必須skip/未実行なしで完了。[レポート](../../report/items/updateItem.md)に実行範囲と限界・修正を記録し、未実装/未実行は完了としない。

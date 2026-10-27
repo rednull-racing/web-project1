@@ -294,15 +294,15 @@ const item = await Item.findOne({
 
 ## 7. エラー設計
 
-| 発生条件               | HTTP | エラーコード例                     |
-| ---------------------- | ---- | ---------------------------------- |
-| 未認証                 | 401  | UNAUTHORIZED                       |
-| レート制限超過         | 429  | レート制限ミドルウェアの規約に従う |
-| statusクエリの欠落・不正 | 400 | INVALID_QUERY |
-| 不正なitemId           | 400  | INVALID_BODY                       |
-| Itemが存在しない       | 404  | ITEM_NOT_FOUND                     |
-| DB操作失敗             | 500  | INTERNAL_SERVER_ERROR              |
-| 保存済み在庫構造が不正 | 500  | ITEM_ATTRIBUTES_INVALID            |
+| 発生条件                 | HTTP | エラーコード例                     |
+| ------------------------ | ---- | ---------------------------------- |
+| 未認証                   | 401  | UNAUTHORIZED                       |
+| レート制限超過           | 429  | レート制限ミドルウェアの規約に従う |
+| statusクエリの欠落・不正 | 400  | INVALID_QUERY                      |
+| 不正なitemId             | 400  | INVALID_BODY                       |
+| Itemが存在しない         | 404  | ITEM_NOT_FOUND                     |
+| DB操作失敗               | 500  | INTERNAL_SERVER_ERROR              |
+| 保存済み在庫構造が不正   | 500  | ITEM_ATTRIBUTES_INVALID            |
 
 ※エラーコードは既存のAppError規約に合わせる。
 

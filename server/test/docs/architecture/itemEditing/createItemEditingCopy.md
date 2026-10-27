@@ -4,28 +4,25 @@
 
 基本設計と変更依頼に基づき、コピー作成はquery.status（normal/edit）を必須とし、item_editing.statusへそのまま渡す。以下のnormal固定の記述は旧契約の履歴とする。query検証はbody検証より先であり、失敗もレート枠を消費する。追加指示によりitem_idはeditならコピー元itemId、normalならnullとする。itemIdは既存body schemaで両モードとも必須であり、欠落/nullを400・INVALID_BODYで拒否する。以下のitem_id常時nullの記述も旧契約とする。
 
-| ケース | レベル・配置（server/基準） | 期待結果 |
-| --- | --- | --- |
-| QSTATUS01/02 | validators/query/test/createItemEditingCopy.test.ts | 両値の受理、未知キー除去・入力不変、欠落/null/空文字/不正型/引用符・空白付き値の拒否 |
-| QSTATUS03 | controllers/itemEditing/test/createItemEditingCopy.test.ts、integration/usecases/itemEditing/createItemEditingCopy/route.test.ts | 検証済みqueryと認証IDを採用しraw query/bodyの偽装値を除外、201で新規IDのみ返す |
-| N10/QSTATUS04 | usecases/itemEditing/createItemEditingCopy/test/usecase.test.ts | 両statusの全保存引数、元ID・日時・関連IDの除外、item_idはeditなら101・normalならnull |
-| QSTATUS02/05 | integration/usecases/itemEditing/createItemEditingCopy/route.test.ts | query不備で400/INVALID_QUERY・usecase未実行、複数不備の優先順位・5回消費後429 |
-| QSTATUS06/07 | integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts | 両statusとitem_id（editならコピー元ID・normalならnull）の実DB再SELECT、コピー元・既存行不変、query欠落はDB未開始 |
+| ケース        | レベル・配置（server/基準）                                                                                                      | 期待結果                                                                                                         |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| QSTATUS01/02  | validators/query/test/createItemEditingCopy.test.ts                                                                              | 両値の受理、未知キー除去・入力不変、欠落/null/空文字/不正型/引用符・空白付き値の拒否                             |
+| QSTATUS03     | controllers/itemEditing/test/createItemEditingCopy.test.ts、integration/usecases/itemEditing/createItemEditingCopy/route.test.ts | 検証済みqueryと認証IDを採用しraw query/bodyの偽装値を除外、201で新規IDのみ返す                                   |
+| N10/QSTATUS04 | usecases/itemEditing/createItemEditingCopy/test/usecase.test.ts                                                                  | 両statusの全保存引数、元ID・日時・関連IDの除外、item_idはeditなら101・normalならnull                             |
+| QSTATUS02/05  | integration/usecases/itemEditing/createItemEditingCopy/route.test.ts                                                             | query不備で400/INVALID_QUERY・usecase未実行、複数不備の優先順位・5回消費後429                                    |
+| QSTATUS06/07  | integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts                                                      | 両statusとitem_id（editならコピー元ID・normalならnull）の実DB再SELECT、コピー元・既存行不変、query欠落はDB未開始 |
 
 | EDIT-ID01 | integration/usecases/itemEditing/createItemEditingCopy/databaseHttp.test.ts | editでもitemId欠落/nullは400・INVALID_BODY、DB未開始・行不変 |
 
 schema/controller/usecase単体とRouterはDB依存をモックし、永続化はDB HTTPで確認する。フロントは既存コピー出品がnormal、編集ボタンがeditで作成し、返された編集セッションIDで各画面へ遷移する。実行結果は[レポート](../../report/itemEditing/createItemEditingCopy.md)参照。
 
-
 ## 2026-10-23 旧deleted_at結合ケースの削除
 
 ユーザー指示により、削除済みitem.deleted_atに依存するDB・HTTPのO05 AF-DEL01各1件と、先行論理削除のAF-DEL02 commit/rollback各1件を削除した。P03〜P07/AF-DB01の更新・soldout・所有者変更・物理削除・複合変更の10件は維持する。過去のF3/O05/AF-DEL01/AF-DEL02の記述は当時の設計履歴であり、現行の結合検証対象から外す。商品削除の本番仕様は変更しない。
 
-
 ## 2026-10-23 item_id追加契約
 
 新規・下書き・商品コピーの作成dataへ`item_id: null`を明示する。service引数型はnullを必須とし、serviceはdataをそのままModelへ渡す。単体の完全一致と、DBの再SELECTで確認する。nullableなINTEGERとitem.idへのFK（ON UPDATE NO ACTION / ON DELETE CASCADE）は新規migrationで追加する。以下の過去のスキーマ記述より本契約を優先する。
-
 
 ## 2026-10-23 status追加の契約
 

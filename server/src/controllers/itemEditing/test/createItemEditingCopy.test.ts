@@ -36,15 +36,18 @@ beforeEach(() => {
 });
 
 describe("P1 controllerの入力境界・応答", () => {
-    it.each(["normal", "edit"] as const)("C01 C02 V05 QSTATUS03: 認証IDと検証済み入力の%sを渡し新規IDのみ201で返す", async (editingStatus) => {
-        const { res, status, json } = response(),
-            next = vi.fn();
-        await createItemEditingCopyController(request(editingStatus), res, next);
-        expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101, status: editingStatus });
-        expect(status).toHaveBeenCalledExactlyOnceWith(201);
-        expect(json).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 456 });
-        expect(next).not.toHaveBeenCalled();
-    });
+    it.each(["normal", "edit"] as const)(
+        "C01 C02 V05 QSTATUS03: 認証IDと検証済み入力の%sを渡し新規IDのみ201で返す",
+        async (editingStatus) => {
+            const { res, status, json } = response(),
+                next = vi.fn();
+            await createItemEditingCopyController(request(editingStatus), res, next);
+            expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101, status: editingStatus });
+            expect(status).toHaveBeenCalledExactlyOnceWith(201);
+            expect(json).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 456 });
+            expect(next).not.toHaveBeenCalled();
+        },
+    );
     it.each([new AppError("ITEM_NOT_FOUND", 404), new Error("internal")])(
         "C03: %sを同一オブジェクトでnextへ渡し成功応答しない",
         async (error) => {

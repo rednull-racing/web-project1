@@ -23,12 +23,17 @@ describe("sessionMiddlewareのCookie引継ぎとUUID発行", () => {
         sessionMiddleware(a.req, a.res, a.next);
         expect(a.req.sessionId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
         expect(a.cookie).toHaveBeenCalledExactlyOnceWith("session_id", a.req.sessionId, {
-            httpOnly: true, secure: false, sameSite: "lax", maxAge: 1000 * 60 * 60 * 24 * 30, path: "/",
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 1000 * 60 * 60 * 24 * 30,
+            path: "/",
         });
         expect(a.nextSpy).toHaveBeenCalledExactlyOnceWith();
     });
     it("S03: 独立した要求には異なるUUIDを発行する", () => {
-        const a = args(), b = args();
+        const a = args(),
+            b = args();
         sessionMiddleware(a.req, a.res, a.next);
         sessionMiddleware(b.req, b.res, b.next);
         expect(a.req.sessionId).not.toBe(b.req.sessionId);

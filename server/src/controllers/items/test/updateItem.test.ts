@@ -88,7 +88,9 @@ it("T01: 保留usecaseのreject後に同一例外をnextへ渡し成功応答し
 it("T01: JSON送信失敗はnextへ渡しusecaseを再実行しない", async () => {
     const a = args();
     const error = new Error("response failed");
-    a.json.mockImplementation(() => { throw error; });
+    a.json.mockImplementation(() => {
+        throw error;
+    });
     await updateItemController(a.req, a.res, a.next);
     expect(mocks.update).toHaveBeenCalledTimes(1);
     expect(a.nextSpy).toHaveBeenCalledExactlyOnceWith(error);

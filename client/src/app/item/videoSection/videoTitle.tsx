@@ -5,5 +5,5 @@ type Props = {
 };
 
 export const VideoTitle = async ({ title }: Props) => {
-    return <h3 className={styles.title}>{title}</h3>
+    return <h3 className={styles.title}>{title}</h3>;
 };

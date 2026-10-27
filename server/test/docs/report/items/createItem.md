@@ -612,18 +612,18 @@ Todoへ完了内容を追記し、ユーザー指定どおりP1-bugからdoneへ
 
 実行ディレクトリは専用worktreeの`/tmp/project-create-item-required-names/server`。依存は既存server/node_modulesへのsymlinkを使い、新規ライブラリ追加はない。`.env.test`も元workspaceのserver/.env.testへリンクし、既存の読込元・値改変ガードを維持した。
 
-| 区分 | ファイル（server基準） | 最新結果 |
-| --- | --- | --- |
-| 非DB単体 | src/usecases/items/create/test/createItem.test.ts | 成功 |
-| 非DB helper接続 | test/integration/usecases/items/createItem/master.test.ts | 成功 |
-| 非DB HTTP | test/integration/usecases/items/createItem/route.test.ts | 成功 |
-| 非DB Router登録 | test/integration/usecases/items/createItem/registration.test.ts | 成功 |
-| DB | test/integration/database/items/createItem/database.test.ts | 24件成功 |
-| DB保存値/B06 | test/integration/database/items/createItem/databaseValues.test.ts | 173件成功 |
-| HTTP DB/B06 | test/integration/usecases/items/createItem/databaseHttp.test.ts | 23件成功 |
-| DB transaction | test/integration/usecases/items/createItem/databaseTransactions.test.ts | 14件成功 |
-| DB参照失敗 | test/integration/usecases/items/createItem/databaseReadFailures.test.ts | 10件成功 |
-| DB競合 | test/integration/usecases/items/createItem/databaseConcurrency.test.ts | 24件成功 |
+| 区分            | ファイル（server基準）                                                  | 最新結果  |
+| --------------- | ----------------------------------------------------------------------- | --------- |
+| 非DB単体        | src/usecases/items/create/test/createItem.test.ts                       | 成功      |
+| 非DB helper接続 | test/integration/usecases/items/createItem/master.test.ts               | 成功      |
+| 非DB HTTP       | test/integration/usecases/items/createItem/route.test.ts                | 成功      |
+| 非DB Router登録 | test/integration/usecases/items/createItem/registration.test.ts         | 成功      |
+| DB              | test/integration/database/items/createItem/database.test.ts             | 24件成功  |
+| DB保存値/B06    | test/integration/database/items/createItem/databaseValues.test.ts       | 173件成功 |
+| HTTP DB/B06     | test/integration/usecases/items/createItem/databaseHttp.test.ts         | 23件成功  |
+| DB transaction  | test/integration/usecases/items/createItem/databaseTransactions.test.ts | 14件成功  |
+| DB参照失敗      | test/integration/usecases/items/createItem/databaseReadFailures.test.ts | 10件成功  |
+| DB競合          | test/integration/usecases/items/createItem/databaseConcurrency.test.ts  | 24件成功  |
 
 非DB4ファイルは同時実行の実出力415件を集計。DBの非HTTP5ファイル245件と、修正後HTTP DB1ファイル23件は対象が重ならないため合計268件とした。途中の実行結果を重複加算していない。
 

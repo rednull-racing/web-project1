@@ -135,10 +135,10 @@ flowchart TD
 
 `confirm/title.tsx`。`page` に応じて確認画面のタイトルを表示する。
 
-| page | 表示文言 |
-| --- | --- |
-| `normal` | 出品する商品の確認 |
-| `edit` | 更新する商品情報の確認 |
+| page     | 表示文言               |
+| -------- | ---------------------- |
+| `normal` | 出品する商品の確認     |
+| `edit`   | 更新する商品情報の確認 |
 
 ### ItemConfirmPage
 
@@ -189,12 +189,12 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。URLの `id` 
 
 `confirm/api/server.ts` の `fetchItemConfirmPage(itemEditingId)` を両ルートのServer Componentから呼ぶ。
 
-| 項目 | 内容 |
-| --- | --- |
-| 共通関数 | `apiFetchServer`（`@/lib/api/server`） |
+| 項目           | 内容                                         |
+| -------------- | -------------------------------------------- |
+| 共通関数       | `apiFetchServer`（`@/lib/api/server`）       |
 | メソッド・パス | `GET /item-editing/${itemEditingId}/confirm` |
-| キャッシュ | `cache: "no-store"` |
-| 戻り値の型 | `{ itemEditing: ItemEditing }` |
+| キャッシュ     | `cache: "no-store"`                          |
+| 戻り値の型     | `{ itemEditing: ItemEditing }`               |
 
 ルートでは未ログインなら `/login` へ遷移する。取得後、セッションのユーザーIDと `itemEditing.seller_id` を文字列化・前後の空白除去後に照合し、不一致なら `/` へ遷移する。一致した場合だけ `ItemConfirmPage` を表示する。
 
@@ -206,10 +206,10 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。URLの `id` 
 
 `confirm/api/client.ts` の関数を `UploadButton` から呼ぶ。共通関数は認証付きの `apiFetch`（`@/lib/api/client`）を使う。
 
-| 関数 | 分岐 | メソッド・パス | 成功後の遷移先 |
-| --- | --- | --- | --- |
-| `fetchCreateItem(itemEditingId)` | `page="normal"` | `POST /items` | `/upload/ok/${itemId}` |
-| `fetchEditItem(itemEditingId)` | `page="edit"` | `PUT /items` | `/item/${itemId}` |
+| 関数                             | 分岐            | メソッド・パス | 成功後の遷移先         |
+| -------------------------------- | --------------- | -------------- | ---------------------- |
+| `fetchCreateItem(itemEditingId)` | `page="normal"` | `POST /items`  | `/upload/ok/${itemId}` |
+| `fetchEditItem(itemEditingId)`   | `page="edit"`   | `PUT /items`   | `/item/${itemId}`      |
 
 どちらもリクエスト本文は `JSON.stringify({ itemEditingId: Number(itemEditingId) })`、戻り値の型は `{ itemId: number }`。API呼び出し用のIDは、受け取った文字列を数値へ変換する。
 
@@ -225,13 +225,13 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。URLの `id` 
 
 `confirm/confirm.module.css` を `Title`・`VideoSection`・`UploadButton` で使用する。
 
-| 対象 | 主なクラス |
-| --- | --- |
-| ページタイトル | `title` |
-| 保存日時 | `dateFlex`、`countText`、`countNumber` |
-| 出品ボタン・編集リンク | `uploadButton`、`editButton` |
-| ポップアップ・背景・閉じる操作 | `popup`、`overlay`、`x`、`popupTitle` |
-| 禁止事項・同意欄・実行ボタン | `termsTitle`、`termsDiv`、`checkLabel`、`check`、`checkText`、`popupButton` |
+| 対象                           | 主なクラス                                                                  |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| ページタイトル                 | `title`                                                                     |
+| 保存日時                       | `dateFlex`、`countText`、`countNumber`                                      |
+| 出品ボタン・編集リンク         | `uploadButton`、`editButton`                                                |
+| ポップアップ・背景・閉じる操作 | `popup`、`overlay`、`x`、`popupTitle`                                       |
+| 禁止事項・同意欄・実行ボタン   | `termsTitle`、`termsDiv`、`checkLabel`、`check`、`checkText`、`popupButton` |
 
 禁止事項の各領域は高さ150pxで縦スクロールする。背景とポップアップは `position: fixed` で重ねて表示する。
 

@@ -15,8 +15,6 @@ npm run test:run -- test/integration/database/itemEditing/createItemEditingCopy 
 - `npm run lint`・`npm run typecheck`・`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`成功。通常lint対象外の変更した結合テスト3ファイルは、既存ESLint/@eslint/js/typescript-eslint recommendedをNode APIのoverrideConfigで適用して追加検査し、警告・エラー0件。共有設定は変更なし。
 - Node v20.20.2でAWS SDKのNodeバージョン警告あり。カバレッジ・実AWS通信は未検証。将来のitem_trash削除/復元仕様は今回の対象外。
 
-
-
 ## 2026-10-23 item_id追加・DB反映結果
 
 - `20261023100000-add-item-editing-item-id.js`を追加し、development（neondb）・test（test_db）へこの1件だけUmzugのSequelize履歴管理で適用した。テストDBの過去の未記録migrationは適用していない。両DBでINTEGER・nullable・item(id)へのFK・ON UPDATE NO ACTION（既定）/ON DELETE CASCADEを確認。適用直前/直後の既存編集行は各0件。downは実装済み・DB上では未実行。
@@ -27,8 +25,6 @@ npm run test:run -- test/integration/database/itemEditing/createItemEditingCopy 
 - usecase結合：コピー・下書きの2ディレクトリを`--maxWorkers=1 -t '^(?!.*P03 P04 P05 P06 P07 AF-DEL02 AF-DB01)'`で実行し、7ファイル111成功・1失敗・12除外。失敗はコピーdatabaseHttpの同じ旧論理削除ケース（期待404/実際201）。除外12件は既存の先行変更競合ケース。最初の一括実行ではそのケースが約55秒待機して失敗し進行が止まったため中断した。一括実行のcleanup/close完遂は未確認であり、最終集計へ合算しない。
 - `npm run lint`・`npm run typecheck`・`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`は成功。カバレッジ未取得。実行環境Node 20（package要求は26）のためAWS SDK警告あり。通常lint対象外のテストTSへ追加ESLint検査は未実施。
 - item_idの追加・保存契約は反映済み。旧deleted_atテストの見直しと結合テスト全件成功は残件として指定Todoへ記録し、Todoは未完了一覧に残す。削除・復元の本番仕様は今回変更していない。
-
-
 
 初回報告と修正記録を統合した。以下が今回のRouter検証結果であり、後半の各節は当時の実行履歴として残す。
 

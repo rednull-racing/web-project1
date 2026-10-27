@@ -162,8 +162,11 @@ it.each(["配列", "空body"])("H01 V01: %sをINVALID_BODYで拒否", async (mod
 it.each(["POST先行", "PUT先行"])("H02: %sでもPOSTとPUTのレート枠は独立", async (order) => {
     const { createItemUseCase } = await import("../../../../../src/usecases/items/create/createItem.js");
     vi.mocked(createItemUseCase).mockResolvedValue(700);
-    const post = () => request(app).post("/api/items")
-        .set("Authorization", "Bearer " + makeToken(secret)).send({ itemEditingId: 21 });
+    const post = () =>
+        request(app)
+            .post("/api/items")
+            .set("Authorization", "Bearer " + makeToken(secret))
+            .send({ itemEditingId: 21 });
     const first = order === "POST先行" ? post : () => put();
     const second = order === "POST先行" ? () => put() : post;
     for (let i = 0; i < 5; i++) expect((await first()).status).toBe(201);
@@ -176,7 +179,8 @@ it.each(["POST先行", "PUT先行"])("H02: %sでもPOSTとPUTのレート枠は�
 it("H02: 同じuserのtoken・IP・対象IDを変えても5回の共通枠", async () => {
     for (let i = 0; i < 5; i++) {
         const token = makeToken(secret, 7, 7200 + i);
-        const result = await request(app).put("/api/items")
+        const result = await request(app)
+            .put("/api/items")
             .set("Authorization", "Bearer " + token)
             .set("X-Forwarded-For", `192.0.2.${10 + i}`)
             .send({ itemEditingId: 100 + i });
@@ -188,14 +192,29 @@ it("H02: 同じuserのtoken・IP・対象IDを変えても5回の共通枠", asy
 });
 it("H02 T01: usecaseが保留中はHTTP応答せず、完了後に201", async () => {
     let enter!: () => void;
-    const entered = new Promise<void>((resolve) => { enter = resolve; });
+    const entered = new Promise<void>((resolve) => {
+        enter = resolve;
+    });
     let release!: (value: number) => void;
-    const gate = new Promise<number>((resolve) => { release = resolve; });
-    mocks.update.mockImplementation(() => { enter(); return gate; });
+    const gate = new Promise<number>((resolve) => {
+        release = resolve;
+    });
+    mocks.update.mockImplementation(() => {
+        enter();
+        return gate;
+    });
     let responded = false;
-    const pending = put().then((response) => { responded = true; return response; });
+    const pending = put().then((response) => {
+        responded = true;
+        return response;
+    });
     try {
-        await Promise.race([entered, pending.then(() => { throw new Error("usecase開始前にHTTPが完了しました"); })]);
+        await Promise.race([
+            entered,
+            pending.then(() => {
+                throw new Error("usecase開始前にHTTPが完了しました");
+            }),
+        ]);
         expect(responded).toBe(false);
     } finally {
         release(456);

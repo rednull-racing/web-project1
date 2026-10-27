@@ -121,8 +121,8 @@ JSONB変換・商品コピー・通知は対象処理がないため対象外。
 ## 実行・完了条件
 
 server/で対象パスを明示してnpm run test:run --を実行する。HTTPと実DBの実行権限不足は承認手順で対応する。
-npm run lint、npm run typecheck、./node*modules/.bin/tsc --noEmit -p test/tsconfig.jsonも実行する。
-通常lint対象外のtest/\**/\_.tsは既存ESLint/typescript-eslintで追加検査し共有設定を変更しない。
+npm run lint、npm run typecheck、./node\*modules/.bin/tsc --noEmit -p test/tsconfig.jsonも実行する。
+通常lint対象外のtest/\*\*/\_.tsは既存ESLint/typescript-eslintで追加検査し共有設定を変更しない。
 必要ケース成功、未回収Promise/skip/未実行/失敗なし、DB cleanupとclose成功、文書整合を完了条件とする。
 
 2026-10-22のユーザー指示に基づきUser日時2列のNOT NULL migrationを両DBへ適用後に再開済み。

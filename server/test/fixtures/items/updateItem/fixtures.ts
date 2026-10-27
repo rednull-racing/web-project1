@@ -9,9 +9,10 @@ export const makeEditing = () => {
     return editing;
 };
 
-export const makeTarget = () => ({
-    item: { id: 456, seller_id: 7, status: "soldout", video_id: 101, sale_id: 202, shipping_id: 303 },
-    video: { id: 101 },
-    sale: { id: 202 },
-    shipping: { id: 303 },
-}) as NonNullable<Awaited<ReturnType<typeof getMyItemForUpdate>>>;
+export const makeTarget = () =>
+    ({
+        item: { id: 456, seller_id: 7, status: "soldout", video_id: 101, sale_id: 202, shipping_id: 303 },
+        video: { id: 101 },
+        sale: { id: 202 },
+        shipping: { id: 303 },
+    }) as NonNullable<Awaited<ReturnType<typeof getMyItemForUpdate>>>;

@@ -164,8 +164,8 @@ npm run test:run -- src/usecases/itemDraft/test/convertItemDraftVideo.test.ts sr
 ```
 
 HTTPと実DBの実行権限不足は承認手順で対応する。
-npm run lint、npm run typecheck、./node_modules/.bin/tsc --noEmit -p test/tsconfig.jsonも実行する。
-通常lint対象外のtest/\*_/_.tsは既存ESLint/typescript-eslintで追加検査し共有設定を変更しない。
+npm run lint、npm run typecheck、./node*modules/.bin/tsc --noEmit -p test/tsconfig.jsonも実行する。
+通常lint対象外のtest/\**/\_.tsは既存ESLint/typescript-eslintで追加検査し共有設定を変更しない。
 必要ケース成功、未回収Promise/skip/未実行/失敗なし、DB cleanupとclose成功、文書整合を完了条件とする。
 
 新規Draft版の実行結果は統合後に対応レポートへ記録する。既存Editing版の成功結果を本APIの検証済み根拠にはしない。

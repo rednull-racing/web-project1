@@ -102,19 +102,31 @@ describe("P1 実Router・認証・validator・共通errorHandler", () => {
 
 describe("P0 必須statusクエリ", () => {
     it.each(["normal", "edit"])("QSTATUS03: queryの%sを採用しbodyのstatusでは上書きしない", async (status) => {
-        const result = await postCopy(app, secret, { itemId: 101, status: "soldout" }, 7, "?status=" + status + "&userId=8");
+        const result = await postCopy(
+            app,
+            secret,
+            { itemId: 101, status: "soldout" },
+            7,
+            "?status=" + status + "&userId=8",
+        );
         expect(result.status).toBe(201);
         expect(result.body).toEqual({ itemEditingId: 456 });
         expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 101, status });
     });
-    it.each(["", "?status=", "?status=active", "?status=NORMAL", "?status=%22normal%22", "?status=normal&status=edit", "?status[value]=edit"])(
-        "QSTATUS02: %sはbodyのstatusで補完せず400で停止する", async (query) => {
-            const result = await postCopy(app, secret, { itemId: 101, status: "normal" }, 7, query);
-            expect(result.status).toBe(400);
-            expect(result.body).toEqual({ code: "INVALID_QUERY", message: "INVALID_QUERY" });
-            expect(mocks.copy).not.toHaveBeenCalled();
-        },
-    );
+    it.each([
+        "",
+        "?status=",
+        "?status=active",
+        "?status=NORMAL",
+        "?status=%22normal%22",
+        "?status=normal&status=edit",
+        "?status[value]=edit",
+    ])("QSTATUS02: %sはbodyのstatusで補完せず400で停止する", async (query) => {
+        const result = await postCopy(app, secret, { itemId: 101, status: "normal" }, 7, query);
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ code: "INVALID_QUERY", message: "INVALID_QUERY" });
+        expect(mocks.copy).not.toHaveBeenCalled();
+    });
     it("QSTATUS05: queryとbodyがともに不正ならqueryを先に拒否し枠を消費する", async () => {
         for (let i = 0; i < 5; i++) {
             const result = await postCopy(app, secret, {}, 7, "");

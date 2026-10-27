@@ -287,13 +287,13 @@ const normalizedSearchText = normalizeJapanese(searchText);
 
 コミット後にcreateNotificationをtransactionなしで呼び出す。旧APIの失敗許容動作を継承し、Promiseをawaitせずcatchでエラーを処理する。失敗を成功済み商品のロールバックや500応答へ変換しない。
 
-| 項目          | 値                                                                                                          |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| read_user_id  | 認証済みuserId                                                                                              |
-| url           | `/item/${itemId}`（商品ID）                                                                             |
-| message_image | コピーしたfirst_image_url                                                                                   |
+| 項目          | 値                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------- |
+| read_user_id  | 認証済みuserId                                                                        |
+| url           | `/item/${itemId}`（商品ID）                                                           |
+| message_image | コピーしたfirst_image_url                                                             |
 | message       | `商品「${name}」が更新されました。商品の詳細はこちらの商品ページからご確認ください。` |
-| type          | `ITEM`                                                                                                      |
+| type          | `ITEM`                                                                                |
 
 expires_at等は既存createNotificationの規約に従う。コミット前の失敗や404の再リクエストでは通知を作成しない。通知の永続化・再送は本APIの成功条件に含めない。
 
@@ -316,24 +316,24 @@ expires_at等は既存createNotificationの規約に従う。コミット前の�
 
 ## 7. エラー設計
 
-| 条件 | HTTP | 公開コード/応答 |
-| --- | --- | --- |
-| JSON構文不正（認証前） | 400 | INVALID_JSON |
-| 未認証・無効/期限切れJWT | 401 | authenticateTokenの既存message形式 |
-| 同一ユーザー10分間6回目 | 429 | express-rate-limit既存応答、標準RateLimit/Retry-After、legacy headersなし |
-| 不正itemEditingId/body | 400 | INVALID_BODY |
-| セッション不存在・他人・消費済み | 404 | ITEM_EDITING_NOT_FOUND |
-| セッションnormal・item_id null/範囲外 | 400 | ITEM_EDITING_STATE_INVALID |
-| 商品不存在・他人 | 404 | ITEM_NOT_FOUND |
-| video/sale/shipping欠落 | 500 | ITEM_RELATION_NOT_FOUND |
-| original_url欠落 / thumbnail_url欠落 | 400 | VIDEO_URL_NULL / THUMBNAIL_URL_NULL |
-| 画像0件/null / 11件以上 | 400 | ITEM_IMAGE_NULL / ITEM_IMAGE_LIMIT_EXCEEDED |
-| 保存済み必須ID不正、非nullブランドID不正 | 400 | INVALID_NUMBER |
-| name/title空文字・型不正、first_image_url欠落、価格不正、initial負数/小数 | 400 | ITEM_PUBLISH_DATA_INVALID |
-| attributes構造不正・非有限値・商品inventory欠落 | 500 | ITEM_ATTRIBUTES_INVALID |
-| user欠落 | 500 | USER_NOT_FOUND |
-| 必須マスター不在 | 404 | CATEGORY_NOT_FOUND / ITEM_CONDITION_NOT_FOUND / SHIPPING_DAY_NOT_FOUND / SHIPPING_SERVICE_NOT_FOUND / PLACE_NOT_FOUND |
-| その他DB/transaction例外 | 500 | 共通INTERNAL_SERVER_ERROR形式 |
+| 条件                                                                      | HTTP | 公開コード/応答                                                                                                       |
+| ------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------- |
+| JSON構文不正（認証前）                                                    | 400  | INVALID_JSON                                                                                                          |
+| 未認証・無効/期限切れJWT                                                  | 401  | authenticateTokenの既存message形式                                                                                    |
+| 同一ユーザー10分間6回目                                                   | 429  | express-rate-limit既存応答、標準RateLimit/Retry-After、legacy headersなし                                             |
+| 不正itemEditingId/body                                                    | 400  | INVALID_BODY                                                                                                          |
+| セッション不存在・他人・消費済み                                          | 404  | ITEM_EDITING_NOT_FOUND                                                                                                |
+| セッションnormal・item_id null/範囲外                                     | 400  | ITEM_EDITING_STATE_INVALID                                                                                            |
+| 商品不存在・他人                                                          | 404  | ITEM_NOT_FOUND                                                                                                        |
+| video/sale/shipping欠落                                                   | 500  | ITEM_RELATION_NOT_FOUND                                                                                               |
+| original_url欠落 / thumbnail_url欠落                                      | 400  | VIDEO_URL_NULL / THUMBNAIL_URL_NULL                                                                                   |
+| 画像0件/null / 11件以上                                                   | 400  | ITEM_IMAGE_NULL / ITEM_IMAGE_LIMIT_EXCEEDED                                                                           |
+| 保存済み必須ID不正、非nullブランドID不正                                  | 400  | INVALID_NUMBER                                                                                                        |
+| name/title空文字・型不正、first_image_url欠落、価格不正、initial負数/小数 | 400  | ITEM_PUBLISH_DATA_INVALID                                                                                             |
+| attributes構造不正・非有限値・商品inventory欠落                           | 500  | ITEM_ATTRIBUTES_INVALID                                                                                               |
+| user欠落                                                                  | 500  | USER_NOT_FOUND                                                                                                        |
+| 必須マスター不在                                                          | 404  | CATEGORY_NOT_FOUND / ITEM_CONDITION_NOT_FOUND / SHIPPING_DAY_NOT_FOUND / SHIPPING_SERVICE_NOT_FOUND / PLACE_NOT_FOUND |
+| その他DB/transaction例外                                                  | 500  | 共通INTERNAL_SERVER_ERROR形式                                                                                         |
 
 AppErrorは`{ code, message: publicMessage ?? code }`、予期しない例外は`{ error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" }`。controllerがnextへ渡す。内部SQL・保存値は公開しない。
 

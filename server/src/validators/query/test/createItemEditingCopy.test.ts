@@ -8,10 +8,20 @@ describe("P0 コピー編集セッションのstatusクエリ", () => {
         expect(input).toEqual({ status, userId: "8", itemId: "999" });
     });
     it.each([
-        {}, { status: undefined }, { status: null }, { status: "" }, { status: "active" },
-        { status: "NORMAL" }, { status: " edit" }, { status: '"normal"' },
-        { status: ["normal", "edit"] }, { status: { value: "normal" } },
-        { status: 1 }, { status: true }, undefined, null,
+        {},
+        { status: undefined },
+        { status: null },
+        { status: "" },
+        { status: "active" },
+        { status: "NORMAL" },
+        { status: " edit" },
+        { status: '"normal"' },
+        { status: ["normal", "edit"] },
+        { status: { value: "normal" } },
+        { status: 1 },
+        { status: true },
+        undefined,
+        null,
     ])("QSTATUS02: 不正または欠落したquery=%jを拒否する", (input) => {
         expect(createItemEditingCopyQuerySchema.safeParse(input).success).toBe(false);
     });

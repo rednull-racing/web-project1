@@ -51,13 +51,24 @@ const post = (body: object = { itemId: f.item.id }) => postCopy(app, secret, bod
 describe("P0 statusクエリの永続化", () => {
     it.each(["normal", "edit"] as const)("QSTATUS06: %sを保存しコピー元と既存行を保持する", async (status) => {
         const before = await protectedSnapshot(f);
-        const result = await postCopy(app, secret, { itemId: f.item.id, status: "soldout" }, f.owner.id, "?status=" + status);
+        const result = await postCopy(
+            app,
+            secret,
+            { itemId: f.item.id, status: "soldout" },
+            f.owner.id,
+            "?status=" + status,
+        );
         expect(result.status).toBe(201);
-        await expectCopy(result.body.itemEditingId, { ...expectedCopy(f), status, item_id: status === "edit" ? f.item.id : null });
+        await expectCopy(result.body.itemEditingId, {
+            ...expectedCopy(f),
+            status,
+            item_id: status === "edit" ? f.item.id : null,
+        });
         expect(await protectedSnapshot(f)).toEqual(before);
     });
     it.each([{}, { itemId: null }])("EDIT-ID01: editでもbody=%jは400でDBを開始しない", async (body) => {
-        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const before = await protectedSnapshot(f),
+            ids = await editingIds(f);
         const transaction = vi.spyOn(sequelize, "transaction");
         const result = await postCopy(app, secret, body, f.owner.id, "?status=edit");
         expect(result.status).toBe(400);
@@ -67,7 +78,8 @@ describe("P0 statusクエリの永続化", () => {
         expect(await protectedSnapshot(f)).toEqual(before);
     });
     it("QSTATUS07: query欠落は400でDBを開始せず既存データを保持する", async () => {
-        const before = await protectedSnapshot(f), ids = await editingIds(f);
+        const before = await protectedSnapshot(f),
+            ids = await editingIds(f);
         const transaction = vi.spyOn(sequelize, "transaction");
         const result = await postCopy(app, secret, { itemId: f.item.id, status: "normal" }, f.owner.id, "");
         expect(result.status).toBe(400);

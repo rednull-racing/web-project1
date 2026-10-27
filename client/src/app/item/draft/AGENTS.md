@@ -173,12 +173,12 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。下書きID�
 
 `draft/api/server.ts` の `fetchItemDraftPage(itemDraftId)` をルートのServer Componentから呼ぶ。
 
-| 項目 | 内容 |
-| --- | --- |
-| 共通関数 | `apiFetchServer`（`@/lib/api/server`） |
-| メソッド・パス | `GET /item-draft/${itemDraftId}` |
-| キャッシュ | `cache: "no-store"` |
-| 戻り値の型 | `{ itemDraft: ItemDraft }` |
+| 項目           | 内容                                   |
+| -------------- | -------------------------------------- |
+| 共通関数       | `apiFetchServer`（`@/lib/api/server`） |
+| メソッド・パス | `GET /item-draft/${itemDraftId}`       |
+| キャッシュ     | `cache: "no-store"`                    |
+| 戻り値の型     | `{ itemDraft: ItemDraft }`             |
 
 未ログインなら `/login` へ遷移する。取得後、セッションのユーザーIDと `itemDraft.seller_id` を文字列化・前後の空白除去後に照合し、不一致なら `/` へ遷移する。一致した場合だけ `ItemDraftPage` を表示する。
 
@@ -188,10 +188,10 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。下書きID�
 
 `draft/api/client.ts` の各関数を、対応する操作コンポーネントから呼ぶ。共通関数は認証付きの `apiFetch`（`@/lib/api/client`）を使う。
 
-| 関数 | 呼び出し元 | メソッド・パス | 本文・戻り値 |
-| --- | --- | --- | --- |
-| `fetchEditDraftItem(itemDraftId)` | `EditButton` | `POST /item-editing/draft` | 本文：`{ itemDraftId: Number(itemDraftId) }` をJSON化。戻り値の型：`{ itemEditingId: number }` |
-| `fetchDeleteDraftItem(id)` | `DeleteItemDraft` | `DELETE /item-draft/${id}` | 本文なし。呼び出し元ではレスポンス値を使用しない |
+| 関数                              | 呼び出し元        | メソッド・パス             | 本文・戻り値                                                                                   |
+| --------------------------------- | ----------------- | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| `fetchEditDraftItem(itemDraftId)` | `EditButton`      | `POST /item-editing/draft` | 本文：`{ itemDraftId: Number(itemDraftId) }` をJSON化。戻り値の型：`{ itemEditingId: number }` |
+| `fetchDeleteDraftItem(id)`        | `DeleteItemDraft` | `DELETE /item-draft/${id}` | 本文なし。呼び出し元ではレスポンス値を使用しない                                               |
 
 削除関数の現行の引数名は `itemId` だが、渡している値は下書きID。下書き画面から直接商品作成・商品更新APIは呼ばない。
 
@@ -211,13 +211,13 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。下書きID�
 
 `draft/draft.module.css` を `VideoSection`・`EditButton`・`DeleteItemDraft` から使用する。
 
-| 対象 | 主なクラス | 使用状況 |
-| --- | --- | --- |
-| 編集ボタン | `editButton` | 使用中 |
-| 削除操作 | `deleteText` | 使用中 |
-| 削除確認・背景・閉じる操作 | `popup`、`overlay`、`x`、`popupTitle` | 使用中 |
-| 確認文・削除実行ボタン | `text13`、`popupButton` | 使用中 |
-| 保存日時 | `dateFlex`、`countText`、`countNumber` | 使用中 |
+| 対象                       | 主なクラス                             | 使用状況 |
+| -------------------------- | -------------------------------------- | -------- |
+| 編集ボタン                 | `editButton`                           | 使用中   |
+| 削除操作                   | `deleteText`                           | 使用中   |
+| 削除確認・背景・閉じる操作 | `popup`、`overlay`、`x`、`popupTitle`  | 使用中   |
+| 確認文・削除実行ボタン     | `text13`、`popupButton`                | 使用中   |
+| 保存日時                   | `dateFlex`、`countText`、`countNumber` | 使用中   |
 
 背景と確認ポップアップは `position: fixed` で重ねて表示する。`draft` 直下のファイルからのインポート例：
 
