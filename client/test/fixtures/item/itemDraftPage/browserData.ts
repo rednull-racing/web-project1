@@ -1,0 +1,31 @@
+import type { ItemDraft } from "../../../../src/app/item/draft/types";
+
+export const browserDraft = (overrides: Partial<ItemDraft> = {}): ItemDraft => ({
+    id: "11", seller_id: 7, name: "下書きシャツ", detail: "商品の説明です。".repeat(80),
+    price: 800, image_url: ["/no-image(1x1).png", "/no-image(16x9).png"],
+    first_image_url: "/no-image(1x1).png", gender_type: "men", age_type: "adult", recommend: true,
+    attributes: {
+        inventory: { initial: 10, current: 4, low_stock_ratio: 0.2 },
+        colorVariants: [
+            { uiId: "red", color: "赤", image_url: "/no-image(1x1).png", inventory: { initial: 10, current: 4, low_stock_ratio: 0.3 }, sizes: [{ size: "M", inventory: { initial: 10, current: 2, low_stock_ratio: 0.3 } }] },
+            { uiId: "blue", color: "青", image_url: "/no-image(1x1).png", inventory: { initial: 10, current: 0, low_stock_ratio: 0.3 } },
+        ],
+        materials: [{ name: "綿", ratio: 60 }, { name: "ポリエステル", ratio: 40 }],
+    },
+    createdAt: "2020-01-01T00:00:00Z", updatedAt: "2026-10-28T02:00:00Z",
+    thumbnail_url: "/no-image(16x9).png", title: "動画タイトル", summary: "動画の概要です。".repeat(80),
+    duration: null, original_url: null, converted_url: null, video_status: null,
+    before_price: 1200, discount_rate: 25, discount_amount: 400, sale_flag: true,
+    shipping_service_free_text: "自由記述の配送方法",
+    ItemConditionOption: { id: "1", name: "新品" }, ShippingDayOption: { id: "1", name: "翌日" },
+    ShippingServiceOption: { id: "1", name: "宅配便" }, TodouhukenOption: { id: "1", name: "東京都" },
+    Category: { id: "1", name: "シャツ", level: 1, allowed_gender: "both", allowed_age: "both" },
+    ...overrides,
+});
+export const emptyBrowserDraft = (): ItemDraft => browserDraft({
+    name: null, detail: null, price: null, image_url: null, first_image_url: null, recommend: null,
+    attributes: {}, thumbnail_url: null, title: null, summary: null,
+    before_price: null, discount_rate: null, discount_amount: null, sale_flag: false,
+    shipping_service_free_text: null, ItemConditionOption: undefined, ShippingDayOption: undefined,
+    ShippingServiceOption: undefined, TodouhukenOption: undefined, Category: undefined,
+});
