@@ -1073,3 +1073,9 @@
 - Node 22でReact操作/MSWの一時検証2件、両パッケージ型検査、追加設定のlint成功。検証用テストは削除、Node 26は未検証。
 - 全体lintは既存23エラー。ブラウザー本体は導入済みだがOSライブラリ不足で起動失敗、install-depsはsudoパスワード要求で実行不可。
 - 業務テスト・DB変更・既知エラー修正は対象外。管理者によるOS依存導入手順をREADMEに記録。
+
+## 20261028_frontend-architecture_clientテスト用TypeScript設定を追加
+
+- client/test/tsconfig.jsonを追加し、client共通設定・パスエイリアスを継承。
+- 単体/結合テスト・fixture・テストランナー設定・型宣言を型検査対象とし、増分キャッシュは無効化。
+- Node.js 22で tsc --noEmit -p test/tsconfig.json 成功。既存の本番設定・依存関係は未変更。
