@@ -8,7 +8,11 @@ export const apiOrigin = process.env.ITEM_DRAFT_BROWSER_API_URL ?? "http://127.0
 export const testSecret = process.env.ITEM_DRAFT_TEST_SECRET ?? "item-draft-browser-local-fixture-secret";
 export const setBrowserSession = async (context: BrowserContext, baseURL: string, owner = "7") => {
     const accessToken = `${Buffer.from('{"alg":"none"}').toString("base64url")}.${Buffer.from(JSON.stringify({ id: Number(owner), exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url")}.test`;
-    const session = await encode({ secret: testSecret, token: { id: owner, accessToken, refreshToken: "test-refresh-token" }, maxAge: 3600 });
+    const session = await encode({
+        secret: testSecret,
+        token: { id: owner, accessToken, refreshToken: "test-refresh-token" },
+        maxAge: 3600,
+    });
     await context.addCookies([
         { name: "next-auth.session-token", value: session, url: baseURL, httpOnly: true, sameSite: "Lax" },
         { name: "access-token", value: accessToken, url: baseURL, sameSite: "Lax" },
@@ -29,18 +33,29 @@ export const test = base.extend<Fixture>({
     },
     draft: async ({ context, baseURL, putDraft }, provide, info) => {
         if (!baseURL) throw new Error("BROWSER_TEST_STOP: baseURL missing");
-        const id = String(10000 + info.workerIndex * 1000 + info.repeatEachIndex * 100 + info.testId.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0));
+        const id = String(
+            10000 +
+                info.workerIndex * 1000 +
+                info.repeatEachIndex * 100 +
+                info.testId.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0),
+        );
         const draft = browserDraft({ id });
         await putDraft(draft);
         await setBrowserSession(context, baseURL);
         await provide(draft);
     },
-    errors: [async ({ page }, provide) => {
-        const errors: string[] = [];
-        page.on("pageerror", (error) => errors.push(error.message));
-        page.on("console", (message) => { if (message.type() === "error" && /hydration|did not match|server rendered/i.test(message.text())) errors.push(message.text()); });
-        await provide(errors);
-    }, { auto: true }],
+    errors: [
+        async ({ page }, provide) => {
+            const errors: string[] = [];
+            page.on("pageerror", (error) => errors.push(error.message));
+            page.on("console", (message) => {
+                if (message.type() === "error" && /hydration|did not match|server rendered/i.test(message.text()))
+                    errors.push(message.text());
+            });
+            await provide(errors);
+        },
+        { auto: true },
+    ],
 });
 export { expect };
 export const openDraft = async (page: Page, draft: ItemDraft) => {

@@ -6,8 +6,22 @@ import { Slideshow } from "../slideshow";
 
 // Swiperの描画だけを代替し、拡大画像選択のReact状態を実処理で確認する。
 vi.mock("swiper/react", () => ({
-    Swiper: ({ children, initialSlide, className }: { children: ReactNode; initialSlide?: number; className?: string }) => (
-        <div data-testid={initialSlide === undefined ? "slideshow" : "modal"} data-initial-slide={initialSlide} className={className}>{children}</div>
+    Swiper: ({
+        children,
+        initialSlide,
+        className,
+    }: {
+        children: ReactNode;
+        initialSlide?: number;
+        className?: string;
+    }) => (
+        <div
+            data-testid={initialSlide === undefined ? "slideshow" : "modal"}
+            data-initial-slide={initialSlide}
+            className={className}
+        >
+            {children}
+        </div>
     ),
     SwiperSlide: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));

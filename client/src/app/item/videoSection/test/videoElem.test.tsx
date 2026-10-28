@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VideoElem } from "../videoElem";
 
 const hls = vi.hoisted(() => ({
-    supported: vi.fn(), loadSource: vi.fn(), attachMedia: vi.fn(), destroy: vi.fn(), play: vi.fn(),
+    supported: vi.fn(),
+    loadSource: vi.fn(),
+    attachMedia: vi.fn(),
+    destroy: vi.fn(),
+    play: vi.fn(),
 }));
 vi.mock("hls.js", () => ({
     default: class Hls {
@@ -14,9 +18,16 @@ vi.mock("hls.js", () => ({
     },
 }));
 vi.mock("../../api/video", () => ({ fetchOnPlay: hls.play }));
-const media = { videoId: "99", thumbnailUrl: "/poster.png", convertedUrl: "/converted.m3u8", originalUrl: "/original.mp4" };
+const media = {
+    videoId: "99",
+    thumbnailUrl: "/poster.png",
+    convertedUrl: "/converted.m3u8",
+    originalUrl: "/original.mp4",
+};
 
-beforeEach(() => { hls.supported.mockReturnValue(true); });
+beforeEach(() => {
+    hls.supported.mockReturnValue(true);
+});
 describe("下書き動画", () => {
     it("U-N07 HLSを変換URLで開始しunmount時に破棄する", () => {
         const { container, unmount } = render(<VideoElem data={media} normalPage={false} />);
@@ -55,7 +66,9 @@ describe("下書き動画", () => {
         expect(hls.loadSource).not.toHaveBeenCalled();
     });
     it("U-N07 動画がなければ代替文を表示する", () => {
-        const { container } = render(<VideoElem data={{ ...media, convertedUrl: null, originalUrl: "" }} normalPage={false} />);
+        const { container } = render(
+            <VideoElem data={{ ...media, convertedUrl: null, originalUrl: "" }} normalPage={false} />,
+        );
         expect(screen.getByText("動画がありません。")).toBeVisible();
         expect(container.querySelector("video")).toBeNull();
         expect(hls.attachMedia).not.toHaveBeenCalled();

@@ -10,7 +10,9 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock("../api/client", () => ({ fetchEditDraftItem: mocks.request }));
 vi.mock("react-hot-toast", () => ({ default: { error: mocks.error } }));
 
-beforeEach(() => { mocks.request.mockReset(); });
+beforeEach(() => {
+    mocks.request.mockReset();
+});
 describe("EditButton 単体", () => {
     it("U-N02 通信中の再クリックを止め、成功レスポンスの編集IDへ一度だけ遷移する", async () => {
         const pending = deferred<{ itemEditingId: number }>();
@@ -28,17 +30,22 @@ describe("EditButton 単体", () => {
         expect(mocks.push).toHaveBeenCalledExactlyOnceWith("/upload/456");
         expect(mocks.error).not.toHaveBeenCalled();
     });
-    it.each([new ApiError("NOT_FOUND"), new Error("network")])("U-F01 %s で通知して操作を復旧し、再試行できる", async (error) => {
-        mocks.request.mockRejectedValueOnce(error).mockResolvedValueOnce({ itemEditingId: 456 });
-        const user = userEvent.setup();
-        render(<EditButton id="11" />);
-        const button = screen.getByRole("button", { name: "編集する" });
-        await user.click(button);
-        await waitFor(() => expect(button).toBeEnabled());
-        expect(mocks.error).toHaveBeenCalledExactlyOnceWith("下書きの編集を開始できませんでした。時間を置いて再試行してください");
-        expect(mocks.push).not.toHaveBeenCalled();
-        await user.click(button);
-        expect(mocks.request).toHaveBeenCalledTimes(2);
-        expect(mocks.push).toHaveBeenCalledExactlyOnceWith("/upload/456");
-    });
+    it.each([new ApiError("NOT_FOUND"), new Error("network")])(
+        "U-F01 %s で通知して操作を復旧し、再試行できる",
+        async (error) => {
+            mocks.request.mockRejectedValueOnce(error).mockResolvedValueOnce({ itemEditingId: 456 });
+            const user = userEvent.setup();
+            render(<EditButton id="11" />);
+            const button = screen.getByRole("button", { name: "編集する" });
+            await user.click(button);
+            await waitFor(() => expect(button).toBeEnabled());
+            expect(mocks.error).toHaveBeenCalledExactlyOnceWith(
+                "下書きの編集を開始できませんでした。時間を置いて再試行してください",
+            );
+            expect(mocks.push).not.toHaveBeenCalled();
+            await user.click(button);
+            expect(mocks.request).toHaveBeenCalledTimes(2);
+            expect(mocks.push).toHaveBeenCalledExactlyOnceWith("/upload/456");
+        },
+    );
 });

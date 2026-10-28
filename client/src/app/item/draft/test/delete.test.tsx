@@ -10,7 +10,9 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock("../api/client", () => ({ fetchDeleteDraftItem: mocks.request }));
 vi.mock("react-hot-toast", () => ({ default: { success: mocks.success, error: mocks.error } }));
 
-beforeEach(() => { mocks.request.mockReset(); });
+beforeEach(() => {
+    mocks.request.mockReset();
+});
 describe("DeleteItemDraft 単体", () => {
     it.each(["背景", "X"])("U-N03 確認を%sで閉じて再度開ける、キャンセルでは通信しない", async (close) => {
         const user = userEvent.setup();
@@ -48,40 +50,45 @@ describe("DeleteItemDraft 単体", () => {
         await act(async () => vi.advanceTimersByTimeAsync(1));
         expect(mocks.push).toHaveBeenCalledExactlyOnceWith("/my-page");
     });
-    it.each([new ApiError("NOT_FOUND"), new Error("network")])("U-F02 %s を区別して通知し、失敗では遷移しない", async (error) => {
-        const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
-        const user = userEvent.setup();
-        const retry = deferred<unknown>();
-        mocks.request.mockRejectedValueOnce(error).mockReturnValueOnce(retry.promise);
-        render(<DeleteItemDraft id="11" />);
-        await user.click(screen.getByText("この下書き商品を削除する"));
-        await user.click(screen.getByRole("button", { name: "削除する" }));
-        expect(screen.queryByRole("button", { name: "削除する" })).not.toBeInTheDocument();
-        if (error instanceof ApiError) {
-            expect(mocks.error).toHaveBeenCalledExactlyOnceWith("下書き商品の削除に失敗しました");
-            expect(alert).not.toHaveBeenCalled();
-        } else {
-            expect(alert).toHaveBeenCalledExactlyOnceWith("システムエラーが発生しました。時間をおいて再試行してください");
-            expect(mocks.error).not.toHaveBeenCalled();
-        }
-        vi.useFakeTimers();
-        await act(async () => vi.advanceTimersByTimeAsync(2000));
-        vi.useRealTimers();
-        expect(mocks.success).not.toHaveBeenCalled();
-        expect(mocks.push).not.toHaveBeenCalled();
-        await user.click(screen.getByText("この下書き商品を削除する"));
-        await user.click(screen.getByRole("button", { name: "削除する" }));
-        expect(mocks.request).toHaveBeenCalledTimes(2);
-        expect(mocks.request).toHaveBeenNthCalledWith(2, "11");
-        expect(mocks.success).not.toHaveBeenCalled();
-        expect(mocks.push).not.toHaveBeenCalled();
-        vi.useFakeTimers();
-        await act(async () => retry.resolve({ message: "ok" }));
-        expect(mocks.success).toHaveBeenCalledExactlyOnceWith("下書き商品を削除しました");
-        expect(screen.queryByRole("button", { name: "削除する" })).not.toBeInTheDocument();
-        await act(async () => vi.advanceTimersByTimeAsync(1499));
-        expect(mocks.push).not.toHaveBeenCalled();
-        await act(async () => vi.advanceTimersByTimeAsync(1));
-        expect(mocks.push).toHaveBeenCalledExactlyOnceWith("/my-page");
-    });
+    it.each([new ApiError("NOT_FOUND"), new Error("network")])(
+        "U-F02 %s を区別して通知し、失敗では遷移しない",
+        async (error) => {
+            const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+            const user = userEvent.setup();
+            const retry = deferred<unknown>();
+            mocks.request.mockRejectedValueOnce(error).mockReturnValueOnce(retry.promise);
+            render(<DeleteItemDraft id="11" />);
+            await user.click(screen.getByText("この下書き商品を削除する"));
+            await user.click(screen.getByRole("button", { name: "削除する" }));
+            expect(screen.queryByRole("button", { name: "削除する" })).not.toBeInTheDocument();
+            if (error instanceof ApiError) {
+                expect(mocks.error).toHaveBeenCalledExactlyOnceWith("下書き商品の削除に失敗しました");
+                expect(alert).not.toHaveBeenCalled();
+            } else {
+                expect(alert).toHaveBeenCalledExactlyOnceWith(
+                    "システムエラーが発生しました。時間をおいて再試行してください",
+                );
+                expect(mocks.error).not.toHaveBeenCalled();
+            }
+            vi.useFakeTimers();
+            await act(async () => vi.advanceTimersByTimeAsync(2000));
+            vi.useRealTimers();
+            expect(mocks.success).not.toHaveBeenCalled();
+            expect(mocks.push).not.toHaveBeenCalled();
+            await user.click(screen.getByText("この下書き商品を削除する"));
+            await user.click(screen.getByRole("button", { name: "削除する" }));
+            expect(mocks.request).toHaveBeenCalledTimes(2);
+            expect(mocks.request).toHaveBeenNthCalledWith(2, "11");
+            expect(mocks.success).not.toHaveBeenCalled();
+            expect(mocks.push).not.toHaveBeenCalled();
+            vi.useFakeTimers();
+            await act(async () => retry.resolve({ message: "ok" }));
+            expect(mocks.success).toHaveBeenCalledExactlyOnceWith("下書き商品を削除しました");
+            expect(screen.queryByRole("button", { name: "削除する" })).not.toBeInTheDocument();
+            await act(async () => vi.advanceTimersByTimeAsync(1499));
+            expect(mocks.push).not.toHaveBeenCalled();
+            await act(async () => vi.advanceTimersByTimeAsync(1));
+            expect(mocks.push).toHaveBeenCalledExactlyOnceWith("/my-page");
+        },
+    );
 });

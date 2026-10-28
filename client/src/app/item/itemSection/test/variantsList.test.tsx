@@ -5,7 +5,9 @@ import { VariantsList } from "../variantsList";
 import styles from "../variants.module.css";
 import type { ItemAttributes } from "../../../../types/itemAttributes";
 const variant = (color: string, current = 4) => ({
-    color, image_url: "/variant.png", inventory: { initial: 10, current, low_stock_ratio: 0.2 },
+    color,
+    image_url: "/variant.png",
+    inventory: { initial: 10, current, low_stock_ratio: 0.2 },
     sizes: [{ size: "M", inventory: { initial: 10, current, low_stock_ratio: 0.2 } }],
 });
 
@@ -38,7 +40,12 @@ describe("バリエーション", () => {
         expect(screen.getByText("緑")).toBeVisible();
         expect(screen.queryByText("M")).not.toBeInTheDocument();
     });
-    it.each([[0, "SOLD"], [1, "残りわずか"], [2, "残りわずか"], [3, null]] as const)("U-V05 色在庫%sの表示%s", (current, expected) => {
+    it.each([
+        [0, "SOLD"],
+        [1, "残りわずか"],
+        [2, "残りわずか"],
+        [3, null],
+    ] as const)("U-V05 色在庫%sの表示%s", (current, expected) => {
         render(<VariantsList itemAttributes={{ colorVariants: [variant("赤", current)] }} />);
         if (expected) expect(screen.getByText(expected)).toBeVisible();
         else expect(screen.queryByText(/SOLD|残りわずか/)).not.toBeInTheDocument();

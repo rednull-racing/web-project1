@@ -1,7 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ItemHeader } from "../itemHeader";
-const data = { itemName: "下書きシャツ", price: 800, genderType: "men" as const, ageType: "adult" as const, recommend: true, soldout: false, saleFlag: true, beforePrice: 1200, discountRate: 25, discountAmount: 400 };
+const data = {
+    itemName: "下書きシャツ",
+    price: 800,
+    genderType: "men" as const,
+    ageType: "adult" as const,
+    recommend: true,
+    soldout: false,
+    saleFlag: true,
+    beforePrice: 1200,
+    discountRate: 25,
+    discountAmount: 400,
+};
 
 describe("商品ヘッダー", () => {
     it("U-N11 下書きの名前・価格・セールを表示しおすすめ炎を出さない", () => {
@@ -25,7 +36,11 @@ describe("商品ヘッダー", () => {
         expect(screen.queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
         expect(screen.queryByText(/% OFF|円引き|￥1,200/)).not.toBeInTheDocument();
     });
-    it.each([["men", "adult", "メンズ", false], ["women", "kids", "レディース", true], ["unisex", "both", "ユニセックス", false]] as const)("U-N11 %s/%sの属性タグ", (genderType, ageType, label, kids) => {
+    it.each([
+        ["men", "adult", "メンズ", false],
+        ["women", "kids", "レディース", true],
+        ["unisex", "both", "ユニセックス", false],
+    ] as const)("U-N11 %s/%sの属性タグ", (genderType, ageType, label, kids) => {
         render(<ItemHeader data={{ ...data, genderType, ageType }} page="draft" />);
         expect(screen.getByText(label)).toBeVisible();
         expect(Boolean(screen.queryByText("キッズ"))).toBe(kids);

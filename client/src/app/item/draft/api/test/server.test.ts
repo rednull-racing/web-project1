@@ -3,7 +3,9 @@ import { createDraft } from "@/../test/fixtures/item/itemDraftPage/fixtures";
 import { fetchItemDraftPage } from "../server";
 const apiFetchServer = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/server", () => ({ apiFetchServer }));
-beforeEach(() => { apiFetchServer.mockReset(); });
+beforeEach(() => {
+    apiFetchServer.mockReset();
+});
 describe("下書き専用server API単体", () => {
     it("U-N06 下書きIDをno-storeで共通取得関数へ渡す", async () => {
         const response = { itemDraft: createDraft() };

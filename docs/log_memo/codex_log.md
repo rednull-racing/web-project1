@@ -1054,19 +1054,19 @@
 - 変更5ファイルlint・client全体typecheck成功。共有部品/APIを一部置き換えた描画・認証等の7ケース検証成功。
 - 実ブラウザー・実APIは未検証。既存の下書き詳細取得API未実装はTodoへ記録し、バックエンドは未変更。
 
-## 20261028_documents_フロントエンドテストのディレクトリ構成を補完
+## 20261028*documents*フロントエンドテストのディレクトリ構成を補完
 
 - server/test/AGENTS.mdを参考に、client/test/AGENTS.mdの単体テスト配置例・設計書/レポート配置・構成例を補完。
 - ディレクトリ構成のみを記載し、既存のE2E配置方針を維持。
 - 文書差分と空白を確認。テスト・lint・型検査、既知エラーの調査・修正は実施していない。
 
-## 20261028_documents_フロントエンドテスト方針と使用ツールを整備
+## 20261028*documents*フロントエンドテスト方針と使用ツールを整備
 
 - 追記されたテスト階層・観点を添削し、Vitest・Testing Library・MSW・Playwrightを使用ツールとして明記。
 - 非同期Server Component、HTTPモック範囲、設定先、テスト収集と実行スクリプトの導入方針を整理し公式資料を追加。
 - 文書差分・空白を確認。依存追加・設定実装・テスト実行・既知エラー対応は実施していない。
 
-## 20261028_frontend-architecture_フロントエンドとE2Eのテスト環境導入
+## 20261028*frontend-architecture*フロントエンドとE2Eのテスト環境導入
 
 - clientへVitest・Testing Library・jsdom・MSW・Playwrightを固定版で導入し、単体/結合収集・共通setup・実行スクリプトを追加。
 - ルートtestを独立したE2Eパッケージとし、Playwright・TypeScript・3ブラウザー設定・委譲コマンド・実行READMEを追加。
