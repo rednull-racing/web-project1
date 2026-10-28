@@ -1079,3 +1079,10 @@
 - client/test/tsconfig.jsonを追加し、client共通設定・パスエイリアスを継承。
 - 単体/結合テスト・fixture・テストランナー設定・型宣言を型検査対象とし、増分キャッシュは無効化。
 - Node.js 22で tsc --noEmit -p test/tsconfig.json 成功。既存の本番設定・依存関係は未変更。
+
+## 20261028_documents_itemDraftPageテスト設計
+
+- 単体・コンポーネント結合・ページ結合・編集開始／削除E2Eの設計をclient/test/docs/architecture/item/itemDraftPage.mdへ集約。
+- fixture、実処理と代替境界、実DB確認、配置・実行計画を記載。未実装の取得APIはE2Eの準備用代替として区別。
+- 重複送信・排他不足・在庫表示・キーボード操作等を、現行の問題を検出して失敗する要求ケースとして設計。
+- 文書のリンク・ID・差分を確認。テストコード実装・テスト実行・lint・型検査・DB操作は実施していない。
