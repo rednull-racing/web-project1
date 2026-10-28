@@ -43,12 +43,19 @@ test("E-S01 tokenなしならDELETEせず削除拒否", async ({ page, context, 
     await expect(page.getByText("下書き商品の削除に失敗しました", { exact: true })).toBeVisible(); expect(requests).toBe(0);
     expect(await e2e.database.get("item_draft", e2e.seed.draft.id)).toEqual(e2e.seed.draft); expect(await e2e.editingRows()).toEqual([]); await e2e.expectProtected();
 });
-test("E-F02 実削除レート21回目は429", async ({ page, context, baseURL, e2e }) => {
+test("E-F02 実削除レート21回目は429、非JSON失敗をalertで通知", async ({ page, context, baseURL, e2e }) => {
     await openOwnedDraft(page, context, baseURL, e2e); const headers = await authHeader(context);
     for (let index = 0; index < 20; index++) expect((await e2e.http(`/item-draft/${e2e.seed.otherDraft.id}`, { method: "DELETE", headers })).status).toBe(404);
-    await page.getByText("この下書き商品を削除する", { exact: true }).click(); const result = page.waitForResponse((response) => response.request().method() === "DELETE");
-    await page.getByRole("button", { name: "削除する", exact: true }).click(); expect((await result).status()).toBe(429);
-    await expect(page.getByText("下書き商品の削除に失敗しました", { exact: true })).toBeVisible();
+    await page.getByText("この下書き商品を削除する", { exact: true }).click();
+    const result = page.waitForResponse((response) => response.request().method() === "DELETE");
+    const alert = page.waitForEvent("dialog");
+    await page.getByRole("button", { name: "削除する", exact: true }).click();
+    const response = await result; expect(response.status()).toBe(429);
+    expect(response.headers()["content-type"]).toMatch(/^text\//);
+    const dialog = await alert;
+    expect(dialog.message()).toBe("システムエラーが発生しました。時間をおいて再試行してください"); await dialog.dismiss();
+    await expect(page).toHaveURL(new RegExp(`/item/draft/${e2e.seed.draft.id}$`));
+    await expect(page.getByText("下書き商品を削除しました", { exact: true })).toHaveCount(0);
     expect(await e2e.database.get("item_draft", e2e.seed.draft.id)).toEqual(e2e.seed.draft); expect(await e2e.editingRows()).toEqual([]); await e2e.expectProtected();
 });
 test("E-N05 削除後の再訪とリロードで操作不可", async ({ page, context, baseURL, e2e }) => {
@@ -88,7 +95,7 @@ for (const operation of ["delete-repeat", "edit-both", "edit-delete", "delete-ed
             await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
         } finally { release(); }
         await expect.poll(() => completed).toBe(requests.length);
-        expect(requests).toHaveLength(1);
+        expect.soft(requests).toHaveLength(1);
         expect((await e2e.editingRows()).length).toBeLessThanOrEqual(1);
         expect(await e2e.database.get("item_draft", e2e.seed.draft.id)).toBeNull();
         await e2e.expectProtected();

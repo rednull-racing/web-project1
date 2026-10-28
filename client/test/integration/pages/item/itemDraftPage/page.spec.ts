@@ -1,4 +1,4 @@
-import { test, expect, openDraft, apiOrigin } from "../../../../fixtures/item/itemDraftPage/browser";
+import { test, expect, openDraft, apiOrigin, setBrowserSession } from "../../../../fixtures/item/itemDraftPage/browser";
 import { emptyBrowserDraft } from "../../../../fixtures/item/itemDraftPage/browserData";
 for (const empty of [false, true]) {
     test(`B-N01 ${empty ? "未入力" : "標準"}データのSSRとHydration`, async ({ page, draft, putDraft, request, errors }) => {
@@ -85,4 +85,15 @@ test("B-N06 編集後遷移と戻る・reload", async ({ page, draft, putDraft }
     await openDraft(page, draft); await page.getByRole("button", { name: "編集する", exact: true }).first().click();
     await expect(page).toHaveURL(/\/upload\/456$/); await page.goBack(); await page.reload();
     await expect(page.getByRole("button", { name: "編集する", exact: true })).toHaveCount(0);
+});
+
+test("B-S02 IDの文字列化とtrim後の所有者一致を許可", async ({ page, context, baseURL, draft }) => {
+    await setBrowserSession(context, baseURL!, " 7 "); await openDraft(page, draft);
+    await expect(page.getByRole("heading", { name: draft.name!, exact: true })).toBeVisible();
+});
+test("B-N04 同一描画内でmetadataと本文の取得を共有", async ({ page, draft, request }) => {
+    const before = await (await request.get(`${apiOrigin}/__test__/state`)).json() as { entries: Record<string, { requests: number }> };
+    await openDraft(page, draft);
+    const after = await (await request.get(`${apiOrigin}/__test__/state`)).json() as { entries: Record<string, { requests: number }> };
+    expect(after.entries[draft.id].requests - before.entries[draft.id].requests).toBe(1);
 });
