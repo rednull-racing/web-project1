@@ -6,6 +6,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     root: fileURLToPath(new URL(".", import.meta.url)),
     plugins: [react(), tsconfigPaths()],
+    // DOMテストでは本番用PostCSSを実行せず、CSS Modulesの識別子だけを扱う。
+    css: { postcss: { plugins: [] } },
     test: {
         environment: "jsdom",
         setupFiles: ["./test/fixtures/setup.ts"],
