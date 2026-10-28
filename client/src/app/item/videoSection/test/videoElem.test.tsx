@@ -30,6 +30,20 @@ describe("下書き動画", () => {
         unmount();
         expect(hls.destroy).toHaveBeenCalledTimes(1);
     });
+    it("U-N07 URL更新で旧HLSを破棄してから次を読み込みMP4にも切り替える", () => {
+        const { container, rerender, unmount } = render(<VideoElem data={media} normalPage={false} />);
+        rerender(<VideoElem data={{ ...media, convertedUrl: "/second.m3u8" }} normalPage={false} />);
+        expect(hls.destroy).toHaveBeenCalledTimes(1);
+        expect(hls.loadSource).toHaveBeenNthCalledWith(2, "/second.m3u8");
+        expect(hls.attachMedia).toHaveBeenCalledTimes(2);
+        expect(hls.destroy.mock.invocationCallOrder[0]).toBeLessThan(hls.loadSource.mock.invocationCallOrder[1]);
+        rerender(<VideoElem data={{ ...media, convertedUrl: null, originalUrl: "/updated.mp4" }} normalPage={false} />);
+        expect(hls.destroy).toHaveBeenCalledTimes(2);
+        expect(hls.loadSource).toHaveBeenCalledTimes(2);
+        expect(container.querySelector("video")).toHaveAttribute("src", "/updated.mp4");
+        unmount();
+        expect(hls.destroy).toHaveBeenCalledTimes(2);
+    });
     it.each([
         [false, "/converted.m3u8", "/converted.m3u8"],
         [true, null, "/original.mp4"],

@@ -36,8 +36,8 @@ describe("商品・配送情報", () => {
     });
     it("U-S01 配送と素材名をHTMLに変換しない", () => {
         const payload = '<script>alert(1)</script><img onerror="alert(2)">';
-        const { container } = render(<DeliverySection data={{ ...data, condition: payload, itemAttributes: { materials: [{ name: payload, ratio: 100 }] } }} />);
-        expect(screen.getAllByText(payload)).toHaveLength(2);
+        const { container } = render(<DeliverySection data={{ ...data, condition: payload, shippingService: payload, shippingPlace: payload, shippingDay: payload, itemAttributes: { materials: [{ name: payload, ratio: 100 }] } }} />);
+        expect(screen.getAllByText(payload)).toHaveLength(5);
         expect(container.querySelector("script, [onerror]")).toBeNull();
     });
 });
