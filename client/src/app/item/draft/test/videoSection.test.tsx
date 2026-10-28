@@ -14,7 +14,8 @@ describe("VideoSection 単体", () => {
     it("U-V02 全入力の変換・updatedAt・下書きフラグと入力非破壊", () => {
         const draft = deepFreeze(createDraft());
         const before = structuredClone(draft);
-        render(<VideoSection itemDraft={draft} soldout={true} />);
+        const { container } = render(<VideoSection itemDraft={draft} soldout={true} />);
+        expect(Array.from(container.firstElementChild?.children ?? []).map((node) => node.textContent)).toEqual(["video", "title", "peek", "保存日時：1時間前", "summary"]);
         expect(mocks.video).toHaveBeenCalledWith({ normalPage: false, data: { thumbnailUrl: draft.thumbnail_url, originalUrl: draft.original_url, convertedUrl: draft.converted_url } });
         expect(mocks.title).toHaveBeenCalledWith({ title: draft.title });
         expect(mocks.peek).toHaveBeenCalledWith({ data: { itemName: draft.name, price: 800, firstImageUrl: draft.first_image_url, genderType: "men", ageType: "adult", soldout: true } });
