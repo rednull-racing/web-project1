@@ -27,6 +27,20 @@ describe("動画概要", () => {
         rerender(<Summary data={{ ...data, summary: "変更後" }} normalPage={false} />);
         expect(screen.getByText("変更後")).toBeVisible();
     });
+    it("U-N09 本文変更時にoverflowと展開高さを再計測する", async () => {
+        const height = vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(120);
+        vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(40);
+        const { rerender } = render(<Summary data={data} normalPage={false} />);
+        expect(screen.getByRole("button", { name: "...もっと見る" })).toBeVisible();
+        height.mockReturnValue(40);
+        rerender(<Summary data={{ ...data, summary: "短い変更後" }} normalPage={false} />);
+        expect(screen.queryByRole("button")).not.toBeInTheDocument();
+        height.mockReturnValue(200);
+        rerender(<Summary data={{ ...data, summary: "長い変更後" }} normalPage={false} />);
+        await userEvent.click(screen.getByRole("button", { name: "...もっと見る" }));
+        expect(screen.getByText("長い変更後")).toHaveStyle({ maxHeight: "200px" });
+        expect(sort).not.toHaveBeenCalled();
+    });
     it("U-S01 HTMLとして描画しない", () => {
         const payload = '<script>alert(1)</script><img onerror="alert(2)">';
         const { container } = render(<Summary data={{ ...data, summary: payload }} normalPage={false} />);
