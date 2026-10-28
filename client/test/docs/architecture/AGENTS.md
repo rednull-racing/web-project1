@@ -4,7 +4,17 @@
 
 `client/test/docs/architecture` 配下に適用する。上位の AGENTS.md と [配置規則](../../AGENTS.md) に従う。
 
+単体テスト～コンポーネント結合テスト～ページ結合テスト～E2Eテストまですべてこのディレクトリに1つのテスト設計書にまとめる。
+
+コンポーネント結合テストのみ、ページ結合テストのみの場合も新規でテスト設計書を作成する。
+
 対応する [レポート](../report/AGENTS.md)、詳細設計、対象コード、既存テスト・fixture などを調査する。パスは原則 `client/` あるいはE2Eなら `test/` 基準と明記し、リポジトリルート基準の参照は区別する。未作成のテストは「予定配置」とし、現配置や実装済みと混同しない。
+
+ディレクトリ例：
+
+- `/client/test/docs/architecture/item/itemDraftPage.md`
+- `/client/test/docs/architecture/item/videoSection.md`
+- `/client/test/docs/architecture/upload/uploadPage.md`
 
 ## 仕様の根拠と更新
 
