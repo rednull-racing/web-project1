@@ -65,3 +65,14 @@ test("E-N05 編集消費後の再訪とリロードで古い操作を出さな�
     await page.goBack(); await page.reload(); await expect(page.getByRole("button", { name: "編集する", exact: true })).toHaveCount(0);
     expect(await e2e.editingRows()).toHaveLength(1); await e2e.expectProtected();
 });
+test("E-S01 署名不正tokenは実401で編集拒否", async ({ page, context, baseURL, e2e }) => {
+    await openOwnedDraft(page, context, baseURL, e2e);
+    const original = (await context.cookies()).find((cookie) => cookie.name === "access-token"); expect(original).toBeDefined();
+    const invalid = `${Buffer.from('{"alg":"HS256"}').toString("base64url")}.${Buffer.from(JSON.stringify({ id: e2e.seed.owner.id, exp: Math.floor(Date.now() / 1000) + 600 })).toString("base64url")}.invalid-signature`;
+    await context.addCookies([{ ...original!, value: invalid }]);
+    const result = page.waitForResponse((response) => response.request().method() === "POST" && response.url().endsWith("/item-editing/draft"));
+    await page.getByRole("button", { name: "編集する", exact: true }).first().click(); expect((await result).status()).toBe(401);
+    await expect(page.getByText("下書きの編集を開始できませんでした。時間を置いて再試行してください", { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/item/draft/${e2e.seed.draft.id}$`));
+    expect(await e2e.editingRows()).toEqual([]); expect(await e2e.database.get("item_draft", e2e.seed.draft.id)).toEqual(e2e.seed.draft); await e2e.expectProtected();
+});

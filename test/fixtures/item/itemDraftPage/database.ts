@@ -29,8 +29,26 @@ export const openDatabase = async () => {
         const result = await db.query<{ name: string }>("SELECT current_database() AS name");
         if (result.rows[0]?.name !== "test_db") throw new Error("wrong database");
         for (const table of ["item_draft", "item_editing"] as const) {
-            const columns = await db.query<{ column_name: string }>("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name=$1", [table]);
+            const columns = await db.query<{ column_name: string; data_type: string; udt_name: string; is_nullable: string; character_maximum_length: number | null }>("SELECT column_name,data_type,udt_name,is_nullable,character_maximum_length FROM information_schema.columns WHERE table_schema=current_schema() AND table_name=$1", [table]);
             if (!["id", "seller_id", "createdAt", "updatedAt", ...copyColumns].every((name) => columns.rows.some((column) => column.column_name === name))) throw new Error(`schema mismatch ${table}`);
+            const byName = new Map(columns.rows.map((column) => [column.column_name, column]));
+            for (const name of ["id", "seller_id", "price", "item_condition_id", "category_id", "brand_id", "brand_aliases_id", "duration", "before_price", "discount_rate", "discount_amount", "shipping_day_id", "shipping_service_id", "shipping_place_id"]) if (byName.get(name)?.data_type !== "integer") throw new Error(`integer type mismatch ${table}`);
+            if (byName.get("attributes")?.udt_name !== "jsonb" || byName.get("image_url")?.udt_name !== "_text") throw new Error(`JSON/array type mismatch ${table}`);
+            for (const name of ["recommend", "sale_flag"]) if (byName.get(name)?.data_type !== "boolean") throw new Error(`boolean type mismatch ${table}`);
+            for (const name of ["name", "title", "video_status", "shipping_service_free_text"]) if (byName.get(name)?.character_maximum_length !== 255) throw new Error(`string length mismatch ${table}`);
+            for (const name of ["name", "detail", "image_url", "price", "recommend", "thumbnail_url", "title", "summary", "duration", "original_url", "converted_url", "video_status", "before_price", "discount_rate", "discount_amount"]) if (byName.get(name)?.is_nullable !== "YES") throw new Error(`nullable mismatch ${table}`);
+            const foreignKeys = await db.query<{ column_name: string; target: string; delete_action: string; update_action: string }>(`
+                SELECT a.attname AS column_name,target.relname AS target,c.confdeltype AS delete_action,c.confupdtype AS update_action
+                FROM pg_constraint c JOIN pg_class source ON source.oid=c.conrelid
+                JOIN pg_namespace n ON n.oid=source.relnamespace JOIN pg_class target ON target.oid=c.confrelid
+                JOIN pg_attribute a ON a.attrelid=c.conrelid AND a.attnum=c.conkey[1]
+                WHERE c.contype='f' AND source.relname=$1 AND n.nspname=current_schema()`, [table]);
+            const targets = { seller_id: "user", item_condition_id: "item_condition_option", category_id: "categories", brand_id: "brands", brand_aliases_id: "brand_aliases", shipping_day_id: "shipping_day_option", shipping_service_id: "shipping_service_option", shipping_place_id: "todouhuken_option" };
+            for (const [name, target] of Object.entries(targets)) {
+                const fk = foreignKeys.rows.find((key) => key.column_name === name);
+                if (!fk || fk.target !== target || fk.update_action !== "a" || fk.delete_action !== (name.startsWith("brand") ? "n" : "a")) throw new Error(`foreign key mismatch ${table}.${name}`);
+            }
+
         }
     } catch {
         await db.end().catch(() => undefined);

@@ -94,3 +94,30 @@ for (const operation of ["delete-repeat", "edit-both", "edit-delete", "delete-ed
         await e2e.expectProtected();
     });
 }
+test("E-S01 署名不正tokenは実401で削除拒否", async ({ page, context, baseURL, e2e }) => {
+    await openOwnedDraft(page, context, baseURL, e2e);
+    const original = (await context.cookies()).find((cookie) => cookie.name === "access-token"); expect(original).toBeDefined();
+    const invalid = `${Buffer.from('{"alg":"HS256"}').toString("base64url")}.${Buffer.from(JSON.stringify({ id: e2e.seed.owner.id, exp: Math.floor(Date.now() / 1000) + 600 })).toString("base64url")}.invalid-signature`;
+    await context.addCookies([{ ...original!, value: invalid }]);
+    await page.getByText("この下書き商品を削除する", { exact: true }).click();
+    const result = page.waitForResponse((response) => response.request().method() === "DELETE");
+    await page.getByRole("button", { name: "削除する", exact: true }).click(); expect((await result).status()).toBe(401);
+    await expect(page.getByText("下書き商品の削除に失敗しました", { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/item/draft/${e2e.seed.draft.id}$`));
+    expect(await e2e.editingRows()).toEqual([]); expect(await e2e.database.get("item_draft", e2e.seed.draft.id)).toEqual(e2e.seed.draft); await e2e.expectProtected();
+});
+test("E-Q01 削除成功後1500ms内に同じ対象を再送しない", async ({ page, context, baseURL, e2e }) => {
+    await page.clock.install(); await openOwnedDraft(page, context, baseURL, e2e); const sent: string[] = [];
+    page.on("request", (request) => { if (request.method() === "DELETE") sent.push(new URL(request.url()).pathname); });
+    await page.getByText("この下書き商品を削除する", { exact: true }).click();
+    const result = page.waitForResponse((response) => response.request().method() === "DELETE");
+    await page.getByRole("button", { name: "削除する", exact: true }).click(); expect((await result).status()).toBe(200);
+    await expect(page.getByText("下書き商品を削除しました", { exact: true })).toBeVisible();
+    await page.getByText("この下書き商品を削除する", { exact: true }).evaluate((element) => (element as HTMLElement).click());
+    const submit = page.getByRole("button", { name: "削除する", exact: true });
+    if (await submit.count()) await submit.evaluate((element) => (element as HTMLButtonElement).click());
+    await page.clock.runFor(1499); expect(sent).toHaveLength(1);
+    await expect(page).toHaveURL(new RegExp(`/item/draft/${e2e.seed.draft.id}$`));
+    await page.clock.runFor(1); await expect(page).toHaveURL(/\/my-page$/);
+    expect(await e2e.database.get("item_draft", e2e.seed.draft.id)).toBeNull(); expect(await e2e.editingRows()).toEqual([]); await e2e.expectProtected();
+});
