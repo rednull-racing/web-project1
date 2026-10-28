@@ -117,7 +117,7 @@ test/
 
 ## テストツール
 
-以下をフロントエンドテストで使用する。導入時は `client/package.json` の開発依存関係として追加し、既存のNext.js・React・Node.jsとの互換性を確認してバージョンを固定する。現時点ではテストツールと実行設定は未導入であり、この文書の記載だけで実行可能になったものとはみなさない。
+以下をフロントエンドテストで使用する。単体・結合テスト用ツールは `client/package.json`、E2E用のPlaywright・TypeScriptは `test/package.json` の開発依存関係で管理し、バージョンを固定する。追加・更新時は既存のNext.js・React・Node.jsとの互換性を確認する。
 
 | ツール・パッケージ                                                              | 用途                                                                     |
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -138,11 +138,11 @@ test/
 - SWRのキャッシュ、モック、イベント、タイマー、fixtureはテスト間で共有状態が残らないよう初期化・後片付けする。MSWでは未定義の対象APIへの通信を失敗として扱う。
 - UIはrole・ラベル・表示テキストから取得し、非同期更新は非同期クエリや待機アサーションで確認する。固定時間の待機や内部stateへの直接依存を避ける。
 
-### 導入時の設定・実行規則
+### 設定・実行規則
 
-- Vitestの設定は `client/vitest.config.mts`、Playwrightの設定は `client/playwright.config.ts` に置く。共通setupは `client/test/fixtures/setup.ts` とし、ページ固有のfixture・setupは前述のページ別ディレクトリに置く。
+- Vitestの設定は `client/vitest.config.mts`、Playwrightのページ結合設定は `client/playwright.config.ts`、E2E設定は `test/playwright.config.ts` に置く。共通setupは `client/test/fixtures/setup.ts` とし、ページ固有のfixture・setupは前述のページ別ディレクトリに置く。
 - Vitestは `client/src/**/test/` と `client/test/integration/` の `*.test.ts`・`*.test.tsx` を対象とする。Playwrightのページ結合テストは `client/test/integration/pages/` の `*.spec.ts`、E2Eは `test/E2E/` の `*.spec.ts` とし、両ランナーの収集対象を分離する。
-- `client/package.json` に `test:unit`、`test:integration`、`test:pages:browser`、`test:e2e` を用意する。Vitestは `vitest run` で単体・結合の対象を分離し、Playwrightはページ結合・E2Eのprojectを分ける。E2Eディレクトリは設定ファイルから見て `../test/E2E/` に指定する。
+- `client/package.json` のscriptsに `test:unit`、`test:integration`、`test:pages:browser`、`test:e2e` を定義する。Vitestは `vitest run` で単体・結合の対象を分離し、Playwrightはページ結合・E2Eのprojectを分ける。E2Eは `test` パッケージへ委譲し、その設定ファイルから見て `./E2E/` を収集する。
 - 導入後は `client` で `npm run test:unit`、`npm run test:integration`、`npm run test:pages:browser`、`npm run test:e2e` のうち変更範囲に必要なものを実行し、`npm run lint` と `npm run typecheck` も確認する。未導入のスクリプトを実行済みとして報告しない。
 - Playwrightはテスト用環境を使用し、本番相当の `next build`・`next start` で確認する。E2EではExpress・テスト用DBの起動とデータの準備・後片付けを実行条件に含める。マイグレーションは実行しない。
 - 設計書・レポートには対象階層、実行コマンド、環境、モック範囲、結果、未実施項目とその理由を記載する。自動テストだけでアクセシビリティ全般や体感性能を保証したものとはみなさない。
@@ -184,3 +184,5 @@ test/
 | ブラウザ互換性          | —    | —         | ○          | ◎   |
 
 この表はテスト設計上の優先度の目安であり、必須件数や対象外の制約ではない。対象機能のリスクに応じて選ぶ。ページ結合でSSR・Hydration、レスポンシブ、ブラウザー互換性を検証する場合はPlaywrightを使用する。
+
+実行前の環境準備・ブラウザーのOS依存関係・E2Eパッケージの操作は [E2Eテスト環境](../../test/README.md) を参照する。

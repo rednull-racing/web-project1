@@ -94,3 +94,6 @@ web1server-key*
 
 #ドキュメント編集用markdown
 edit.md
+# Playwright
+playwright-report/
+test-results/

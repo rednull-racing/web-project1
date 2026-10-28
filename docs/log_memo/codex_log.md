@@ -1065,3 +1065,11 @@
 - 追記されたテスト階層・観点を添削し、Vitest・Testing Library・MSW・Playwrightを使用ツールとして明記。
 - 非同期Server Component、HTTPモック範囲、設定先、テスト収集と実行スクリプトの導入方針を整理し公式資料を追加。
 - 文書差分・空白を確認。依存追加・設定実装・テスト実行・既知エラー対応は実施していない。
+
+## 20261028_frontend-architecture_フロントエンドとE2Eのテスト環境導入
+
+- clientへVitest・Testing Library・jsdom・MSW・Playwrightを固定版で導入し、単体/結合収集・共通setup・実行スクリプトを追加。
+- ルートtestを独立したE2Eパッケージとし、Playwright・TypeScript・3ブラウザー設定・委譲コマンド・実行READMEを追加。
+- Node 22でReact操作/MSWの一時検証2件、両パッケージ型検査、追加設定のlint成功。検証用テストは削除、Node 26は未検証。
+- 全体lintは既存23エラー。ブラウザー本体は導入済みだがOSライブラリ不足で起動失敗、install-depsはsudoパスワード要求で実行不可。
+- 業務テスト・DB変更・既知エラー修正は対象外。管理者によるOS依存導入手順をREADMEに記録。
