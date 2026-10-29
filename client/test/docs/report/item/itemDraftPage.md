@@ -1,5 +1,22 @@
 # itemDraftPage テストレポート
 
+## F1修正・部分再検証（2026-10-29）
+
+`client/src/app/item/draft/delete.tsx` に送信前の同期refガードとdisabled用stateを追加。失敗時のみ解除し、成功時は遷移まで保持する。F1/Q01の修正は実装済み・U/Cで検証済み。ページの編集・削除共有排他（F2）は対象外。成功後のガード保持はF3にも影響するが、F3/Q04の検証完了とはしていない。
+
+client/で以下の対象だけを実行し、**単体1ファイル5件、結合1ファイル11件、計16件すべて成功**。失敗・skip・todo・未処理例外0。再実行分を下記の過去の全件集計へ加算しない。
+
+```bash
+npm run test:unit -- src/app/item/draft/test/delete.test.tsx --reporter=json --outputFile=/tmp/item-draft-f1-unit.json
+npm run test:integration -- test/integration/components/item/itemDraftPage/deleteItemDraft/integration.test.tsx --reporter=json --outputFile=/tmp/item-draft-f1-integration.json
+```
+
+U-N03/U-N04/U-F02でキャンセル・成功通知・1500ms後の遷移・失敗後の再試行を回帰。CのQ01ではMSWに実到達したDELETEをクリック連打・Enter連打とも1回と確認し、処理中disabledも確認した。既存の期待値は変更していない。単体はAPI/router/通知を代替、結合は実fetch＋MSWであり、実DBは使用しない。B/E・他のテストは今回再実行せず、カバレッジ未取得。Node.js 22.22.2。
+
+対象ESLintとテスト用 `tsc --noEmit -p test/tsconfig.json` は成功（`/tmp/item-draft-f1-lint.log`、`/tmp/item-draft-f1-test-types.log`）。本番 `npm run typecheck` は既存のNext.js生成型とページparams等の不整合で失敗（`/tmp/item-draft-f1-types.log`）。全体lintは今回未実行。上記JSON・ログは一時成果物。
+
+以下は修正前の全件結果・履歴。F1の現在の状態はこの節を正とする。
+
 ## 最新結果（2026-10-29 再開）
 
 B/Eの全195件を再実行した。**成功117、失敗69、タイムアウト9、skip0**。両ランナーはexit 1で正常に結果を出力し、トップレベルerrors・flakyは0。設計全体の合格ではない。詳細は[全件実行結果](#6-2026-10-29-全件実行結果)を参照。

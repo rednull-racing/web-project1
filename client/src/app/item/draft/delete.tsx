@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { ApiError } from "../../../lib/api/apiError";
 import { sleep } from "../../../lib/sleep";
@@ -15,9 +15,15 @@ type Props = {
 
 export const DeleteItemDraft = ({ id }: Props) => {
     const [popup, setPopup] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const deletingRef = useRef(false);
     const router = useRouter();
 
     const deleteItem = async () => {
+        if (deletingRef.current) return;
+        deletingRef.current = true;
+        setDeleting(true);
+
         try {
             await fetchDeleteDraftItem(id);
 
@@ -27,6 +33,8 @@ export const DeleteItemDraft = ({ id }: Props) => {
 
             router.push("/my-page");
         } catch (err) {
+            deletingRef.current = false;
+            setDeleting(false);
             if (err instanceof ApiError) {
                 toast.error("下書き商品の削除に失敗しました");
                 setPopup(false);
@@ -55,7 +63,7 @@ export const DeleteItemDraft = ({ id }: Props) => {
                         <p className={styles.popupTitle}>確認</p>
                         <p className={styles.text13}>※ 本当にこの下書き商品を削除しますか？</p>
 
-                        <button type="button" className={styles.popupButton} onClick={deleteItem}>
+                        <button type="button" className={styles.popupButton} onClick={deleteItem} disabled={deleting}>
                             削除する
                         </button>
                     </div>
