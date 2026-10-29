@@ -10,7 +10,7 @@ for (const close of ["background", "icon"] as const) {
         await page.getByText("この下書き商品を削除する", { exact: true }).click();
         await expect(page.getByRole("button", { name: "削除する", exact: true })).toBeVisible();
         if (close === "background") await page.locator('[class*="overlay"]').click({ position: { x: 1, y: 1 } });
-        else await page.locator('[class*="popup"] > svg').click();
+        else await page.getByRole("button", { name: "閉じる", exact: true }).click();
         await expect(page.getByRole("button", { name: "削除する", exact: true })).toHaveCount(0);
         expect(requests).toBe(0);
         expect(await e2e.database.get("item_draft", e2e.seed.draft.id)).toEqual(e2e.seed.draft);

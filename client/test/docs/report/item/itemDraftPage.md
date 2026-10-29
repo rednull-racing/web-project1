@@ -1,5 +1,88 @@
 # itemDraftPage テストレポート
 
+## F2〜F10修正・全件検証（2026-10-29、最新）
+
+今回の全件とは本レポート対象ページの実装済み383件（U133/C・P55/B117/E78）。リポジトリ全体の別機能テストは対象外。全件runに関連ケースの再検証を上書きして重複を除いた結果を以下に示す。失敗・timeoutも終了した結果であり、全仕様合格を意味しない。
+
+- F2：共通 `client/src/components/operation/operation.tsx` のOperationProvider/useOperationでページ内編集・削除の同期ガードとbusyを共有。成功後は保持、失敗時解除。Containerは表示だけのページでも使うため、適用箇所は下書きページのみに限定。
+- F3：削除成功後のguardを遷移まで維持し、削除開始ボタンもbusyで無効化。
+- F4：開始・閉鎖button、名前付きdialog、初期focus・Tab/Shift+Tab循環・Escape・復帰を実装。閉鎖button自体にクリック領域を設定。ItemPeekにtabIndexとEnter/Space対応。
+- F5：少量在庫のboolean描画を修正し在庫文言を表示。
+- F6：画像・色カードを名前付きkeyboard操作に対応し、開閉状態を公開。画像閉鎖後focus復帰。
+- F7：今回の修正依頼に従い設計の個別low_stock_ratio以下・在庫正数の契約へ統一。境界期待値は維持。
+- F8：空convertedUrlから元動画URLへfallback。
+- F9：既存時計固定・keyboard操作を維持。disabled開始ボタンは無理にclick待機せず無効状態とHTTP1回をassert。
+- F10：既に修正済みの実text429→alert契約を維持しE-F02を再検証。本番rate limiter応答形式は変更なし。
+
+単体133件・DOM結合55件は全成功。単体・結合の各ファイル対応は既存2章を維持し、今回失敗0。対象コードの期待値は緩和していない。slideshow単体は複数画像の先頭triggerを明示し、B/Eの旧SVG構造参照は名前付きbuttonへ更新した。
+
+| project | 成功 | 失敗 | timeout | その他 |
+| --- | ---: | ---: | ---: | ---: |
+| pages-chromium | 39 | 0 | 0 | 0 |
+| pages-firefox | 39 | 0 | 0 | 0 |
+| pages-webkit | 37 | 2 | 0 | 0 |
+| e2e-chromium | 26 | 0 | 0 | 0 |
+| e2e-firefox | 26 | 0 | 0 | 0 |
+| e2e-webkit | 4 | 13 | 9 | 0 |
+
+| 階層 | 実ファイル（各テストルート基準） | 成功 | 失敗 | timeout |
+| --- | --- | ---: | ---: | ---: |
+| B | `item/itemDraftPage/components.spec.ts` | 40 | 2 | 0 |
+| B | `item/itemDraftPage/operations.spec.ts` | 18 | 0 | 0 |
+| B | `item/itemDraftPage/page.spec.ts` | 57 | 0 | 0 |
+| E | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` | 21 | 6 | 3 |
+| E | `item/itemDraftPage/deleteItemDraft/flow.spec.ts` | 35 | 7 | 6 |
+
+最終集計：{'passed': 359, 'failed': 15, 'timedOut': 9}。skip・interrupted・未着手0。U/C/Pのtodo・未処理例外0、B/Eのトップレベルerrors0。カバレッジ未取得。
+
+### 残る失敗・未到達
+
+- pages-webkit / B-N02 元動画の実再生と集計未送信：failed。
+- pages-webkit / Q10 元動画の実再生と集計未送信：failed。
+- e2e-webkit / E-N01 上編集から実APIとDBへ引き継ぐ：timedOut。
+- e2e-webkit / E-N01 下編集から実APIとDBへ引き継ぐ：timedOut。
+- e2e-webkit / E-N02 未入力データを表示用補完に変換せず編集へ保存：timedOut。
+- e2e-webkit / E-F01 編集拒否とDB不変：failed。
+- e2e-webkit / E-S02 編集拒否とDB不変：failed。
+- e2e-webkit / E-S03 編集拒否とDB不変：failed。
+- e2e-webkit / E-F02 実編集レート6回目は429でDB不変：failed。
+- e2e-webkit / E-N05 編集消費後の再訪とリロードで古い操作を出さない：failed。
+- e2e-webkit / E-S01 署名不正tokenは実401で編集拒否：failed。
+- e2e-webkit / E-N04 実削除の成功通知・遷移と対象だけの物理削除：timedOut。
+- e2e-webkit / E-F01 削除consumedを拒否してDB不変：failed。
+- e2e-webkit / E-S02 削除otherを拒否してDB不変：failed。
+- e2e-webkit / E-S03 削除zeroを拒否してDB不変：failed。
+- e2e-webkit / E-S03 削除overflowを拒否してDB不変：failed。
+- e2e-webkit / E-F02 実削除レート21回目は429、非JSON失敗をalertで通知：failed。
+- e2e-webkit / E-N05 削除後の再訪とリロードで操作不可：failed。
+- e2e-webkit / E-Q01 delete-repeatで実APIへの重複・相反送信を止める：timedOut。
+- e2e-webkit / E-Q01 edit-bothで実APIへの重複・相反送信を止める：timedOut。
+- e2e-webkit / E-Q01 edit-deleteで実APIへの重複・相反送信を止める：timedOut。
+- e2e-webkit / E-Q01 delete-editで実APIへの重複・相反送信を止める：timedOut。
+- e2e-webkit / E-S01 署名不正tokenは実401で削除拒否：failed。
+- e2e-webkit / E-Q01 削除成功後1500ms内に同じ対象を再送しない：timedOut。
+
+WebKit B-N02/Q10はMediaRecorderが利用できずテスト動画生成時点で失敗。実動画再生の本番判定不可。WebKit Eは実access-token cookieが得られない失敗と操作待ちtimeoutが主で、根本原因未確定。前段で失敗したケースのDB照合・後続assertまで成功したとはしない。Chromium/FirefoxのEは各ケース結果表を参照。新たなskipやexpected failureは追加していない。
+
+### 未実装・未施行の残件
+
+- F11：簡略F-full seedの全非null動画/variantsコピー、遷移先フォーム・一覧内容、S3 SDK非通信監視、公開Item・owner等の保護snapshot、schema guardの全型・enum/FK検証は未実装。
+- B-O01の全画像・動画/request総数・性能SLA、全般のa11y保証、未ログインmetadata専用assert、エラー時全操作の網羅的CSR送信0等、3章に記載した不足は残る。
+- 実GET未実装部分はDB-backed proxy/テストAPIの代替のまま。完全な実GET込みE2Eではない。
+- Node26、通常Turbopack、カバレッジは未施行。migration/syncは実施していない。実行待ち・中断ケースはない。
+
+### 実行環境・証拠・静的検査
+
+Node22.22.2。U/C/Pは既存4章と同じ対象コマンド、出力を `/tmp/item-f2-unit-final.json`・`/tmp/item-f2-integration-final.json` へ変更。各133/55件成功。B/E全runも4章の同じコマンド・ローカルURL、workers=1、trace=off、reporter=jsonで `/tmp/item-f2-browser-final.json`・`/tmp/item-f2-e2e-final.json` へ出力。API/認証/DB/外部サービスの境界は4章と同じ。ログ・JSONは一時成果物。
+
+B再検証は同コマンドのgrep `B-N03|Q03 edit-delete`、続いて `B-N03`、最終ビルドで `Q06|Q03|Q04`。集計は後の結果をproject/file/title一致で置換し加算しない。Eはgrep `E-N03.*icon` を最終ビルドで再実行し同様に置換。証拠：`/tmp/item-f2-browser-recheck.json`、`/tmp/item-f2-browser-image-final.json`、`/tmp/item-f2-browser-move-final.json`、`/tmp/item-f2-e2e-close-final.json`。途中の旧DOM参照timeoutとクリック領域不備のrunは最終集計に含めない。
+
+webpack buildは共通コンポーネント移動・閉鎖領域修正後も成功（`/tmp/item-f2-build-final.log`）。全B/Eは移動前の同処理build、最終変更に関連するB12件/E3件は最終buildで検証。U/C/Pは移動後に再実行し、最後の閉鎖領域修正後は削除単体5件も再実行。最終ソースで全383件を一括再実行したものではない。
+
+対象lint・clientテスト用tsc・test型検査は成功（`/tmp/item-f2-target-lint-final.log`、`/tmp/item-f2-test-types-final.log`、`/tmp/item-f2-e2e-types.log`）。本番typecheckはNext生成型と同期params等の既存不整合で失敗。lintはユーザー指定に従い `/app/item` のエラーのみ記録：commentSection/replyList.tsxのany、commentText.tsxのrender中ref参照。これらの本番修正は範囲外。対象修正ファイルにlintエラーなし。
+
+以下は過去の結果。F1〜F10の現在の状態はこの節を正とする。
+
 ## F1修正・部分再検証（2026-10-29）
 
 `client/src/app/item/draft/delete.tsx` に送信前の同期refガードとdisabled用stateを追加。失敗時のみ解除し、成功時は遷移まで保持する。F1/Q01の修正は実装済み・U/Cで検証済み。ページの編集・削除共有排他（F2）は対象外。成功後のガード保持はF3にも影響するが、F3/Q04の検証完了とはしていない。

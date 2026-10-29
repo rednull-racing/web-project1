@@ -27,7 +27,9 @@ for (const operation of ["delete", "top-bottom", "bottom-top", "edit-delete", "d
                 if (await remove.isEnabled()) await remove.dblclick();
                 await expect(remove).toBeDisabled();
             } else if (operation === "edit-delete") {
-                await openDelete();
+                const opener = page.getByRole("button", { name: "この下書き商品を削除する", exact: true });
+                if (await opener.isEnabled()) await openDelete();
+                await expect(opener).toBeDisabled();
                 if ((await remove.isVisible()) && (await remove.isEnabled())) await remove.click();
             } else if (operation === "delete-edit") {
                 if (await edit.first().isEnabled()) await edit.first().press("Enter");
@@ -57,7 +59,7 @@ test("Q04 削除成功後の遷移待ちにも再削除できない", async ({ p
     await open.click();
     await page.getByRole("button", { name: "削除する", exact: true }).click();
     await expect(page.getByText("下書き商品を削除しました", { exact: true })).toBeVisible();
-    if (await open.isVisible()) await open.click();
+    if ((await open.isVisible()) && (await open.isEnabled())) await open.click();
     const again = page.getByRole("button", { name: "削除する", exact: true });
     if ((await again.isVisible()) && (await again.isEnabled())) await again.click();
     expect(count).toBe(1);

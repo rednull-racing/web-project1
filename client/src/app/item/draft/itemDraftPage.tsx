@@ -1,3 +1,4 @@
+import { OperationProvider } from "../../../components/operation/operation";
 import CStyles from "../itemCommon.module.css";
 import { Container } from "../../../components";
 import { DeleteItemDraft } from "./delete";
@@ -15,6 +16,7 @@ export const ItemDraftPage = ({ id, itemDraft }: Props) => {
     const soldout = itemDraft.attributes.inventory?.current === 0;
 
     return (
+        <OperationProvider>
         <Container>
             <EditButton id={id} />
 
@@ -26,5 +28,6 @@ export const ItemDraftPage = ({ id, itemDraft }: Props) => {
             <EditButton id={id} />
             <DeleteItemDraft id={id} />
         </Container>
+        </OperationProvider>
     );
 };

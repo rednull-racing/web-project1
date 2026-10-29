@@ -23,11 +23,7 @@ test("B-N03 画像拡大と色カード開閉", async ({ page, draft }) => {
         "alt",
         "全画面スライド 2",
     );
-    await page
-        .getByRole("img", { name: "全画面スライド 2", exact: true })
-        .locator("xpath=ancestor::div[contains(@class, 'overlay')]")
-        .locator(":scope > svg")
-        .click();
+    await page.getByRole("button", { name: "拡大画像を閉じる", exact: true }).click();
     await expect(page.getByRole("img", { name: "全画面スライド 2", exact: true })).toHaveCount(0);
     const card = page.locator('[class*="variantCard"]').filter({ hasText: "赤" });
     await card.click();

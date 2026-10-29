@@ -47,7 +47,7 @@ describe("スライドショー", () => {
         render(<Slideshow images={["/one.png", "/two.png"]} />);
         const user = userEvent.setup();
         await user.tab();
-        const trigger = screen.getByRole("button", { name: /画像|Slide|拡大/ });
+        const trigger = screen.getAllByRole("button", { name: /画像|Slide|拡大/ })[0];
         expect(trigger).toHaveFocus();
         await user.keyboard("{Enter}");
         expect(screen.getByTestId("modal")).toBeInTheDocument();

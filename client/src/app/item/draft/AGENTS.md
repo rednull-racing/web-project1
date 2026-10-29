@@ -118,6 +118,7 @@ flowchart TD
 
 `draft/itemDraftPage.tsx`。`id`（下書きID）と `itemDraft`（表示データ）を受け取り、ページ全体を組み立てる。
 
+- 共通の `OperationProvider`（`client/src/components/operation/operation.tsx`） で編集・削除の同期ガードと処理中状態を共有する。成功後は遷移まで保持し、失敗時に解除する。
 - `Container` 内に上部編集ボタン、`main`、下部編集ボタン、削除操作を順に配置する。
 - `attributes.inventory?.current === 0` を `soldout` として算出し、両セクションへ渡す。
 - `main` に `VideoSection` と `ItemSection` を配置し、`itemDraft` と `soldout` を渡す。編集・削除操作には下書きIDを渡す。
@@ -150,7 +151,7 @@ flowchart TD
 `draft/editButton.tsx`。下書きIDを受け取り、編集開始APIを呼ぶClient Component。
 
 - 「編集する」ボタンをページの上下に配置する。
-- `loading` が `true` の場合は再実行を止め、ボタンを無効化する。状態は各ボタンのインスタンスごとに管理する。
+- `loading` が `true` の場合は再実行を止め、ボタンを無効化する。ページ内では削除・上下編集ボタンと状態を共有し、単独配置時はローカルで管理する。
 - 成功時はレスポンスの `itemEditingId` を使って `/upload/${itemEditingId}` へ遷移する。
 - 失敗時はエラートーストを表示し、`loading` を解除して再操作できるようにする。
 
@@ -159,7 +160,8 @@ flowchart TD
 `draft/delete.tsx`。下書きIDを受け取るClient Component。ポップアップはこのファイル内で描画する。
 
 - 「この下書き商品を削除する」のクリックで `popup` を `true` にし、削除確認を表示する。
-- オーバーレイまたは閉じるアイコンで確認を閉じる。「削除する」ボタンで削除APIを呼ぶ。
+- 削除開始・閉じるはbuttonを使用し、確認は名前付きdialogとして初期focus・Tab循環・Escape・開始ボタンへのfocus復帰に対応する。
+- オーバーレイまたは閉じるボタンで確認を閉じる。「削除する」ボタンで削除APIを呼ぶ。
 - 削除開始前に同期ガードを立て、処理中は削除ボタンを無効化して再送を防ぐ。失敗時のみ解除する。
 - 成功時はトーストを表示して確認を閉じ、ガードを保持したまま1.5秒待って `/my-page` へ遷移する。
 - `ApiError` はエラートースト、それ以外の例外はアラートで通知し、いずれも確認を閉じる。

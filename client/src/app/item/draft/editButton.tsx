@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useOperation } from "../../../components/operation/operation";
 import toast from "react-hot-toast";
 import { fetchEditDraftItem } from "./api/client";
 import styles from "./draft.module.css";
@@ -12,23 +12,21 @@ type Props = {
 
 export const EditButton = ({ id }: Props) => {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const operation = useOperation();
 
     const edit = async () => {
-        if (loading) return;
-
-        setLoading(true);
+        if (!operation.acquire()) return;
         try {
             const data = await fetchEditDraftItem(id);
             router.push(`/upload/${data.itemEditingId}`);
         } catch {
             toast.error("下書きの編集を開始できませんでした。時間を置いて再試行してください");
-            setLoading(false);
+            operation.release();
         }
     };
 
     return (
-        <button type="button" onClick={edit} disabled={loading} className={styles.editButton}>
+        <button type="button" onClick={edit} disabled={operation.busy} className={styles.editButton}>
             編集する
         </button>
     );

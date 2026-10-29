@@ -1111,3 +1111,9 @@
 - 削除の同期refガードとdisabledを追加し、失敗時に解除。
 - 対象単体5件・結合11件が成功。クリック・Enter連打のDELETE1回を確認。
 - 対象lint・テスト型検査成功。本番型検査は既存エラー。B/Eは未実行。
+
+## 20261029_frontend-components_itemDraftPage_F2_F10修正再検証
+
+- 共通OperationProviderで編集削除を排他し、dialog・在庫・画像・動画を修正。
+- ページ全383件と関連再検証を実行し、最新結果・WebKit残件・未実装範囲をレポートへ集約。
+- 共通処理はcomponentsへ配置し下書きページだけで使用。対象lint・テスト型検査成功。
