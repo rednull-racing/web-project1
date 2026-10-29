@@ -1,39 +1,49 @@
-import { ItemAttributes } from "../../../types/itemAttributes";
+import type { ItemAttributes } from "../../../types/itemAttributes";
 
 export type ItemConditionOption = {
-    id: string;
+    id: number;
     name: string;
 };
 
 export type ShippingDayOption = {
-    id: string;
+    id: number;
     name: string;
 };
 
 export type ShippingServiceOption = {
-    id: string;
+    id: number;
     name: string;
 };
 
 export type TodouhukenOption = {
-    id: string;
+    id: number;
     name: string;
 };
 
 export type Brand = {
-    id: string;
+    id: number;
     name: string;
 };
 
-export type Categories = {
-    id: string;
+export type CategoryParent = {
+    id: number;
     name: string;
-    parent?: Categories | null;
-    children?: Categories | null;
+    level: number;
+    allowed_gender: string;
+    allowed_age: string;
+};
+
+export type CategoryChild = CategoryParent & {
+    parent_id: number | null;
+};
+
+export type Categories = CategoryChild & {
+    parent: CategoryParent | null;
+    children: CategoryChild[];
 };
 
 export type ItemDraft = {
-    id: string;
+    id: number;
     seller_id: number | null;
     name: string | null;
     detail: string | null;
@@ -45,9 +55,9 @@ export type ItemDraft = {
     recommend: boolean | null;
     attributes: ItemAttributes;
     updatedAt: string;
-    ItemConditionOption?: ItemConditionOption;
-    Category?: Categories;
-    Brand?: Brand;
+    ItemConditionOption: ItemConditionOption | null;
+    Category: Categories | null;
+    Brand: Brand | null;
 
     thumbnail_url: string | null;
     title: string | null;
@@ -61,8 +71,8 @@ export type ItemDraft = {
     discount_amount: number | null;
     sale_flag: boolean;
 
-    ShippingDayOption?: ShippingDayOption;
-    ShippingServiceOption?: ShippingServiceOption;
-    TodouhukenOption?: TodouhukenOption;
+    ShippingDayOption: ShippingDayOption | null;
+    ShippingServiceOption: ShippingServiceOption | null;
+    TodouhukenOption: TodouhukenOption | null;
     shipping_service_free_text: string | null;
 };

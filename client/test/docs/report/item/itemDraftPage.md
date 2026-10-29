@@ -1,5 +1,15 @@
 # itemDraftPage テストレポート
 
+## getItemDraftPage契約への型整合（2026-10-29、追加検証）
+
+- ユーザー確定の数値ID・非再帰の親/子カテゴリ配列・関連nullを `draft/types.ts` とfixtureへ反映。updatedAtは文字列のまま保持する。fixtureのAPI対象外createdAt/video_statusを除外。
+- 初回回帰は103件中102成功・1失敗。U-N06だけ旧URL `/item-draft/11` を期待していたため、確定契約 `/item-draft/11/item-page` へ期待値を更新した。
+- Node 22.22.2、client/で `node node_modules/vitest/vitest.mjs run src/app/item/draft/test src/app/item/draft/api/test test/integration/components/item/itemDraftPage test/integration/pages/item/itemDraftPage/itemDraftPage.test.tsx`：11ファイル103件成功、失敗/skip 0。
+- `node node_modules/typescript/bin/tsc --noEmit -p test/tsconfig.json` と変更した7個のTS/TSXへのESLint追加検査は成功。対象fixture・単体・DOM結合の回帰であり、ブラウザー/E2E/実DBは今回再実行していない。
+- 本番 `node node_modules/typescript/bin/tsc --noEmit` は成功（worktreeに生成済みnext-env.d.tsを参照）。全体 `node node_modules/eslint/bin/eslint.js .` は既存23エラー・37警告で失敗。対象7 TS/TSXへの診断は0であり、既存Todo `docs/todo/P3-techdebt/restore-client-lint-baseline.md` の残件として扱う。
+- 既存U-V03/C-S01は入力のID/関連構造だけ更新し、表示・XSS検証は維持。新しい動作のテスト追加はない。以下の全383件の記録は前回実行の履歴であり、今回の103件へ重複加算しない。
+
+
 ## F2〜F10修正・全件検証（2026-10-29、最新）
 
 今回の全件とは本レポート対象ページの実装済み383件（U133/C・P55/B117/E78）。リポジトリ全体の別機能テストは対象外。全件runに関連ケースの再検証を上書きして重複を除いた結果を以下に示す。失敗・timeoutも終了した結果であり、全仕様合格を意味しない。

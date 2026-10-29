@@ -1117,3 +1117,8 @@
 - 共通OperationProviderで編集削除を排他し、dialog・在庫・画像・動画を修正。
 - ページ全383件と関連再検証を実行し、最新結果・WebKit残件・未実装範囲をレポートへ集約。
 - 共通処理はcomponentsへ配置し下書きページだけで使用。対象lint・テスト型検査成功。
+
+## 20261029_frontend-apiFetch_getItemDraftPage契約の型整合
+
+- 下書きの数値ID・子カテゴリ配列・関連nullを型とfixtureへ反映し、旧取得URLのテスト期待値を更新。
+- 関連11ファイル103件のVitest・テスト型検査・変更TSのESLintに成功。ブラウザー/E2E/DBは未実行。
