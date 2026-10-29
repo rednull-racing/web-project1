@@ -82,19 +82,19 @@ export const getMyItemDraftPage = ({ itemDraftId, userId }: PageParams) => {
             {
                 model: Categories,
                 as: "Category",
-                attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+                attributes: ["id", "name"],
                 required: false,
                 include: [
                     {
                         model: Categories,
                         as: "children",
-                        attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+                        attributes: ["id", "name"],
                         required: false,
                     },
                     {
                         model: Categories,
                         as: "parent",
-                        attributes: ["id", "name", "level", "allowed_gender", "allowed_age"],
+                        attributes: ["id", "name"],
                         required: false,
                     },
                 ],

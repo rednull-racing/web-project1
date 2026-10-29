@@ -67,10 +67,6 @@ describe("ItemSection real shared components", () => {
         item.Category = {
             id: 1,
             name: text,
-            level: 1,
-            allowed_gender: "both",
-            allowed_age: "both",
-            parent_id: null,
             parent: null,
             children: [],
         };

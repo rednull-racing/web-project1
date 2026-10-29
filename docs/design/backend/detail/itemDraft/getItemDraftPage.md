@@ -97,7 +97,7 @@
 }
 ```
 
-フロントの `client/src/app/item/draft/types.ts` も同契約に修正する。Brand/Optionはid/nameのみ、Categoryとchildrenはid/name/level/parent_id/allowed_gender/allowed_age、parentはid/name/level/allowed_gender/allowed_age。FK、createdAt、video_status、brand_aliases_id、Brand.name_normalized、カテゴリのpath等は返さない。
+フロントの `client/src/app/item/draft/types.ts` は、単体の `Category`（id/name）と、親子付きの `Categories`（Categoryにparent・childrenを追加）で構成する。Brand/Optionはid/nameのみ、Category・children・parentはid/nameのみ。FK、createdAt、video_status、brand_aliases_id、Brand.name_normalized、カテゴリのpath等は返さない。
 
 ### 三行コメント
 
@@ -201,18 +201,18 @@ include: [
     {
         model: Categories,
         as: "Category",
-        attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+        attributes: ["id", "name"],
         required: false,
         include: [
             {
                 model: Categories,
-                attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+                attributes: ["id", "name"],
                 as: "children",
                 required: false,
             },
             {
                 model: Categories,
-                attributes: ["id", "name", "level", "allowed_gender", "allowed_age"],
+                attributes: ["id", "name"],
                 as: "parent",
                 required: false,
             },

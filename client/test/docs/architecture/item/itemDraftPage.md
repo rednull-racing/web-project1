@@ -284,3 +284,5 @@ getItemDraftPage実装によりF11の実GET接続を検証可能とした。E2E 
 - AF-GET03: 未入力の保存値nullと空attributesを実GETからSSRへ渡し、DB不変。既存E-N02の表示取得部分を補完。
 
 実認証・Next.js production build・隔離Express・test_dbを使い、Chromium/Firefox/WebKitで実行する。既存E-N01/N02/N04/N05の編集・削除・再訪フローも実GETを通して再検証する。本番や仕様の修正は対象外。既存WebKit認証cookie不備で止まった場合は後段未到達を記録し、期待値を緩和しない。
+
+2026-10-29変更: 下書き取得のCategory単体型はid/nameのみ、親子付きCategoriesはparent/childrenを合成する。level・parent_id・allowed_gender・allowed_ageは公開契約から除外し、関連fixtureも同じ形にする。

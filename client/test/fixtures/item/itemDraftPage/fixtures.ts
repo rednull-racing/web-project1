@@ -50,10 +50,6 @@ export const createDraft = (overrides: Partial<ItemDraft> = {}): ItemDraft => ({
     Category: {
         id: 21,
         name: "シャツ",
-        level: 3,
-        allowed_gender: "both",
-        allowed_age: "both",
-        parent_id: null,
         parent: null,
         children: [],
     },

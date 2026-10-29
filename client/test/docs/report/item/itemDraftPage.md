@@ -1,5 +1,9 @@
 # itemDraftPage テストレポート
 
+## カテゴリ型と公開項目の整理（2026-10-29）
+
+ユーザー指定により単体Categoryをid/nameで定義し、CategoriesはCategoryにparent: Category|null・children: Category[]を加える構成へ変更。取得serviceと型・fixtureから不要4項目を削除した。Node22で関連11ファイル103件が成功。テスト型検査の初回でinline fixtureのlevel残存を検出したため、同fixtureの4項目も除去し、影響する商品セクション結合14件が成功。修正後のclientテスト型検査と変更4TS/TSXのESLintは成功。ブラウザー/E2Eは今回再実行していない。以下は以前の検証履歴。
+
 ## 実GET接続の追加E2E（2026-10-29、今回の最新結果）
 
 getItemDraftPage実装により実行可能になったF11の実GET取得込みE2Eを検証した。旧DB-backed GET代替をharnessから削除し、Next.js SSR→転送proxy→実Express Router/認証/usecase/service→test_dbを接続した。本番コード・DBスキーマは変更していない。以下の過去節の「実GET未実装・代替取得」は今回実行分には適用しない。B/U/C/Pは今回再実行していない。

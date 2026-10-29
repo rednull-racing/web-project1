@@ -1,5 +1,9 @@
 # getItemDraftPage 統合レポート
 
+## カテゴリ公開列の縮小（2026-10-29）
+
+ユーザー指定によりCategory・parent・childrenの取得列をid/nameのみに変更し、level・parent_id・allowed_gender・allowed_ageを公開応答から除外した。DBのカテゴリ階層・FK・seedのparent_idは維持。service S01の完全optionsとDB D01/D03の完全レスポンス期待値を更新。Node22でservice3件＋実DB9件が成功し、ガード・ID限定cleanup・closeも通過。server lint・本番typecheck・テストtsconfigと通常対象外DBテストの追加lint成功。今回はHTTP/E2Eは再実行していない。以下は以前の履歴。
+
 実行日: 2026-10-29（JST）。[詳細設計](../../../../../docs/design/backend/detail/itemDraft/getItemDraftPage.md)、[テスト設計](../../architecture/itemDraft/getItemDraftPage.md)に対応する。以下のコマンドはserver/で実行した。
 
 ## 最新結果

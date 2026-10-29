@@ -55,3 +55,5 @@ P0は認証・所有権・公開列・入力、P1は層間接続と失敗待機�
 server/で `npm run test:run -- src/services/itemDraft/test/getItemDraftPage.test.ts src/usecases/itemDraft/test/getItemDraftPage.test.ts src/controllers/itemDraft/test/getItemDraftPage.test.ts test/integration/usecases/itemDraft/getItemDraftPage/route.test.ts`、DBは対象database.test.tsを別実行する。変更で同じcontrollerを読む既存テストはモック境界を補完し関連回帰を実行する。npm run lint/typecheckと `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`、通常対象外TSの追加ESLintを実行する。
 
 全必要ケース成功、静的検査成功、fixture cleanup/close成功、設計・コード・レポート整合を完了条件とする。未実行・環境不足・対象外の検査失敗があれば完了とせず区別して記録する。フロント型修正は関連fixture・単体回帰・型検査で確認する。
+
+2026-10-29変更: Category・parent・childrenはid/nameのみを取得する。S01/D01/D03の完全一致で不要4項目の非公開を検証し、DB階層の保存・関連定義は維持する。

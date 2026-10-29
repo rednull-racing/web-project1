@@ -57,19 +57,19 @@ describe("P0/P1 getMyItemDraftPage", () => {
                     model: Categories,
                     as: "Category",
                     required: false,
-                    attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+                    attributes: ["id", "name"],
                     include: [
                         {
                             model: Categories,
                             as: "children",
                             required: false,
-                            attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+                            attributes: ["id", "name"],
                         },
                         {
                             model: Categories,
                             as: "parent",
                             required: false,
-                            attributes: ["id", "name", "level", "allowed_gender", "allowed_age"],
+                            attributes: ["id", "name"],
                         },
                     ],
                 },

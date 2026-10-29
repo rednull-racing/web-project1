@@ -54,27 +54,15 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
         expect(Category).toEqual({
             id: f.category.id,
             name: f.prefix,
-            level: 1,
-            parent_id: f.parent.id,
-            allowed_gender: "unisex",
-            allowed_age: "both",
-            parent: { id: f.parent.id, name: `${f.prefix}親`, level: 0, allowed_gender: "unisex", allowed_age: "both" },
+            parent: { id: f.parent.id, name: `${f.prefix}親` },
             children: expect.arrayContaining([
                 {
                     id: f.childA.id,
                     name: `${f.prefix}子A`,
-                    level: 2,
-                    parent_id: f.category.id,
-                    allowed_gender: "unisex",
-                    allowed_age: "both",
                 },
                 {
                     id: f.childB.id,
                     name: `${f.prefix}子B`,
-                    level: 2,
-                    parent_id: f.category.id,
-                    allowed_gender: "unisex",
-                    allowed_age: "both",
                 },
             ]),
         });
@@ -116,10 +104,6 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
         expect(result.Category).toEqual({
             id: f.childA.id,
             name: `${f.prefix}子A`,
-            level: 2,
-            parent_id: null,
-            allowed_gender: "unisex",
-            allowed_age: "both",
             parent: null,
             children: [],
         });

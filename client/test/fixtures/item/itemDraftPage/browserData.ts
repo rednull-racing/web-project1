@@ -53,10 +53,6 @@ export const browserDraft = (overrides: Partial<ItemDraft> = {}): ItemDraft => (
     Category: {
         id: 1,
         name: "シャツ",
-        level: 1,
-        allowed_gender: "both",
-        allowed_age: "both",
-        parent_id: null,
         parent: null,
         children: [],
     },

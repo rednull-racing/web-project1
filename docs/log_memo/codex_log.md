@@ -1149,3 +1149,10 @@
 - コピー元の下書き名称・識別子・URLを編集セッション確認ページ向けに変更。
 - confirm/types.tsを参考にstatus・item_idとレスポンス記載を更新。コピー元の検証済み記載を除去。
 - 文書のみ変更。詳細設計の検証・実装・テスト・lint・型検査は未実施。
+
+## 20261029_backend-coding_draftCategory公開項目整理
+
+- Category単体型（id/name）と親子付きCategoriesを分け、取得serviceの親・子もid/nameのみに縮小。
+- 不要4項目を公開型・fixture・テスト期待値から削除。DBの階層保存/FK・他APIは変更なし。
+- service3件・実DB9件・frontend103件とfixture修正後の結合14件成功。DB cleanup/close確認。
+- server lint/本番・テスト型検査、clientテスト型検査、対象lint成功。設計・レポートを更新。

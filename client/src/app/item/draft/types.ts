@@ -25,21 +25,14 @@ export type Brand = {
     name: string;
 };
 
-export type CategoryParent = {
+export type Category = {
     id: number;
     name: string;
-    level: number;
-    allowed_gender: string;
-    allowed_age: string;
 };
 
-export type CategoryChild = CategoryParent & {
-    parent_id: number | null;
-};
-
-export type Categories = CategoryChild & {
-    parent: CategoryParent | null;
-    children: CategoryChild[];
+export type Categories = Category & {
+    parent: Category | null;
+    children: Category[];
 };
 
 export type ItemDraft = {
