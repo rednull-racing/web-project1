@@ -100,9 +100,9 @@
 ### 三行コメント
 
 ```ts
-// GET /item-draft/:id/item-page
-// summary: 下書き商品ページ データ取得
-// page: /item/draft/[id]
+// GET /item-draft/:id/confirm
+// summary: 編集セッション確認ページ データ取得
+// page: /item/confirm/[id]・/item/confirm/edit/[id]
 ```
 
 ## 3. 認証・認可

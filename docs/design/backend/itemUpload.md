@@ -193,7 +193,7 @@
 
 ### getItemConfirmPage（編集中セッションアップロード確認ページ表示データ取得）
 
-- フロント: /item/confirm/[id]
+- フロント: /item/confirm/[id]・/item/confirm/edit/[id]
 - route: GET /item-editing/:id/confirm
 
 - 認可:
