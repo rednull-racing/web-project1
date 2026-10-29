@@ -24,7 +24,12 @@ export const ItemPeek = ({ data }: Props) => {
     };
 
     return (
-        <section className={styles.itemPeek} onClick={handleScroll} role="button" aria-label="商品説明へスクロール">
+        <section className={styles.itemPeek} onClick={handleScroll} role="button" tabIndex={0} onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleScroll();
+                }
+            }} aria-label="商品説明へスクロール">
             <div className={styles.imageName}>
                 <Image src={data.firstImageUrl} alt="商品画像1枚目" width={45} height={45} className={styles.image} />
 

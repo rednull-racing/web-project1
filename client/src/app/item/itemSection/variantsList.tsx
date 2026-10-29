@@ -21,11 +21,21 @@ export const VariantsList = ({ itemAttributes }: Props) => {
 
                 const isSoldout = currentInventory === 0;
                 const isLowStock =
-                    currentInventory && currentInventory > 0 && currentInventory / initialInventory <= 0.2;
+                    currentInventory > 0 && currentInventory / initialInventory <= (variant.inventory?.low_stock_ratio ?? 0.2);
 
                 return (
                     <div
                         key={i}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={variant.color ?? "バリエーション"}
+                        aria-expanded={openIndex === i}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setOpenIndex(openIndex === i ? null : i);
+                            }
+                        }}
                         className={`
                         ${styles.variantCard}
                         ${openIndex === i ? styles.active : ""}
@@ -73,7 +83,7 @@ export const VariantsList = ({ itemAttributes }: Props) => {
                                             const current = size.inventory.current;
                                             const soldout = current === 0;
                                             const lowStock =
-                                                current > 0 && current / initial >= size.inventory?.low_stock_ratio;
+                                                current > 0 && current / initial <= size.inventory.low_stock_ratio;
 
                                             return (
                                                 <span

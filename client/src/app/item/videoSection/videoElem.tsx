@@ -23,7 +23,7 @@ export const VideoElem = ({ sellerMe, normalPage, data }: Props) => {
         const videoEl = videoRef.current;
         if (!videoEl) return;
 
-        const url = data.convertedUrl ?? data.originalUrl;
+        const url = data.convertedUrl || data.originalUrl;
         if (!url) return;
 
         let hls: Hls | null = null;
