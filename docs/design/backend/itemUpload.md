@@ -183,6 +183,22 @@
     - itemEditingは保持
     - itemsは変更しない
 
+### getItemDraftPage（下書き商品ページ表示データ取得）
+
+- フロント: /item/draft/[id]
+- route: GET /item-draft/:id/item-page
+
+- 認可:
+    - itemDraft.seller_id === userId
+
+### getItemConfirmPage（編集中セッションアップロード確認ページ表示データ取得）
+
+- フロント: /item/confirm/[id]
+- route: GET /item-editing/:id/confirm
+
+- 認可:
+    - itemDraft.seller_id === userId
+
 ### getItemEditingForm（商品アップロード入力フォーム初期値取得）
 
 - フロント: /upload/[id]・/upload/edit/[id]

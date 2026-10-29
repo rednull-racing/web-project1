@@ -35,10 +35,8 @@ export type BrandAliases = {
 export type Categories = {
     id: string;
     name: string;
-    level: number;
-    allowed_gender: "men" | "women" | "both";
-    allowed_age: "adult" | "kids" | "both";
     parent?: Categories | null;
+    children?: Categories | null;
 };
 
 export type ShopInfo = {

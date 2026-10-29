@@ -36,6 +36,7 @@ export type Categories = {
     allowed_gender: "men" | "women" | "both";
     allowed_age: "adult" | "kids" | "both";
     parent?: Categories | null;
+    children?: Categories | null;
 };
 
 export type ItemShippingProfile = {

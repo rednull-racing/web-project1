@@ -6,7 +6,7 @@ type ItemDraftPageResponse = {
 };
 
 export const fetchItemDraftPage = async (itemDraftId: string): Promise<ItemDraftPageResponse> => {
-    return apiFetchServer(`/item-draft/${itemDraftId}`, {
+    return apiFetchServer(`/item-draft/${itemDraftId}/item-page`, {
         cache: "no-store",
     });
 };
