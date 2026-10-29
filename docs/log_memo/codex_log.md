@@ -1143,3 +1143,9 @@
 - 代表編集/削除/再訪を含む27件は21成功・2失敗・4timeout。既存WebKit操作不成立の後段は未達として記録。
 - production webpack build、E2E/テスト型検査、変更2TS lint成功。全体client lint/型検査は既存不備。
 - 本番コード・DBスキーマ変更なし。test_dbガード・自作fixture cleanup・全接続とNext終了を確認。
+
+## 20261029_documents_getItemConfirmPage文言変更
+
+- コピー元の下書き名称・識別子・URLを編集セッション確認ページ向けに変更。
+- confirm/types.tsを参考にstatus・item_idとレスポンス記載を更新。コピー元の検証済み記載を除去。
+- 文書のみ変更。詳細設計の検証・実装・テスト・lint・型検査は未実施。
