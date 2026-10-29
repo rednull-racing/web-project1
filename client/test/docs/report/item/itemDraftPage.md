@@ -219,62 +219,62 @@ PLAYWRIGHT_BASE_URL=http://127.0.0.1:3012 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.
 
 ### ファイル・ブラウザー別結果
 
-| project | ファイル（各テストルート基準） | 成功 | 失敗 | timeout |
-| --- | --- | ---: | ---: | ---: |
-| pages-chromium | `item/itemDraftPage/components.spec.ts` | 5 | 9 | 0 |
-| pages-firefox | `item/itemDraftPage/components.spec.ts` | 5 | 9 | 0 |
-| pages-webkit | `item/itemDraftPage/components.spec.ts` | 4 | 10 | 0 |
-| pages-chromium | `item/itemDraftPage/operations.spec.ts` | 0 | 6 | 0 |
-| pages-firefox | `item/itemDraftPage/operations.spec.ts` | 0 | 6 | 0 |
-| pages-webkit | `item/itemDraftPage/operations.spec.ts` | 0 | 6 | 0 |
-| pages-chromium | `item/itemDraftPage/page.spec.ts` | 19 | 0 | 0 |
-| pages-firefox | `item/itemDraftPage/page.spec.ts` | 19 | 0 | 0 |
-| pages-webkit | `item/itemDraftPage/page.spec.ts` | 19 | 0 | 0 |
-| e2e-chromium | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` | 10 | 0 | 0 |
-| e2e-firefox | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` | 10 | 0 | 0 |
-| e2e-webkit | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` | 1 | 6 | 3 |
-| e2e-chromium | `item/itemDraftPage/deleteItemDraft/flow.spec.ts` | 11 | 5 | 0 |
-| e2e-firefox | `item/itemDraftPage/deleteItemDraft/flow.spec.ts` | 11 | 5 | 0 |
-| e2e-webkit | `item/itemDraftPage/deleteItemDraft/flow.spec.ts` | 3 | 7 | 6 |
+| project        | ファイル（各テストルート基準）                           | 成功 | 失敗 | timeout |
+| -------------- | -------------------------------------------------------- | ---: | ---: | ------: |
+| pages-chromium | `item/itemDraftPage/components.spec.ts`                  |    5 |    9 |       0 |
+| pages-firefox  | `item/itemDraftPage/components.spec.ts`                  |    5 |    9 |       0 |
+| pages-webkit   | `item/itemDraftPage/components.spec.ts`                  |    4 |   10 |       0 |
+| pages-chromium | `item/itemDraftPage/operations.spec.ts`                  |    0 |    6 |       0 |
+| pages-firefox  | `item/itemDraftPage/operations.spec.ts`                  |    0 |    6 |       0 |
+| pages-webkit   | `item/itemDraftPage/operations.spec.ts`                  |    0 |    6 |       0 |
+| pages-chromium | `item/itemDraftPage/page.spec.ts`                        |   19 |    0 |       0 |
+| pages-firefox  | `item/itemDraftPage/page.spec.ts`                        |   19 |    0 |       0 |
+| pages-webkit   | `item/itemDraftPage/page.spec.ts`                        |   19 |    0 |       0 |
+| e2e-chromium   | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` |   10 |    0 |       0 |
+| e2e-firefox    | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` |   10 |    0 |       0 |
+| e2e-webkit     | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` |    1 |    6 |       3 |
+| e2e-chromium   | `item/itemDraftPage/deleteItemDraft/flow.spec.ts`        |   11 |    5 |       0 |
+| e2e-firefox    | `item/itemDraftPage/deleteItemDraft/flow.spec.ts`        |   11 |    5 |       0 |
+| e2e-webkit     | `item/itemDraftPage/deleteItemDraft/flow.spec.ts`        |    3 |    7 |       6 |
 
 ### ケース対応（3ブラウザー合算）
 
 元IDと実ファイルの対応は3章を維持。下表は今回の展開テスト数であり、ID数ではない。
 
-| 階層 | ID | 成功 | 失敗 | timeout |
-| --- | --- | ---: | ---: | ---: |
-| browser | B-N02 | 5 | 1 | 0 |
-| browser | B-N03 | 3 | 0 | 0 |
-| browser | Q05 | 0 | 3 | 0 |
-| browser | Q06 | 0 | 3 | 0 |
-| browser | Q08 | 0 | 3 | 0 |
-| browser | B-O01 | 3 | 0 | 0 |
-| browser | Q07 | 0 | 6 | 0 |
-| browser | Q09 | 3 | 9 | 0 |
-| browser | Q10 | 0 | 3 | 0 |
-| browser | Q01 | 0 | 3 | 0 |
-| browser | Q02 | 0 | 6 | 0 |
-| browser | Q03 | 0 | 6 | 0 |
-| browser | Q04 | 0 | 3 | 0 |
-| browser | B-N01 | 6 | 0 | 0 |
-| browser | B-N04 | 9 | 0 | 0 |
-| browser | B-S01 | 3 | 0 | 0 |
-| browser | B-S02 | 9 | 0 | 0 |
-| browser | B-F01 | 12 | 0 | 0 |
-| browser | B-N05 | 12 | 0 | 0 |
-| browser | B-S03 | 3 | 0 | 0 |
-| browser | B-N06 | 3 | 0 | 0 |
-| e2e | E-N01 | 4 | 0 | 2 |
-| e2e | E-N02 | 2 | 0 | 1 |
-| e2e | E-F01 | 4 | 2 | 0 |
-| e2e | E-S02 | 4 | 2 | 0 |
-| e2e | E-S03 | 6 | 3 | 0 |
-| e2e | E-S01 | 10 | 2 | 0 |
-| e2e | E-F02 | 4 | 2 | 0 |
-| e2e | E-N05 | 4 | 2 | 0 |
-| e2e | E-N03 | 6 | 0 | 0 |
-| e2e | E-N04 | 2 | 0 | 1 |
-| e2e | E-Q01 | 0 | 10 | 5 |
+| 階層    | ID    | 成功 | 失敗 | timeout |
+| ------- | ----- | ---: | ---: | ------: |
+| browser | B-N02 |    5 |    1 |       0 |
+| browser | B-N03 |    3 |    0 |       0 |
+| browser | Q05   |    0 |    3 |       0 |
+| browser | Q06   |    0 |    3 |       0 |
+| browser | Q08   |    0 |    3 |       0 |
+| browser | B-O01 |    3 |    0 |       0 |
+| browser | Q07   |    0 |    6 |       0 |
+| browser | Q09   |    3 |    9 |       0 |
+| browser | Q10   |    0 |    3 |       0 |
+| browser | Q01   |    0 |    3 |       0 |
+| browser | Q02   |    0 |    6 |       0 |
+| browser | Q03   |    0 |    6 |       0 |
+| browser | Q04   |    0 |    3 |       0 |
+| browser | B-N01 |    6 |    0 |       0 |
+| browser | B-N04 |    9 |    0 |       0 |
+| browser | B-S01 |    3 |    0 |       0 |
+| browser | B-S02 |    9 |    0 |       0 |
+| browser | B-F01 |   12 |    0 |       0 |
+| browser | B-N05 |   12 |    0 |       0 |
+| browser | B-S03 |    3 |    0 |       0 |
+| browser | B-N06 |    3 |    0 |       0 |
+| e2e     | E-N01 |    4 |    0 |       2 |
+| e2e     | E-N02 |    2 |    0 |       1 |
+| e2e     | E-F01 |    4 |    2 |       0 |
+| e2e     | E-S02 |    4 |    2 |       0 |
+| e2e     | E-S03 |    6 |    3 |       0 |
+| e2e     | E-S01 |   10 |    2 |       0 |
+| e2e     | E-F02 |    4 |    2 |       0 |
+| e2e     | E-N05 |    4 |    2 |       0 |
+| e2e     | E-N03 |    6 |    0 |       0 |
+| e2e     | E-N04 |    2 |    0 |       1 |
+| e2e     | E-Q01 |    0 |   10 |       5 |
 
 ### 判定・残件と静的検査
 
