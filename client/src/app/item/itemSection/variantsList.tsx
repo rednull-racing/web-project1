@@ -21,7 +21,8 @@ export const VariantsList = ({ itemAttributes }: Props) => {
 
                 const isSoldout = currentInventory === 0;
                 const isLowStock =
-                    currentInventory > 0 && currentInventory / initialInventory <= (variant.inventory?.low_stock_ratio ?? 0.2);
+                    currentInventory > 0 &&
+                    currentInventory / initialInventory <= (variant.inventory?.low_stock_ratio ?? 0.2);
 
                 return (
                     <div

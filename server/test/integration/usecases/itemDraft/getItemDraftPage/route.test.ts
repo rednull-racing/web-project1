@@ -135,8 +135,7 @@ describe("P0/P1: 実Router・認証・params・共通エラー応答", () => {
     });
     it("R01: body/queryの他人ID・所有者を採用しない", async () => {
         expect(
-            (await get().query({ id: 202, userId: 8, seller_id: 8 }).send({ id: 303, userId: 8, seller_id: 8 }))
-                .status,
+            (await get().query({ id: 202, userId: 8, seller_id: 8 }).send({ id: 303, userId: 8, seller_id: 8 })).status,
         ).toBe(200);
         expect(mocks.get).toHaveBeenCalledExactlyOnceWith({ itemDraftId: 101, userId: 7 });
     });
@@ -202,9 +201,7 @@ describe("P0/P1/P2: 実MemoryStoreのユーザー別レート制限", () => {
     });
     it.each([400, 404, 500])("L02: %sも50回分消費する", async (status) => {
         if (status !== 400)
-            mocks.get.mockRejectedValue(
-                status === 404 ? new ErrorClass("ITEM_DRAFT_NOT_FOUND", 404) : new Error("db"),
-            );
+            mocks.get.mockRejectedValue(status === 404 ? new ErrorClass("ITEM_DRAFT_NOT_FOUND", 404) : new Error("db"));
         for (let i = 0; i < 50; i++) expect((await get(status === 400 ? `bad${i}` : i + 1)).status).toBe(status);
         expect((await get()).status).toBe(429);
         expect(mocks.get).toHaveBeenCalledTimes(status === 400 ? 0 : 50);

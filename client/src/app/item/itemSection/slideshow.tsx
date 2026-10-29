@@ -32,16 +32,23 @@ export const Slideshow = ({ images }: Props) => {
             >
                 {images.map((src, i) => (
                     <SwiperSlide key={i}>
-                        <div className={styles.sliderImage} role="button" tabIndex={modalSrc ? -1 : 0}
+                        <div
+                            className={styles.sliderImage}
+                            role="button"
+                            tabIndex={modalSrc ? -1 : 0}
                             aria-label={`画像${i + 1}を拡大`}
-                            onClick={(event) => { triggerRef.current = event.currentTarget; setModalSrc(src); }}
+                            onClick={(event) => {
+                                triggerRef.current = event.currentTarget;
+                                setModalSrc(src);
+                            }}
                             onKeyDown={(event) => {
                                 if (event.key === "Enter" || event.key === " ") {
                                     event.preventDefault();
                                     triggerRef.current = event.currentTarget;
                                     setModalSrc(src);
                                 }
-                            }}>
+                            }}
+                        >
                             <Image
                                 src={src}
                                 alt={`Slide ${i + 1}`}
@@ -56,10 +63,17 @@ export const Slideshow = ({ images }: Props) => {
 
             {modalSrc && (
                 <div className={styles.overlay}>
-                    <button type="button" aria-label="拡大画像を閉じる" className={styles.x} onClick={() => {
-                        setModalSrc(null);
-                        triggerRef.current?.focus();
-                    }}><X /></button>
+                    <button
+                        type="button"
+                        aria-label="拡大画像を閉じる"
+                        className={styles.x}
+                        onClick={() => {
+                            setModalSrc(null);
+                            triggerRef.current?.focus();
+                        }}
+                    >
+                        <X />
+                    </button>
 
                     <Swiper
                         modules={[Navigation, Pagination]}

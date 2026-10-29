@@ -17,17 +17,17 @@ export const ItemDraftPage = ({ id, itemDraft }: Props) => {
 
     return (
         <OperationProvider>
-        <Container>
-            <EditButton id={id} />
+            <Container>
+                <EditButton id={id} />
 
-            <main className={CStyles.main2column}>
-                <VideoSection itemDraft={itemDraft} soldout={soldout} />
-                <ItemSection itemDraft={itemDraft} soldout={soldout} />
-            </main>
+                <main className={CStyles.main2column}>
+                    <VideoSection itemDraft={itemDraft} soldout={soldout} />
+                    <ItemSection itemDraft={itemDraft} soldout={soldout} />
+                </main>
 
-            <EditButton id={id} />
-            <DeleteItemDraft id={id} />
-        </Container>
+                <EditButton id={id} />
+                <DeleteItemDraft id={id} />
+            </Container>
         </OperationProvider>
     );
 };

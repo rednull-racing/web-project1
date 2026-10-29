@@ -17,38 +17,38 @@ P0は認証・所有権・公開列・入力、P1は層間接続と失敗待機�
 
 同じID内の条件違いはit.eachへ展開する。全正常ケースは値・回数・必要引数を確認し、拒否時は後続と成功応答の未実行を確認する。
 
-| ID | 優先度・レベル | 前提・入力・手順 | 期待結果 |
-| --- | --- | --- | --- |
-| S01 | P0 service | itemDraftId=101/userId=7で実serviceを呼ぶ | findOneが完全な列/include/所有者whereを受け、transaction/lockなし。同一参照返却 |
-| S02 | P1 service | findOneがnull/例外 | nullまたは元例外を返し、再試行なし |
-| U01 | P0 usecase | 所有者取得値あり/null | 同一引数と同一返却参照、nullはAppError/404/ITEM_DRAFT_NOT_FOUND |
-| U02 | P1 usecase | service例外 | 元例外を伝播 |
-| U03 | P1 usecase | serviceをdeferredで保留後成功/null/失敗 | 保留中未完了、解放後に各結果、全Promise回収 |
-| U04 | P2 usecase | 別ID/所有者の読取を逆順完了 | 結果が混ざらない |
-| C01 | P0 controller | validatedParams=101/user=7、raw params/body/queryに別所有者/ID | 認証IDと検証済みIDのみ採用、200と{itemDraft}、対象外usecaseなし |
-| C02 | P1 controller | usecaseがAppError/通常Error | 同じ参照をnextへ一度、成功応答なし |
-| C03 | P1 controller | deferredで成功/失敗まで保留 | 保留中はstatus/json/nextなし、解放後のみ応答 |
-| C04 | P1 controller | json送信がthrow | nextへ伝播、usecase再実行なし |
-| R01 | P0 HTTP | 正常GET、数値ID境界1/2147483647、body/query偽装 | 200 JSONと認証ID/数値ID引渡し |
-| R02 | P0 HTTP | トークンなし/Basic/空Bearer/破損/別鍵/期限切れ + 不正ID | 401でusecaseなし |
-| R03 | P0 HTTP | 0/負数/小数/非数値/上限超過/SQL文字列等 | 400 INVALID_PARAMS、usecaseなし |
-| R04 | P1 HTTP | 01/+1/1.0/1e2/0x10/空白付き整数 | z.coerceの既存数値化を維持 |
-| R05 | P0 HTTP | 業務404/内部DB例外 | 公開404/500完全一致、内部SQL等を漏らさない |
-| R06 | P1 HTTP | 不正JSON＋未認証/正常認証/不正認証 | parserの400 INVALID_JSONを優先、usecaseなし |
-| R07 | P1 HTTP | 不正メソッド/余分なパス/ID欠落 | 404で対象usecaseなし |
-| R08 | P1 HTTP | usecaseをdeferredで保留 | JSON未送信、解放後に1回送信 |
-| L01 | P0 HTTP | 同じユーザーで50回→51/52回目 | 200→429、既定本文・標準ヘッダー・legacyなし |
-| L02 | P0 HTTP | 400/404/500各50回 | 51回目429、認証後失敗も計上 |
-| L03 | P0 HTTP | 無認証連打、同じIP別ユーザー、JWT再発行/ID/IP変更 | 無認証は非計上、ユーザー別独立、同じ所有者は枠共有 |
-| L04 | P1 HTTP | 枠消費後不正ID、窓59999/60000/60001ms | 制限をschemaより優先、境界から再開 |
-| L05 | P2 HTTP | 51要求同時、他APIのstore | 50成功/1拒否、既存POST枠と独立 |
-| D01 | P0 DB | 全列と関連、親と複数childrenをseed | 数値ID・updatedAt・公開列完全一致、非公開列なし、全DB不変 |
-| D02 | P0 DB | 任意値/関連なし | null関連と保存値の保持、DB不変 |
-| D03 | P1 DB | 親なし/子なし | parent=null/children=[]、DB不変 |
-| D04 | P0 DB | 他人/不存在/所有者null | AppError 404、DB不変 |
-| D05 | P2 DB | 同一対象を逐次再送 | 同じ値、DB不変 |
-| D06 | P2 DB | 別対象・別所有者の並行読取 | 結果の分離、DB不変。ロック保証とは扱わない |
-| D07 | P1 DB | 取得後にfixture所有の行を削除して再読取 | 最初成功、後続404。取得が後の存在を保証しない |
+| ID  | 優先度・レベル | 前提・入力・手順                                               | 期待結果                                                                        |
+| --- | -------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| S01 | P0 service     | itemDraftId=101/userId=7で実serviceを呼ぶ                      | findOneが完全な列/include/所有者whereを受け、transaction/lockなし。同一参照返却 |
+| S02 | P1 service     | findOneがnull/例外                                             | nullまたは元例外を返し、再試行なし                                              |
+| U01 | P0 usecase     | 所有者取得値あり/null                                          | 同一引数と同一返却参照、nullはAppError/404/ITEM_DRAFT_NOT_FOUND                 |
+| U02 | P1 usecase     | service例外                                                    | 元例外を伝播                                                                    |
+| U03 | P1 usecase     | serviceをdeferredで保留後成功/null/失敗                        | 保留中未完了、解放後に各結果、全Promise回収                                     |
+| U04 | P2 usecase     | 別ID/所有者の読取を逆順完了                                    | 結果が混ざらない                                                                |
+| C01 | P0 controller  | validatedParams=101/user=7、raw params/body/queryに別所有者/ID | 認証IDと検証済みIDのみ採用、200と{itemDraft}、対象外usecaseなし                 |
+| C02 | P1 controller  | usecaseがAppError/通常Error                                    | 同じ参照をnextへ一度、成功応答なし                                              |
+| C03 | P1 controller  | deferredで成功/失敗まで保留                                    | 保留中はstatus/json/nextなし、解放後のみ応答                                    |
+| C04 | P1 controller  | json送信がthrow                                                | nextへ伝播、usecase再実行なし                                                   |
+| R01 | P0 HTTP        | 正常GET、数値ID境界1/2147483647、body/query偽装                | 200 JSONと認証ID/数値ID引渡し                                                   |
+| R02 | P0 HTTP        | トークンなし/Basic/空Bearer/破損/別鍵/期限切れ + 不正ID        | 401でusecaseなし                                                                |
+| R03 | P0 HTTP        | 0/負数/小数/非数値/上限超過/SQL文字列等                        | 400 INVALID_PARAMS、usecaseなし                                                 |
+| R04 | P1 HTTP        | 01/+1/1.0/1e2/0x10/空白付き整数                                | z.coerceの既存数値化を維持                                                      |
+| R05 | P0 HTTP        | 業務404/内部DB例外                                             | 公開404/500完全一致、内部SQL等を漏らさない                                      |
+| R06 | P1 HTTP        | 不正JSON＋未認証/正常認証/不正認証                             | parserの400 INVALID_JSONを優先、usecaseなし                                     |
+| R07 | P1 HTTP        | 不正メソッド/余分なパス/ID欠落                                 | 404で対象usecaseなし                                                            |
+| R08 | P1 HTTP        | usecaseをdeferredで保留                                        | JSON未送信、解放後に1回送信                                                     |
+| L01 | P0 HTTP        | 同じユーザーで50回→51/52回目                                   | 200→429、既定本文・標準ヘッダー・legacyなし                                     |
+| L02 | P0 HTTP        | 400/404/500各50回                                              | 51回目429、認証後失敗も計上                                                     |
+| L03 | P0 HTTP        | 無認証連打、同じIP別ユーザー、JWT再発行/ID/IP変更              | 無認証は非計上、ユーザー別独立、同じ所有者は枠共有                              |
+| L04 | P1 HTTP        | 枠消費後不正ID、窓59999/60000/60001ms                          | 制限をschemaより優先、境界から再開                                              |
+| L05 | P2 HTTP        | 51要求同時、他APIのstore                                       | 50成功/1拒否、既存POST枠と独立                                                  |
+| D01 | P0 DB          | 全列と関連、親と複数childrenをseed                             | 数値ID・updatedAt・公開列完全一致、非公開列なし、全DB不変                       |
+| D02 | P0 DB          | 任意値/関連なし                                                | null関連と保存値の保持、DB不変                                                  |
+| D03 | P1 DB          | 親なし/子なし                                                  | parent=null/children=[]、DB不変                                                 |
+| D04 | P0 DB          | 他人/不存在/所有者null                                         | AppError 404、DB不変                                                            |
+| D05 | P2 DB          | 同一対象を逐次再送                                             | 同じ値、DB不変                                                                  |
+| D06 | P2 DB          | 別対象・別所有者の並行読取                                     | 結果の分離、DB不変。ロック保証とは扱わない                                      |
+| D07 | P1 DB          | 取得後にfixture所有の行を削除して再読取                        | 最初成功、後続404。取得が後の存在を保証しない                                   |
 
 ## 実行・完了条件
 

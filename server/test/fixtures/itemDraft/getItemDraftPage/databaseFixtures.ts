@@ -20,7 +20,14 @@ import { getItemDraftPageUseCase } from "../../../../src/usecases/itemDraft/getI
 
 // 再利用基盤の全4接続ガード、下書き列/FK検査に加え、今回includeするマスターをseed前に確認する。
 beforeAll(async () => {
-    for (const model of [Categories, Brands, ItemConditionOption, ShippingDayOption, ShippingServiceOption, TodouhukenOption]) {
+    for (const model of [
+        Categories,
+        Brands,
+        ItemConditionOption,
+        ShippingDayOption,
+        ShippingServiceOption,
+        TodouhukenOption,
+    ]) {
         const rows = await observer.query<{
             column_name: string;
             data_type: string;
@@ -33,8 +40,11 @@ beforeAll(async () => {
         );
         for (const [name, attribute] of Object.entries(model.getAttributes())) {
             const column = rows.find((row) => row.column_name === name);
-            if (!column || (attribute.allowNull === false && column.is_nullable !== "NO") ||
-                (attribute.allowNull === true && column.is_nullable !== "YES")) {
+            if (
+                !column ||
+                (attribute.allowNull === false && column.is_nullable !== "NO") ||
+                (attribute.allowNull === true && column.is_nullable !== "YES")
+            ) {
                 throw new Error(`DB_TEST_STOP: related schema mismatch ${model.getTableName()}.${name}`);
             }
             const type = String(attribute.type);
@@ -56,10 +66,27 @@ beforeAll(async () => {
 
 export const seed = async () => {
     const f = await baseSeed();
-    const parent = await Categories.create({ name: `${f.prefix}親`, path: `${f.prefix}/parent`, level: 0, layer: "middle" });
+    const parent = await Categories.create({
+        name: `${f.prefix}親`,
+        path: `${f.prefix}/parent`,
+        level: 0,
+        layer: "middle",
+    });
     await f.category.update({ parent_id: parent.id });
-    const childA = await Categories.create({ name: `${f.prefix}子A`, path: `${f.prefix}/a`, level: 2, parent_id: f.category.id, layer: "middle" });
-    const childB = await Categories.create({ name: `${f.prefix}子B`, path: `${f.prefix}/b`, level: 2, parent_id: f.category.id, layer: "middle" });
+    const childA = await Categories.create({
+        name: `${f.prefix}子A`,
+        path: `${f.prefix}/a`,
+        level: 2,
+        parent_id: f.category.id,
+        layer: "middle",
+    });
+    const childB = await Categories.create({
+        name: `${f.prefix}子B`,
+        path: `${f.prefix}/b`,
+        level: 2,
+        parent_id: f.category.id,
+        layer: "middle",
+    });
     const orphan = await ItemDraft.create({ seller_id: null });
     // Sequelize.createのtimestamps処理に依存せず、日時の公開契約を既知の保存値で検証する。
     await observer.query('UPDATE item_draft SET "updatedAt"=:time WHERE id=:id', {
@@ -77,7 +104,7 @@ export const snapshotAll = async (f: Fixture) => [
     ...(await Promise.all([f.parent, f.childA, f.childB].map((row) => snapshot("categories", row.id)))),
 ];
 export const absentId = async () => {
-    for (let id = 2147483647; id > 2147483000; id--) if (await snapshot("item_draft", id) === null) return id;
+    for (let id = 2147483647; id > 2147483000; id--) if ((await snapshot("item_draft", id)) === null) return id;
     throw new Error("DB_TEST_STOP: no unused fixture id");
 };
 export { ItemDraft, snapshot };

@@ -56,15 +56,15 @@ npm run typecheck
 
 ## 初回結果と修正履歴
 
-| 修正/事象 | 元ケース・観測 | 原因・対応 | 最新状態 |
-| --- | --- | --- | --- |
-| ENV-HTTP | 初回73件中HTTP57件失敗とlisten EPERM由来57例外 | sandboxがローカル待受を拒否。承認付きで同じ対象を再実行 | 解消 |
-| F1 | R08、承認後73件中72成功/1失敗 | res.json呼出し監視はJSON化前のDate。送信前はDateを期待し、HTTP本文ではISO文字列を維持 | 最終成功 |
-| F2 | 動画変換回帰H01/H03/H05〜H09/H12/H13等、355件中333成功/22失敗（保留ケースtimeoutを含む） | 今回編集でPATCHのcontroller列にも取得controllerが誤挿入されていた。既存PATCHから除去、GETだけへ接続。既存期待値は変更せず同一回帰を再実行 | 355件成功 |
-| F3 | テスト型検査TS2352 | 最小Modelの単体fixtureへ関連キーを直接assertしていた。既存の部分Model factoryを再利用しObject.assignで単体境界データを構築 | テスト型検査成功 |
-| F4 | 担当worktreeのD01初回 | Sequelize.createがupdatedAtを現在日時にするfixture前提不備。自作IDのみSQLで既知日時を保存。本番仕様/期待値は維持 | DB9件成功 |
-| F5 | 担当worktree通常lintの3error | 三行コメントの全角空白。route/controller/usecaseを同じ半角表記へ統一 | 通常lint成功 |
-| ENV-DB | 親worktree初回DB suite失敗・9件skip | sandboxのconnect EPERM。書込み前に停止しcleanup DELETEなし、close実行。承認付きで同じガードを再実行 | DB9件成功、skip0 |
-| LINT-SETUP | 追加lint初回6error | 手動でrulesだけを組合せたためtypescript-eslintの推奨設定全体を採用できていなかった。通常srcと同じextends構成をAPI overrideConfigで使用 | 追加7TS成功 |
+| 修正/事象  | 元ケース・観測                                                                           | 原因・対応                                                                                                                                | 最新状態         |
+| ---------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| ENV-HTTP   | 初回73件中HTTP57件失敗とlisten EPERM由来57例外                                           | sandboxがローカル待受を拒否。承認付きで同じ対象を再実行                                                                                   | 解消             |
+| F1         | R08、承認後73件中72成功/1失敗                                                            | res.json呼出し監視はJSON化前のDate。送信前はDateを期待し、HTTP本文ではISO文字列を維持                                                     | 最終成功         |
+| F2         | 動画変換回帰H01/H03/H05〜H09/H12/H13等、355件中333成功/22失敗（保留ケースtimeoutを含む） | 今回編集でPATCHのcontroller列にも取得controllerが誤挿入されていた。既存PATCHから除去、GETだけへ接続。既存期待値は変更せず同一回帰を再実行 | 355件成功        |
+| F3         | テスト型検査TS2352                                                                       | 最小Modelの単体fixtureへ関連キーを直接assertしていた。既存の部分Model factoryを再利用しObject.assignで単体境界データを構築                | テスト型検査成功 |
+| F4         | 担当worktreeのD01初回                                                                    | Sequelize.createがupdatedAtを現在日時にするfixture前提不備。自作IDのみSQLで既知日時を保存。本番仕様/期待値は維持                          | DB9件成功        |
+| F5         | 担当worktree通常lintの3error                                                             | 三行コメントの全角空白。route/controller/usecaseを同じ半角表記へ統一                                                                      | 通常lint成功     |
+| ENV-DB     | 親worktree初回DB suite失敗・9件skip                                                      | sandboxのconnect EPERM。書込み前に停止しcleanup DELETEなし、close実行。承認付きで同じガードを再実行                                       | DB9件成功、skip0 |
+| LINT-SETUP | 追加lint初回6error                                                                       | 手動でrulesだけを組合せたためtypescript-eslintの推奨設定全体を採用できていなかった。通常srcと同じextends構成をAPI overrideConfigで使用    | 追加7TS成功      |
 
 最終状態では今回APIの未実装・必須ケース未実行・未解決失敗はない。frontend全体lintの既存不備とNode26未確認は上記の限界として残す。

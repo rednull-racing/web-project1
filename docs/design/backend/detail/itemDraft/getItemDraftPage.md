@@ -62,7 +62,39 @@
 取得完了後に `{ "itemDraft": ... }` の1キーを返す。IDは数値、updatedAtはDateのJSON化によるISO日時文字列。nullableな保存値は加工せず返す。Category.childrenは配列（未登録なら[]）、parentとbelongsTo関連は未設定ならnull。Categoryがnullなら親子も含まれない。親と子のさらに先は取得しない。childrenの順序は保証しない。
 
 ```json
-{"itemDraft":{"id":123,"seller_id":7,"name":null,"detail":null,"price":null,"image_url":null,"first_image_url":null,"gender_type":"unisex","age_type":"both","recommend":false,"attributes":{},"thumbnail_url":null,"title":null,"summary":null,"duration":null,"original_url":null,"converted_url":null,"before_price":null,"discount_rate":null,"discount_amount":null,"sale_flag":false,"shipping_service_free_text":null,"updatedAt":"2026-10-29T00:00:00.000Z","Category":null,"Brand":null,"ItemConditionOption":null,"ShippingDayOption":null,"ShippingServiceOption":null,"TodouhukenOption":null}}
+{
+    "itemDraft": {
+        "id": 123,
+        "seller_id": 7,
+        "name": null,
+        "detail": null,
+        "price": null,
+        "image_url": null,
+        "first_image_url": null,
+        "gender_type": "unisex",
+        "age_type": "both",
+        "recommend": false,
+        "attributes": {},
+        "thumbnail_url": null,
+        "title": null,
+        "summary": null,
+        "duration": null,
+        "original_url": null,
+        "converted_url": null,
+        "before_price": null,
+        "discount_rate": null,
+        "discount_amount": null,
+        "sale_flag": false,
+        "shipping_service_free_text": null,
+        "updatedAt": "2026-10-29T00:00:00.000Z",
+        "Category": null,
+        "Brand": null,
+        "ItemConditionOption": null,
+        "ShippingDayOption": null,
+        "ShippingServiceOption": null,
+        "TodouhukenOption": null
+    }
+}
 ```
 
 フロントの `client/src/app/item/draft/types.ts` も同契約に修正する。Brand/Optionはid/nameのみ、Categoryとchildrenはid/name/level/parent_id/allowed_gender/allowed_age、parentはid/name/level/allowed_gender/allowed_age。FK、createdAt、video_status、brand_aliases_id、Brand.name_normalized、カテゴリのpath等は返さない。
@@ -207,15 +239,15 @@ include: [
 
 ## 7. エラー設計
 
-| 発生条件 | HTTP | 公開応答 |
-| --- | --- | --- |
-| bodyの不正JSON（共通parser） | 400 | `{ "code": "INVALID_JSON", "message": "JSONの形式を確認してください。" }` |
-| Bearerトークンなし | 401 | `{ "message": "トークンがありません。" }` |
-| トークン不正・期限切れ | 401 | `{ "message": "トークンが無効です。" }` |
-| 認証後の制限超過 | 429 | express-rate-limitの既定本文・ヘッダー |
-| id検証失敗 | 400 | `{ "code": "INVALID_PARAMS", "message": "INVALID_PARAMS" }` |
-| 下書き不存在・他人の所有・seller_idがnull | 404 | `{ "code": "ITEM_DRAFT_NOT_FOUND", "message": "ITEM_DRAFT_NOT_FOUND" }` |
-| 予期しないDB等の例外 | 500 | `{ "error": "INTERNAL_SERVER_ERROR", "message": "サーバーエラーが発生しました" }` |
+| 発生条件                                  | HTTP | 公開応答                                                                          |
+| ----------------------------------------- | ---- | --------------------------------------------------------------------------------- |
+| bodyの不正JSON（共通parser）              | 400  | `{ "code": "INVALID_JSON", "message": "JSONの形式を確認してください。" }`         |
+| Bearerトークンなし                        | 401  | `{ "message": "トークンがありません。" }`                                         |
+| トークン不正・期限切れ                    | 401  | `{ "message": "トークンが無効です。" }`                                           |
+| 認証後の制限超過                          | 429  | express-rate-limitの既定本文・ヘッダー                                            |
+| id検証失敗                                | 400  | `{ "code": "INVALID_PARAMS", "message": "INVALID_PARAMS" }`                       |
+| 下書き不存在・他人の所有・seller_idがnull | 404  | `{ "code": "ITEM_DRAFT_NOT_FOUND", "message": "ITEM_DRAFT_NOT_FOUND" }`           |
+| 予期しないDB等の例外                      | 500  | `{ "error": "INTERNAL_SERVER_ERROR", "message": "サーバーエラーが発生しました" }` |
 
 400/404は既存AppError、予期しない例外は元の例外を共通errorHandlerへ渡す。認証・制限の応答をAppError形式へ変更しない。拒否時は後続処理を実行せず、500に内部エラー内容を含めない。
 

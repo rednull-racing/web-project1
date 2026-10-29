@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-    seed, run, snapshotAll, absentId, ItemDraft, snapshot,
+    seed,
+    run,
+    snapshotAll,
+    absentId,
+    ItemDraft,
+    snapshot,
 } from "../../../../fixtures/itemDraft/getItemDraftPage/databaseFixtures.js";
 import { AppError } from "../../../../../src/errors.js";
 
@@ -17,15 +22,29 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
         // 順序指定のないchildrenは集合として比較する。件数・各要素の完全一致は保持する。
         const { Category, ...rest } = result;
         expect(rest).toEqual({
-            id: f.draft.id, seller_id: f.owner.id,
-            name: "下書きの商品名", detail: "下書きの説明", price: 800,
+            id: f.draft.id,
+            seller_id: f.owner.id,
+            name: "下書きの商品名",
+            detail: "下書きの説明",
+            price: 800,
             image_url: ["https://media.test/image-a", "https://media.test/image-b", "https://media.test/image-c"],
-            first_image_url: "https://media.test/first-independent", gender_type: "women", age_type: "kids",
-            recommend: true, attributes: f.values.attributes,
-            thumbnail_url: "https://media.test/thumbnail", title: "下書きの動画タイトル", summary: "下書きの動画概要",
-            duration: 30, original_url: "https://media.test/original", converted_url: "https://media.test/converted",
-            before_price: 1200, discount_rate: 25, discount_amount: 400, sale_flag: true,
-            shipping_service_free_text: "下書きの配送備考", updatedAt: new Date("2020-01-02T00:00:00Z"),
+            first_image_url: "https://media.test/first-independent",
+            gender_type: "women",
+            age_type: "kids",
+            recommend: true,
+            attributes: f.values.attributes,
+            thumbnail_url: "https://media.test/thumbnail",
+            title: "下書きの動画タイトル",
+            summary: "下書きの動画概要",
+            duration: 30,
+            original_url: "https://media.test/original",
+            converted_url: "https://media.test/converted",
+            before_price: 1200,
+            discount_rate: 25,
+            discount_amount: 400,
+            sale_flag: true,
+            shipping_service_free_text: "下書きの配送備考",
+            updatedAt: new Date("2020-01-02T00:00:00Z"),
             Brand: { id: f.brand.id, name: f.prefix },
             ItemConditionOption: { id: f.condition.id, name: `${f.prefix}状態` },
             ShippingDayOption: { id: f.day.id, name: `${f.prefix}翌日` },
@@ -33,11 +52,30 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
             TodouhukenOption: { id: f.place.id, name: f.prefix.slice(0, 20) },
         });
         expect(Category).toEqual({
-            id: f.category.id, name: f.prefix, level: 1, parent_id: f.parent.id, allowed_gender: "unisex", allowed_age: "both",
+            id: f.category.id,
+            name: f.prefix,
+            level: 1,
+            parent_id: f.parent.id,
+            allowed_gender: "unisex",
+            allowed_age: "both",
             parent: { id: f.parent.id, name: `${f.prefix}親`, level: 0, allowed_gender: "unisex", allowed_age: "both" },
             children: expect.arrayContaining([
-                { id: f.childA.id, name: `${f.prefix}子A`, level: 2, parent_id: f.category.id, allowed_gender: "unisex", allowed_age: "both" },
-                { id: f.childB.id, name: `${f.prefix}子B`, level: 2, parent_id: f.category.id, allowed_gender: "unisex", allowed_age: "both" },
+                {
+                    id: f.childA.id,
+                    name: `${f.prefix}子A`,
+                    level: 2,
+                    parent_id: f.category.id,
+                    allowed_gender: "unisex",
+                    allowed_age: "both",
+                },
+                {
+                    id: f.childB.id,
+                    name: `${f.prefix}子B`,
+                    level: 2,
+                    parent_id: f.category.id,
+                    allowed_gender: "unisex",
+                    allowed_age: "both",
+                },
             ]),
         });
         expect(Category.children).toHaveLength(2);
@@ -51,9 +89,20 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
         const before = await snapshotAll(f);
         const result = (await run(f, f.sameOwnerDraft.id)).get({ plain: true });
         expect(result).toMatchObject({
-            id: f.sameOwnerDraft.id, seller_id: f.owner.id, image_url: [], attributes: { colorVariants: [], materials: [] },
-            Category: null, Brand: null, ItemConditionOption: null, ShippingDayOption: null, ShippingServiceOption: null, TodouhukenOption: null,
-            price: null, title: null, original_url: null, converted_url: null,
+            id: f.sameOwnerDraft.id,
+            seller_id: f.owner.id,
+            image_url: [],
+            attributes: { colorVariants: [], materials: [] },
+            Category: null,
+            Brand: null,
+            ItemConditionOption: null,
+            ShippingDayOption: null,
+            ShippingServiceOption: null,
+            TodouhukenOption: null,
+            price: null,
+            title: null,
+            original_url: null,
+            converted_url: null,
         });
         expect(await snapshotAll(f)).toEqual(before);
     });
@@ -64,7 +113,16 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
         await f.childA.update({ parent_id: null });
         const before = await snapshotAll(f);
         const result = (await run(f, f.sameOwnerDraft.id)).get({ plain: true });
-        expect(result.Category).toEqual({ id: f.childA.id, name: `${f.prefix}子A`, level: 2, parent_id: null, allowed_gender: "unisex", allowed_age: "both", parent: null, children: [] });
+        expect(result.Category).toEqual({
+            id: f.childA.id,
+            name: `${f.prefix}子A`,
+            level: 2,
+            parent_id: null,
+            allowed_gender: "unisex",
+            allowed_age: "both",
+            parent: null,
+            children: [],
+        });
         expect(await snapshotAll(f)).toEqual(before);
     });
 

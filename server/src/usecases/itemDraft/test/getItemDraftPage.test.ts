@@ -29,10 +29,13 @@ describe("P0/P1/P2 getItemDraftPage usecase", () => {
     });
     it.each(["成功", "null", "失敗"])("U03 取得%sまで完了しない", async (mode) => {
         const gate = deferred<Awaited<ReturnType<typeof getMyItemDraftPage>>>();
-        const row = makeDraft(), error = new Error("db");
+        const row = makeDraft(),
+            error = new Error("db");
         mocks.get.mockReturnValue(gate.promise);
         let completed = false;
-        const pending = run().finally(() => { completed = true; });
+        const pending = run().finally(() => {
+            completed = true;
+        });
         const settled = Promise.allSettled([pending]);
         try {
             expect(mocks.get).toHaveBeenCalledOnce();
@@ -49,13 +52,17 @@ describe("P0/P1/P2 getItemDraftPage usecase", () => {
     });
     it("U04 逆順完了でも結果が混ざらない", async () => {
         const gate = deferred<Awaited<ReturnType<typeof getMyItemDraftPage>>>();
-        const a = makeDraft(), b = makeDraft(202);
+        const a = makeDraft(),
+            b = makeDraft(202);
         mocks.get.mockReturnValueOnce(gate.promise).mockResolvedValueOnce(b);
         const pending = run();
         try {
             expect(await getItemDraftPageUseCase({ itemDraftId: 202, userId: 8 })).toBe(b);
             expect(mocks.get).toHaveBeenNthCalledWith(2, { itemDraftId: 202, userId: 8 });
-        } finally { gate.resolve(a); await pending; }
+        } finally {
+            gate.resolve(a);
+            await pending;
+        }
         expect(await pending).toBe(a);
     });
 });

@@ -79,7 +79,7 @@ export const createEmptyDraft = (): ItemDraft =>
         original_url: null,
         converted_url: null,
         duration: null,
-            recommend: null,
+        recommend: null,
         before_price: null,
         discount_rate: null,
         discount_amount: null,
