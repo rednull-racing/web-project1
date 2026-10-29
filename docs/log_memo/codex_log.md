@@ -1136,3 +1136,10 @@
 
 - 下書きの数値ID・子カテゴリ配列・関連nullを型とfixtureへ反映し、旧取得URLのテスト期待値を更新。
 - 関連11ファイル103件のVitest・テスト型検査・変更TSのESLintに成功。ブラウザー/E2E/DBは未実行。
+
+## 20261029_frontend-test_itemDraftPage実GET接続検証
+
+- E2Eの旧GET代替を除去し、実取得API→SSRの正常・他人404・未入力値3ケースを追加。3ブラウザー9件成功。
+- 代表編集/削除/再訪を含む27件は21成功・2失敗・4timeout。既存WebKit操作不成立の後段は未達として記録。
+- production webpack build、E2E/テスト型検査、変更2TS lint成功。全体client lint/型検査は既存不備。
+- 本番コード・DBスキーマ変更なし。test_dbガード・自作fixture cleanup・全接続とNext終了を確認。

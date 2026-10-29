@@ -1,5 +1,43 @@
 # itemDraftPage テストレポート
 
+## 実GET接続の追加E2E（2026-10-29、今回の最新結果）
+
+getItemDraftPage実装により実行可能になったF11の実GET取得込みE2Eを検証した。旧DB-backed GET代替をharnessから削除し、Next.js SSR→転送proxy→実Express Router/認証/usecase/service→test_dbを接続した。本番コード・DBスキーマは変更していない。以下の過去節の「実GET未実装・代替取得」は今回実行分には適用しない。B/U/C/Pは今回再実行していない。
+
+追加 `test/E2E/item/itemDraftPage/getItemDraftPage/flow.spec.ts` はAF-GET01〜03を3ブラウザーで展開し、**9件すべて成功**。AF-GET01は公開列・数値ID・ISO updatedAt・Category親null/子配列・SSR商品表示・同一描画GET1回・DB不変、AF-GET02は他人の下書きの実404・商品名/操作非露出・DB不変、AF-GET03は未入力値null/空attributesの実取得とSSR表示を確認した。親子複数件等のDB取得網羅はbackend側の検証範囲であり、ここでは今回のseedに限定する。
+
+実GETを通した既存代表フロー（E-N01上/下・E-N02・E-N04・E-N05編集/削除）18件も実行。Chromium/Firefoxは各6件成功。WebKitの既存操作不成立は残り、E-N01上/下・E-N02・E-N04は業務HTTP応答待ちでtimeout、E-N05編集/削除はupload/my-pageへの遷移待ちで失敗した。WebKitでも実GET/SSR追加3件は成功しており、取得APIの不成立とは区別する。今回の失敗ではcookie不存在を直接再検査しておらず、以前のcookie観測だけから原因を断定しない。失敗した操作後のDB/再訪assertは未到達。
+
+| project | 成功 | 失敗 | timeout | skip |
+| --- | ---: | ---: | ---: | ---: |
+| e2e-chromium | 9 | 0 | 0 | 0 |
+| e2e-firefox | 9 | 0 | 0 | 0 |
+| e2e-webkit | 3 | 2 | 4 | 0 |
+
+計27件：成功21、失敗2、timeout4。トップレベルerrors/flaky/interrupted/未着手0。3実ファイル別では取得9成功、編集8成功/1失敗/3timeout、削除4成功/1失敗/1timeout。先行のChromium追加3件成功は同じ最終27件に含まれるため重複加算しない。過去の383件全体を今回再検証した結果ではない。
+
+### 実行と証拠
+
+Node22.22.2。production buildはclient/で `NEXT_PUBLIC_API_URL=http://127.0.0.1:4021/api npm run build -- --webpack` を実行し成功。Nextの既存 `ignoreBuildErrors` 設定を維持しており、型検査成功とは別。起動はtest/で `node fixtures/item/itemDraftPage/startNext.mjs e2e`。SSRのAPI_URLは起動helperでloopback4022/api、ブラウザーの業務APIはbuild時4021/apiへ固定。実認証・各ケース別隔離Expressを使い、app全体のcron bootstrapは実行しない。
+
+```bash
+# test/、Node22のPATHを指定
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3012 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.0.0.1:4021/api ITEM_DRAFT_E2E_PROXY_URL=http://127.0.0.1:4022/api ./node_modules/.bin/playwright test E2E/item/itemDraftPage/ --grep 'AF-GET|E-N01|E-N02|E-N04|E-N05' --workers=1 --trace=off --reporter=json > /tmp/item-draft-real-get-final.json
+```
+
+20:19 JST開始、235.55秒、exit1（上記6件の既存WebKit失敗/timeout）。JSONの各project/file/title/resultから集計。先行3件は `/tmp/item-draft-real-get-chromium.json`、buildは `/tmp/item-draft-real-get-build.log`。JSON/ログ・test-resultsのerror-contextは一時成果物。Nextの初回起動はsandboxのlisten EPERMで停止し、承認付き同一コマンドで起動後に検証した。Nextは検証後停止、各ケースのExpress/全DB接続closeとfixture cleanupまで終了し、cleanup/teardownの追加失敗なし。
+
+DB接続は既存基盤のserver/.env.test由来PostgreSQL test_dbを使用。fixture pg接続と隔離Expressの2 Sequelize接続を各々接続前のDB名・接続後current_databaseで確認し、既存schemaガードの通過後だけseed。自作ユーザーIDに属する生成行と追跡したfixture IDだけをcleanupし残存確認、全接続close。以前からのenum/全master型等のschemaガード不足は拡張していないため、その未実装まで解消したとはしない。実GET観測はpath/status/公開bodyのみで、認証情報を記録しない。
+
+### 静的検査・残件
+
+- test/ `npm run typecheck` とclient/ `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`：成功。
+- 変更2TS（harness、新規flow）へ既存ESLint + typescript-eslint recommendedをESLint APIで追加適用：0 errors/0 warnings。共有設定変更なし。
+- client/ `npm run lint`：既存23 errors/37 warnings。`npm run typecheck`：production build生成型と既存同期paramsの不整合53診断。今回変更ファイルの診断なし。ログは `/tmp/item-draft-real-get-lint.log`・`/tmp/item-draft-real-get-client-types.log`・`/tmp/item-draft-real-get-client-test-types.log`。本番修正は範囲外。
+- 解消した未検証範囲は実GETの公開契約→SSR、他人404、未入力値、Chromium/Firefoxの代表編集・削除・再訪に限る。WebKit後段、F11の他のseed/監視/遷移先内容、Bの代替API、Node26・通常Turbopack・カバレッジは残す。失敗期待値の変更・skip化なし。
+
+以下は以前の検証履歴。実GETに関する現在の状態は本節を優先する。
+
 ## getItemDraftPage契約への型整合（2026-10-29、追加検証）
 
 - ユーザー確定の数値ID・非再帰の親/子カテゴリ配列・関連nullを `draft/types.ts` とfixtureへ反映。updatedAtは文字列のまま保持する。fixtureのAPI対象外createdAt/video_statusを除外。

@@ -31,7 +31,7 @@
 | `src/app/item/draft/editButton.tsx`                                                                             | POST成功後、返却itemEditingIdで/uploadへ。失敗トーストと再操作。現行loadingは各インスタンス単位                             |
 | `src/app/item/draft/delete.tsx`                                                                                 | 確認を開閉→DELETE→成功通知・閉じる→1500ms後/my-page。ApiErrorはトースト、その他はalert                                      |
 | `src/app/item/draft/api/client.ts`                                                                              | fetchEditDraftItem：POST /item-editing/draft、JSONの数値ID。fetchDeleteDraftItem：DELETE /item-draft/:id、bodyなし          |
-| `src/app/item/draft/api/server.ts`                                                                              | fetchItemDraftPage：共通server fetchへGET相当・no-store。未実装APIのHTTP応答はテスト境界で代替                              |
+| `src/app/item/draft/api/server.ts`                                                                              | fetchItemDraftPage：GET /item-draft/:id/item-page・no-store。E2Eは実取得APIを使用し、U/C/P/Bの代替境界とは区別                              |
 | `src/app/item/videoSection/{videoElem,videoTitle,itemPeek,summary}.tsx`                                         | メディア、見出し、商品説明へのスクロール、概要開閉。VideoTitleは非同期Server Component                                      |
 | `src/app/item/itemSection/{slideshow,itemHeader,itemName,variantsList,detail,categoryText,deliverySection}.tsx` | 画像拡大、商品名・価格・セール・属性、バリエーション、説明、配送・在庫・素材                                                |
 | `src/components/container/container.tsx`、`src/lib/formatRelativeTime.ts`                                       | ページの子要素保持、保存日時整形                                                                                            |
@@ -117,7 +117,7 @@ IDは文書内で一意。U/C/P/B/Eはレベル、N=正常、V=値・境界、F=
 | U-F02 P0   | 削除rejectをApiError／通常Errorで個別実施                                             | 前者は失敗トースト、後者は指定alert、確認閉鎖、成功トースト・sleep後pushなし。再度開いて再試行可能            |
 | U-N05 P0   | 専用client API2関数をID11で呼ぶ                                                       | POSTの数値JSON、DELETEのパス・bodyなし。応答同値、rejectを握りつぶさず伝播                                    |
 | U-V04 P1   | POSTのID「0011」、不正文字列                                                          | 前者は11、後者はNumber→JSON上nullの現行変換を検証。wrapperを入力検証層とみなさず400のUI検証はC-F01            |
-| U-N06 P1   | 専用server APIをID11で呼ぶ                                                            | /item-draft/11・cache:no-storeで共通関数呼出し、応答／失敗伝播。実GET接続保証は含めない                       |
+| U-N06 P1   | 専用server APIをID11で呼ぶ                                                            | /item-draft/11/item-page・cache:no-storeで共通関数呼出し、応答／失敗伝播。実GET接続保証は含めない                       |
 | U-N07 P1   | VideoElem：m3u8＋Hls対応／非対応、MP4、両URLなし                                      | Hls load/attach・unmount時destroy、代替src、動画なし。変換URL優先、poster設定。下書きのplayで集計APIなし      |
 | U-N08 P1   | ItemPeekの名前・価格・性別各値・kids、クリック、標的なし                              | 表示とSOLD OUT、#itemNameへsmooth/startスクロール。標的なしでも例外なし                                       |
 | U-N09 P1   | Summary/Detail：短文／overflow、開く→閉じる、本文変更                                 | 長文のみ操作表示、開閉表示が切り替わる。下書きでは展開集計APIなし。寸法モックを復元                           |
@@ -216,7 +216,7 @@ E2E seedはAの対象D1・別下書きD2・BのD3・既存編集E0・参照マ�
 | E-S03 P0   | 表示後の送信IDをPOSTは0、DELETEは0／2147483648に改変                               | 実400、失敗UI、DB不変。POSTにDELETEと同じ上限があるという仕様は作らない                                                                                   |
 | E-F02 P1   | 新規認証ユーザーの実要求で枠を消費し、UIで編集6回目／削除21回目（別API・別ケース） | 実429、失敗UI、追加書込なし。10分5回／5分20回の実レート境界。window待ちを長いsleepで作らない                                                              |
 | E-Q01 P0   | 同じ削除の連打、上下編集交互、編集と削除（Q01〜Q04相当）                           | UIからの重複要求0（最初の1回だけ）、遷移・成功通知1回。別接続で編集増加は最大1、下書きの最終状態が単一操作と一致。DBが安全でも余分なHTTPが出れば失敗      |
-| E-N05 P1   | 同じ下書きの編集／削除成功後、再訪・リロード・戻る                                 | 取得代替も不存在を返し、古い内容で操作可能にしない。編集行の追加生成なし。この結果を実GETの検証に数えない                                                 |
+| E-N05 P1   | 同じ下書きの編集／削除成功後、再訪・リロード・戻る                                 | 実GETが不存在404を返し、古い内容で操作可能にしない。編集行の追加生成なし。2026-10-29の追加検証以前の代替取得結果と区別する                                                 |
 
 実500・transaction rollback・ロック待機をE2Eから確実に注入する仕組みは現時点でない。MSWでの500はC-F01/F02、実DB障害とrollback・競合の証明は既存バックエンド設計の対象として区別する。HTTP成功後にブラウザー通信だけを失敗させた場合、DBはcommit済みの可能性があるため「画面失敗ならDB不変」とassertしない。通信の成否不明を扱う追加設計が必要なら別ケース化する。
 
@@ -272,3 +272,15 @@ npm run typecheck
 将来のテスト完了条件：各IDと展開条件が実装・結果に対応し、Q系を含む未解決失敗を残して全体合格としない。実ブラウザーとmock、実DBと代替GET、失敗・環境停止・未実行を分け、将来の `client/test/docs/report/item/itemDraftPage.md` に結果・修正・再検証をまとめる。現在 `client/test/docs/report/AGENTS.md` は存在しないため、実装時に追加された規約も確認する。
 
 未確認事項：Q09で明文化した在庫閾値契約の業務側合意、性能の数値基準、実GET取得込みE2E、Node.js 26とOS依存を満たした実行環境、遷移先の実API・テストDBスキーマ。今回これらの確認や修正、テスト実行はしていない。
+
+## 2026-10-29 実GET接続の追加検証
+
+getItemDraftPage実装によりF11の実GET接続を検証可能とした。E2E harnessの旧DB-backed GET代替を削除し、SSRのGETも実Router→usecase→service→test_dbへ転送する。GET応答のpath/status/公開bodyだけを記録し、認証情報は記録しない。
+
+追加配置（リポジトリルート基準）: `test/E2E/item/itemDraftPage/getItemDraftPage/flow.spec.ts`。
+
+- AF-GET01: 実GET200、数値ID・ISO updatedAt・関連公開列・parent=null/children=[]とSSRの商品表示、GET1回、DB不変。
+- AF-GET02: 他人のIDで実GET404、SSRへ商品名・編集操作が漏れず、DB不変。
+- AF-GET03: 未入力の保存値nullと空attributesを実GETからSSRへ渡し、DB不変。既存E-N02の表示取得部分を補完。
+
+実認証・Next.js production build・隔離Express・test_dbを使い、Chromium/Firefox/WebKitで実行する。既存E-N01/N02/N04/N05の編集・削除・再訪フローも実GETを通して再検証する。本番や仕様の修正は対象外。既存WebKit認証cookie不備で止まった場合は後段未到達を記録し、期待値を緩和しない。

@@ -1,14 +1,11 @@
 import { test as base, expect } from "@playwright/test";
 import type { BrowserContext, Page } from "@playwright/test";
 import { createServer } from "node:http";
-import { createRequire } from "node:module";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { openDatabase, seedDatabase } from "./database.js";
 import type { Database, Row } from "./database.js";
 
-const requireServer = createRequire(new URL("../../../../server/package.json", import.meta.url));
-const { verify } = requireServer("jsonwebtoken") as { verify: (token: string, secret: string) => { id: number } };
 const localURL = (value: string | undefined, label: string): URL => {
     if (!value) throw new Error(`E2E_ENV_STOP: ${label} must explicitly identify the isolated local test service`);
     const url = new URL(value);
@@ -17,6 +14,7 @@ const localURL = (value: string | undefined, label: string): URL => {
     return url;
 };
 export type Harness = {
+    getResponses: Array<{ path: string; status: number; body: Record<string, unknown> }>;
     database: Database;
     seed: Awaited<ReturnType<typeof seedDatabase>>;
     express: URL;
@@ -82,34 +80,13 @@ export const test = base.extend<{ e2e: Harness }>({
                     const response = await fetch(`${express.href.replace(/\/$/, "")}${path}`, init);
                     return response;
                 };
+                const getResponses: Harness["getResponses"] = [];
                 server = createServer(async (req, res) => {
                     const input = new URL(req.url ?? "/", proxy);
                     const prefix = proxy.pathname.replace(/\/$/, "");
                     const path = input.pathname.startsWith(prefix)
                         ? input.pathname.slice(prefix.length)
                         : input.pathname;
-                    const match = /^\/item-draft\/(\d+)$/.exec(path);
-                    if (req.method === "GET" && match) {
-                        try {
-                            const auth = verify(
-                                (req.headers.authorization ?? "").replace(/^Bearer /, ""),
-                                database.env.NEXTAUTH_SECRET,
-                            );
-                            const row = await database.get("item_draft", Number(match[1]));
-                            if (!row || row.seller_id !== auth.id) {
-                                res.writeHead(404, { "Content-Type": "application/json" });
-                                res.end('{"code":"ITEM_DRAFT_NOT_FOUND"}');
-                                return;
-                            }
-                            res.writeHead(200, { "Content-Type": "application/json" });
-                            res.end(JSON.stringify({ itemDraft: { ...row, id: String(row.id) } }));
-                            return;
-                        } catch {
-                            res.writeHead(401, { "Content-Type": "application/json" });
-                            res.end('{"code":"UNAUTHORIZED"}');
-                            return;
-                        }
-                    }
                     try {
                         const chunks: Buffer[] = [];
                         for await (const chunk of req) chunks.push(Buffer.from(chunk));
@@ -121,6 +98,9 @@ export const test = base.extend<{ e2e: Harness }>({
                             headers,
                             body: ["GET", "HEAD"].includes(req.method ?? "GET") ? undefined : Buffer.concat(chunks),
                         });
+                        if (req.method === "GET" && /^\/item-draft\/\d+\/item-page$/.test(path)) {
+                            getResponses.push({ path, status: response.status, body: await response.clone().json() as Record<string, unknown> });
+                        }
                         res.writeHead(response.status, {
                             "Content-Type": response.headers.get("content-type") ?? "application/json",
                         });
@@ -190,7 +170,7 @@ export const test = base.extend<{ e2e: Harness }>({
                     };
                     expect(String(session.user?.id)).toBe(String(seed.owner.id));
                 };
-                await provide({ database, seed, express, protectedBefore, editingRows, expectProtected, login, http });
+                await provide({ getResponses, database, seed, express, protectedBefore, editingRows, expectProtected, login, http });
             } finally {
                 if (server)
                     await new Promise<void>((resolve, reject) =>
