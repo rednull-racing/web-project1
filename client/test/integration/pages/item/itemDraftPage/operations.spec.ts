@@ -30,7 +30,7 @@ for (const operation of ["delete", "top-bottom", "bottom-top", "edit-delete", "d
                 await openDelete();
                 if ((await remove.isVisible()) && (await remove.isEnabled())) await remove.click();
             } else if (operation === "delete-edit") {
-                if (await edit.first().isEnabled()) await edit.first().click();
+                if (await edit.first().isEnabled()) await edit.first().press("Enter");
             } else {
                 const other = edit.nth(operation === "bottom-top" ? 0 : 1);
                 if (await other.isEnabled()) await other.click();
@@ -45,13 +45,14 @@ for (const operation of ["delete", "top-bottom", "bottom-top", "edit-delete", "d
 
 test("Q04 削除成功後の遷移待ちにも再削除できない", async ({ page, draft }) => {
     let count = 0;
-    await page.clock.install();
+    const frozenTime = new Date();
+    await page.clock.install({ time: frozenTime });
+    await page.clock.pauseAt(frozenTime);
     await page.route(/\/item-draft\/\d+$/, async (route) => {
         count++;
         await route.fulfill({ status: 200, json: { message: "下書き商品を削除しました" } });
     });
     await openDraft(page, draft);
-    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 50));
     const open = page.getByText("この下書き商品を削除する", { exact: true });
     await open.click();
     await page.getByRole("button", { name: "削除する", exact: true }).click();

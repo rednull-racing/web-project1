@@ -1,6 +1,12 @@
 # itemDraftPage テストレポート
 
-## 1. 最新結果・完了範囲
+## 最新結果（2026-10-29 再開）
+
+中断・未実行だったブラウザーテストを含め、B/Eの全195件を再実行した。**成功117、失敗69、タイムアウト9、中断・skip・未着手0**。両ランナーはexit 1で正常に結果を出力し、トップレベルerrors・flakyは0。設計全体の合格ではない。詳細は[再開結果](#6-2026-10-29-中断未実行箇所の再開結果)を参照。
+
+今回U/C/Pは再実行していない（前回：成功156・失敗32）。未実装assertや、失敗によって未到達となった後段の検証は残る。本番コード・DBスキーマは変更していない。以下の1〜5章は2026-10-28の履歴であり、旧「未実行」「提案のみ」の現在の状態は6章で更新する。
+
+## 1. 2026-10-28実行履歴・当時の完了範囲
 
 実行日：2026-10-28。対象：[テスト設計書](../../architecture/item/itemDraftPage.md)。以下のパスは特記がなければリポジトリルート基準。
 単体・コンポーネント結合・DOMページ結合・ブラウザーページ結合・実API/DBのE2Eを実装・実行した。本番コードは変更していない。ユーザーの「残りは未実行としてレポート作成」指示に従い、3ブラウザー実行の途中でSIGINTを送り、追加実装・追加実行を停止した。設計全体の合格・実装完了とはしていない。
@@ -201,3 +207,80 @@ PLAYWRIGHT_BASE_URL=http://127.0.0.1:3012 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.
 | F12：実行設定                          | 既存PostCSS文字列配列がViteの収集を止めた                                                             | Vitestだけcss.postcss.plugins=[]を設定済み。本番CSS未変更。DOMでは実レイアウト保証をせずBへ分離。通常ケースと型検査が通ったことを確認済み。Node26/通常Turbopack停止原因/最新全対象lintは残件 |
 
 修正実装を再開する際は、各Fと元ID、変更ファイル、期待値の維持／追加、回帰結果をこの文書へ追記する。今回の検出は本番修正完了を意味しない。
+
+## 6. 2026-10-29 中断・未実行箇所の再開結果
+
+### 実行範囲・環境・変更
+
+- B全117件、E全78件を3ブラウザーで完走。前回結果との重複加算なし。Node.js 22.22.2、既存のproduction buildをstartNext.mjsのbrowser/e2eモードで起動した。今回はbuildを再実行していない。Node26・通常Turbopack検証は残る。
+- F9のテスト不備をoperations.spec.tsで修正。Q03削除→編集はoverlay越しのマウスクリックをEnter操作へ変更。Q04は時計をinstall時から固定し、操作後の過去時刻指定を除去。期待値は維持し、いずれも3ブラウザーで業務要求の排他・再送防止のassertまで到達して失敗した。Q04は期待1回に対してDELETE2回。
+- 再現コマンドは4章のB/Eコマンドと同じ対象・環境変数・workers=1・trace=off・reporter=json。出力先のみ `/tmp/item-draft-browser-resume.json`、`/tmp/item-draft-e2e-resume.json`。timeoutによるrun全体の打切りは行っていない。これらは一時成果物。
+- 実処理・モック境界は4章と同じ。Eはtest_dbへの実API検証、migration/sync未実施。個別fixtureのcleanup後にトップレベルエラーなし。DB全体の独立した残存検査は未実施。
+
+### ファイル・ブラウザー別結果
+
+| project | ファイル（各テストルート基準） | 成功 | 失敗 | timeout |
+| --- | --- | ---: | ---: | ---: |
+| pages-chromium | `item/itemDraftPage/components.spec.ts` | 5 | 9 | 0 |
+| pages-firefox | `item/itemDraftPage/components.spec.ts` | 5 | 9 | 0 |
+| pages-webkit | `item/itemDraftPage/components.spec.ts` | 4 | 10 | 0 |
+| pages-chromium | `item/itemDraftPage/operations.spec.ts` | 0 | 6 | 0 |
+| pages-firefox | `item/itemDraftPage/operations.spec.ts` | 0 | 6 | 0 |
+| pages-webkit | `item/itemDraftPage/operations.spec.ts` | 0 | 6 | 0 |
+| pages-chromium | `item/itemDraftPage/page.spec.ts` | 19 | 0 | 0 |
+| pages-firefox | `item/itemDraftPage/page.spec.ts` | 19 | 0 | 0 |
+| pages-webkit | `item/itemDraftPage/page.spec.ts` | 19 | 0 | 0 |
+| e2e-chromium | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` | 10 | 0 | 0 |
+| e2e-firefox | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` | 10 | 0 | 0 |
+| e2e-webkit | `item/itemDraftPage/createItemEditingDraft/flow.spec.ts` | 1 | 6 | 3 |
+| e2e-chromium | `item/itemDraftPage/deleteItemDraft/flow.spec.ts` | 11 | 5 | 0 |
+| e2e-firefox | `item/itemDraftPage/deleteItemDraft/flow.spec.ts` | 11 | 5 | 0 |
+| e2e-webkit | `item/itemDraftPage/deleteItemDraft/flow.spec.ts` | 3 | 7 | 6 |
+
+### ケース対応（3ブラウザー合算）
+
+元IDと実ファイルの対応は3章を維持。下表は今回の展開テスト数であり、ID数ではない。
+
+| 階層 | ID | 成功 | 失敗 | timeout |
+| --- | --- | ---: | ---: | ---: |
+| browser | B-N02 | 5 | 1 | 0 |
+| browser | B-N03 | 3 | 0 | 0 |
+| browser | Q05 | 0 | 3 | 0 |
+| browser | Q06 | 0 | 3 | 0 |
+| browser | Q08 | 0 | 3 | 0 |
+| browser | B-O01 | 3 | 0 | 0 |
+| browser | Q07 | 0 | 6 | 0 |
+| browser | Q09 | 3 | 9 | 0 |
+| browser | Q10 | 0 | 3 | 0 |
+| browser | Q01 | 0 | 3 | 0 |
+| browser | Q02 | 0 | 6 | 0 |
+| browser | Q03 | 0 | 6 | 0 |
+| browser | Q04 | 0 | 3 | 0 |
+| browser | B-N01 | 6 | 0 | 0 |
+| browser | B-N04 | 9 | 0 | 0 |
+| browser | B-S01 | 3 | 0 | 0 |
+| browser | B-S02 | 9 | 0 | 0 |
+| browser | B-F01 | 12 | 0 | 0 |
+| browser | B-N05 | 12 | 0 | 0 |
+| browser | B-S03 | 3 | 0 | 0 |
+| browser | B-N06 | 3 | 0 | 0 |
+| e2e | E-N01 | 4 | 0 | 2 |
+| e2e | E-N02 | 2 | 0 | 1 |
+| e2e | E-F01 | 4 | 2 | 0 |
+| e2e | E-S02 | 4 | 2 | 0 |
+| e2e | E-S03 | 6 | 3 | 0 |
+| e2e | E-S01 | 10 | 2 | 0 |
+| e2e | E-F02 | 4 | 2 | 0 |
+| e2e | E-N05 | 4 | 2 | 0 |
+| e2e | E-N03 | 6 | 0 | 0 |
+| e2e | E-N04 | 2 | 0 | 1 |
+| e2e | E-Q01 | 0 | 10 | 5 |
+
+### 判定・残件と静的検査
+
+- F1〜F8は本番未修正。Q系の失敗を合格やskipへ変更していない。F9はテスト修正・再検証済み。B-Q04はテスト時計のエラーではなく再送検出に更新した。
+- WebKit Eは成功4、失敗13、timeout9。複数ケースでmiddlewareが設定するaccess-token cookie不存在を検出し、編集・削除操作待ちでtimeoutも発生。OSライブラリ不足ではない。認証・cookieの根本原因は未確定で、これらを業務ロジックの不具合と断定しない。前段で失敗したケースのDB・後段assertは未検証。
+- F11のブラウザー未着手は解消。簡略seed、遷移先内容、S3監視、公開Item等の保護snapshot、schema guard不足、B-O01不足など3章の未実装範囲は今回追加していない。カバレッジ未取得。
+- client `npm run lint`：失敗、23 errors/37 warnings。今回の修正以外の既存コードにエラー。`npm run typecheck`：失敗、53診断（生成 `.next/types` とページの同期params定義等の不整合）。`/tmp/item-draft-lint-resume.log`、`/tmp/item-draft-types-resume.log`。
+- client `tsc --noEmit -p test/tsconfig.json` と test `npm run typecheck`：成功。`/tmp/item-draft-test-types-resume.log`、`/tmp/item-draft-e2e-types-resume.log`。
+- client `eslint test/integration/pages/item/itemDraftPage test/fixtures/item/itemDraftPage`：0 errors/2 warnings（既存page.spec.tsの未使用request）。E2E/fixture/launcherの6ファイルは既存typescript-eslint recommendedをESLint APIで適用し0 errors/0 warnings。共有設定の変更なし。実行スクリプト `/tmp/item-draft-eslint-resume.mjs`、結果 `/tmp/item-draft-e2e-lint-resume.log`。startNext.mjsは今回両モードの起動を確認済み。
