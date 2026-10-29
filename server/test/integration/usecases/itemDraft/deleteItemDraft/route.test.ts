@@ -12,6 +12,7 @@ import {
 import { makeBody } from "../../../../fixtures/itemDraft/createItemDraft/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ remove: vi.fn(), create: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPage.js", () => ({ getItemDraftPageUseCase: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemDraft/convertItemDraftVideo.js", () => ({
     convertItemDraftVideoUseCase: vi.fn(),
 }));

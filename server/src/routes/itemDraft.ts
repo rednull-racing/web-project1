@@ -1,11 +1,13 @@
 import { Router } from "express";
 import {
+    getItemDraftPageController,
     convertItemDraftVideoController,
     createItemDraftController,
     deleteItemDraftController,
 } from "../controllers/itemDraft/itemDraft.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import {
+    getItemDraftPageRateLimit,
     convertItemDraftVideoRateLimit,
     createItemDraftRateLimit,
     deleteItemDraftRateLimit,
@@ -48,6 +50,17 @@ router.delete(
     deleteItemDraftRateLimit,
     validateParams(idParamSchema),
     deleteItemDraftController,
+);
+
+// GET /item-draft/:id/item-page
+// summary: 下書き商品ページ データ取得
+// page: /item/draft/[id]
+router.get(
+    "/:id/item-page",
+    authenticateToken,
+    getItemDraftPageRateLimit,
+    validateParams(idParamSchema),
+    getItemDraftPageController,
 );
 
 export default router;

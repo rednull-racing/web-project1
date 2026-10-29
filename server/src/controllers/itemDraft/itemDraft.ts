@@ -1,3 +1,4 @@
+import { getItemDraftPageUseCase } from "../../usecases/itemDraft/getItemDraftPage.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { createItemDraftUseCase } from "../../usecases/itemDraft/createItemDraft.js";
 import { deleteItemDraftUseCase } from "../../usecases/itemDraft/deleteItemDraft.js";
@@ -64,6 +65,20 @@ export const deleteItemDraftController = async (req: Request, res: Response, nex
         await deleteItemDraftUseCase({ itemDraftId, userId });
 
         res.status(200).json({ message: "下書き商品を削除しました" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /item-draft/:id/item-page
+// summary: 下書き商品ページ データ取得
+// page: /item/draft/[id]
+export const getItemDraftPageController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { id: itemDraftId } = req.validatedParams as z.infer<typeof idParamSchema>;
+        const itemDraft = await getItemDraftPageUseCase({ itemDraftId, userId });
+        res.status(200).json({ itemDraft });
     } catch (err) {
         next(err);
     }

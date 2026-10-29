@@ -1,5 +1,15 @@
-import { ItemDraft } from "../../models/index.js";
+import {
+    ItemDraft,
+    Categories,
+    Brands,
+    ItemConditionOption,
+    ShippingDayOption,
+    ShippingServiceOption,
+    TodouhukenOption,
+} from "../../models/index.js";
 import type { ItemDraftUserIdParams } from "../../types/serviceType/itemDraft.js";
+
+type PageParams = Pick<ItemDraftUserIdParams, "itemDraftId" | "userId">;
 
 export const getMyItemDraft = ({ itemDraftId, userId, transaction }: ItemDraftUserIdParams) => {
     return ItemDraft.findOne({
@@ -37,5 +47,44 @@ export const getMyItemDraft = ({ itemDraftId, userId, transaction }: ItemDraftUs
         where: { id: itemDraftId, seller_id: userId },
         transaction,
         lock: transaction.LOCK.UPDATE,
+    });
+};
+
+export const getMyItemDraftPage = ({ itemDraftId, userId }: PageParams) => {
+    return ItemDraft.findOne({
+        attributes: [
+            "id", "seller_id", "name", "detail", "price", "image_url", "first_image_url",
+            "gender_type", "age_type", "recommend", "attributes", "thumbnail_url", "title",
+            "summary", "duration", "original_url", "converted_url", "before_price",
+            "discount_rate", "discount_amount", "sale_flag", "shipping_service_free_text", "updatedAt",
+        ],
+        where: { id: itemDraftId, seller_id: userId },
+        include: [
+            {
+                model: Categories,
+                as: "Category",
+                attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+                required: false,
+                include: [
+                    {
+                        model: Categories,
+                        as: "children",
+                        attributes: ["id", "name", "level", "parent_id", "allowed_gender", "allowed_age"],
+                        required: false,
+                    },
+                    {
+                        model: Categories,
+                        as: "parent",
+                        attributes: ["id", "name", "level", "allowed_gender", "allowed_age"],
+                        required: false,
+                    },
+                ],
+            },
+            { model: Brands, as: "Brand", attributes: ["id", "name"], required: false },
+            { model: ItemConditionOption, attributes: ["id", "name"], required: false },
+            { model: ShippingDayOption, attributes: ["id", "name"], required: false },
+            { model: ShippingServiceOption, attributes: ["id", "name"], required: false },
+            { model: TodouhukenOption, attributes: ["id", "name"], required: false },
+        ],
     });
 };

@@ -1117,3 +1117,17 @@
 - 共通OperationProviderで編集削除を排他し、dialog・在庫・画像・動画を修正。
 - ページ全383件と関連再検証を実行し、最新結果・WebKit残件・未実装範囲をレポートへ集約。
 - 共通処理はcomponentsへ配置し下書きページだけで使用。対象lint・テスト型検査成功。
+
+## 20261029_backend-architecture_getItemDraftPage設計補完と仕様確認
+
+- 詳細設計に共通prefix、処理図、認証・認可、エラー、参照専用のtransaction方針、テスト観点を補完。
+- updatedAt欠落、ID・children・nullable関連のフロント型とModelの不一致、関連取得列を確認事項として記録。
+- 公開レスポンスの回答待ちで設計確定・実装以降を中断。作業ブランチを保持し、コミット・develop統合は未実施。
+- 文書差分・参照先を確認。テスト・lint・型検査・DB操作は未実施。
+
+## 20261029_backend-coding_getItemDraftPage実装と検証
+
+- ユーザー回答を反映して詳細設計を確定し、所有者限定GET・1分50回制限・公開列/関連取得を実装。
+- テスト設計・単体/HTTP/実DBテスト・レポートを作成。対象82件と関連回帰282件が成功。
+- server lint・本番/テスト型検査・追加7TS lint成功。test_db全接続ガード・ID限定cleanup・close確認済み。
+- Node22で検証、Node26未確認。migration・sync未実行。フロント型の検証は別記録参照。
