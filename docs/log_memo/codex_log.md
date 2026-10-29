@@ -1131,3 +1131,8 @@
 - テスト設計・単体/HTTP/実DBテスト・レポートを作成。対象82件と関連回帰282件が成功。
 - server lint・本番/テスト型検査・追加7TS lint成功。test_db全接続ガード・ID限定cleanup・close確認済み。
 - Node22で検証、Node26未確認。migration・sync未実行。フロント型の検証は別記録参照。
+
+## 20261029_frontend-apiFetch_getItemDraftPage契約の型整合
+
+- 下書きの数値ID・子カテゴリ配列・関連nullを型とfixtureへ反映し、旧取得URLのテスト期待値を更新。
+- 関連11ファイル103件のVitest・テスト型検査・変更TSのESLintに成功。ブラウザー/E2E/DBは未実行。

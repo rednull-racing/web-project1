@@ -1,5 +1,7 @@
 # itemDraftPage テスト設計書
 
+2026-10-29 getItemDraftPage契約更新: U-N06の取得先は `GET /item-draft/:id/item-page`。公開IDは数値、Category.childrenは子カテゴリ配列、親は非再帰オブジェクト/null、未設定の6関連はnull。updatedAtは必須文字列。対応fixtureを更新し、関連U/C/Pの実行結果は[レポート](../../report/item/itemDraftPage.md)の追加検証を参照。以下の初回設計・旧URL記載は履歴として扱う。
+
 ## 1. 対象・目的・仕様の根拠
 
 - ページ大分類：`item`、ページ小分類：`itemDraftPage`。対象ルート：`/item/draft/[id]`。依頼の `client/sec` は実配置の `client/src` として扱う。

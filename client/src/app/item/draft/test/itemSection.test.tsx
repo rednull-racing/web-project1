@@ -150,7 +150,7 @@ describe("ItemSection 単体", () => {
             <ItemSection
                 itemDraft={createDraft({
                     shipping_service_free_text: free,
-                    ShippingServiceOption: { id: "2", name: option! },
+                    ShippingServiceOption: { id: 2, name: option! },
                 })}
                 soldout={false}
             />,

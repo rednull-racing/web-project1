@@ -64,7 +64,16 @@ describe("ItemSection real shared components", () => {
         const item = createEmptyDraft();
         item.name = text;
         item.detail = text;
-        item.Category = { id: "1", name: text, level: 1, allowed_gender: "both", allowed_age: "both" };
+        item.Category = {
+            id: 1,
+            name: text,
+            level: 1,
+            allowed_gender: "both",
+            allowed_age: "both",
+            parent_id: null,
+            parent: null,
+            children: [],
+        };
         const { container } = render(<ItemSection itemDraft={item} soldout={false} />);
         expect(screen.getAllByText(text)).toHaveLength(3);
         expect(container.querySelector("script, [onerror]")).toBeNull();

@@ -29,3 +29,7 @@ Node.js更新作業では修正対象外とし、既存のlint違反として記
 ## 2026-10-23 再確認
 
 createItemEditingCopyのstatusクエリ対応時もclient全体lintは29エラー・36警告で失敗した。変更したcopyUpload.tsとsellerSection/uploadButton.tsxの個別lintは成功。既存のrefs・set-state-in-effect・immutability・anyの違反は今回の修正範囲外として維持する。
+
+## 2026-10-29 getItemDraftPage型整合時の再確認
+
+Node.js 22.22.2で全体ESLintは23エラー・37警告。変更7 TS/TSXの個別lintは成功し、本番・テスト型検査も成功。既存のrefs・immutability・any等は今回の範囲外として保持。今回実行した全体lintの一時出力は `/tmp/item-draft-client-lint.log`。

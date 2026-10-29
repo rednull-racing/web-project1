@@ -39,7 +39,7 @@ export const test = base.extend<Fixture>({
                 info.repeatEachIndex * 100 +
                 info.testId.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0),
         );
-        const draft = browserDraft({ id });
+        const draft = browserDraft({ id: Number(id) });
         await putDraft(draft);
         await setBrowserSession(context, baseURL);
         await provide(draft);
