@@ -25,33 +25,21 @@ export type Brand = {
     name: string;
 };
 
-export type BrandAliases = {
-    id: string;
-    name: string | null;
-    name_normalized: string | null;
-    Brand?: Brand;
-};
-
-export type Categories = {
-    id: string;
+export type CategoryParent = {
+    id: number;
     name: string;
-    parent?: Categories | null;
-    children?: Categories | null;
+    level: number;
+    allowed_gender: string;
+    allowed_age: string;
 };
 
-export type ShopInfo = {
-    id: string;
+export type CategoryChild = CategoryParent & {
+    parent_id: number | null;
 };
 
-export type User = {
-    id: string;
-    user_name: string;
-    profile_image: string;
-    early_seller: boolean;
-    honnin_verified: boolean;
-    star_amount: number;
-    star_average: number;
-    ShopInfo?: ShopInfo | null;
+export type Categories = CategoryChild & {
+    parent: CategoryParent | null;
+    children: CategoryChild[];
 };
 
 export type ItemEditing = {
@@ -68,10 +56,8 @@ export type ItemEditing = {
     age_type: "adult" | "kids" | "both";
     recommend: boolean;
     attributes: ItemAttributes;
-    createdAt: Date;
     updatedAt: Date;
     ItemConditionOption?: ItemConditionOption;
-    User?: User;
     Category?: Categories;
     Brand?: Brand;
 
@@ -81,7 +67,6 @@ export type ItemEditing = {
     duration: string | null;
     original_url: string;
     converted_url: string | null;
-    video_status: string;
 
     before_price: number;
     discount_rate: number | null;
