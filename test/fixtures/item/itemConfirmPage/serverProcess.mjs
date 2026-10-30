@@ -31,6 +31,7 @@ for (const [mount, file] of [
     ["item-draft", "itemDraft"],
     ["items", "items"],
     ["user", "users"],
+    ["notification", "notification"],
 ]) {
     const { default: router } = await import(new URL(`src/routes/${file}.ts`, root).href);
     app.use(`/api/${mount}`, router);

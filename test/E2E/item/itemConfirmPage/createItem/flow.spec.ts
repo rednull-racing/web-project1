@@ -10,7 +10,7 @@ test("E-N01 実出品を保存し編集元を消費、在庫と関連を整合�
     expect(result.request().postDataJSON()).toEqual({ itemEditingId: e2e.seed.normal.id });
     const { itemId } = await result.json() as { itemId: number };
     await expect(page).toHaveURL(new RegExp(`/upload/ok/${itemId}$`));
-    await expect(page.getByText("出品が完了しました", { exact: true })).toBeVisible();
+    await expect.soft(page.getByText("出品が完了しました", { exact: true })).toBeVisible();
     expect(await e2e.database.get("item_editing", e2e.seed.normal.id)).toBeNull();
     const item = (await e2e.database.db.query<Row>("SELECT * FROM item WHERE id=$1", [itemId])).rows[0];
     expect(item).toMatchObject({ name: "確認用シャツ", detail: "確認商品の説明", price: 12000, seller_id: e2e.seed.owner.id, status: "active", views_count: 0 });

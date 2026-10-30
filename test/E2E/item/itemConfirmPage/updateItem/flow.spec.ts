@@ -10,7 +10,7 @@ test("E-N02 実更新は同じ商品・関連IDを保存し在庫をリセット
     expect(result.request().postDataJSON()).toEqual({ itemEditingId: e2e.seed.edit.id });
     expect(await result.json()).toEqual({ itemId: e2e.seed.item.id });
     await expect(page).toHaveURL(new RegExp(`/item/${e2e.seed.item.id}$`));
-    await expect(page.getByRole("heading", { level: 1, name: "確認用シャツ", exact: true })).toBeVisible();
+    await expect.soft(page.getByRole("heading", { level: 1, name: "確認用シャツ", exact: true })).toBeVisible();
     expect(await e2e.database.get("item_editing", e2e.seed.edit.id)).toBeNull();
     const items = (await e2e.database.db.query<Row>("SELECT * FROM item WHERE seller_id=$1", [e2e.seed.owner.id])).rows;
     expect(items).toHaveLength(1);

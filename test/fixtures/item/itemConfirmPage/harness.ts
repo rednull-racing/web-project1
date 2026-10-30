@@ -26,7 +26,7 @@ export type Harness = {
 };
 export const test = base.extend<{ e2e: Harness }>({
     e2e: [
-        async ({ request, context }, provide, _info) => {
+        async ({ request, context }, provide, info) => {
             const express = localURL(process.env.ITEM_CONFIRM_E2E_EXPRESS_URL, "ITEM_CONFIRM_E2E_EXPRESS_URL");
             const proxy = localURL(process.env.ITEM_CONFIRM_E2E_PROXY_URL, "ITEM_CONFIRM_E2E_PROXY_URL");
             const database = await openDatabase();
@@ -81,6 +81,7 @@ export const test = base.extend<{ e2e: Harness }>({
                     return response;
                 };
                 const getResponses: Harness["getResponses"] = [];
+                const traffic: Array<{ path: string; status: number; type: string | null }> = [];
                 server = createServer(async (req, res) => {
                     const input = new URL(req.url ?? "/", proxy);
                     const prefix = proxy.pathname.replace(/\/$/, "");
@@ -98,6 +99,7 @@ export const test = base.extend<{ e2e: Harness }>({
                             headers,
                             body: ["GET", "HEAD"].includes(req.method ?? "GET") ? undefined : Buffer.concat(chunks),
                         });
+                        traffic.push({ path, status: response.status, type: response.headers.get("content-type") });
                         if (req.method === "GET" && /^\/item-editing\/\d+\/(?:confirm|metadata)$/.test(path)) {
                             getResponses.push({ path, status: response.status, body: await response.clone().json() as Record<string, unknown> });
                         }
@@ -188,7 +190,11 @@ export const test = base.extend<{ e2e: Harness }>({
                     };
                     expect(String(session.user?.id)).toBe(String(seed.owner.id));
                 };
-                await provide({ getResponses, database, seed, express, protectedBefore, editingRows, expectProtected, login, http });
+                try {
+                    await provide({ getResponses, database, seed, express, protectedBefore, editingRows, expectProtected, login, http });
+                } finally {
+                    await info.attach("real-api-traffic", { body: JSON.stringify(traffic), contentType: "application/json" });
+                }
             } finally {
                 await context.unrouteAll({ behavior: "wait" });
                 if (server)
