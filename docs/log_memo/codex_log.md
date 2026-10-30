@@ -1191,3 +1191,12 @@
 - 新規53件（単体16・HTTP30・実DB7）、既存回帰208件が成功。
 - lint・本番/テスト型検査・追加lint10TS・差分検査成功。実DBガード・自作ID cleanup・全接続終了を確認。
 - 詳細なケース対応・初回失敗と修正履歴はserver/test/docs/report/itemEditing/getItemConfirmPage.mdへ記録。
+
+## 20261030_documents_client共通作業ルール作成
+
+### 作業内容
+- server/AGENTS.mdとclientの既存構成を参考に、client/AGENTS.mdを作成。
+### 変更目的
+- 技術・配置・セキュリティ・型・エラー・import・status・スコープ・確認の基本ルールを明文化。
+### 注意点・その他留意事項
+- 文書のみ変更。差分検査を実施し、lint・型検査・テストは未実行。既存のルートAGENTS.mdの変更は対象外。
