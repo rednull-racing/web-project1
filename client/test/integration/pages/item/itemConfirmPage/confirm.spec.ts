@@ -1,5 +1,6 @@
 import { test, expect, apiOrigin, confirmPath, openConfirm, openPopup, popup, setBrowserSession } from "../../../../fixtures/item/itemConfirmPage/browser";
 import type { Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 const forbiddenRequests = (page: Page) => {
     const requests: string[] = [];
@@ -56,35 +57,9 @@ for (const mode of ["normal", "edit"] as const) {
         expect(errors).toEqual([]);
     });
     test(`B-N02 ${mode} 元動画を実再生して集計しない`, async ({ page, editing, putEditing, baseURL }) => {
-        const clip = await page.evaluate(async () => {
-            const canvas = document.createElement("canvas");
-            canvas.width = 64;
-            canvas.height = 64;
-            const ctx = canvas.getContext("2d")!;
-            ctx.fillStyle = "red";
-            ctx.fillRect(0, 0, 64, 64);
-            const stream = canvas.captureStream(10);
-            const mimeType = ["video/webm;codecs=vp8", "video/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
-            if (!mimeType) throw new Error("MEDIA_FIXTURE_STOP: supported codec missing");
-            const recorder = new MediaRecorder(stream, { mimeType });
-            const chunks: Blob[] = [];
-            const stopped = new Promise<void>((resolve, reject) => {
-                recorder.ondataavailable = (event) => chunks.push(event.data);
-                recorder.onstop = () => resolve();
-                recorder.onerror = () => reject(new Error("media fixture encoding failed"));
-            });
-            recorder.start();
-            const interval = setInterval(() => {
-                ctx.fillStyle = ctx.fillStyle === "#ff0000" ? "blue" : "red";
-                ctx.fillRect(0, 0, 64, 64);
-            }, 50);
-            setTimeout(() => { clearInterval(interval); recorder.stop(); stream.getTracks().forEach((track) => track.stop()); }, 400);
-            await stopped;
-            const bytes = new Uint8Array(await new Blob(chunks).arrayBuffer());
-            return { body: btoa(String.fromCharCode(...bytes)), mimeType };
-        });
-        editing.original_url = new URL("/__test__/confirm-video", baseURL).href;
-        await page.route("**/__test__/confirm-video", (route) => route.fulfill({ status: 200, body: Buffer.from(clip.body, "base64"), contentType: clip.mimeType }));
+        const body = await readFile(new URL("../../../../fixtures/item/itemConfirmPage/browserVideo.mp4", import.meta.url));
+        editing.original_url = new URL("/__test__/confirm-video.mp4", baseURL).href;
+        await page.route("**/__test__/confirm-video.mp4", (route) => route.fulfill({ status: 200, body, contentType: "video/mp4" }));
         await putEditing(editing);
         const requests = forbiddenRequests(page);
         await openConfirm(page, editing, mode);
