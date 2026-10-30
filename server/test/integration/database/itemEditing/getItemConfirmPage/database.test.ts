@@ -1,6 +1,6 @@
 import "../../../../fixtures/itemEditing/getItemConfirmPage/databaseSetup.js";
 import { describe, expect, it } from "vitest";
-import { seed, snapshot } from "../../../../fixtures/itemEditing/getItemConfirmPage/databaseFixtures.js";
+import { seed, snapshot, savedUpdatedAt, Categories, ItemEditing } from "../../../../fixtures/itemEditing/getItemConfirmPage/databaseFixtures.js";
 import { getItemConfirmPageUseCase } from "../../../../../src/usecases/itemEditing/getItemConfirmPage.js";
 import { AppError } from "../../../../../src/errors.js";
 
@@ -10,6 +10,7 @@ describe("getItemConfirmPage 実DB 所有者限定・公開列・参照不変 P0
     it("DB01 関連ありの保存値を公開列だけ返し、日時ISO/ID・duration数値を保持する", async () => {
         const f = await seed();
         const before = await snapshot();
+        const timestamp = await savedUpdatedAt(f.editing.id);
         const result = await getItemConfirmPageUseCase({ itemEditingId: f.editing.id, userId: f.owner.id });
         expect(json(result)).toEqual({
             id: f.editing.id, status: "normal", item_id: null, seller_id: f.owner.id, name: "確認商品", detail: "説明", price: 3000,
@@ -19,7 +20,7 @@ describe("getItemConfirmPage 実DB 所有者限定・公開列・参照不変 P0
             thumbnail_url: "https://media.test/thumb.jpg", title: "題名", summary: "要約", duration: 17,
             original_url: "https://media.test/original.mp4", converted_url: "https://media.test/index.m3u8",
             before_price: 4000, discount_rate: 25, discount_amount: 1000, sale_flag: true, shipping_service_free_text: "配送備考",
-            updatedAt: "2026-01-02T03:04:05.000Z",
+            updatedAt: timestamp.toISOString(),
             Category: { id: f.category.id, name: "カテゴリー", parent: { id: f.parent.id, name: "親" }, children: [{ id: f.child.id, name: "子" }] },
             Brand: { id: f.brand.id, name: f.brand.name }, ItemConditionOption: { id: f.condition.id, name: "新品" },
             ShippingDayOption: { id: f.day.id, name: "翌日" }, ShippingServiceOption: { id: f.service.id, name: "配送" },
@@ -42,6 +43,21 @@ describe("getItemConfirmPage 実DB 所有者限定・公開列・参照不変 P0
         const result = getItemConfirmPageUseCase({ itemEditingId, userId: f.owner.id });
         await expect(result).rejects.toBeInstanceOf(AppError);
         await expect(result).rejects.toMatchObject({ code: "ITEM_EDITING_NOT_FOUND", statusCode: 404 });
+        expect(await snapshot()).toEqual(before);
+    });
+    it("DB05 Category親なし・子なし、空画像配列・durationゼロを保持する", async () => {
+        const f = await seed();
+        const root = await Categories.create({
+            name: "単独カテゴリー", level: 1, path: `confirm-boundary-${f.editing.id}`, layer: "middle",
+        });
+        const editing = await ItemEditing.create({
+            seller_id: f.owner.id, category_id: root.id, image_url: [], duration: 0,
+        });
+        const before = await snapshot();
+        const data = json(await getItemConfirmPageUseCase({ itemEditingId: editing.id, userId: f.owner.id }));
+        expect(data.Category).toEqual({ id: root.id, name: "単独カテゴリー", parent: null, children: [] });
+        expect(data.image_url).toEqual([]);
+        expect(data.duration).toBe(0);
         expect(await snapshot()).toEqual(before);
     });
     it("DB04 再送・並行参照で別対象の結果が混ざらず全行不変", async () => {
