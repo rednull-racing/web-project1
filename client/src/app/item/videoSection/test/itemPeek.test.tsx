@@ -75,3 +75,12 @@ describe("商品概要", () => {
         expect(container.querySelector("script, [onerror]")).toBeNull();
     });
 });
+
+for (const genderType of ["men", "women", "unisex"] as const) {
+    it.each(["adult", "kids", "both"] as const)("U-S01 confirm概要 " + genderType + "/%sのタグと価格", ageType => {
+        render(<ItemPeek data={{ ...data, genderType, ageType, price: 12000 }} />);
+        expect(screen.getByText("￥12,000")).toBeVisible();
+        expect(screen.getByText({ men: "メンズ", women: "レディース", unisex: "ユニセックス" }[genderType])).toBeVisible();
+        expect(Boolean(screen.queryByText("キッズ"))).toBe(ageType === "kids");
+    });
+}
