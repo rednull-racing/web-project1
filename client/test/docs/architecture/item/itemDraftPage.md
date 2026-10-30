@@ -1,5 +1,18 @@
 # itemDraftPage テスト設計書
 
+## 2026-10-30 メタデータ専用APIへの切替（現行契約）
+
+ユーザー指示によりバックエンド実装・テスト後、generateMetadataは `GET /item-draft/:id/metadata`、本文は `GET /item-draft/:id/item-page` を使う。従来の「metadataと本文で詳細GET1回を共有」はこの変更で置き換える。両方セッション必須、metadata所有者照合はAPIが担当し他人/不存在404、本文の既存所有者照合も維持。title/descriptionと未入力名補完・robotsは維持する。
+
+- U-M01（P0）：`src/app/item/draft/api/test/server.test.ts`。共通apiFetchServerをモックし専用URL/no-store/戻り値同一参照/name nullable/例外伝播を確認。
+- AF-META01（P0）：root `test/E2E/item/itemDraftPage/getItemDraftPageMetadata/flow.spec.ts`。実Next production/実認証/Express/DB、標準・null・空名・HTML文字名で専用GET200のid/name完全一致、詳細GET1回、title/description/noindex/nofollow、DB不変を検証。HTML文字列は実行されない。
+- AF-META02（P0）：他人のIDで実専用GET404、本人の商品名・操作をSSRへ出さずDB不変。
+- AF-META03（P0）：未認証では/login、両取得APIに要求しない。
+- 既存AF-GET01〜03を回帰。E2E harnessのレスポンス監視にmetadataを追加し、test_dbガード/スキーマ検査/ID限定cleanup/closeを引き継ぐ。関係のない編集・削除・画面全体の既存未解決ケースは本変更の必須ケースへ追加しない。
+- 既存B-N04は別々の専用/詳細GET各1回を要求する契約に更新。B用APIも所有者条件で専用応答を返す。B-S02は専用APIでも他人/所有者nullを404とし、商品名と操作が非公開であることを確認する。
+
+client/の対象単体、lint、本番/テスト型検査、production build、test/の対象E2Eを3ブラウザーで実行し結果を同ページレポートへ記録する。必須ケース失敗・未実行なしを本変更の完了条件とし、既存lint/型の対象外診断は区別する。
+
 2026-10-29 getItemDraftPage契約更新: U-N06の取得先は `GET /item-draft/:id/item-page`。公開IDは数値、Category.childrenは子カテゴリ配列、親は非再帰オブジェクト/null、未設定の6関連はnull。updatedAtは必須文字列。対応fixtureを更新し、関連U/C/Pの実行結果は[レポート](../../report/item/itemDraftPage.md)の追加検証を参照。以下の初回設計・旧URL記載は履歴として扱う。
 
 ## 1. 対象・目的・仕様の根拠

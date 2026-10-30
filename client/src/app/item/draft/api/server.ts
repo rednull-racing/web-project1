@@ -10,3 +10,13 @@ export const fetchItemDraftPage = async (itemDraftId: string): Promise<ItemDraft
         cache: "no-store",
     });
 };
+
+type ItemDraftPageMetadataResponse = {
+    itemDraft: Pick<ItemDraft, "id" | "name">;
+};
+
+export const fetchItemDraftPageMetadata = async (itemDraftId: string): Promise<ItemDraftPageMetadataResponse> => {
+    return apiFetchServer(`/item-draft/${itemDraftId}/metadata`, {
+        cache: "no-store",
+    });
+};

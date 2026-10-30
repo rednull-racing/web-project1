@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { pathToFileURL } from "node:url";
 import type { ItemDraft } from "../../../../src/app/item/draft/types";
 
-type Entry = { draft: ItemDraft; status?: number; disconnect?: boolean; requests: number };
+type Entry = { draft: ItemDraft; status?: number; disconnect?: boolean; requests: number; metadataRequests?: number };
 export const startDraftApi = async (port = 4011) => {
     const entries = new Map<string, Entry>();
     const unknown: string[] = [];
@@ -19,7 +19,7 @@ export const startDraftApi = async (port = 4011) => {
             const chunks: Buffer[] = [];
             for await (const chunk of req) chunks.push(Buffer.from(chunk));
             const entry = JSON.parse(Buffer.concat(chunks).toString()) as Entry;
-            entries.set(String(entry.draft.id), { ...entry, requests: 0 });
+            entries.set(String(entry.draft.id), { ...entry, requests: 0, metadataRequests: 0 });
             res.end(JSON.stringify({ ok: true }));
             return;
         }
@@ -27,7 +27,7 @@ export const startDraftApi = async (port = 4011) => {
             res.end(JSON.stringify({ entries: Object.fromEntries(entries), unknown }));
             return;
         }
-        const match = /^\/item-draft\/(\d+)$/.exec(url.pathname);
+        const match = /^\/item-draft\/(\d+)\/(item-page|metadata)$/.exec(url.pathname);
         if (match && req.method === "GET") {
             const entry = entries.get(match[1]);
             if (!entry) {
@@ -35,13 +35,19 @@ export const startDraftApi = async (port = 4011) => {
                 res.end(JSON.stringify({ code: "ITEM_DRAFT_NOT_FOUND" }));
                 return;
             }
-            entry.requests++;
+            const metadata = match[2] === "metadata";
+            if (metadata) entry.metadataRequests = (entry.metadataRequests ?? 0) + 1;
+            else entry.requests++;
             if (entry.disconnect) {
                 req.socket.destroy();
                 return;
             }
-            res.statusCode = entry.status ?? 200;
-            res.end(JSON.stringify(res.statusCode === 200 ? { itemDraft: entry.draft } : { code: "TEST_ERROR" }));
+            res.statusCode = entry.status ?? (entry.draft.seller_id !== 7 ? 404 : 200);
+            res.end(JSON.stringify(
+                res.statusCode === 200
+                    ? { itemDraft: metadata ? { id: entry.draft.id, name: entry.draft.name } : entry.draft }
+                    : { code: "TEST_ERROR" },
+            ));
             return;
         }
         unknown.push(`${req.method} ${url.pathname}`);

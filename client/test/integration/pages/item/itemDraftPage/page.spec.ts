@@ -47,16 +47,17 @@ test("B-S01 未ログインは取得前にloginへ遷移", async ({ page, contex
     await expect(page).toHaveURL(/\/login(?:\?|$)/);
     await expect(page.getByRole("heading", { name: draft.name!, exact: true })).toHaveCount(0);
     const state = (await (await request.get(`${apiOrigin}/__test__/state`)).json()) as {
-        entries: Record<string, { requests: number }>;
+        entries: Record<string, { requests: number; metadataRequests: number }>;
     };
     expect(state.entries[draft.id].requests).toBe(0);
+    expect(state.entries[draft.id].metadataRequests).toBe(0);
 });
 for (const seller of [8, null]) {
     test(`B-S02 seller=${seller}は下書きを公開しない`, async ({ page, draft, putDraft }) => {
         draft.seller_id = seller;
         await putDraft(draft);
-        await page.goto(`/item/draft/${draft.id}`);
-        await expect(page).toHaveURL(/\/$/);
+        const response = await page.goto(`/item/draft/${draft.id}`);
+        expect(response?.status()).toBe(404);
         await expect(page.getByRole("button", { name: "編集する", exact: true })).toHaveCount(0);
         await expect(page).not.toHaveTitle(`${draft.name} | 下書き`);
     });
@@ -129,13 +130,14 @@ test("B-S02 IDの文字列化とtrim後の所有者一致を許可", async ({ pa
     await openDraft(page, draft);
     await expect(page.getByRole("heading", { name: draft.name!, exact: true })).toBeVisible();
 });
-test("B-N04 同一描画内でmetadataと本文の取得を共有", async ({ page, draft, request }) => {
+test("B-N04 同一描画内でmetadataと本文を専用APIから各1回取得", async ({ page, draft, request }) => {
     const before = (await (await request.get(`${apiOrigin}/__test__/state`)).json()) as {
-        entries: Record<string, { requests: number }>;
+        entries: Record<string, { requests: number; metadataRequests: number }>;
     };
     await openDraft(page, draft);
     const after = (await (await request.get(`${apiOrigin}/__test__/state`)).json()) as {
-        entries: Record<string, { requests: number }>;
+        entries: Record<string, { requests: number; metadataRequests: number }>;
     };
     expect(after.entries[draft.id].requests - before.entries[draft.id].requests).toBe(1);
+    expect(after.entries[draft.id].metadataRequests - before.entries[draft.id].metadataRequests).toBe(1);
 });

@@ -107,3 +107,10 @@ export const getMyItemDraftPage = ({ itemDraftId, userId }: PageParams) => {
         ],
     });
 };
+
+export const getMyItemDraftPageMetadata = ({ itemDraftId, userId }: PageParams) => {
+    return ItemDraft.findOne({
+        attributes: ["id", "name"],
+        where: { id: itemDraftId, seller_id: userId },
+    });
+};

@@ -33,3 +33,7 @@ createItemEditingCopyのstatusクエリ対応時もclient全体lintは29エラ�
 ## 2026-10-29 getItemDraftPage型整合時の再確認
 
 Node.js 22.22.2で全体ESLintは23エラー・37警告。変更7 TS/TSXの個別lintは成功し、本番・テスト型検査も成功。既存のrefs・immutability・any等は今回の範囲外として保持。今回実行した全体lintの一時出力は `/tmp/item-draft-client-lint.log`。
+
+## 2026-10-30 メタデータAPI接続時の再確認
+
+Node22.22.2で全体lintは既存23 errors/37 warnings。今回のpage.tsx・server.ts・server.test.ts・apiServer.ts・page.spec.tsの個別lintは0 errors/既存2 warnings。本API接続の範囲外として保持。結果はclient/test/docs/report/item/itemDraftPage.mdへ記録する。

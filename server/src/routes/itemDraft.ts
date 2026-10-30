@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     getItemDraftPageController,
+    getItemDraftPageMetadataController,
     convertItemDraftVideoController,
     createItemDraftController,
     deleteItemDraftController,
@@ -8,6 +9,7 @@ import {
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import {
     getItemDraftPageRateLimit,
+    getItemDraftPageMetadataRateLimit,
     convertItemDraftVideoRateLimit,
     createItemDraftRateLimit,
     deleteItemDraftRateLimit,
@@ -61,6 +63,17 @@ router.get(
     getItemDraftPageRateLimit,
     validateParams(idParamSchema),
     getItemDraftPageController,
+);
+
+// GET /item-draft/:id/metadata
+// summary: 下書き商品ページ メタデータ取得
+// page: /item/draft/[id]
+router.get(
+    "/:id/metadata",
+    authenticateToken,
+    getItemDraftPageMetadataRateLimit,
+    validateParams(idParamSchema),
+    getItemDraftPageMetadataController,
 );
 
 export default router;

@@ -1,5 +1,39 @@
 # itemDraftPage テストレポート
 
+## 2026-10-30 メタデータ専用API接続（今回の最新結果）
+
+バックエンドの単体/HTTP/回帰437件＋実DB11件と静的検査が成功した後、generateMetadataを `GET /item-draft/:id/metadata` へ変更。本文は詳細APIを維持し、どちらも認証付きno-store。専用APIはid/nameのみ、nullableなnameはフロントで従来どおり未入力名へ補完。title/description/robotsは維持した。[APIレポート](../../../../../server/test/docs/report/itemDraft/getItemDraftPageMetadata.md)参照。
+
+- client単体は7ファイル53件成功（14:24:06 JST、3.77s）。API単体U-M01の5展開を追加し、既存下書き単体48件を回帰。先行のserver.test.ts単独7件成功は重複加算しない。
+- 実E2EはAF-META01〜03の新規18件＋AF-GET01〜03の既存回帰9件＝27件すべて成功。Chromium/Firefox/WebKit各9件。失敗・timeout・skip・flaky・interrupted・トップレベルerrorsなし。通常/null/空文字/HTML文字名、専用GETのid/name完全一致、詳細GET各1回、title/description/noindex/nofollow、HTML非実行、他人404、未認証の取得前login、DB不変を確認。
+- ページ結合はB-N04/B-S01/B-S02を3ブラウザーへ展開した21件すべて成功（14:26:16 JST、24.01s、失敗/skip/flaky/errors 0）。専用/詳細各1回、未認証は両API0回、他人/所有者nullの404、タイトル/説明/robotsを確認。代替APIは表示取得をモックし、E2Eとは分離。
+- Node22.22.2、production build `npm run build -- --webpack` はexit0。既存ignoreBuildErrors設定によりbuildは型検査を省略するため、本番typecheck成功とは区別する。指定Node26/通常Turbopack/カバレッジは未確認・未取得。
+- clientテストtsconfigとtestパッケージtypecheck成功。変更client5TS/TSXのESLintは0errors/既存2warnings（page.spec.ts未使用request）。E2E/fixture2TSの追加ESLintは0errors/0warnings。
+- client全体lintは既存23errors/37warnings、本番typecheckは既存53件のTS2344（生成PagePropsと既存同期params等の不整合）で失敗。今回変更ファイルへの型診断は0。既存[lint Todo](../../../../../docs/todo/P3-techdebt/restore-client-lint-baseline.md)へ再確認結果を追記し、[params Todo](../../../../../docs/todo/P3-techdebt/align-next-page-params-generated-types.md)へ既存問題を記録。共有設定や対象外ページは変更していない。
+
+再現コマンド（Node22のPATHを指定）:
+
+```bash
+# client/
+npm run test:unit -- src/app/item/draft/test/ src/app/item/draft/api/test/
+npm run build -- --webpack
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+# test/：production Next.js起動後、実API・DBと接続
+node fixtures/item/itemDraftPage/startNext.mjs e2e
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3012 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.0.0.1:4021/api ITEM_DRAFT_E2E_PROXY_URL=http://127.0.0.1:4022/api ./node_modules/.bin/playwright test E2E/item/itemDraftPage/getItemDraftPageMetadata/ E2E/item/itemDraftPage/getItemDraftPage/ --workers=1 --trace=off --reporter=json
+npm run typecheck
+# client/：代替API/Nextをbrowserモードで起動後
+node --experimental-strip-types test/fixtures/item/itemDraftPage/apiServer.ts
+# test/で node fixtures/item/itemDraftPage/startNext.mjs browser を別プロセス起動
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3011 ./node_modules/.bin/playwright test test/integration/pages/item/itemDraftPage/page.spec.ts --grep 'B-N04|B-S01|B-S02' --workers=1 --trace=off --reporter=json
+```
+
+E2Eは14:24:05 JST開始、94.14s。実NextAuth認証、SSR→転送proxy→隔離Express→実usecase/service/Model→test_dbを使用し、対象APIはモックしていない。既存DB fixtureの.env.test読込み/全接続test_db確認/必要スキーマ検査を通してseed、自作ユーザー・追跡ID限定cleanup・残存確認・各接続closeに失敗なし。S3等の送信や編集/削除後段は今回対象外。初回Next起動はsandbox listen EPERMで停止、承認後同一コマンドで起動し解消した。JSONは `/tmp/item-draft-metadata-e2e.json` と `/tmp/item-draft-metadata-browser.json`、build/lint/typecheckは `/tmp/item-draft-metadata-*.log` の一時成果物。過去の全ページ・操作系WebKit失敗まで再検証/解消した結果ではない。
+
+以下は以前の検証履歴。メタデータ取得を本文と共有する旧契約は今回の変更で置き換える。
+
 ## カテゴリ型と公開項目の整理（2026-10-29）
 
 ユーザー指定により単体Categoryをid/nameで定義し、CategoriesはCategoryにparent: Category|null・children: Category[]を加える構成へ変更。取得serviceと型・fixtureから不要4項目を削除した。Node22で関連11ファイル103件が成功。テスト型検査の初回でinline fixtureのlevel残存を検出したため、同fixtureの4項目も除去し、影響する商品セクション結合14件が成功。修正後のclientテスト型検査と変更4TS/TSXのESLintは成功。ブラウザー/E2Eは今回再実行していない。以下は以前の検証履歴。

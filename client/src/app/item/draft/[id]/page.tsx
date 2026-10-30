@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { fetchItemDraftPage } from "../api/server";
+import { fetchItemDraftPage, fetchItemDraftPageMetadata } from "../api/server";
 import { ItemDraftPage } from "../itemDraftPage";
 
 type Props = {
@@ -26,7 +26,10 @@ const getItemDraft = cache(async (id: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
-    const itemDraft = await getItemDraft(id);
+    const session = await getServerSession(authOptions);
+    if (!session) redirect("/login");
+
+    const { itemDraft } = await fetchItemDraftPageMetadata(id);
     const name = itemDraft.name || "商品名未入力";
 
     return {

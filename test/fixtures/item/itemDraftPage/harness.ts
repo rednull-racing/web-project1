@@ -98,7 +98,7 @@ export const test = base.extend<{ e2e: Harness }>({
                             headers,
                             body: ["GET", "HEAD"].includes(req.method ?? "GET") ? undefined : Buffer.concat(chunks),
                         });
-                        if (req.method === "GET" && /^\/item-draft\/\d+\/item-page$/.test(path)) {
+                        if (req.method === "GET" && /^\/item-draft\/\d+\/(?:item-page|metadata)$/.test(path)) {
                             getResponses.push({ path, status: response.status, body: await response.clone().json() as Record<string, unknown> });
                         }
                         res.writeHead(response.status, {

@@ -12,7 +12,7 @@
 
 認証・所有者照合・データ取得、動画・商品情報の表示、編集開始・下書き削除を画面側に実装している。`../confirm/AGENTS.md` と確認画面の構成を参考に、下書き用の専用セクションから共有部品へ表示データを渡す。
 
-サーバー側の `GET /item-draft/:id` は現行ルートに未実装。以下はこのAPIが `{ itemDraft: ItemDraft }` を返す前提の画面構成であり、実APIとの接続確認は残件。API不足は `docs/todo/P1-bug/implement-item-draft-detail-api.md` に記録する。
+サーバー側の `GET /item-draft/:id/item-page` と `GET /item-draft/:id/metadata` を使用する。前者は表示データ、後者はid/nameのみを返し、いずれも認証済み所有者に限定する。
 
 ---
 
@@ -179,13 +179,13 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。下書きID�
 | 項目           | 内容                                   |
 | -------------- | -------------------------------------- |
 | 共通関数       | `apiFetchServer`（`@/lib/api/server`） |
-| メソッド・パス | `GET /item-draft/${itemDraftId}`       |
+| メソッド・パス | `GET /item-draft/${itemDraftId}/item-page`       |
 | キャッシュ     | `cache: "no-store"`                    |
 | 戻り値の型     | `{ itemDraft: ItemDraft }`             |
 
 未ログインなら `/login` へ遷移する。取得後、セッションのユーザーIDと `itemDraft.seller_id` を文字列化・前後の空白除去後に照合し、不一致なら `/` へ遷移する。一致した場合だけ `ItemDraftPage` を表示する。
 
-`generateMetadata` とページ本体は、同ファイル内のReact `cache` でまとめた `getItemDraft(id)` を利用する。どちらも同じ認証・所有者照合を経て下書きデータを参照し、商品ID用のメタデータAPIは呼ばない。タイトル・説明には下書きの商品名（未入力なら「商品名未入力」）を使い、`robots` は `index: false`・`follow: false` とする。
+`generateMetadata` はセッション確認後に `fetchItemDraftPageMetadata(id)` を呼び、`GET /item-draft/${id}/metadata` から `{ itemDraft: { id: number; name: string | null } }` を `cache: "no-store"` で取得する。認証・所有者照合はAPIでも行い、他人・不存在は404。ページ本文は `getItemDraft(id)` から詳細APIを使い、メタデータ取得と共有しない。タイトル・説明には下書きの商品名（未入力なら「商品名未入力」）を使い、`robots` は `index: false`・`follow: false` とする。
 
 ### CSR 編集開始・下書き削除API
 

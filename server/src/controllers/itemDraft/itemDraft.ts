@@ -1,3 +1,4 @@
+import { getItemDraftPageMetadataUseCase } from "../../usecases/itemDraft/getItemDraftPageMetadata.js";
 import { getItemDraftPageUseCase } from "../../usecases/itemDraft/getItemDraftPage.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { createItemDraftUseCase } from "../../usecases/itemDraft/createItemDraft.js";
@@ -78,6 +79,20 @@ export const getItemDraftPageController = async (req: Request, res: Response, ne
         const userId = req.user!.id;
         const { id: itemDraftId } = req.validatedParams as z.infer<typeof idParamSchema>;
         const itemDraft = await getItemDraftPageUseCase({ itemDraftId, userId });
+        res.status(200).json({ itemDraft });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /item-draft/:id/metadata
+// summary: 下書き商品ページ メタデータ取得
+// page: /item/draft/[id]
+export const getItemDraftPageMetadataController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { id: itemDraftId } = req.validatedParams as z.infer<typeof idParamSchema>;
+        const itemDraft = await getItemDraftPageMetadataUseCase({ itemDraftId, userId });
         res.status(200).json({ itemDraft });
     } catch (err) {
         next(err);
