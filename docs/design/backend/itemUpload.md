@@ -197,7 +197,7 @@
 - route: GET /item-editing/:id/confirm
 
 - 認可:
-    - itemDraft.seller_id === userId
+    - itemEditing.seller_id === userId
 
 ### getItemEditingForm（商品アップロード入力フォーム初期値取得）
 

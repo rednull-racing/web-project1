@@ -2,7 +2,7 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
-文言更新: 2026-10-29。確認ページの型を参考にコピー元の名称・取得項目を変更した段階。詳細設計の検証・実装・テストは未実施。
+検証・契約確定: 2026-10-30。ユーザー回答に基づき、ID/durationは数値、日時はISO文字列、nullable列のnullは保持、認可はItemEditing.seller_idとする。Categoryは確認ページがnameのみを使用するため、include例のid/nameを採用。フロント型は参考であり公開JSON契約と異なる箇所があるが、本作業では変更しない。DBの反映状況は実DBテストで確認する。
 
 ## 1. 概要
 
@@ -59,12 +59,12 @@
 
 成功時: 200 OK
 
-取得完了後に `{ "itemEditing": ... }` の1キーを返す。取得項目は `client/src/app/item/confirm/types.ts` の `ItemEditing` を参考とし、`status`・`item_id`を含める。以下は確認ページ向けのレスポンス記載例であり、型・DB・JSON表現の整合性は今回検証していない。
+取得完了後に `{ "itemEditing": ... }` の1キーを返す。取得項目は `client/src/app/item/confirm/types.ts` の `ItemEditing` を参考とし、`status`・`item_id`を含める。ID（関連を含む）・durationはnumber、updatedAtはISO文字列。Modelのnullable列は保存値のnullを保持し、補完や文字列変換はしない。normal/editとも取得でき、statusによる絞込みはない。
 
 ```json
 {
     "itemEditing": {
-        "id": "123",
+        "id": 123,
         "status": "normal",
         "item_id": 456,
         "seller_id": 7,
@@ -88,12 +88,18 @@
         "discount_amount": null,
         "sale_flag": false,
         "shipping_service_free_text": null,
-        "updatedAt": "2026-10-29T00:00:00.000Z"
+        "updatedAt": "2026-10-29T00:00:00.000Z",
+        "Category": null,
+        "Brand": null,
+        "ItemConditionOption": null,
+        "ShippingDayOption": null,
+        "ShippingServiceOption": null,
+        "TodouhukenOption": null
     }
 }
 ```
 
-参照元は `client/src/app/item/confirm/types.ts`。Brand/Optionはid/name、Categoryとchildrenはid/name/level/parent_id/allowed_gender/allowed_age、parentはid/name/level/allowed_gender/allowed_ageを記載する。フロント型そのものは今回変更しない。
+参照元は `client/src/app/item/confirm/types.ts`。Brand/Option、Category・parent・childrenの取得列はid/nameとする。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。フロント型そのものは今回変更しない。
 
 ### 三行コメント
 
@@ -153,8 +159,8 @@ flowchart TD
 
 - 関連参照: categories（Category・parent・children）、brands（Brand）、item_condition_option、shipping_day_option、shipping_service_option、todouhuken_option。aliasはModelのassociate定義に合わせる。
 - `status`（"normal" | "edit"）と`item_id`を確認ページ用の取得項目に含める。
-- 取得列・関連の記載は以下を参照。今回は設計の確定・検証を行わない。
-- このAPIのDB確認・テストは今回実施していない。コピー元APIの検証結果は本APIの検証結果として扱わない。
+- 取得列・関連は以下を確定契約とする。createdAt・video_status・各FKなど列挙しない列は公開しない。
+- 実DBの検証結果は本APIのテストレポートに記録し、他APIの検証結果で代替しない。
 
 ### 取得データ・レスポンス詳細
 
@@ -259,3 +265,4 @@ include: [
 - 再送・並行: 参照に副作用がなく対象・他人の編集セッションとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・関連取得・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。
 - 次工程成果物: `server/test/docs/architecture/itemEditing/getItemConfirmPage.md` と `server/test/docs/report/itemEditing/getItemConfirmPage.md`。実行結果はレポートに記録する。
+

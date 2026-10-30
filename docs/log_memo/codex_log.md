@@ -1176,3 +1176,10 @@
 - 履歴理由のnull表示と、関連ShopInfoがnullの場合の404処理を追加。
 - client型検査は再開前後で出力が完全一致（既存エラー53件、新規エラーなし）。
 - 変更ファイルのESLintは6エラー・5警告で未通過。git diff --checkは通過。
+
+## 20261030_documents_getItemConfirmPage設計検証中断
+
+- 詳細設計と基本設計、確認ページ型、Model、route/service/schemaを照合。
+- Category取得列、JSON型、null許容性、基本設計の認可対象の不一致を詳細設計第9章へ記録。
+- API開発スキルの仕様未確定時の中断規則に従い、実装・テストは未着手。DB未確認。
+- 仕様確認後に設計検証から再開。未完了のためdevelopへの統合は行わない。

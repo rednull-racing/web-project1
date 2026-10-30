@@ -1,3 +1,5 @@
+import { getItemConfirmPageController } from "../controllers/itemEditing/itemEditing.js";
+import { getItemConfirmPageRateLimit } from "../middleware/rateLimit/itemEditingRateLimit.js";
 import {
     convertItemEditingVideoController,
     createItemEditingCopyController,
@@ -77,6 +79,17 @@ router.post(
     validateQuery(createItemEditingCopyQuerySchema),
     validateBody(createItemEditingCopyBodySchema),
     createItemEditingCopyController,
+);
+
+// GET /item-editing/:id/confirm
+// summary: 編集セッション確認ページ データ取得
+// page: /item/confirm/[id]・/item/confirm/edit/[id]
+router.get(
+    "/:id/confirm",
+    authenticateToken,
+    getItemConfirmPageRateLimit,
+    validateParams(idParamSchema),
+    getItemConfirmPageController,
 );
 
 export default router;

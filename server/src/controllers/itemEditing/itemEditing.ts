@@ -1,3 +1,4 @@
+import { getItemConfirmPageUseCase } from "../../usecases/itemEditing/getItemConfirmPage.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { convertItemEditingVideoUseCase } from "../../usecases/itemEditing/convertItemEditingVideo.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
@@ -114,6 +115,20 @@ export const createItemEditingCopyController = async (
         const itemEditingId = await createItemEditingCopyUseCase({ userId, itemId, status });
 
         res.status(201).json({ itemEditingId });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /item-editing/:id/confirm
+// summary: 編集セッション確認ページ データ取得
+// page: /item/confirm/[id]・/item/confirm/edit/[id]
+export const getItemConfirmPageController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { id: itemEditingId } = req.validatedParams as { id: number };
+        const itemEditing = await getItemConfirmPageUseCase({ itemEditingId, userId });
+        res.status(200).json({ itemEditing });
     } catch (err) {
         next(err);
     }
