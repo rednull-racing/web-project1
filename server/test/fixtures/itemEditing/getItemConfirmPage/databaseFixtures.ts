@@ -140,3 +140,12 @@ export const snapshot = async () => {
         });
     }));
 };
+
+export const savedUpdatedAt = async (itemEditingId: number) => {
+    assertSafe();
+    const [row] = await observer.query<{ updatedAt: Date }>('SELECT "updatedAt" FROM item_editing WHERE id = :id', {
+        replacements: { id: itemEditingId }, type: QueryTypes.SELECT,
+    });
+    if (!(row?.updatedAt instanceof Date)) throw new Error("Expected saved timestamp for fixture row");
+    return row.updatedAt;
+};
