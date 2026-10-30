@@ -148,3 +148,5 @@ describe("P0/P1: 実Routerの到達性と優先順位", () => {
         expect(mocks.create).not.toHaveBeenCalled();
     });
 });
+
+vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({ getItemDraftPageMetadataUseCase: vi.fn() }));

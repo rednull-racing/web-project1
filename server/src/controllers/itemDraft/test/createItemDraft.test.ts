@@ -95,3 +95,5 @@ describe("P0: controllerの引渡し・応答", () => {
         expect(next).not.toHaveBeenCalled();
     });
 });
+
+vi.mock("../../../usecases/itemDraft/getItemDraftPageMetadata.js", () => ({ getItemDraftPageMetadataUseCase: vi.fn() }));
