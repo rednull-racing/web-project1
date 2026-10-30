@@ -199,6 +199,22 @@
 - 認可:
     - itemEditing.seller_id === userId
 
+### getItemDraftPageMetadata（下書き商品ページメタデータ取得）
+
+- フロント: /item/draft/[id]
+- route: GET /item-draft/:id/metadata
+
+- 認可:
+    - itemDraft.seller_id === userId
+
+### getItemConfirmPageMetadata（編集中セッションアップロード確認ページメタデータ取得）
+
+- フロント: /item/confirm/[id]・/item/confirm/edit/[id]
+- route: GET /item-editing/:id/metadata
+
+- 認可:
+    - itemEditing.seller_id === userId
+
 ### getItemEditingForm（商品アップロード入力フォーム初期値取得）
 
 - フロント: /upload/[id]・/upload/edit/[id]
