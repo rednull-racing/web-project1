@@ -14,7 +14,10 @@ export const Back = ({ url }: Props) => {
     const router = useRouter();
 
     return (
-        <FontAwesomeIcon
+        <button
+            type="button"
+            aria-label="戻る"
+            className={clsx("mb-2", styles.backButton)}
             onClick={() => {
                 if (url) {
                     router.push(url);
@@ -23,8 +26,8 @@ export const Back = ({ url }: Props) => {
 
                 router.back();
             }}
-            icon={faAngleLeft}
-            className={clsx("mb-2", styles.back)}
-        />
+        >
+            <FontAwesomeIcon icon={faAngleLeft} className={styles.back} aria-hidden="true" />
+        </button>
     );
 };
