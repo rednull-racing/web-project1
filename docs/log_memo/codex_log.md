@@ -1156,3 +1156,9 @@
 - 不要4項目を公開型・fixture・テスト期待値から削除。DBの階層保存/FK・他APIは変更なし。
 - service3件・実DB9件・frontend103件とfixture修正後の結合14件成功。DB cleanup/close確認。
 - server lint/本番・テスト型検査、clientテスト型検査、対象lint成功。設計・レポートを更新。
+
+## 20261030_frontend-architecture_typesのリレーションを必須nullableへ統一
+
+- client/src配下の全4件のtypes.tsを調査し、3ファイル11項目の任意リレーションを必須の `型 | null` に変更。
+- draft/types.tsは対応済みのため変更なし。バックエンドは変更なし。
+- 変更前後のclient型検査出力は完全一致し、新規エラーなし。既存エラーは未修正、テストは依頼により未実行。

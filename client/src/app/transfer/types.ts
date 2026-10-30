@@ -31,13 +31,13 @@ export type Transfer = {
     createdAt: Date;
     transfer_id: string;
     bank_snapshot: BankSnapshot;
-    User?: User;
-    TransReasonOption?: TransReasonOption;
+    User: User | null;
+    TransReasonOption: TransReasonOption | null;
 };
 
 export type User = {
     id: string;
     uriagekin: number;
     points: number;
-    BankAccount?: BankAccount;
+    BankAccount: BankAccount | null;
 };

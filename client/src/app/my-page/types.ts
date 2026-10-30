@@ -22,8 +22,8 @@ export type User = {
     honnin_verified: boolean;
     points: number;
     uriagekin: number;
-    PointLots?: PointLots;
-    UriagekinLots?: UriagekinLots;
+    PointLots: PointLots | null;
+    UriagekinLots: UriagekinLots | null;
 };
 
 export type Res = {

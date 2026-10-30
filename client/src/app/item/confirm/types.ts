@@ -57,9 +57,9 @@ export type ItemEditing = {
     recommend: boolean;
     attributes: ItemAttributes;
     updatedAt: Date;
-    ItemConditionOption?: ItemConditionOption;
-    Category?: Categories;
-    Brand?: Brand;
+    ItemConditionOption: ItemConditionOption | null;
+    Category: Categories | null;
+    Brand: Brand | null;
 
     thumbnail_url: string;
     title: string;
@@ -73,8 +73,8 @@ export type ItemEditing = {
     discount_amount: number | null;
     sale_flag: boolean;
 
-    ShippingDayOption?: ShippingDayOption;
-    ShippingServiceOption?: ShippingServiceOption;
-    TodouhukenOption?: TodouhukenOption;
+    ShippingDayOption: ShippingDayOption | null;
+    ShippingServiceOption: ShippingServiceOption | null;
+    TodouhukenOption: TodouhukenOption | null;
     shipping_service_free_text: string | null;
 };
