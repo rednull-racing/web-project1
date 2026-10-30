@@ -25,6 +25,7 @@ export type Harness = {
     http: (path: string, init?: RequestInit) => Promise<Response>;
 };
 export const test = base.extend<{ e2e: Harness }>({
+    ignoreHTTPSErrors: Boolean(process.env.ITEM_CONFIRM_E2E_TLS_URL),
     e2e: [
         async ({ request, context }, provide, info) => {
             const express = localURL(process.env.ITEM_CONFIRM_E2E_EXPRESS_URL, "ITEM_CONFIRM_E2E_EXPRESS_URL");
@@ -220,8 +221,6 @@ export const test = base.extend<{ e2e: Harness }>({
         { auto: true },
     ],
 });
-// Only the local self-signed frontend is trusted by this test fixture.
-if (process.env.ITEM_CONFIRM_E2E_TLS_URL) test.use({ ignoreHTTPSErrors: true });
 export { expect };
 export const openConfirm = async (
     page: Page, context: BrowserContext, baseURL: string | undefined, e2e: Harness, mode: "normal" | "edit",
