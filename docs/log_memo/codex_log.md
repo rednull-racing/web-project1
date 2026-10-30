@@ -1183,3 +1183,11 @@
 - Category取得列、JSON型、null許容性、基本設計の認可対象の不一致を詳細設計第9章へ記録。
 - API開発スキルの仕様未確定時の中断規則に従い、実装・テストは未着手。DB未確認。
 - 仕様確認後に設計検証から再開。未完了のためdevelopへの統合は行わない。
+
+## 20261030_backend-coding_getItemConfirmPage実装検証完了
+
+- ユーザー確定契約を詳細設計へ反映し、基本設計の認可対象をItemEditingへ訂正。
+- 所有者限定GET /api/item-editing/:id/confirmを各層・専用50回/分制限まで実装。
+- 新規53件（単体16・HTTP30・実DB7）、既存回帰208件が成功。
+- lint・本番/テスト型検査・追加lint10TS・差分検査成功。実DBガード・自作ID cleanup・全接続終了を確認。
+- 詳細なケース対応・初回失敗と修正履歴はserver/test/docs/report/itemEditing/getItemConfirmPage.mdへ記録。

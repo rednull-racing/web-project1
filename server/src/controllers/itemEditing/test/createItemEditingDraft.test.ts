@@ -76,3 +76,5 @@ describe("P0/P1: controllerの検証済み入力・成功応答・例外伝播",
         expect(json).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 456 });
     });
 });
+
+vi.mock("../../../usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));

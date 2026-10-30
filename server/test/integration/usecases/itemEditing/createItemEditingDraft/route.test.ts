@@ -190,3 +190,5 @@ describe("P1: ユーザー単位の回数・時間窓境界", () => {
         expect(mocks.create).toHaveBeenCalledTimes(elapsed < 600000 ? 5 : 6);
     });
 });
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));

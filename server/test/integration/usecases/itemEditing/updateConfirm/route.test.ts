@@ -155,3 +155,5 @@ describe("F3/F4: 実Routerのエラー接続", () => {
         expect(mocks.update).not.toHaveBeenCalled();
     });
 });
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));

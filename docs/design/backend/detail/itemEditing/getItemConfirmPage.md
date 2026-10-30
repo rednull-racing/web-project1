@@ -2,7 +2,7 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
-検証・契約確定: 2026-10-30。ユーザー回答に基づき、ID/durationは数値、日時はISO文字列、nullable列のnullは保持、認可はItemEditing.seller_idとする。Categoryは確認ページがnameのみを使用するため、include例のid/nameを採用。フロント型は参考であり公開JSON契約と異なる箇所があるが、本作業では変更しない。DBの反映状況は実DBテストで確認する。
+検証・契約確定: 2026-10-30。ユーザー回答に基づき、ID/durationは数値、日時はISO文字列、nullable列のnullは保持、認可はItemEditing.seller_idとする。Categoryは確認ページがnameのみを使用するため、include例のid/nameを採用。フロント型は参考であり公開JSON契約と異なる箇所があるが、本作業では変更しない。test_dbは本APIの実DBテストで必要スキーマを確認済み。本番DBの反映状況は未確認。
 
 ## 1. 概要
 
@@ -266,3 +266,5 @@ include: [
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・関連取得・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。
 - 次工程成果物: `server/test/docs/architecture/itemEditing/getItemConfirmPage.md` と `server/test/docs/report/itemEditing/getItemConfirmPage.md`。実行結果はレポートに記録する。
 
+
+検証結果: [テスト設計](../../../../../server/test/docs/architecture/itemEditing/getItemConfirmPage.md)・[テストレポート](../../../../../server/test/docs/report/itemEditing/getItemConfirmPage.md)を参照。

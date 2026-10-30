@@ -85,3 +85,5 @@ describe("P1 controllerの入力境界・応答", () => {
         }
     });
 });
+
+vi.mock("../../../usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));

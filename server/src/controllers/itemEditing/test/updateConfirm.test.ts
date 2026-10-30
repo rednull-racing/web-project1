@@ -70,3 +70,5 @@ describe("P1: controllerの引渡しとレスポンス", () => {
         },
     );
 });
+
+vi.mock("../../../usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));

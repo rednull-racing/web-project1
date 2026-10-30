@@ -194,3 +194,5 @@ it.each([2147483646, 2147483647])("AF-ID02: INTEGER上限付近%sはHTTPでも�
     expect(result.body).toEqual({ itemEditingId: 456 });
     expect(mocks.copy).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId, status: "normal" });
 });
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));

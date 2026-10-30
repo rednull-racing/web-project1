@@ -19,3 +19,5 @@ vi.mock("../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
     updateItemEditingConfirmUseCase: vi.fn(),
 }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
+
+vi.mock("../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));
