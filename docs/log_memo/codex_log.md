@@ -1216,3 +1216,9 @@
 - 単体/HTTP/関連回帰437件、実DB11件成功。server lint・本番/テスト型検査成功。
 - generateMetadataを専用APIへ接続。client単体53件、3ブラウザーE2E27件・ページ結合21件成功、production build成功。
 - 既存client全体lint23エラー/37警告・型エラー53件は対象外Todoとレポートへ記録。変更対象lint・テスト型検査成功。
+
+## 20261030_backend-coding_getItemConfirmPageMetadata実装
+
+- 詳細設計の下書き由来の名称・パス・応答キーを修正し、所有者限定id/name取得API（120回/分）を追加。
+- テスト設計・単体/HTTP/実DBテスト・レポートを作成。新規94件、既存回帰込み348件成功、backend lint/型検査成功。
+- 確認/更新確認ページのメタデータを認証付き専用APIへ変更。フロントは実装のみ、対象lint成功。他ページの既存型エラー49件は既存Todo参照。

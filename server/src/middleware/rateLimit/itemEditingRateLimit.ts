@@ -83,3 +83,14 @@ export const getItemConfirmPageRateLimit = rateLimit({
         return `admin:${authReq.user.id}`;
     },
 });
+
+export const getItemConfirmPageMetadataRateLimit = rateLimit({
+    windowMs: 60000,
+    limit: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        const authReq = req as typeof req & { user: AuthUser };
+        return `admin:${authReq.user.id}`;
+    },
+});

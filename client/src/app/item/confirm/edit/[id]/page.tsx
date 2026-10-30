@@ -2,23 +2,25 @@ import { authOptions } from "@/lib/auth";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { fetchItemMetadata } from "../../../api/server";
-import { fetchItemConfirmPage } from "../../api/server";
+import { fetchItemConfirmPage, fetchItemConfirmPageMetadata } from "../../api/server";
 import { ItemConfirmPage } from "../../itemConfirmPage";
 
 type Props = {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
 
-    const data = await fetchItemMetadata(id);
-    const item = data.item;
+    const session = await getServerSession(authOptions);
+    if (!session) redirect("/login");
+
+    const data = await fetchItemConfirmPageMetadata(id);
+    const name = data.itemEditing.name || "商品名未入力";
 
     return {
-        title: `${item.name} | 更新する商品の確認`,
-        description: `「${item.name}」の更新内容確認`,
+        title: `${name} | 更新する商品の確認`,
+        description: `「${name}」の更新内容確認`,
         robots: {
             index: false,
             follow: false,

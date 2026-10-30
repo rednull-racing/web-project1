@@ -44,3 +44,12 @@ export const getMyItemConfirmPage = ({ itemEditingId, userId }: GetMyItemConfirm
         ],
     });
 };
+
+type GetMyItemConfirmPageMetadataParams = Pick<ItemEditingUserIdParams, "itemEditingId" | "userId">;
+
+export const getMyItemConfirmPageMetadata = ({ itemEditingId, userId }: GetMyItemConfirmPageMetadataParams) => {
+    return ItemEditing.findOne({
+        where: { id: itemEditingId, seller_id: userId },
+        attributes: ["id", "name"],
+    });
+};

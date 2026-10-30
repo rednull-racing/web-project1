@@ -1,3 +1,4 @@
+import { getItemConfirmPageMetadataUseCase } from "../../usecases/itemEditing/getItemConfirmPageMetadata.js";
 import { getItemConfirmPageUseCase } from "../../usecases/itemEditing/getItemConfirmPage.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { convertItemEditingVideoUseCase } from "../../usecases/itemEditing/convertItemEditingVideo.js";
@@ -128,6 +129,20 @@ export const getItemConfirmPageController = async (req: Request, res: Response, 
         const userId = req.user!.id;
         const { id: itemEditingId } = req.validatedParams as { id: number };
         const itemEditing = await getItemConfirmPageUseCase({ itemEditingId, userId });
+        res.status(200).json({ itemEditing });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /item-editing/:id/metadata
+// summary: 編集セッション確認 メタデータ取得
+// page: /item/confirm/[id]・/item/confirm/edit/[id]
+export const getItemConfirmPageMetadataController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { id: itemEditingId } = req.validatedParams as { id: number };
+        const itemEditing = await getItemConfirmPageMetadataUseCase({ itemEditingId, userId });
         res.status(200).json({ itemEditing });
     } catch (err) {
         next(err);

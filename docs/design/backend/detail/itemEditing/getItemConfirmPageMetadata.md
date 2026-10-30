@@ -12,7 +12,7 @@
 
 - Method: GET
 - Endpoint: /api/item-editing/:id/metadata
-- Router内の相対パス: /:id/metadata（`routes/index.ts` の既存 `/api/item-draft` 登録を利用）
+- Router内の相対パス: /:id/metadata（`routes/index.ts` の既存 `/api/item-editing` 登録を利用）
 - 認証: 必須
 - 認可: 商品編集セッション（ItemEditing）所有者のみ（item_editing.seller_idが認証済みuserIdと一致すること）
 - Content-Type: application/json（レスポンス。リクエストbodyは不要）
@@ -39,7 +39,7 @@
 - usecase: /usecases/itemEditing/getItemConfirmPageMetadata.ts
     - getItemConfirmPageMetadataUseCase（新規）
 - service:
-    - itemDraft取得: /services/itemEditing/query.ts
+    - ItemEditing取得: /services/itemEditing/query.ts
         - getMyItemConfirmPageMetadata（新規）
         - 引数型: `Pick<ItemEditingUserIdParams, "itemEditingId" | "userId">` をservice内で定義する
 
@@ -49,7 +49,7 @@
 
 ### バリデーション
 
-- `validateParams(idParamSchema)` で `params.id` を検証し、数値化した値をitemDraftIdとして使用する。
+- `validateParams(idParamSchema)` で `params.id` を検証し、数値化した値をitemEditingIdとして使用する。
 - `z.coerce.number()` による数値化後の値を `req.validatedParams` から取得する。認証IDは `req.user!.id` のみを採用し、body/queryのuserId・seller_idは採用しない。
 - id: 1〜2147483647の整数、必須（DBのINTEGER範囲）。不正な値は400を返す。先頭0・指数表記・16進数・前後空白等もcoerce後に整数範囲内なら許可する。paramsの未知キーは検証済み値から除去され、body/queryの検証・採用はしない。
 
@@ -70,7 +70,7 @@
 
 ### フロントエンド接続
 
-`client/src/app/item/confirm/api/server.ts` に `fetchItemConfirmPageMetadata(itemEditingId)` を追加し、認証付き `apiFetchServer` に `/item-editing/${itemEditingId}/metadata` と `cache: "no-store"` を渡す。戻り値は `{ itemDraft: { id: number; name: string | null } }`。`[id]/page.tsx`・`edit/[id]/page.tsx` のgenerateMetadataはセッション確認後にこの関数を使う。所有者判定はAPIが行う。未入力名の補完・タイトル・説明・robotsは維持する。ページ本体は既存の詳細APIを使う。
+`client/src/app/item/confirm/api/server.ts` に `fetchItemConfirmPageMetadata(itemEditingId)` を追加し、認証付き `apiFetchServer` に `/item-editing/${itemEditingId}/metadata` と `cache: "no-store"` を渡す。戻り値は `{ itemEditing: { id: number; name: string | null } }`。`[id]/page.tsx`・`edit/[id]/page.tsx` のgenerateMetadataはセッション確認後にこの関数を使う。所有者判定はAPIが行う。nameがnullまたは空文字なら「商品名未入力」で補完する。タイトル・説明の文型とrobotsは維持する。ページ本体は既存の詳細APIを使う。
 
 ### 三行コメント
 
@@ -82,7 +82,7 @@
 
 ## 3. 認証・認可
 
-`authenticateToken` の認証済みuserIdと、URLのitemDraftIdで所有者の下書きを検索する。未認証は401、存在しない場合・他人の下書きの場合はともに404を返す。
+`authenticateToken` の認証済みuserIdと、URLのitemEditingIdで所有者の編集セッションを検索する。未認証は401、存在しない場合・他人の編集セッションの場合はともに404を返す。
 
 ### getMyItemConfirmPageMetadata 認可
 
@@ -98,9 +98,9 @@ where: {
 1. 認証を確認する（未認証は401）。
 2. レート制限を確認する（超過は429。不正なパラメータも回数に含む）。
 3. params.idを検証し、itemEditingIdと認証済みuserIdをusecaseに渡す（不正は400）。
-4. serviceで下書きを所有者条件付きで取得する。
+4. serviceで編集セッションを所有者条件付きで取得する。
 5. nullならusecaseで `new AppError("ITEM_EDITING_NOT_FOUND", 404)` を送出する。DB例外はそのまま伝播させる。
-6. 下書きがあればusecaseからcontrollerへ返し、controllerが200で `{ itemEditing }` を返す。
+6. 編集セッションがあればusecaseからcontrollerへ返し、controllerが200で `{ itemEditing }` を返す。
 7. controllerは例外を `next(err)` へ渡し、共通errorHandlerが公開応答を生成する。
 
 ### 処理フロー図
@@ -127,6 +127,8 @@ flowchart TD
 
 - item_editing
     - `id = itemEditingId AND seller_id = userId` で取得する。
+    - `status` による絞込みは行わず、`normal`・`edit` の両方を対象とする。関連取得（include）は行わない。
+    - Model・migrationの変更は不要。実DBへの反映状況は実DBテストのスキーマ検査で確認する。
 
 ### 取得データ・レスポンス詳細
 
@@ -165,6 +167,6 @@ attributes: ["id", "name"];
 - 入力境界: 1/2147483647を許可し、0/負数/小数/非数値/上限超過を拒否する。数値coerceの実契約と検証済みparamsの採用を確認する。
 - 制限・優先順位: 同じユーザーの120回と121回目、他ユーザーとの分離、窓終了後の再開、不正paramsと404の計上、制限超過と不正idが重なる場合の429を確認する。parser拒否は別経路として確認する。
 - 失敗・待機: DB失敗の伝播と500、usecase/controllerの完了待ち、取得失敗時の成功応答未実行を確認する。
-- 再送・並行: 参照に副作用がなく対象・他人の下書きとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
+- 再送・並行: 参照に副作用がなく対象・他人の編集セッションとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・公開列限定・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。
 - 次工程成果物: `server/test/docs/architecture/itemEditing/getItemConfirmPageMetadata.md` と `server/test/docs/report/itemEditing/getItemConfirmPageMetadata.md`。実行結果はレポートに記録する。

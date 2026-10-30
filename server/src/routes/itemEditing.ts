@@ -1,5 +1,5 @@
-import { getItemConfirmPageController } from "../controllers/itemEditing/itemEditing.js";
-import { getItemConfirmPageRateLimit } from "../middleware/rateLimit/itemEditingRateLimit.js";
+import { getItemConfirmPageController, getItemConfirmPageMetadataController } from "../controllers/itemEditing/itemEditing.js";
+import { getItemConfirmPageRateLimit, getItemConfirmPageMetadataRateLimit } from "../middleware/rateLimit/itemEditingRateLimit.js";
 import {
     convertItemEditingVideoController,
     createItemEditingCopyController,
@@ -90,6 +90,17 @@ router.get(
     getItemConfirmPageRateLimit,
     validateParams(idParamSchema),
     getItemConfirmPageController,
+);
+
+// GET /item-editing/:id/metadata
+// summary: 編集セッション確認 メタデータ取得
+// page: /item/confirm/[id]・/item/confirm/edit/[id]
+router.get(
+    "/:id/metadata",
+    authenticateToken,
+    getItemConfirmPageMetadataRateLimit,
+    validateParams(idParamSchema),
+    getItemConfirmPageMetadataController,
 );
 
 export default router;

@@ -10,3 +10,16 @@ export const fetchItemConfirmPage = async (itemEditingId: string): Promise<ItemE
         cache: "no-store",
     });
 };
+
+type ItemConfirmPageMetadataResponse = {
+    itemEditing: {
+        id: number;
+        name: string | null;
+    };
+};
+
+export const fetchItemConfirmPageMetadata = async (itemEditingId: string): Promise<ItemConfirmPageMetadataResponse> => {
+    return apiFetchServer(`/item-editing/${itemEditingId}/metadata`, {
+        cache: "no-store",
+    });
+};
