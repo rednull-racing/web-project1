@@ -220,6 +220,8 @@ export const test = base.extend<{ e2e: Harness }>({
         { auto: true },
     ],
 });
+// Only the local self-signed frontend is trusted by this test fixture.
+if (process.env.ITEM_CONFIRM_E2E_TLS_URL) test.use({ ignoreHTTPSErrors: true });
 export { expect };
 export const openConfirm = async (
     page: Page, context: BrowserContext, baseURL: string | undefined, e2e: Harness, mode: "normal" | "edit",
@@ -229,6 +231,8 @@ export const openConfirm = async (
     const editing = mode === "normal" ? e2e.seed.normal : e2e.seed.edit;
     await page.goto(`/item/confirm/${mode === "edit" ? "edit/" : ""}${editing.id}`);
     await expect(page.getByRole("button", { name: "出品する", exact: true })).toBeVisible();
+    const accessCookie = (await context.cookies()).find(cookie => cookie.name === "access-token");
+    await test.info().attach("access-token-cookie", { body: JSON.stringify({ present: Boolean(accessCookie), secure: accessCookie?.secure ?? null }), contentType: "application/json" });
 };
 export const submit = async (page: Page) => {
     await page.getByRole("button", { name: "出品する", exact: true }).click();
