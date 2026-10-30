@@ -25,7 +25,7 @@ describe("ItemConfirmPage DOM (async VideoTitleのみ同期代替)", () => {
         expect(reached).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 101 });
         expect(runtime.error).not.toHaveBeenCalled();
     });
-    it.each(["normal", "edit"] as const)("P-N02 %s在庫0/1/省略の両セクションを更新してnull補完", (page) => {
+    it.each(["normal", "edit"] as const)("P-N02 %s在庫0/1/省略の両セクションを更新してnull補完", async (page) => {
         const requests = vi.fn();
         server.use(http.all(`${API}/*`, () => { requests(); return HttpResponse.json({}); }));
         const view = render(<ItemConfirmPage id="101" page={page} itemEditing={createConfirm()} />);
@@ -42,6 +42,18 @@ describe("ItemConfirmPage DOM (async VideoTitleのみ同期代替)", () => {
             expect(screen.getAllByText("-")).toHaveLength(4);
             expect(screen.queryByText("null")).not.toBeInTheDocument();
         }
+        vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(200);
+        vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(40);
+        view.rerender(<ItemConfirmPage id="101" page={page} itemEditing={createConfirm({
+            detail: "長い商品説明".repeat(100), summary: "長い動画概要".repeat(100),
+        })} />);
+        const user = userEvent.setup();
+        const more = screen.getAllByRole("button", { name: "...もっと見る" });
+        expect(more).toHaveLength(2);
+        for (const button of more) await user.click(button);
+        expect(screen.getAllByRole("button", { name: "閉じる" })).toHaveLength(2);
+        for (const button of screen.getAllByRole("button", { name: "閉じる" })) await user.click(button);
+        expect(screen.getAllByRole("button", { name: "...もっと見る" })).toHaveLength(2);
         expect(requests).not.toHaveBeenCalled();
     });
 });
