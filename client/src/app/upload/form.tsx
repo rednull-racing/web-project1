@@ -25,7 +25,7 @@ import {
     ShippingDayOption,
     ShippingServiceOption,
     TodouhukenOption,
-} from "./types/type";
+} from "./types/types";
 import styles from "./upload.module.css";
 import UploadUI from "./uploadUI";
 import { VideoInput, VideoInputValue } from "./videoInput";

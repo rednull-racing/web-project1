@@ -21,10 +21,10 @@ export type User = {
     honnin_verified: boolean;
     early_seller: boolean;
     is_following: boolean;
-    ShopInfo?: ShopInfo | null;
+    ShopInfo: ShopInfo | null;
 };
 
 export type ItemLike = {
     id: string;
-    User?: User | null;
+    User: User | null;
 };

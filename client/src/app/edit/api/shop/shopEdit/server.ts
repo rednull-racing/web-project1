@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../../lib/api/server";
-import { ShopInfoEdit } from "../../../type";
+import { ShopInfoEdit } from "../../../types";
 
 type ComFreeConfirmResponse = {
     shopEdit: ShopInfoEdit;

@@ -1,4 +1,4 @@
-import { Item } from "../types/type";
+import { Item } from "../types/types";
 import { Button } from "./button";
 import { ItemHighlight } from "./itemHighlight";
 import { OkText } from "./okText";

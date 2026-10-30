@@ -11,7 +11,7 @@ import { ApiError } from "../../lib/api/apiError";
 import { fetchRemoveFollow } from "./api/follow";
 import { getUserListApiKey } from "./apiKey";
 import { FollowButton } from "./followButton";
-import { User, UserListResponse } from "./type";
+import { User, UserListResponse } from "./types";
 import styles from "./userList.module.css";
 
 type Props = {

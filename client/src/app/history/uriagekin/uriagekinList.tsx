@@ -6,7 +6,7 @@ import { useInfinitePagination } from "../../../hooks/useInfinitePagination";
 import { formatRelativeTime } from "../../../lib/formatRelativeTime";
 import { getUriagekinHistoryApiKey } from "../apiKey";
 import styles from "../styles.module.css";
-import { UriagekinHistory, UriagekinHistoryResponse, User } from "../type";
+import { UriagekinHistory, UriagekinHistoryResponse, User } from "../types";
 
 type Props = {
     user: User;
@@ -55,7 +55,7 @@ export const UriagekinList = ({ user }: Props) => {
                                 </div>
 
                                 <div className={styles.historyInfo}>
-                                    <p className={styles.reason}>{uriagekinHistory.UriagekinReasonOption.name}</p>
+                                    <p className={styles.reason}>{uriagekinHistory.UriagekinReasonOption?.name}</p>
 
                                     <p className={styles.date}>{formatRelativeTime(uriagekinHistory.createdAt)}</p>
                                 </div>

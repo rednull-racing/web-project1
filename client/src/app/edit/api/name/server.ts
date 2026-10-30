@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { Name, ShopInfo, ShopInfoEdit, ShopSignup } from "../../type";
+import { Name, ShopInfo, ShopInfoEdit, ShopSignup } from "../../types";
 
 type NamePageResponse = {
     name: Name;

@@ -11,7 +11,7 @@ import { sleep } from "../../../lib/sleep";
 import { fetchStep5, fetchUpdateField } from "../api/step5";
 import { ButtonDiv } from "../buttonDiv";
 import SSUI from "../ssUI";
-import { ShopSignup } from "../type";
+import { ShopSignup } from "../types";
 
 type Props = {
     shopSignupId: string;

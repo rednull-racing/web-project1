@@ -18,7 +18,7 @@ import { ButtonDiv } from "../buttonDiv";
 import styles from "../ss.module.css";
 import SSUIBack from "../ssUiBack";
 import { StepBar } from "../stepBar";
-import { ComOrFreeOption, ShopSignup, User } from "../type";
+import { ComOrFreeOption, ShopSignup, User } from "../types";
 
 type Props = {
     user: User;

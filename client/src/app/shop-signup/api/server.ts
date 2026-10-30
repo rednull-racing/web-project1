@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../lib/api/server";
-import { BankAccount, ComOrFreeOption, ShopSignup, User } from "../type";
+import { BankAccount, ComOrFreeOption, ShopSignup, User } from "../types";
 
 type Signup1Response = {
     user: User;

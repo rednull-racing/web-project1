@@ -1,4 +1,4 @@
-import { SearchResponse } from "./type";
+import { SearchResponse } from "./types";
 
 type Params = {
     keyword: string;

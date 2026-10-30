@@ -13,7 +13,7 @@ import { ButtonDiv } from "../buttonDiv";
 import styles from "../ss.module.css";
 import SSUI from "../ssUI";
 import { StepBar } from "../stepBar";
-import { BankAccount } from "../type";
+import { BankAccount } from "../types";
 import { showStep2ErrorToast } from "./errorToast";
 
 type Props = {

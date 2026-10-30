@@ -12,7 +12,7 @@ import { sleep } from "../../../lib/sleep";
 import { fetchAccountEdit, fetchShopAccountEdit, fetchSuggestBanks, fetchSuggestBranches } from "../api/account/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
-import { BankAccount } from "../type";
+import { BankAccount } from "../types";
 import { showBankErrorToast } from "./bankErrorMessage";
 
 type Props = {

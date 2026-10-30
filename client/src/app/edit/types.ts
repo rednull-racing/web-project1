@@ -18,13 +18,13 @@ export type Permit = {
     permit_type: string | null;
     issued_at: Date | null;
     expired_at: Date | null;
-    S3Metadata?: S3Metadata;
+    S3Metadata: S3Metadata | null;
 };
 
 export type IdCard = {
     id: number;
-    FrontIdCard?: S3Metadata;
-    RearIdCard?: S3Metadata;
+    FrontIdCard: S3Metadata | null;
+    RearIdCard: S3Metadata | null;
 };
 
 export type BankAccount = {
@@ -50,7 +50,7 @@ export type Address = {
     shikutyouson: string;
     banchi: string;
     building: string;
-    AddressTodouhuken?: TodouhukenOption;
+    AddressTodouhuken: TodouhukenOption | null;
 };
 
 export type Name = {
@@ -81,13 +81,13 @@ export type ShopSignup = {
     founded_date: Date;
     auto_trans: boolean;
     open_info: boolean;
-    ComOrFreeOption?: ComOrFreeOption;
-    Address?: Address;
-    RepresentativeName?: Name;
-    ContactName?: Name;
-    BankAccount?: BankAccount;
-    IdCard?: IdCard;
-    Permit?: Permit[];
+    ComOrFreeOption: ComOrFreeOption | null;
+    Address: Address | null;
+    RepresentativeName: Name | null;
+    ContactName: Name | null;
+    BankAccount: BankAccount | null;
+    IdCard: IdCard | null;
+    Permit: Permit[] | null;
 };
 
 export type ShopInfoEdit = {
@@ -101,15 +101,15 @@ export type ShopInfoEdit = {
     capital?: number | null;
     member_count?: number | null;
     founded_date?: Date | null;
-    ComOrFreeOption?: ComOrFreeOption;
-    Address?: Address;
-    Name?: Name;
-    BankAccount?: BankAccount;
-    RepresentativeNameEdit?: Name;
-    ContactNameEdit?: Name;
-    IdCard?: IdCard;
-    Permit?: Permit[];
-    ShopInfo: ShopInfo;
+    ComOrFreeOption: ComOrFreeOption | null;
+    Address: Address | null;
+    Name: Name | null;
+    BankAccount: BankAccount | null;
+    RepresentativeNameEdit: Name | null;
+    ContactNameEdit: Name | null;
+    IdCard: IdCard | null;
+    Permit: Permit[] | null;
+    ShopInfo: ShopInfo | null;
 };
 
 export type ShopInfo = {
@@ -126,13 +126,13 @@ export type ShopInfo = {
     founded_date: Date;
     auto_trans: boolean;
     open_info: boolean;
-    ComOrFreeOption?: ComOrFreeOption;
-    Address?: Address;
-    RepresentativeName?: Name;
-    ContactName?: Name;
-    BankAccount?: BankAccount;
-    IdCard?: IdCard;
-    Permit?: Permit[];
+    ComOrFreeOption: ComOrFreeOption | null;
+    Address: Address | null;
+    RepresentativeName: Name | null;
+    ContactName: Name | null;
+    BankAccount: BankAccount | null;
+    IdCard: IdCard | null;
+    Permit: Permit[] | null;
 };
 
 export type GenderOption = {
@@ -148,8 +148,8 @@ export type User = {
     phone_number: string;
     birthday: Date;
     gender_id: number;
-    Name?: Name;
-    Address?: Address;
-    IdCard?: IdCard;
-    GenderOption?: GenderOption;
+    Name: Name | null;
+    Address: Address | null;
+    IdCard: IdCard | null;
+    GenderOption: GenderOption | null;
 };

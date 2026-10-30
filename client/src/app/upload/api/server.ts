@@ -6,7 +6,7 @@ import {
     ShippingDayOption,
     ShippingServiceOption,
     TodouhukenOption,
-} from "../types/type";
+} from "../types/types";
 
 type UploadResponse = {
     item: Item;

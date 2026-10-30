@@ -39,9 +39,9 @@ export type Categories = {
 
 export type ItemShippingProfile = {
     id: string;
-    ShippingDayOption?: ShippingDayOption | null;
-    ShippingServiceOption?: ShippingServiceOption | null;
-    TodouhukenOption?: TodouhukenOption | null;
+    ShippingDayOption: ShippingDayOption | null;
+    ShippingServiceOption: ShippingServiceOption | null;
+    TodouhukenOption: TodouhukenOption | null;
     shipping_service_free_text: string | null;
 };
 
@@ -73,10 +73,10 @@ export type Item = {
     attributes: ItemAttributes;
     status: "active" | "soldout";
     price: number;
-    Video?: Video | null;
-    Sale?: Sale | null;
-    Category?: Categories | null;
-    Brand?: Brands | null;
-    ItemConditionOption?: ItemConditionOption | null;
-    ItemShippingProfile?: ItemShippingProfile | null;
+    Video: Video | null;
+    Sale: Sale | null;
+    Category: Categories | null;
+    Brand: Brands | null;
+    ItemConditionOption: ItemConditionOption | null;
+    ItemShippingProfile: ItemShippingProfile | null;
 };

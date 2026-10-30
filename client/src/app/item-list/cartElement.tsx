@@ -7,7 +7,7 @@ import { ApiError } from "../../lib/api/apiError";
 import { fetchBuy } from "./api/buy";
 import { fetchRemoveCart } from "./api/cart";
 import styles from "./cart.module.css";
-import { Item } from "./type";
+import { Item } from "./types";
 
 type Response = {
     itemList: Item[];

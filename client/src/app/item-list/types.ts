@@ -23,6 +23,6 @@ export type Item = {
     save_at: Date;
     first_image_url: string;
     attributes: ItemAttributes;
-    Video?: Video | null;
-    Sale?: Sale | null;
+    Video: Video | null;
+    Sale: Sale | null;
 };

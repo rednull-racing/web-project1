@@ -5,7 +5,7 @@ import { fetchInquiryPage } from "./api/server";
 import { Form } from "./form";
 import InquiryUI from "./inquiryUI";
 import { LinkElement } from "./linkElement";
-import { User } from "./type";
+import { User } from "./types";
 
 export async function generateMetadata(): Promise<Metadata> {
     return {

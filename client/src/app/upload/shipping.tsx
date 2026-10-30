@@ -2,7 +2,7 @@
 
 import { InputTitle, Textarea } from "@/components/inputForm";
 import { useEffect, useState } from "react";
-import { ShippingDayOption, ShippingServiceOption, TodouhukenOption } from "./types/type";
+import { ShippingDayOption, ShippingServiceOption, TodouhukenOption } from "./types/types";
 import styles from "./upload.module.css";
 
 export type ShippingValue = {

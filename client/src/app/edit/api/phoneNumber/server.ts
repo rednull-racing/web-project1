@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { ShopInfo, User } from "../../type";
+import { ShopInfo, User } from "../../types";
 
 type PhoneNumberResponse = {
     user: User;

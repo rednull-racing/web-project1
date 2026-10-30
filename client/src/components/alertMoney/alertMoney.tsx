@@ -2,7 +2,7 @@
 
 import { IconAlertTriangle } from "@tabler/icons-react";
 import styles from "./styles.module.css";
-import { PointLots, UriagekinLots } from "./type";
+import { PointLots, UriagekinLots } from "./types";
 
 type Props = {
     pointLots?: PointLots;

@@ -16,7 +16,7 @@ export type Categories = {
     id: string;
     name: string;
     level: number;
-    parent?: Categories | null;
+    parent: Categories | null;
     allowed_gender: "men" | "women" | "both";
     allowed_age: "adult" | "kids" | "both";
 };
@@ -51,11 +51,11 @@ export type Item = {
     age_type: "adult" | "kids" | "both";
     first_image_url: string;
     attributes: ItemAttributes;
-    Video?: Video | null;
-    Sale?: Sale | null;
-    User?: User | null;
-    Categories?: Categories | null;
-    Brand?: Brand | null;
+    Video: Video | null;
+    Sale: Sale | null;
+    User: User | null;
+    Categories: Categories | null;
+    Brand: Brand | null;
 };
 
 export type Search = {

@@ -18,10 +18,10 @@ import {
 } from "../api/name/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
-import { IdCard, Name } from "../type";
+import { IdCard, Name } from "../types";
 
 type Props = {
-    name?: Name;
+    name?: Name | null;
     page:
         | "normal"
         | "purchase"
@@ -35,7 +35,7 @@ type Props = {
     shopId?: string;
     shopSignupId?: string;
     shopEditId?: string;
-    idCard?: IdCard;
+    idCard?: IdCard | null;
 };
 
 export const NameEditForm = ({ name, page, purchaseSessionId, shopId, shopEditId, shopSignupId, idCard }: Props) => {

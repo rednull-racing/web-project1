@@ -13,7 +13,7 @@ import useSWR from "swr";
 import { CartElement } from "./cartElement";
 import styles from "./itemList.module.css";
 import { RemoveFloat } from "./removeFloat";
-import { Item } from "./type";
+import { Item } from "./types";
 
 type Props = {
     page: "cart" | "deleted" | "draft" | "like" | "stock" | "uploaded" | "watch-history";

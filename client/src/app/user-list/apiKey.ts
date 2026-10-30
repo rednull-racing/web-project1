@@ -1,4 +1,4 @@
-import { UserListResponse } from "./type";
+import { UserListResponse } from "./types";
 
 type Params = {
     id?: string;

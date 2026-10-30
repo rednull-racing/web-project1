@@ -10,7 +10,7 @@ import { sleep } from "../../../../lib/sleep";
 import { fetchCompanyNameEdit } from "../../api/shop/shopEdit/client";
 import styles from "../../edit.module.css";
 import EditUI from "../../editUI";
-import { ShopInfo } from "../../type";
+import { ShopInfo } from "../../types";
 
 type Props = {
     shopId: string;

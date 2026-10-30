@@ -8,7 +8,7 @@ import { KeyedMutator } from "swr";
 import { ApiError } from "../../lib/api/apiError";
 import { fetchRemoveItem } from "./api/remove";
 import styles from "./removeFloat.module.css";
-import { Item } from "./type";
+import { Item } from "./types";
 
 type Response = {
     itemList: Item[];

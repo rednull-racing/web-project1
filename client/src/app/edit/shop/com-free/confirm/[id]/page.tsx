@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { fetchComFreeConfirmPage } from "../../../../api/shop/shopEdit/server";
 import { Client } from "../client";
 
@@ -23,6 +24,8 @@ export default async function Page({ params }: Props) {
     const data = await fetchComFreeConfirmPage(id);
 
     const shopEdit = data.shopEdit;
+
+    if (!shopEdit.ShopInfo) notFound();
 
     return (
         <Client shopId={shopEdit.ShopInfo.id} shopInfo={shopEdit.ShopInfo} shopEditId={id} shopInfoEdit={shopEdit} />

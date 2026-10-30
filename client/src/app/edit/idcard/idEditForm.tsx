@@ -10,7 +10,7 @@ import { sleep } from "../../../lib/sleep";
 import { fetchIdCardSubmit } from "../api/idCard/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
-import { User } from "../type";
+import { User } from "../types";
 import { apiFetchFile } from "../../../lib/api/client";
 
 type Props = {

@@ -1,4 +1,4 @@
-import { NotificationResponse } from "./type";
+import { NotificationResponse } from "./types";
 
 export const getNotificationApiKey = (pageIndex: number, previousPageData: NotificationResponse | null) => {
     if (previousPageData && !previousPageData.hasMore) return null;

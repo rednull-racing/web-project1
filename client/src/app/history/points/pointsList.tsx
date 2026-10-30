@@ -6,7 +6,7 @@ import { useInfinitePagination } from "../../../hooks/useInfinitePagination";
 import { formatRelativeTime } from "../../../lib/formatRelativeTime";
 import { getPointsHistoryApiKey } from "../apiKey";
 import styles from "../styles.module.css";
-import { PointsHistory, PointsHistoryResponse, User } from "../type";
+import { PointsHistory, PointsHistoryResponse, User } from "../types";
 
 type Props = {
     user: User;
@@ -53,7 +53,7 @@ export const PointsList = ({ user }: Props) => {
                                 </div>
 
                                 <div className={styles.historyInfo}>
-                                    <p className={styles.reason}>{pointsHistory.PointReasonOption.name}</p>
+                                    <p className={styles.reason}>{pointsHistory.PointReasonOption?.name}</p>
 
                                     <p className={styles.date}>{formatRelativeTime(pointsHistory.createdAt)}</p>
                                 </div>

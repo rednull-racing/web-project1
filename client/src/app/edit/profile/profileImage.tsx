@@ -4,7 +4,7 @@ import { InputTitle } from "@/components/inputForm";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import styles from "../edit.module.css";
-import { User } from "../type";
+import { User } from "../types";
 
 type Props = {
     user: User;

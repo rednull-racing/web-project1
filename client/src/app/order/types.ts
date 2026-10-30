@@ -7,7 +7,7 @@ export type DeliveryStatusOption = {
 
 export type Delivery = {
     id: string;
-    DeliveryStatusOption?: DeliveryStatusOption;
+    DeliveryStatusOption: DeliveryStatusOption | null;
 };
 
 export type Orders = {
@@ -18,5 +18,5 @@ export type Orders = {
     buy_at: Date;
     status: "pending" | "paid" | "shipped" | "completed" | "cancelled" | "returned";
     purchase_snapshot: PurchaseSnapshot;
-    Delivery?: Delivery;
+    Delivery: Delivery | null;
 };

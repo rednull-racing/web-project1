@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { BankAccount } from "../../type";
+import { BankAccount } from "../../types";
 
 type AccountPageResponse = {
     data: BankAccount;

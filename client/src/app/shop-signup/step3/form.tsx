@@ -15,7 +15,7 @@ import { ButtonDiv } from "../buttonDiv";
 import styles from "../ss.module.css";
 import SSUI from "../ssUI";
 import { StepBar } from "../stepBar";
-import { ShopSignup } from "../type";
+import { ShopSignup } from "../types";
 
 type Props = {
     shopSignupId: string;

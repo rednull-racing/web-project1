@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { ApiError } from "../../lib/api/apiError";
 import { fetchAddFollow, fetchRemoveFollow } from "./api/follow";
 import styles from "./button.module.css";
-import { User } from "./type";
+import { User } from "./types";
 
 type Props = {
     user: User;

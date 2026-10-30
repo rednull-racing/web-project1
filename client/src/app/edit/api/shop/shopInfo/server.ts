@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../../lib/api/server";
-import { ComOrFreeOption, ShopInfo } from "../../../type";
+import { ComOrFreeOption, ShopInfo } from "../../../types";
 
 type ShopInfoResponse = {
     shop: ShopInfo;

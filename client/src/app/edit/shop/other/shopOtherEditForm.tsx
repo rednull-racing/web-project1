@@ -11,7 +11,7 @@ import { sleep } from "../../../../lib/sleep";
 import { fetchShopOther } from "../../api/shop/shopInfo/client";
 import styles from "../../edit.module.css";
 import EditUI from "../../editUI";
-import { ShopInfo } from "../../type";
+import { ShopInfo } from "../../types";
 
 type Props = {
     shopId: string;

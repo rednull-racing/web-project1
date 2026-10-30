@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { ApiError } from "../../lib/api/apiError";
 import { sleep } from "../../lib/sleep";
 import { fetchInquirySubmit } from "./api/client";
-import { User } from "./type";
+import { User } from "./types";
 
 type Props = {
     user?: User;

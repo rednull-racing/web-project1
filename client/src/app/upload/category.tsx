@@ -3,7 +3,7 @@
 import { InputTitle } from "@/components/inputForm";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { Categories } from "./types/type";
+import { Categories } from "./types/types";
 import styles from "./upload.module.css";
 
 export type CategoryValue = {

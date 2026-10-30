@@ -28,13 +28,13 @@ export type Permit = {
     permit_type: string | null;
     issued_at: Date | null;
     expired_at: Date | null;
-    S3Metadata?: S3Metadata;
+    S3Metadata: S3Metadata | null;
 };
 
 export type IdCard = {
     id: number;
-    FrontIdCard?: S3Metadata;
-    RearIdCard?: S3Metadata;
+    FrontIdCard: S3Metadata | null;
+    RearIdCard: S3Metadata | null;
 };
 
 export type BankAccount = {
@@ -54,7 +54,7 @@ export type Address = {
     shikutyouson: string;
     banchi: string;
     building?: string;
-    AddressTodouhuken?: TodouhukenOption;
+    AddressTodouhuken: TodouhukenOption | null;
 };
 
 export type Name = {
@@ -79,13 +79,13 @@ export type ShopSignup = {
     founded_date?: Date;
     auto_trans: boolean;
     open_info: boolean;
-    ComOrFreeOption?: ComOrFreeOption;
-    Address?: Address;
-    RepresentativeName?: Name;
-    ContactName?: Name;
-    BankAccount?: BankAccount;
-    IdCard?: IdCard;
-    Permit?: Permit[];
+    ComOrFreeOption: ComOrFreeOption | null;
+    Address: Address | null;
+    RepresentativeName: Name | null;
+    ContactName: Name | null;
+    BankAccount: BankAccount | null;
+    IdCard: IdCard | null;
+    Permit: Permit[] | null;
 };
 
 export type User = {
@@ -93,8 +93,8 @@ export type User = {
     user_name: string;
     email: string;
     phone_number: string;
-    Address?: Address;
-    Name?: Name;
-    BankAccount?: BankAccount;
-    IdCard?: IdCard;
+    Address: Address | null;
+    Name: Name | null;
+    BankAccount: BankAccount | null;
+    IdCard: IdCard | null;
 };

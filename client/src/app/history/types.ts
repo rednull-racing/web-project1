@@ -24,14 +24,14 @@ export type UriagekinHistory = {
     id: string;
     uriagekin: number;
     createdAt: Date;
-    UriagekinReasonOption: UriagekinReasonOption;
+    UriagekinReasonOption: UriagekinReasonOption | null;
 };
 
 export type PointsHistory = {
     id: string;
     points: number;
     createdAt: Date;
-    PointReasonOption: PointReasonOption;
+    PointReasonOption: PointReasonOption | null;
 };
 
 export type PointLots = {
@@ -54,6 +54,6 @@ export type User = {
     id: string;
     points: number;
     uriagekin: number;
-    PointLots?: PointLots;
-    UriagekinLots?: UriagekinLots;
+    PointLots: PointLots | null;
+    UriagekinLots: UriagekinLots | null;
 };

@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../lib/api/server";
-import { Option } from "../type";
+import { Option } from "../types";
 
 type ReportResponse = {
     options: Option[];

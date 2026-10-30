@@ -2,7 +2,7 @@
 
 import { InputTitle } from "@/components/inputForm";
 import { useEffect, useState } from "react";
-import { ItemConditionOption } from "./types/type";
+import { ItemConditionOption } from "./types/types";
 import styles from "./upload.module.css";
 
 export type ConditionValue = {

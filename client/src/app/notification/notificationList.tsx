@@ -9,7 +9,7 @@ import { formatRelativeTime } from "../../lib/formatRelativeTime";
 import { fetchReadTrue } from "./api/client";
 import { getNotificationApiKey } from "./getApiKey";
 import styles from "./styles.module.css";
-import { Notification, NotificationResponse } from "./type";
+import { Notification, NotificationResponse } from "./types";
 
 export const NotificationList = () => {
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);

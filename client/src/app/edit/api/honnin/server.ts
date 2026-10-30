@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { GenderOption, User } from "../../type";
+import { GenderOption, User } from "../../types";
 
 type HonninPageResponse = {
     user: User;

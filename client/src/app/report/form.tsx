@@ -8,7 +8,7 @@ import { ApiError } from "../../lib/api/apiError";
 import { sleep } from "../../lib/sleep";
 import { fetchReport } from "./api/report";
 import styles from "./report.module.css";
-import { Option } from "./type";
+import { Option } from "./types";
 
 type Props = {
     id: string;

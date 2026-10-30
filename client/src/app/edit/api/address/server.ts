@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { Address } from "../../type";
+import { Address } from "../../types";
 
 type AddressPageResponse = {
     data: Address;

@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
-import { Orders } from "../type";
+import { Orders } from "../types";
 import styles from "./order.module.css";
 
 type Props = {

@@ -1162,3 +1162,17 @@
 - client/src配下の全4件のtypes.tsを調査し、3ファイル11項目の任意リレーションを必須の `型 | null` に変更。
 - draft/types.tsは対応済みのため変更なし。バックエンドは変更なし。
 - 変更前後のclient型検査出力は完全一致し、新規エラーなし。既存エラーは未修正、テストは依頼により未実行。
+
+## 20261030_frontend-architecture_typeのリレーションを必須nullableへ統一
+
+- client/src配下の全13件のtype.tsを調査し、8ファイル68項目を必須の `型 | null` に変更。
+- 新たに発生した型エラー5件に対応し、NameEditFormのname・idCardの受け取り型にnullを追加。
+- 修正後のclient型検査出力は変更前と完全一致。既存エラー・バックエンドは未変更、テストは未実行。
+
+## 20261030_frontend-architecture_typeファイルの改名作業を再開
+
+- 中断時の変更を引き継ぎ、残っていた必須リレーション3項目も `型 | null` に統一。
+- client/src配下のtype.ts全13件をtypes.tsへ改名し、import参照を更新。
+- 履歴理由のnull表示と、関連ShopInfoがnullの場合の404処理を追加。
+- client型検査は再開前後で出力が完全一致（既存エラー53件、新規エラーなし）。
+- 変更ファイルのESLintは6エラー・5警告で未通過。git diff --checkは通過。

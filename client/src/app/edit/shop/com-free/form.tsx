@@ -10,7 +10,7 @@ import { sleep } from "../../../../lib/sleep";
 import { fetchComFreeEdit } from "../../api/shop/shopEdit/client";
 import styles from "../../edit.module.css";
 import EditUI from "../../editUI";
-import { ComOrFreeOption, ShopInfo } from "../../type";
+import { ComOrFreeOption, ShopInfo } from "../../types";
 
 type Props = {
     shopId: string;

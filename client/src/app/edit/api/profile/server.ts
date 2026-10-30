@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { User } from "../../type";
+import { User } from "../../types";
 
 type ProfilePageParams = {
     user: User;

@@ -1,7 +1,7 @@
 "use client";
 
 import EditUI from "@/app/edit/editUI";
-import { ShopInfo, ShopInfoEdit } from "@/app/edit/type";
+import { ShopInfo, ShopInfoEdit } from "@/app/edit/types";
 import { ConfirmSection } from "@/components";
 import styles from "@/components/confirm-card/confirmcard.module.css";
 import { Button } from "@/components/inputForm";

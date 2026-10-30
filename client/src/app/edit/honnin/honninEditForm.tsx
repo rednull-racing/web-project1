@@ -17,7 +17,7 @@ import { fetchGetAddress } from "../api/address/client";
 import { fetchHonninSubmit } from "../api/honnin/client";
 import styles from "../edit.module.css";
 import EditUI from "../editUI";
-import { GenderOption, User } from "../type";
+import { GenderOption, User } from "../types";
 import { showHonninErrorToast } from "./honninErrorMessage";
 
 type Props = {

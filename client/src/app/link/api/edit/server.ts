@@ -1,5 +1,5 @@
 import { apiFetchServer } from "../../../../lib/api/server";
-import { ShopInfo } from "../../../edit/type";
+import { ShopInfo } from "../../../edit/types";
 
 type MyShopResponse = {
     shop: ShopInfo;

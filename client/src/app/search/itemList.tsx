@@ -11,7 +11,7 @@ import { formatDuration } from "../../lib/formatDuration";
 import { getSearchItemListApiKey } from "./apiKey";
 import { FilterMenu } from "./filter/filterMenu/filterMenu";
 import styles from "./searchItemList.module.css";
-import { Item, SearchResponse } from "./type";
+import { Item, SearchResponse } from "./types";
 
 type Props = {
     keyword: string;

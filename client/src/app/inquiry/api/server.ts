@@ -1,5 +1,5 @@
 import { apiFetchServerNoToken } from "../../../lib/api/server";
-import { User } from "../type";
+import { User } from "../types";
 
 type InquiryResponse = {
     user: User;

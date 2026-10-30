@@ -1,4 +1,4 @@
-import { PointsHistoryResponse, UriagekinHistoryResponse } from "./type";
+import { PointsHistoryResponse, UriagekinHistoryResponse } from "./types";
 
 export const getPointsHistoryApiKey = (pageIndex: number, previousPageData: PointsHistoryResponse | null) => {
     if (previousPageData && !previousPageData.hasMore) return null;
