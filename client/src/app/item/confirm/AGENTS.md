@@ -14,7 +14,7 @@
 
 既存商品の更新内容を確認するためのルート。
 
-現行実装では、このルートも `ItemConfirmPage` に `page="normal"` を渡しているため、本文のタイトルと実行処理は新規出品用となる。以下の `page="edit"` の説明は、専用部品が持つ更新用の分岐を示す。
+`ItemConfirmPage` に `page="edit"` を渡し、更新用のタイトルと商品更新処理を使用する。
 
 ---
 
@@ -50,7 +50,7 @@ flowchart TD
     Container --> Upload
 ```
 
-両ルートはセッション・所有者を確認し、`confirm/api/server.ts` の `fetchItemConfirmPage` で取得した `itemEditing` と `id`、`page` を渡す。現行コードでは両ルートとも `page="normal"` を指定している。`ItemConfirmPage` は `attributes.inventory?.current === 0` で `soldout` を算出し、両セクションへ渡す。
+両ルートはセッション・所有者を確認し、`confirm/api/server.ts` の `fetchItemConfirmPage` で取得した `itemEditing` と `id`、`page` を渡す。新規出品ルートは `page="normal"`、更新ルートは `page="edit"` を指定する。`ItemConfirmPage` は `attributes.inventory?.current === 0` で `soldout` を算出し、両セクションへ渡す。
 
 #### 動画セクション
 
@@ -72,7 +72,7 @@ flowchart TD
     Peek -.->|クリックでスクロール| Target
 ```
 
-子コンポーネントはすべて `/item/videoSection` の共有部品を使用する。`VideoElem` は `normalPage={false}`、`Summary` は `page="confirm"`・`itemId: null` で表示する。
+子コンポーネントはすべて `/item/videoSection` の共有部品を使用する。`VideoElem` の `normalPage` は省略し、`Summary` は `itemId: null` を渡して `normalPage` を省略する。再生数・閲覧加点APIは呼ばない。
 
 #### 商品セクション
 
@@ -102,7 +102,7 @@ flowchart TD
     Delivery --> Materials
 ```
 
-子コンポーネントはすべて `/item/itemSection` の共有部品を使用する。`ItemHeader` と `Detail` は `page="confirm"` で表示し、`Detail` の `itemId` は `null`。商品名・価格の表示は `ItemHeader` に委ねる。確認画面ではレコメンドマークを表示しない。共有部品内の表示条件の詳細は、配置先の文書で扱う。
+子コンポーネントはすべて `/item/itemSection` の共有部品を使用する。`ItemHeader` は `page="confirm"` で表示し、`Detail` は `itemId: null` を渡して `normalPage` を省略するため、閲覧加点APIを呼ばない。商品名・価格の表示は `ItemHeader` に委ねる。確認画面ではレコメンドマークを表示しない。共有部品内の表示条件の詳細は、配置先の文書で扱う。
 
 #### 出品・更新操作
 
@@ -155,7 +155,7 @@ flowchart TD
 - 動画URL・サムネイル、動画タイトル、商品概要、保存日時、動画概要を表示順に配置する。
 - 保存日時には `updatedAt` を使い、`formatRelativeTime` で整形する。
 - `summary` が `null` の場合は空文字を渡す。
-- 確認画面のため、動画には `normalPage={false}`、概要には `page="confirm"` と `itemId: null` を指定する。
+- 動画の `normalPage` は省略し、概要には `itemId: null` と `soldout` を渡す。概要の `normalPage` も省略する。
 
 ### ItemSection
 
@@ -164,7 +164,7 @@ flowchart TD
 - 商品画像、商品ヘッダー、バリエーション、商品説明、カテゴリー、配送情報を順に配置する。
 - `attributes.colorVariants` が1件以上ある場合だけ `VariantsList` を配置する。
 - 商品ヘッダーに `page="confirm"` を指定し、割引率・割引額が `null` の場合は `0` を渡す。
-- 商品説明に `page="confirm"` と `itemId: null` を指定する。説明やカテゴリー名がない場合は空文字、配送関連の選択肢名がない場合は `"-"` を渡す。
+- 商品説明に `itemId: null` と `soldout` を渡し、`normalPage` は省略する。説明やカテゴリー名がない場合は空文字、配送関連の選択肢名がない場合は `"-"` を渡す。
 
 ### UploadButton・出品確認ポップアップ
 
@@ -200,7 +200,22 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。URLの `id` 
 
 共通fetch関数は認証付きで取得し、401ではログイン画面へ、404ではNot Foundへ、それ以外のHTTPエラーでは例外を送出する。
 
-両ルートの `generateMetadata` は、別途 `/item/api/server.ts` の `fetchItemMetadata(id)` を利用する。タイトル・説明を設定し、`robots` は `index: false`・`follow: false` とする。
+### SSR メタデータ取得
+
+両ルートの `generateMetadata` はセッションを確認し、未ログインなら `/login` へ遷移する。その後、`confirm/api/server.ts` の `fetchItemConfirmPageMetadata(id)` を呼ぶ。
+
+| 項目 | 内容 |
+| --- | --- |
+| 共通関数 | `apiFetchServer` |
+| メソッド・パス | `GET /item-editing/${itemEditingId}/metadata` |
+| キャッシュ | `cache: "no-store"` |
+| 戻り値の型 | `{ itemEditing: { id: number; name: string \| null } }` |
+
+商品編集IDで取得する所有者限定のAPIを使用する。名前が空文字またはnullなら「商品名未入力」を使う。本文用の取得とは別に呼び出し、メタデータ処理内ではseller_idの照合を行わない。
+
+- 新規出品：タイトルは `${name} | 出品する商品の確認`、説明は `「${name}」のアップロード確認`。
+- 更新：タイトルは `${name} | 更新する商品の確認`、説明は `「${name}」の更新内容確認`。
+- 両ルートとも `robots` は `index: false`・`follow: false`。共通fetchの認証・HTTPエラー処理は本文取得と同じ。
 
 ### CSR 商品作成・更新API
 
