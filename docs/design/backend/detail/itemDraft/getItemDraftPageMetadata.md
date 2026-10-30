@@ -139,10 +139,7 @@ Modelにはstatus・論理削除列がないため条件を追加しない。既
 - getMyItemDraftPageMetadataのattributes:
 
 ```ts
-attributes: [
-    "id",
-    "name",
-];
+attributes: ["id", "name"];
 ```
 
 ## 6. トランザクション設計
