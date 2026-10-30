@@ -5,7 +5,7 @@ import { browserEditing, type BrowserEditing } from "./browserData";
 
 export const apiOrigin = process.env.ITEM_CONFIRM_BROWSER_API_URL ?? "http://127.0.0.1:4031";
 export const testSecret = process.env.ITEM_CONFIRM_TEST_SECRET ?? "item-confirm-browser-local-fixture-secret";
-export type Options = { status?: number; metadataStatus?: number; metadataName?: string | null; allowForeign?: boolean; delayMs?: number };
+export type Options = { status?: number; metadataStatus?: number; metadataName?: string | null; allowForeign?: boolean; hold?: boolean; delayMs?: number };
 export const setBrowserSession = async (context: BrowserContext, baseURL: string, owner = "7", expired = false) => {
     const accessToken = `${Buffer.from('{"alg":"none"}').toString("base64url")}.${Buffer.from(JSON.stringify({ id: Number(owner), exp: Math.floor(Date.now() / 1000) + (expired ? -3600 : 3600) })).toString("base64url")}.test`;
     const session = await encode({ secret: testSecret, token: { id: owner, accessToken, refreshToken: "test-refresh-token" }, maxAge: 3600 });

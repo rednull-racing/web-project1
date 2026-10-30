@@ -150,11 +150,12 @@ for (const mode of ["normal", "edit"] as const) {
     });
     for (const status of [401, 404, 500]) {
         for (const metadataOnly of [false, true]) {
-            test(`B-E02 ${mode} ${metadataOnly ? "metadata単独" : "本文"} GET${status}`, async ({ page, editing, putEditing }) => {
+            test(`B-E02 ${mode} ${metadataOnly ? "metadata単独" : "本文"} GET${status}`, async ({ page, editing, putEditing }, info) => {
                 await putEditing(editing, metadataOnly ? { metadataStatus: status } : { status });
                 const response = await page.goto(confirmPath(editing, mode));
                 if (status === 401) await expect(page).toHaveURL(/\/login(?:\?|$)/);
-                if (status === 404) expect(response?.status()).toBe(404);
+                if (status === 404) await expect(page.getByRole("heading", { name: "404", exact: true })).toBeVisible();
+                await info.attach("error-response-status", { body: JSON.stringify({ apiStatus: status, metadataOnly, documentStatus: response?.status() }), contentType: "application/json" });
                 await expect(page.getByRole("heading", { name: editing.name, exact: true })).toHaveCount(0);
                 await expect(page.getByRole("button", { name: "出品する", exact: true })).toHaveCount(0);
             });
@@ -175,8 +176,8 @@ for (const mode of ["normal", "edit"] as const) {
         expect(await page.evaluate(() => Reflect.get(window, "__confirmXss"))).toBeUndefined();
         expect(await page.locator("main script").count()).toBe(0);
     });
-    test(`B-E03 ${mode} 遅延GETと送信で成功遷移を先行しない`, async ({ page, editing, putEditing }) => {
-        await putEditing(editing, { delayMs: 300 });
+    test(`B-E03 ${mode} 遅延GETと送信で成功遷移を先行しない`, async ({ page, editing, putEditing, request }) => {
+        await putEditing(editing, { hold: true });
         let release!: () => void;
         const gate = new Promise<void>((resolve) => { release = resolve; });
         const requests: string[] = [];
@@ -186,7 +187,21 @@ for (const mode of ["normal", "edit"] as const) {
             await gate;
             await route.fulfill({ status: 500, json: { code: "TEST_END" } });
         });
-        await openConfirm(page, editing, mode);
+        let navigationFinished = false;
+        const navigation = page.goto(confirmPath(editing, mode)).then((response) => { navigationFinished = true; return response; });
+        try {
+            await expect.poll(async () => {
+                const state = await (await request.get(`${apiOrigin}/__test__/state`)).json();
+                return state.entries[editing.id].requests;
+            }).toBeGreaterThan(0);
+            expect(requests).toEqual([]);
+            // Locatorの自動navigation待ちでhold/releaseをデッドロックさせない。
+            expect(navigationFinished).toBe(false);
+        } finally {
+            await request.post(`${apiOrigin}/__test__/release/${editing.id}`);
+            await navigation;
+        }
+        await expect(page.getByRole("link", { name: "商品を編集する", exact: true })).toBeVisible();
         await openPopup(page);
         await popup(page).getByRole("checkbox").check();
         try {

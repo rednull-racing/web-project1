@@ -23,6 +23,16 @@ export const startConfirmApi = async (port = 4031) => {
             res.end(JSON.stringify({ entries: Object.fromEntries(entries), unknown }));
             return;
         }
+        const releaseMatch = /^\/__test__\/release\/(\d+)$/.exec(url.pathname);
+        if (releaseMatch && req.method === "POST") {
+            const entry = entries.get(releaseMatch[1]);
+            if (!entry) { res.statusCode = 404; res.end(JSON.stringify({ code: "NO_FIXTURE" })); return; }
+            entry.released = true;
+            for (const release of entry.waiters ?? []) release();
+            entry.waiters = [];
+            res.end(JSON.stringify({ ok: true }));
+            return;
+        }
         const match = /^\/item-editing\/(\d+)\/(confirm|metadata)$/.exec(url.pathname);
         if (match && req.method === "GET") {
             const entry = entries.get(match[1]);
@@ -34,6 +44,9 @@ export const startConfirmApi = async (port = 4031) => {
             let owner;
             try { owner = JSON.parse(Buffer.from(encoded ?? "", "base64url").toString()).id; } catch { owner = null; }
             const status = (metadata ? entry.metadataStatus : entry.status) ?? (Number(owner) === entry.editing.seller_id || entry.allowForeign ? 200 : 404);
+            if (entry.hold && !entry.released) await new Promise((resolve) => {
+                (entry.waiters ??= []).push(resolve);
+            });
             if (entry.delayMs) await new Promise((resolve) => setTimeout(resolve, entry.delayMs));
             res.statusCode = status;
             res.end(JSON.stringify(status === 200 ? {
