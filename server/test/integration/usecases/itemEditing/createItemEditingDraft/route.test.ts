@@ -192,3 +192,5 @@ describe("P1: ユーザー単位の回数・時間窓境界", () => {
 });
 
 vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: vi.fn() }));

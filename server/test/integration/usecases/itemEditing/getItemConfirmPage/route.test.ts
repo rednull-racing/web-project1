@@ -107,3 +107,5 @@ describe("P1 実制限とparserの優先順位", () => {
         expect((await get()).status).toBe(429);
     });
 });
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: vi.fn() }));

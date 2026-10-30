@@ -196,3 +196,5 @@ it.each([2147483646, 2147483647])("AF-ID02: INTEGER上限付近%sはHTTPでも�
 });
 
 vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: vi.fn() }));

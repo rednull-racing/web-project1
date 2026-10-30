@@ -11,6 +11,7 @@ vi.mock("../../../../../src/controllers/categories/categories.js", () => ({
 }));
 vi.mock("../../../../../src/controllers/itemEditing/itemEditing.js", () => ({
     getItemConfirmPageController: vi.fn(),
+    getItemConfirmPageMetadataController: vi.fn(),
     convertItemEditingVideoController: mocks.reached,
     createItemEditingController: mocks.reached,
     updateItemEditingConfirmController: mocks.reached,

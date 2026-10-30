@@ -78,3 +78,5 @@ describe("P0/P1 確認ページcontrollerの入力・応答・停止位置", () 
         expect(json).toHaveBeenCalledOnce();
     });
 });
+
+vi.mock("../../../usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: vi.fn() }));

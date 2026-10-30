@@ -78,3 +78,5 @@ describe("P0/P1: controllerの検証済み入力・成功応答・例外伝播",
 });
 
 vi.mock("../../../usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));
+
+vi.mock("../../../usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: vi.fn() }));
