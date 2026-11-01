@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../../../errors.js";
 import type { getMyItemDraftPageMetadata } from "../../../services/itemDraft/query.js";
-import { deferred, makeMetadataRow, makeMetadata } from "../../../../test/fixtures/itemDraft/getItemDraftPageMetadata/fixtures.js";
+import {
+    deferred,
+    makeMetadataRow,
+    makeMetadata,
+} from "../../../../test/fixtures/itemDraft/getItemDraftPageMetadata/fixtures.js";
 const mocks = vi.hoisted(() => ({ get: vi.fn<typeof getMyItemDraftPageMetadata>() }));
 vi.mock("../../../services/itemDraft/query.js", () => ({ getMyItemDraftPageMetadata: mocks.get }));
 import { getItemDraftPageMetadataUseCase } from "../getItemDraftPageMetadata.js";
@@ -57,7 +61,9 @@ describe("P0/P1/P2 getItemDraftPageMetadata usecase", () => {
         mocks.get.mockReturnValueOnce(gate.promise).mockResolvedValueOnce(b);
         const pending = run();
         try {
-            expect(await getItemDraftPageMetadataUseCase({ itemDraftId: 202, userId: 8 })).toEqual(makeMetadata(202, "別の下書き"));
+            expect(await getItemDraftPageMetadataUseCase({ itemDraftId: 202, userId: 8 })).toEqual(
+                makeMetadata(202, "別の下書き"),
+            );
             expect(mocks.get).toHaveBeenNthCalledWith(2, { itemDraftId: 202, userId: 8 });
         } finally {
             gate.resolve(a);

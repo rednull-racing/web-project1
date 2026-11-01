@@ -149,4 +149,6 @@ describe("P0/P1: 実Routerの到達性と優先順位", () => {
     });
 });
 
-vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({ getItemDraftPageMetadataUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({
+    getItemDraftPageMetadataUseCase: vi.fn(),
+}));

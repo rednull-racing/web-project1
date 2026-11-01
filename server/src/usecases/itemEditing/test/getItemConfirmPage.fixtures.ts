@@ -2,7 +2,10 @@ import type { ItemEditing } from "../../../models/item_editing.js";
 
 // 単体では検索結果の受渡しのみを扱い、実ModelのJSON化は結合テストで確認する。
 export const makeConfirmRow = (id = 123): ItemEditing => {
-    const row: Pick<ItemEditing, "id" | "seller_id" | "item_id" | "duration" | "name" | "image_url" | "attributes" | "updatedAt"> = {
+    const row: Pick<
+        ItemEditing,
+        "id" | "seller_id" | "item_id" | "duration" | "name" | "image_url" | "attributes" | "updatedAt"
+    > = {
         id,
         seller_id: 7,
         item_id: null,
@@ -18,6 +21,9 @@ export const makeConfirmRow = (id = 123): ItemEditing => {
 export const deferred = <T>() => {
     let resolve!: (value: T) => void;
     let reject!: (reason: unknown) => void;
-    const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
     return { promise, resolve, reject };
 };

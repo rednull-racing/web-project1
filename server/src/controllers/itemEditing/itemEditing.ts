@@ -138,7 +138,11 @@ export const getItemConfirmPageController = async (req: Request, res: Response, 
 // GET /item-editing/:id/metadata
 // summary: 編集セッション確認 メタデータ取得
 // page: /item/confirm/[id]・/item/confirm/edit/[id]
-export const getItemConfirmPageMetadataController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getItemConfirmPageMetadataController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
     try {
         const userId = req.user!.id;
         const { id: itemEditingId } = req.validatedParams as { id: number };

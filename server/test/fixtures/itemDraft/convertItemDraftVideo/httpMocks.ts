@@ -15,4 +15,6 @@ vi.mock("../../../../src/usecases/itemDraft/deleteItemDraft.js", () => ({
 }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 
-vi.mock("../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({ getItemDraftPageMetadataUseCase: vi.fn() }));
+vi.mock("../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({
+    getItemDraftPageMetadataUseCase: vi.fn(),
+}));

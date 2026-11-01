@@ -10,7 +10,10 @@ export const startConfirmApi = async (port = 4031) => {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type");
         res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
-        if (req.method === "OPTIONS") { res.end(); return; }
+        if (req.method === "OPTIONS") {
+            res.end();
+            return;
+        }
         if (url.pathname === "/__test__/editing" && req.method === "POST") {
             const chunks = [];
             for await (const chunk of req) chunks.push(Buffer.from(chunk));
@@ -26,7 +29,11 @@ export const startConfirmApi = async (port = 4031) => {
         const releaseMatch = /^\/__test__\/release\/(\d+)$/.exec(url.pathname);
         if (releaseMatch && req.method === "POST") {
             const entry = entries.get(releaseMatch[1]);
-            if (!entry) { res.statusCode = 404; res.end(JSON.stringify({ code: "NO_FIXTURE" })); return; }
+            if (!entry) {
+                res.statusCode = 404;
+                res.end(JSON.stringify({ code: "NO_FIXTURE" }));
+                return;
+            }
             entry.released = true;
             for (const release of entry.waiters ?? []) release();
             entry.waiters = [];
@@ -36,25 +43,46 @@ export const startConfirmApi = async (port = 4031) => {
         const match = /^\/item-editing\/(\d+)\/(confirm|metadata)$/.exec(url.pathname);
         if (match && req.method === "GET") {
             const entry = entries.get(match[1]);
-            if (!entry) { res.statusCode = 404; res.end(JSON.stringify({ code: "ITEM_EDITING_NOT_FOUND" })); return; }
+            if (!entry) {
+                res.statusCode = 404;
+                res.end(JSON.stringify({ code: "ITEM_EDITING_NOT_FOUND" }));
+                return;
+            }
             const metadata = match[2] === "metadata";
             if (metadata) entry.metadataRequests++;
             else entry.requests++;
             const encoded = req.headers.authorization?.split(".")[1];
             let owner;
-            try { owner = JSON.parse(Buffer.from(encoded ?? "", "base64url").toString()).id; } catch { owner = null; }
-            const status = (metadata ? entry.metadataStatus : entry.status) ?? (Number(owner) === entry.editing.seller_id || entry.allowForeign ? 200 : 404);
-            if (entry.hold && !entry.released) await new Promise((resolve) => {
-                (entry.waiters ??= []).push(resolve);
-            });
+            try {
+                owner = JSON.parse(Buffer.from(encoded ?? "", "base64url").toString()).id;
+            } catch {
+                owner = null;
+            }
+            const status =
+                (metadata ? entry.metadataStatus : entry.status) ??
+                (Number(owner) === entry.editing.seller_id || entry.allowForeign ? 200 : 404);
+            if (entry.hold && !entry.released)
+                await new Promise((resolve) => {
+                    (entry.waiters ??= []).push(resolve);
+                });
             if (entry.delayMs) await new Promise((resolve) => setTimeout(resolve, entry.delayMs));
             res.statusCode = status;
-            res.end(JSON.stringify(status === 200 ? {
-                itemEditing: metadata ? {
-                    id: entry.editing.id,
-                    name: Object.hasOwn(entry, "metadataName") ? entry.metadataName : entry.editing.name,
-                } : entry.editing,
-            } : { code: "TEST_ERROR" }));
+            res.end(
+                JSON.stringify(
+                    status === 200
+                        ? {
+                              itemEditing: metadata
+                                  ? {
+                                        id: entry.editing.id,
+                                        name: Object.hasOwn(entry, "metadataName")
+                                            ? entry.metadataName
+                                            : entry.editing.name,
+                                    }
+                                  : entry.editing,
+                          }
+                        : { code: "TEST_ERROR" },
+                ),
+            );
             return;
         }
         // ページ外のlayout等からの通信は記録する。確認APIの予期しない呼出しを成功扱いしない。
@@ -62,8 +90,13 @@ export const startConfirmApi = async (port = 4031) => {
         res.statusCode = 501;
         res.end(JSON.stringify({ code: "UNEXPECTED_TEST_API" }));
     });
-    await new Promise((resolve, reject) => { server.once("error", reject); server.listen(port, "127.0.0.1", resolve); });
-    return { close: () => new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve())) };
+    await new Promise((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(port, "127.0.0.1", resolve);
+    });
+    return {
+        close: () => new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve()))),
+    };
 };
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
     await startConfirmApi(Number(process.env.ITEM_CONFIRM_BROWSER_API_PORT ?? 4031));

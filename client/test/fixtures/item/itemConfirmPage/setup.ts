@@ -35,9 +35,7 @@ vi.mock("@/app/item/videoSection/videoTitle", () => ({
     VideoTitle: ({ title }: { title: string }) => createElement("h3", null, title),
 }));
 vi.mock("@/components", async () => ({
-    Back: (
-        await vi.importActual<typeof import("@/components/title-back/back")>("@/components/title-back/back")
-    ).Back,
+    Back: (await vi.importActual<typeof import("@/components/title-back/back")>("@/components/title-back/back")).Back,
     Container: (
         await vi.importActual<typeof import("@/components/container/container")>("@/components/container/container")
     ).Container,

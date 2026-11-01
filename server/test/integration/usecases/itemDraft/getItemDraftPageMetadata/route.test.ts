@@ -17,9 +17,13 @@ vi.mock("../../../../../src/usecases/itemDraft/convertItemDraftVideo.js", () => 
     convertItemDraftVideoUseCase: vi.fn(),
 }));
 vi.mock("../../../../../src/usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({ getItemDraftPageMetadataUseCase: mocks.get }));
+vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({
+    getItemDraftPageMetadataUseCase: mocks.get,
+}));
 vi.mock("../../../../../src/usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
-vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPage.js", () => ({ getItemDraftPageUseCase: vi.fn(async () => ({ id: 101, name: "下書き" })) }));
+vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPage.js", () => ({
+    getItemDraftPageUseCase: vi.fn(async () => ({ id: 101, name: "下書き" })),
+}));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: ReturnType<typeof express>, secret: string;
 let ErrorClass: typeof import("../../../../../src/errors.js").AppError;
@@ -271,9 +275,11 @@ describe("P0/P1/P2: 実MemoryStoreのユーザー別レート制限", () => {
         }
     });
     it("L03: parser拒否は枠を消費しない", async () => {
-        const result = await request(app).get("/api/item-draft/101/metadata")
+        const result = await request(app)
+            .get("/api/item-draft/101/metadata")
             .set("Authorization", `Bearer ${token()}`)
-            .set("Content-Type", "application/json").send('{"broken":');
+            .set("Content-Type", "application/json")
+            .send('{"broken":');
         expect(result.status).toBe(400);
         await exhaust();
         expect((await get()).status).toBe(429);

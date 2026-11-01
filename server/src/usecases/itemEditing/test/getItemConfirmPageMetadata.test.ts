@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../../../errors.js";
 import type { getMyItemConfirmPageMetadata } from "../../../services/itemEditing/query.js";
-import { deferred, makeMetadataRow, makeMetadata } from "../../../../test/fixtures/itemEditing/getItemConfirmPageMetadata/fixtures.js";
+import {
+    deferred,
+    makeMetadataRow,
+    makeMetadata,
+} from "../../../../test/fixtures/itemEditing/getItemConfirmPageMetadata/fixtures.js";
 const mocks = vi.hoisted(() => ({ get: vi.fn<typeof getMyItemConfirmPageMetadata>() }));
 vi.mock("../../../services/itemEditing/query.js", () => ({ getMyItemConfirmPageMetadata: mocks.get }));
 import { getItemConfirmPageMetadataUseCase } from "../getItemConfirmPageMetadata.js";
@@ -57,7 +61,9 @@ describe("P0/P1/P2 getItemConfirmPageMetadata usecase", () => {
         mocks.get.mockReturnValueOnce(gate.promise).mockResolvedValueOnce(b);
         const pending = run();
         try {
-            expect(await getItemConfirmPageMetadataUseCase({ itemEditingId: 202, userId: 8 })).toEqual(makeMetadata(202, "別の編集セッション"));
+            expect(await getItemConfirmPageMetadataUseCase({ itemEditingId: 202, userId: 8 })).toEqual(
+                makeMetadata(202, "別の編集セッション"),
+            );
             expect(mocks.get).toHaveBeenNthCalledWith(2, { itemEditingId: 202, userId: 8 });
         } finally {
             gate.resolve(a);

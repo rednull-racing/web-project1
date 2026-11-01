@@ -11,13 +11,13 @@ route→実認証→専用50回/分limiter→idParamSchema→controller→usecas
 
 ## 最終実行結果と対応
 
-| ファイル | ケース | 件数 | 結果・保証境界 |
-| --- | --- | --- | --- |
-| src/services/itemEditing/test/getItemConfirmPage.test.ts | S01–S04 | 4 | 成功。実service、Modelモック。所有者where・公開列・include完全一致、null/例外/保留 |
-| src/usecases/itemEditing/test/getItemConfirmPage.test.ts | U01–U05（U04を2展開） | 6 | 成功。serviceモック。引渡し・参照・404・例外・待機・逆順完了 |
-| src/controllers/itemEditing/test/getItemConfirmPage.test.ts | C01–C04（C02/C03を各2展開） | 6 | 成功。usecaseモック。認証/検証済みID採用、偽装無視、応答待機、next、送信例外 |
-| test/integration/usecases/itemEditing/getItemConfirmPage/route.test.ts | H01–H08（入力等を展開） | 30 | 成功。最小Express＋実parser/Router/JWT/schema/limiter/errorHandler、usecaseモック |
-| test/integration/database/itemEditing/getItemConfirmPage/database.test.ts | DB01–DB05（DB03を3展開） | 7 | 成功。実usecase/service/Model/DB。全関連・null・空関連/画像・0・認可・再送/並行・不変 |
+| ファイル                                                                  | ケース                      | 件数 | 結果・保証境界                                                                        |
+| ------------------------------------------------------------------------- | --------------------------- | ---- | ------------------------------------------------------------------------------------- |
+| src/services/itemEditing/test/getItemConfirmPage.test.ts                  | S01–S04                     | 4    | 成功。実service、Modelモック。所有者where・公開列・include完全一致、null/例外/保留    |
+| src/usecases/itemEditing/test/getItemConfirmPage.test.ts                  | U01–U05（U04を2展開）       | 6    | 成功。serviceモック。引渡し・参照・404・例外・待機・逆順完了                          |
+| src/controllers/itemEditing/test/getItemConfirmPage.test.ts               | C01–C04（C02/C03を各2展開） | 6    | 成功。usecaseモック。認証/検証済みID採用、偽装無視、応答待機、next、送信例外          |
+| test/integration/usecases/itemEditing/getItemConfirmPage/route.test.ts    | H01–H08（入力等を展開）     | 30   | 成功。最小Express＋実parser/Router/JWT/schema/limiter/errorHandler、usecaseモック     |
+| test/integration/database/itemEditing/getItemConfirmPage/database.test.ts | DB01–DB05（DB03を3展開）    | 7    | 成功。実usecase/service/Model/DB。全関連・null・空関連/画像・0・認可・再送/並行・不変 |
 
 新規4ファイル46件の最終コマンド（11:43 JST）、別実行のDB1ファイル7件（11:42 JST）。重複する再実行を件数へ加算していない。
 
@@ -50,7 +50,7 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-全静的検査exit 0。本番typecheckはtestを除外するため、テスト用tsconfigも別実行した。通常lint対象外の変更test/**/*.ts 10ファイルにはESLint Node APIでoverrideConfigFile:true、typescript-eslint.configのfiles:['**/*.ts']、@eslint/js recommended＋typescript-eslint recommendedを適用。対象は新規getItemConfirmPageのfixture/HTTP/DB計5TSと変更した既存fixture/HTTP計5TS。errors:0/warnings:0。共有設定の変更なし。
+全静的検査exit 0。本番typecheckはtestを除外するため、テスト用tsconfigも別実行した。通常lint対象外の変更test/**/\*.ts 10ファイルにはESLint Node APIでoverrideConfigFile:true、typescript-eslint.configのfiles:['**/\*.ts']、@eslint/js recommended＋typescript-eslint recommendedを適用。対象は新規getItemConfirmPageのfixture/HTTP/DB計5TSと変更した既存fixture/HTTP計5TS。errors:0/warnings:0。共有設定の変更なし。
 
 ## 初回・修正履歴
 

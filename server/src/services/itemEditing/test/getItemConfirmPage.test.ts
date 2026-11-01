@@ -3,11 +3,22 @@ import { deferred, makeConfirmRow } from "../../../usecases/itemEditing/test/get
 
 const mocks = vi.hoisted(() => ({ findOne: vi.fn() }));
 vi.mock("../../../models/index.js", () => ({
-    ItemEditing: { findOne: mocks.findOne }, Categories: { name: "CategoryModel" }, Brands: { name: "BrandModel" },
-    ItemConditionOption: { name: "ConditionModel" }, ShippingDayOption: { name: "DayModel" },
-    ShippingServiceOption: { name: "ServiceModel" }, TodouhukenOption: { name: "PlaceModel" },
+    ItemEditing: { findOne: mocks.findOne },
+    Categories: { name: "CategoryModel" },
+    Brands: { name: "BrandModel" },
+    ItemConditionOption: { name: "ConditionModel" },
+    ShippingDayOption: { name: "DayModel" },
+    ShippingServiceOption: { name: "ServiceModel" },
+    TodouhukenOption: { name: "PlaceModel" },
 }));
-import { Categories, Brands, ItemConditionOption, ShippingDayOption, ShippingServiceOption, TodouhukenOption } from "../../../models/index.js";
+import {
+    Categories,
+    Brands,
+    ItemConditionOption,
+    ShippingDayOption,
+    ShippingServiceOption,
+    TodouhukenOption,
+} from "../../../models/index.js";
 import { getMyItemConfirmPage } from "../query.js";
 
 beforeEach(() => vi.resetAllMocks());
@@ -18,12 +29,44 @@ describe("P0/P1 所有者限定・関連付き参照service", () => {
         expect(await getMyItemConfirmPage({ userId: 7, itemEditingId: 123 })).toBe(row);
         expect(mocks.findOne).toHaveBeenCalledExactlyOnceWith({
             where: { id: 123, seller_id: 7 },
-            attributes: ["id", "status", "item_id", "seller_id", "name", "detail", "price", "image_url", "first_image_url", "gender_type", "age_type", "recommend", "attributes", "thumbnail_url", "title", "summary", "duration", "original_url", "converted_url", "before_price", "discount_rate", "discount_amount", "sale_flag", "shipping_service_free_text", "updatedAt"],
+            attributes: [
+                "id",
+                "status",
+                "item_id",
+                "seller_id",
+                "name",
+                "detail",
+                "price",
+                "image_url",
+                "first_image_url",
+                "gender_type",
+                "age_type",
+                "recommend",
+                "attributes",
+                "thumbnail_url",
+                "title",
+                "summary",
+                "duration",
+                "original_url",
+                "converted_url",
+                "before_price",
+                "discount_rate",
+                "discount_amount",
+                "sale_flag",
+                "shipping_service_free_text",
+                "updatedAt",
+            ],
             include: [
-                { model: Categories, as: "Category", attributes: ["id", "name"], required: false, include: [
-                    { model: Categories, attributes: ["id", "name"], as: "children", required: false },
-                    { model: Categories, attributes: ["id", "name"], as: "parent", required: false },
-                ] },
+                {
+                    model: Categories,
+                    as: "Category",
+                    attributes: ["id", "name"],
+                    required: false,
+                    include: [
+                        { model: Categories, attributes: ["id", "name"], as: "children", required: false },
+                        { model: Categories, attributes: ["id", "name"], as: "parent", required: false },
+                    ],
+                },
                 { model: Brands, as: "Brand", attributes: ["id", "name"], required: false },
                 { model: ItemConditionOption, attributes: ["id", "name"], required: false },
                 { model: ShippingDayOption, attributes: ["id", "name"], required: false },
@@ -43,13 +86,22 @@ describe("P0/P1 所有者限定・関連付き参照service", () => {
         expect(mocks.findOne).toHaveBeenCalledOnce();
     });
     it("S04: findOne保留中は取得結果を確定しない", async () => {
-        const gate = deferred<ReturnType<typeof makeConfirmRow>>(), row = makeConfirmRow();
+        const gate = deferred<ReturnType<typeof makeConfirmRow>>(),
+            row = makeConfirmRow();
         mocks.findOne.mockReturnValue(gate.promise);
         let done = false;
-        const pending = getMyItemConfirmPage({ userId: 7, itemEditingId: 123 }).then(value => { done = true; return value; });
+        const pending = getMyItemConfirmPage({ userId: 7, itemEditingId: 123 }).then((value) => {
+            done = true;
+            return value;
+        });
         const settled = Promise.allSettled([pending]);
-        try { await Promise.resolve(); expect(done).toBe(false); }
-        finally { gate.resolve(row); await settled; }
+        try {
+            await Promise.resolve();
+            expect(done).toBe(false);
+        } finally {
+            gate.resolve(row);
+            await settled;
+        }
         expect(await pending).toBe(row);
     });
 });

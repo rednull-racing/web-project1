@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { seed, snapshot, run, ItemEditing } from "../../../../fixtures/itemEditing/getItemConfirmPageMetadata/databaseFixtures.js";
+import {
+    seed,
+    snapshot,
+    run,
+    ItemEditing,
+} from "../../../../fixtures/itemEditing/getItemConfirmPageMetadata/databaseFixtures.js";
 import { AppError } from "../../../../../src/errors.js";
 
 const assertNotFound = async (pending: Promise<unknown>) => {
@@ -8,14 +13,17 @@ const assertNotFound = async (pending: Promise<unknown>) => {
 };
 
 describe("P0/P2 getItemConfirmPageMetadata 実DB・所有者限定・参照不変", () => {
-    it.each(["normal", "edit"] as const)("D01 status=%sのid/nameだけを返し非対象行・関連を変更しない", async (status) => {
-        const f = await seed();
-        const target = status === "normal" ? f.editing : f.empty;
-        const name = status === "normal" ? "確認商品" : null;
-        const before = await snapshot();
-        expect(await run(f, target.id)).toEqual({ id: target.id, name });
-        expect(await snapshot()).toEqual(before);
-    });
+    it.each(["normal", "edit"] as const)(
+        "D01 status=%sのid/nameだけを返し非対象行・関連を変更しない",
+        async (status) => {
+            const f = await seed();
+            const target = status === "normal" ? f.editing : f.empty;
+            const name = status === "normal" ? "確認商品" : null;
+            const before = await snapshot();
+            expect(await run(f, target.id)).toEqual({ id: target.id, name });
+            expect(await snapshot()).toEqual(before);
+        },
+    );
 
     it.each([null, "", "  ", "名".repeat(255)])("D02 name=%jを保存値のまま保持する", async (name) => {
         const f = await seed();
@@ -45,9 +53,7 @@ describe("P0/P2 getItemConfirmPageMetadata 実DB・所有者限定・参照不�
         const f = await seed();
         const before = await snapshot();
         // 読取の並行実行を確認し、更新との直列化や行ロックを保証しない。
-        const results = await Promise.allSettled([
-            run(f), run(f, f.empty.id), run(f, f.otherEditing.id, f.other.id),
-        ]);
+        const results = await Promise.allSettled([run(f), run(f, f.empty.id), run(f, f.otherEditing.id, f.other.id)]);
         expect(results).toEqual([
             { status: "fulfilled", value: { id: f.editing.id, name: "確認商品" } },
             { status: "fulfilled", value: { id: f.empty.id, name: null } },

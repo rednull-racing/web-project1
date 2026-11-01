@@ -5,17 +5,29 @@ import { deferred, makeConfirmRow } from "../../../usecases/itemEditing/test/get
 
 const mocks = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("../../../usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: mocks.get }));
-vi.mock("../../../usecases/itemEditing/convertItemEditingVideo.js", () => ({ convertItemEditingVideoUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: vi.fn() }));
 vi.mock("../../../usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
 vi.mock("../../../usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
-vi.mock("../../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
+    createItemEditingCopyUseCase: vi.fn(),
+}));
 import { getItemConfirmPageController } from "../itemEditing.js";
 
-const request = () => ({ user: { id: 7 }, validatedParams: { id: 123 }, params: { id: "999" },
-    body: { userId: 8, seller_id: 8, itemEditingId: 999 }, query: { userId: "8", seller_id: "8" } }) as unknown as Request;
+const request = () =>
+    ({
+        user: { id: 7 },
+        validatedParams: { id: 123 },
+        params: { id: "999" },
+        body: { userId: 8, seller_id: 8, itemEditingId: 999 },
+        query: { userId: "8", seller_id: "8" },
+    }) as unknown as Request;
 const response = () => {
-    const status = vi.fn(), json = vi.fn(), next = vi.fn();
+    const status = vi.fn(),
+        json = vi.fn(),
+        next = vi.fn();
     const res = { status, json } as unknown as Response;
     status.mockReturnValue(res);
     return { status, json, next, res };
@@ -33,17 +45,22 @@ describe("P0/P1 確認ページcontrollerの入力・応答・停止位置", () 
         expect(json.mock.calls[0][0].itemEditing).toBe(row);
         expect(next).not.toHaveBeenCalled();
     });
-    it.each([new AppError("ITEM_EDITING_NOT_FOUND", 404), new Error("DB failure")])("C02: %sをnextへ同じ参照で渡し成功応答を送らない", async (error) => {
-        mocks.get.mockRejectedValue(error);
-        const { res, status, json, next } = response();
-        await getItemConfirmPageController(request(), res, next);
-        expect(next).toHaveBeenCalledExactlyOnceWith(error);
-        expect(next.mock.calls[0][0]).toBe(error);
-        expect(status).not.toHaveBeenCalled();
-        expect(json).not.toHaveBeenCalled();
-    });
+    it.each([new AppError("ITEM_EDITING_NOT_FOUND", 404), new Error("DB failure")])(
+        "C02: %sをnextへ同じ参照で渡し成功応答を送らない",
+        async (error) => {
+            mocks.get.mockRejectedValue(error);
+            const { res, status, json, next } = response();
+            await getItemConfirmPageController(request(), res, next);
+            expect(next).toHaveBeenCalledExactlyOnceWith(error);
+            expect(next.mock.calls[0][0]).toBe(error);
+            expect(status).not.toHaveBeenCalled();
+            expect(json).not.toHaveBeenCalled();
+        },
+    );
     it.each([false, true])("C03: usecase保留中に応答せず解放後に応答/伝播する reject=%s", async (fail) => {
-        const gate = deferred<ReturnType<typeof makeConfirmRow>>(), row = makeConfirmRow(), error = new Error("delayed failure");
+        const gate = deferred<ReturnType<typeof makeConfirmRow>>(),
+            row = makeConfirmRow(),
+            error = new Error("delayed failure");
         mocks.get.mockReturnValue(gate.promise);
         const { res, status, json, next } = response();
         const pending = getItemConfirmPageController(request(), res, next);
@@ -54,7 +71,8 @@ describe("P0/P1 確認ページcontrollerの入力・応答・停止位置", () 
             expect(json).not.toHaveBeenCalled();
             expect(next).not.toHaveBeenCalled();
         } finally {
-            if (fail) gate.reject(error); else gate.resolve(row);
+            if (fail) gate.reject(error);
+            else gate.resolve(row);
             await settled;
         }
         if (fail) {
@@ -69,8 +87,11 @@ describe("P0/P1 確認ページcontrollerの入力・応答・停止位置", () 
     });
     it("C04: JSON送信例外をnextへ渡しusecaseを再実行しない", async () => {
         mocks.get.mockResolvedValue(makeConfirmRow());
-        const { res, status, json, next } = response(), error = new Error("send failure");
-        json.mockImplementation(() => { throw error; });
+        const { res, status, json, next } = response(),
+            error = new Error("send failure");
+        json.mockImplementation(() => {
+            throw error;
+        });
         await getItemConfirmPageController(request(), res, next);
         expect(next).toHaveBeenCalledExactlyOnceWith(error);
         expect(mocks.get).toHaveBeenCalledOnce();
@@ -79,4 +100,6 @@ describe("P0/P1 確認ページcontrollerの入力・応答・停止位置", () 
     });
 });
 
-vi.mock("../../../usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({
+    getItemConfirmPageMetadataUseCase: vi.fn(),
+}));

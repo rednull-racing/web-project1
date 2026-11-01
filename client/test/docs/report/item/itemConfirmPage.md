@@ -45,7 +45,6 @@ npm run typecheck
 
 今回の変更ファイルに限定した既存ESLintによる検査も実施し、通常lint全体の結果とは区別する。設計書・ページAGENTSも現行の排他/modal契約に更新した。
 
-
 ## 2026-10-30 初回検証履歴（F1・F2修正前）
 
 [テスト設計書](../../architecture/item/itemConfirmPage.md)に基づき、新規出品・更新の2ページを検証した。対象の本番コード・共有設定は変更していない。テストの不備はテスト側で修正し、本番の失敗や仕様未確定の観測を分けて記録する。以下のパスは特記しない限りclient/基準。E2Eのtest/はリポジトリルート基準。
@@ -56,44 +55,44 @@ npm run typecheck
 
 ### 単体のファイル別結果
 
-| ファイル（client/基準） | 成功/全件 |
-| --- | --- |
-| `src/lib/test/formatRelativeTime.test.ts` | 8/8 |
-| `src/lib/test/sleep.test.ts` | 9/9 |
-| `src/components/container/test/container.test.tsx` | 2/2 |
-| `src/components/terms/test/termsList.test.tsx` | 1/1 |
-| `src/components/title-back/test/back.test.tsx` | 1/1 |
-| `src/lib/api/test/confirmClient.test.ts` | 7/7 |
-| `src/lib/api/test/confirmServer.test.ts` | 9/9 |
-| `src/app/item/confirm/test/itemConfirmPage.test.tsx` | 5/5 |
-| `src/app/item/confirm/test/itemSection.test.tsx` | 5/5 |
-| `src/app/item/confirm/test/title.test.tsx` | 2/2 |
-| `src/app/item/confirm/test/uploadButton.test.tsx` | 8/8 |
-| `src/app/item/confirm/test/videoSection.test.tsx` | 2/2 |
-| `src/app/item/itemSection/test/categoryText.test.tsx` | 3/3 |
-| `src/app/item/itemSection/test/confirmContract.test.tsx` | 32/32 |
-| `src/app/item/itemSection/test/confirmDetail.test.tsx` | 3/3 |
-| `src/app/item/itemSection/test/deliverySection.test.tsx` | 15/15 |
-| `src/app/item/itemSection/test/detail.test.tsx` | 4/4 |
-| `src/app/item/itemSection/test/itemHeader.test.tsx` | 8/8 |
-| `src/app/item/itemSection/test/itemName.test.tsx` | 3/3 |
-| `src/app/item/itemSection/test/slideshow.test.tsx` | 6/6 |
-| `src/app/item/itemSection/test/variantsList.test.tsx` | 19/19 |
-| `src/app/item/videoSection/test/confirmPreview.test.tsx` | 4/4 |
-| `src/app/item/videoSection/test/itemPeek.test.tsx` | 18/18 |
-| `src/app/item/videoSection/test/summary.test.tsx` | 4/4 |
-| `src/app/item/videoSection/test/videoElem.test.tsx` | 8/8 |
-| `src/app/item/confirm/api/test/client.test.ts` | 18/18 |
-| `src/app/item/confirm/api/test/server.test.ts` | 7/7 |
+| ファイル（client/基準）                                  | 成功/全件 |
+| -------------------------------------------------------- | --------- |
+| `src/lib/test/formatRelativeTime.test.ts`                | 8/8       |
+| `src/lib/test/sleep.test.ts`                             | 9/9       |
+| `src/components/container/test/container.test.tsx`       | 2/2       |
+| `src/components/terms/test/termsList.test.tsx`           | 1/1       |
+| `src/components/title-back/test/back.test.tsx`           | 1/1       |
+| `src/lib/api/test/confirmClient.test.ts`                 | 7/7       |
+| `src/lib/api/test/confirmServer.test.ts`                 | 9/9       |
+| `src/app/item/confirm/test/itemConfirmPage.test.tsx`     | 5/5       |
+| `src/app/item/confirm/test/itemSection.test.tsx`         | 5/5       |
+| `src/app/item/confirm/test/title.test.tsx`               | 2/2       |
+| `src/app/item/confirm/test/uploadButton.test.tsx`        | 8/8       |
+| `src/app/item/confirm/test/videoSection.test.tsx`        | 2/2       |
+| `src/app/item/itemSection/test/categoryText.test.tsx`    | 3/3       |
+| `src/app/item/itemSection/test/confirmContract.test.tsx` | 32/32     |
+| `src/app/item/itemSection/test/confirmDetail.test.tsx`   | 3/3       |
+| `src/app/item/itemSection/test/deliverySection.test.tsx` | 15/15     |
+| `src/app/item/itemSection/test/detail.test.tsx`          | 4/4       |
+| `src/app/item/itemSection/test/itemHeader.test.tsx`      | 8/8       |
+| `src/app/item/itemSection/test/itemName.test.tsx`        | 3/3       |
+| `src/app/item/itemSection/test/slideshow.test.tsx`       | 6/6       |
+| `src/app/item/itemSection/test/variantsList.test.tsx`    | 19/19     |
+| `src/app/item/videoSection/test/confirmPreview.test.tsx` | 4/4       |
+| `src/app/item/videoSection/test/itemPeek.test.tsx`       | 18/18     |
+| `src/app/item/videoSection/test/summary.test.tsx`        | 4/4       |
+| `src/app/item/videoSection/test/videoElem.test.tsx`      | 8/8       |
+| `src/app/item/confirm/api/test/client.test.ts`           | 18/18     |
+| `src/app/item/confirm/api/test/server.test.ts`           | 7/7       |
 
 ### DOM結合のファイル別結果
 
-| ファイル末尾 | 成功/全件 |
-| --- | --- |
-| `uploadButton/uploadButton.test.tsx` | 24/24 |
-| `itemSection/itemSection.test.tsx` | 3/3 |
-| `videoSection/videoSection.test.tsx` | 3/3 |
-| ページ `confirm.test.tsx` | 4/4 |
+| ファイル末尾                         | 成功/全件 |
+| ------------------------------------ | --------- |
+| `uploadButton/uploadButton.test.tsx` | 24/24     |
+| `itemSection/itemSection.test.tsx`   | 3/3       |
+| `videoSection/videoSection.test.tsx` | 3/3       |
+| ページ `confirm.test.tsx`            | 4/4       |
 
 集計元は一時成果物 `/tmp/item-confirm-unit-integrated.json` と `/tmp/item-confirm-integration.json`。単体は新規ケースと既存共有回帰の合計で、設計IDの数ではない。
 
@@ -101,16 +100,16 @@ npm run typecheck
 
 1 specファイル・44条件×3ブラウザーの**132件成功**（観測12件を含む）、失敗・skip・flakyなし。集計は `/tmp/item-confirm-browser-complete.json` の動画再生6件を除いた126件成功と、修正後の動画6件 `/tmp/item-confirm-browser-media-final.json` の成功をID・project名で置換照合した。旧版の動画4件成功・2件失敗を重複加算しない。
 
-| 設計ID | 最終成功/全件 | 内容 |
-| --- | --- | --- |
-| B-N01 | 18/18 | 両ルート×metadata名3条件×3ブラウザー |
-| B-N02 | 12/12 | 実画像/説明/スクロール/履歴/reloadとMP4実再生 |
-| B-N03 | 24/24 | 375/767/768/1280px×両ルート×3ブラウザー |
-| B-E01 | 12/12 | 未認証・SSR認証切れ |
-| B-E02 | 42/42 | 詳細所有者・HTTPエラー、metadata単独失敗と機密・操作非露出 |
-| B-E03 | 12/12 | HTML風文字と遅延GET/送信停止 |
-| B-O01 | 6/6（観測） | キー操作・focus・Escape・Backの観測。F2参照 |
-| B-O02 | 6/6（観測） | 1600px画像、長文、30variants、低速メディア失敗、status不一致 |
+| 設計ID | 最終成功/全件 | 内容                                                         |
+| ------ | ------------- | ------------------------------------------------------------ |
+| B-N01  | 18/18         | 両ルート×metadata名3条件×3ブラウザー                         |
+| B-N02  | 12/12         | 実画像/説明/スクロール/履歴/reloadとMP4実再生                |
+| B-N03  | 24/24         | 375/767/768/1280px×両ルート×3ブラウザー                      |
+| B-E01  | 12/12         | 未認証・SSR認証切れ                                          |
+| B-E02  | 42/42         | 詳細所有者・HTTPエラー、metadata単独失敗と機密・操作非露出   |
+| B-E03  | 12/12         | HTML風文字と遅延GET/送信停止                                 |
+| B-O01  | 6/6（観測）   | キー操作・focus・Escape・Backの観測。F2参照                  |
+| B-O02  | 6/6（観測）   | 1600px画像、長文、30variants、低速メディア失敗、status不一致 |
 
 B-O02で表示・画像読込・30variants確認まで1585～3318ms、pageerror/Hydrationエラーなし。ただし固定の性能目標への合格を意味しない。動画404はHTTP応答として観測し、requestfailedイベントがないことを通信成功と誤認しない。
 
@@ -122,14 +121,14 @@ B-O02で表示・画像読込・30variants確認まで1585～3318ms、pageerror/
 
 3 specファイル・22条件×3ブラウザーの**66件成功**。内訳はcreateItem 3件、getItemConfirmPage 42件、updateItem 21件。最終採用結果の失敗・skip・flaky・未処理例外なし。
 
-| 設計ID | 成功/全件 | 内容 |
-| --- | --- | --- |
-| E-N01 | 3/3 | 実出品・完了先本文・商品/動画/配送/セール保存・在庫リセット・編集元消費 |
-| E-N02 | 3/3 | 実更新・商品本文・同一商品/関連ID・在庫リセット・別商品不変 |
-| E-N03 | 24/24 | 両ルート×名前4条件×3ブラウザー、専用GET/metadata・DB不変 |
-| E-E01 | 24/24 | 未認証/他人/不存在GET、他人/0への直接POST/PUT、DB不変 |
-| E-E02 | 6/6 | 表示後の編集元削除、実404・成功遷移なし・部分保存なし |
-| E-O01 | 6/6（観測） | 二タブ送信と再送。商品重複なし・編集元消費 |
+| 設計ID | 成功/全件   | 内容                                                                    |
+| ------ | ----------- | ----------------------------------------------------------------------- |
+| E-N01  | 3/3         | 実出品・完了先本文・商品/動画/配送/セール保存・在庫リセット・編集元消費 |
+| E-N02  | 3/3         | 実更新・商品本文・同一商品/関連ID・在庫リセット・別商品不変             |
+| E-N03  | 24/24       | 両ルート×名前4条件×3ブラウザー、専用GET/metadata・DB不変                |
+| E-E01  | 24/24       | 未認証/他人/不存在GET、他人/0への直接POST/PUT、DB不変                   |
+| E-E02  | 6/6         | 表示後の編集元削除、実404・成功遷移なし・部分保存なし                   |
+| E-O01  | 6/6（観測） | 二タブ送信と再送。商品重複なし・編集元消費                              |
 
 根拠は `/tmp/item-confirm-e2e-final.json` のChromium/Firefox各22件成功と `/tmp/item-confirm-e2e-webkit-https-api.json` のWebKit22件成功。旧HTTP WebKit22件をすべて後者で置換し、旧成功14件も重複加算していない。前者はHTTP/既存公開API URLのbuild、後者はHTTPS/API-HTTPS専用buildという環境差を明記する。全66件を同一build・同一通信環境で一括検証したものではない。
 
@@ -150,29 +149,29 @@ E-O01は全3ブラウザーで二タブの応答が201/404、再送404。所有�
 
 ## 設計IDと実装・実行の対応
 
-| 設計ID | 実装ファイル | 検証内容・境界 |
-| --- | --- | --- |
-| U-N01 | `src/app/item/confirm/test/title.test.tsx` | normal/editの表示文言 |
-| U-N02 | 同 `itemConfirmPage.test.tsx` | 在庫0/1/省略のsoldout、id/page、子部品への接続 |
-| U-N03 | 同 `videoSection.test.tsx` | フィールド対応、概要null補完、日付、normalPage省略・itemId null |
-| U-N04 | 同 `itemSection.test.tsx` | 関連null・割引補完・variants件数・共有部品の入力 |
-| U-N05、U-E01 | 同 `uploadButton.test.tsx` | 規約42件、同意、閉じる/再表示、編集リンク、エラー・再試行停止 |
-| U-A01、U-A03、U-O01 | `src/app/item/confirm/api/test/client.test.ts` | POST/PUT、数値JSON、戻り値、例外、不正ID変換の観測 |
-| U-A02、U-A03 | 同 `server.test.ts` | 詳細/metadata専用URL・no-store・name nullable・例外伝播 |
-| U-A04、U-A05 | `src/lib/api/test/confirmClient.test.ts`、`confirmServer.test.ts` | 認証有無、認証ヘッダー、HTTP/JSON失敗、login/notFound/throw |
-| U-S01～03 | `src/app/item/itemSection/test/confirmContract.test.tsx` と既存itemHeader/itemName/deliverySection/categoryTextテスト | confirmの価格・性別/年齢・recommend非表示、在庫境界、素材合計 |
-| U-S04 | 同 `variantsList.test.tsx` | カラー/サイズ在庫、比率省略時の既定0.2、操作・表示境界 |
-| U-S05 | 同 `detail.test.tsx`・`confirmDetail.test.tsx`、`src/app/item/videoSection/test/summary.test.tsx`・`confirmPreview.test.tsx` | 高さ境界・空文・開閉・confirm入力での加点抑止 |
-| U-S06 | 同 `videoElem.test.tsx`・`confirmPreview.test.tsx` | HLS対応/非対応・URL変更/破棄・動画なし・確認画面の再生数抑止 |
-| U-S07 | `src/app/item/itemSection/test/slideshow.test.tsx` | 0/1/複数画像、2枚目のキー操作、モーダル・focus復帰 |
-| U-S08 | `src/components/{container,title-back,terms}/test/`、itemSection/categoryText・videoSection/itemPeekの既存テスト | 構成・戻る・規約・商品へのスクロール要求。async VideoTitleはBで確認 |
-| U-S09 | `src/lib/test/formatRelativeTime.test.ts`・`sleep.test.ts` | 時間境界、Date/ISO文字列、1499/1500ms |
-| C-N01、C-E01、C-O01 | `test/integration/components/item/itemConfirmPage/uploadButton/uploadButton.test.tsx` | HTTP成功・7種HTTPエラー・通信/JSON障害・再試行、保留と再送・unmount後遷移の観測 |
-| C-N02 | 同 `itemSection/itemSection.test.tsx` | 実共有部品のセール・画像・在庫/サイズ操作・null・説明開閉 |
-| C-N03 | 同 `videoSection/videoSection.test.tsx` | MP4/HLS/動画なし、概要開閉、保存日時・API抑止 |
-| P-N01、P-N02 | `test/integration/pages/item/itemConfirmPage/confirm.test.tsx` | 両pageの送信、両側の在庫表示、関連null補完、長文の両説明開閉 |
-| B全ケース | 同 `confirm.spec.ts` | production SSR・認証・metadata・表示操作・画面幅・媒体・エラー・観測 |
-| E全ケース | ルート `test/E2E/item/itemConfirmPage/` | 実API/DBの作成・更新・取得・所有権・競合・再送 |
+| 設計ID              | 実装ファイル                                                                                                                 | 検証内容・境界                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| U-N01               | `src/app/item/confirm/test/title.test.tsx`                                                                                   | normal/editの表示文言                                                           |
+| U-N02               | 同 `itemConfirmPage.test.tsx`                                                                                                | 在庫0/1/省略のsoldout、id/page、子部品への接続                                  |
+| U-N03               | 同 `videoSection.test.tsx`                                                                                                   | フィールド対応、概要null補完、日付、normalPage省略・itemId null                 |
+| U-N04               | 同 `itemSection.test.tsx`                                                                                                    | 関連null・割引補完・variants件数・共有部品の入力                                |
+| U-N05、U-E01        | 同 `uploadButton.test.tsx`                                                                                                   | 規約42件、同意、閉じる/再表示、編集リンク、エラー・再試行停止                   |
+| U-A01、U-A03、U-O01 | `src/app/item/confirm/api/test/client.test.ts`                                                                               | POST/PUT、数値JSON、戻り値、例外、不正ID変換の観測                              |
+| U-A02、U-A03        | 同 `server.test.ts`                                                                                                          | 詳細/metadata専用URL・no-store・name nullable・例外伝播                         |
+| U-A04、U-A05        | `src/lib/api/test/confirmClient.test.ts`、`confirmServer.test.ts`                                                            | 認証有無、認証ヘッダー、HTTP/JSON失敗、login/notFound/throw                     |
+| U-S01～03           | `src/app/item/itemSection/test/confirmContract.test.tsx` と既存itemHeader/itemName/deliverySection/categoryTextテスト        | confirmの価格・性別/年齢・recommend非表示、在庫境界、素材合計                   |
+| U-S04               | 同 `variantsList.test.tsx`                                                                                                   | カラー/サイズ在庫、比率省略時の既定0.2、操作・表示境界                          |
+| U-S05               | 同 `detail.test.tsx`・`confirmDetail.test.tsx`、`src/app/item/videoSection/test/summary.test.tsx`・`confirmPreview.test.tsx` | 高さ境界・空文・開閉・confirm入力での加点抑止                                   |
+| U-S06               | 同 `videoElem.test.tsx`・`confirmPreview.test.tsx`                                                                           | HLS対応/非対応・URL変更/破棄・動画なし・確認画面の再生数抑止                    |
+| U-S07               | `src/app/item/itemSection/test/slideshow.test.tsx`                                                                           | 0/1/複数画像、2枚目のキー操作、モーダル・focus復帰                              |
+| U-S08               | `src/components/{container,title-back,terms}/test/`、itemSection/categoryText・videoSection/itemPeekの既存テスト             | 構成・戻る・規約・商品へのスクロール要求。async VideoTitleはBで確認             |
+| U-S09               | `src/lib/test/formatRelativeTime.test.ts`・`sleep.test.ts`                                                                   | 時間境界、Date/ISO文字列、1499/1500ms                                           |
+| C-N01、C-E01、C-O01 | `test/integration/components/item/itemConfirmPage/uploadButton/uploadButton.test.tsx`                                        | HTTP成功・7種HTTPエラー・通信/JSON障害・再試行、保留と再送・unmount後遷移の観測 |
+| C-N02               | 同 `itemSection/itemSection.test.tsx`                                                                                        | 実共有部品のセール・画像・在庫/サイズ操作・null・説明開閉                       |
+| C-N03               | 同 `videoSection/videoSection.test.tsx`                                                                                      | MP4/HLS/動画なし、概要開閉、保存日時・API抑止                                   |
+| P-N01、P-N02        | `test/integration/pages/item/itemConfirmPage/confirm.test.tsx`                                                               | 両pageの送信、両側の在庫表示、関連null補完、長文の両説明開閉                    |
+| B全ケース           | 同 `confirm.spec.ts`                                                                                                         | production SSR・認証・metadata・表示操作・画面幅・媒体・エラー・観測            |
+| E全ケース           | ルート `test/E2E/item/itemConfirmPage/`                                                                                      | 実API/DBの作成・更新・取得・所有権・競合・再送                                  |
 
 fixtureは単体専用の `src/app/item/confirm/test/fixtures.ts`、DOM結合の `test/fixtures/item/itemConfirmPage/{fixtures,setup}.ts`、ブラウザー専用の同 `browser*` に分離した。単体の編集IDは101、返却商品IDは501と異なる値で誤った遷移を検出する。DBのfixtureはIDを追跡してcleanupする。
 
@@ -190,13 +189,13 @@ npm run typecheck
 npm run build -- --webpack
 ```
 
-| 検査 | 結果・根拠 |
-| --- | --- |
-| client全体lint | 失敗：23 errors / 37 warnings。`/tmp/item-confirm-lint-final.log`。既存commentText・profile/introductionのrender中ref参照、lp/profileの宣言前参照、Search/ShopSignupのeffect内state、共通APIのany等。テスト対象外も含み、本番未変更のため修正していない |
-| 今回変更したclientテスト・fixtureの個別ESLint | 成功。`/tmp/item-confirm-target-lint-final.log`。通常lintが対象とするTS/TSXに加えbrowserApi.mjs/browserStart.mjsも同じ設定で検査 |
-| client typecheck | build前は成功、build後の最終実行は失敗（既存ページのNext生成型49診断）。`/tmp/item-confirm-typecheck-final.log`。params/searchParamsがPromiseでない既存ページが原因。確認2ルートや追加テストの診断はない。現行tsconfigは `src/**/test` を除外せず結合も含む |
-| client test専用tsconfig | 成功。`/tmp/item-confirm-test-typecheck-final.log`。単体・結合・fixture・Vitest/Playwright設定を明示収集 |
-| production build | `npm run build -- --webpack`成功。`/tmp/item-confirm-build-webpack.log`。型検査は既存Next設定でskipされるため別のtsc結果と区別。middleware/viewport等の既存警告あり |
+| 検査                                          | 結果・根拠                                                                                                                                                                                                                                                  |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| client全体lint                                | 失敗：23 errors / 37 warnings。`/tmp/item-confirm-lint-final.log`。既存commentText・profile/introductionのrender中ref参照、lp/profileの宣言前参照、Search/ShopSignupのeffect内state、共通APIのany等。テスト対象外も含み、本番未変更のため修正していない     |
+| 今回変更したclientテスト・fixtureの個別ESLint | 成功。`/tmp/item-confirm-target-lint-final.log`。通常lintが対象とするTS/TSXに加えbrowserApi.mjs/browserStart.mjsも同じ設定で検査                                                                                                                            |
+| client typecheck                              | build前は成功、build後の最終実行は失敗（既存ページのNext生成型49診断）。`/tmp/item-confirm-typecheck-final.log`。params/searchParamsがPromiseでない既存ページが原因。確認2ルートや追加テストの診断はない。現行tsconfigは `src/**/test` を除外せず結合も含む |
+| client test専用tsconfig                       | 成功。`/tmp/item-confirm-test-typecheck-final.log`。単体・結合・fixture・Vitest/Playwright設定を明示収集                                                                                                                                                    |
+| production build                              | `npm run build -- --webpack`成功。`/tmp/item-confirm-build-webpack.log`。型検査は既存Next設定でskipされるため別のtsc結果と区別。middleware/viewport等の既存警告あり                                                                                         |
 
 WebKit専用のHTTPS API URLを指定した追加Webpack buildも成功（`/tmp/item-confirm-build-e2e-https.log`）。
 

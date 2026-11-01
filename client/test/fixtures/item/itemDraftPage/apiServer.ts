@@ -43,11 +43,13 @@ export const startDraftApi = async (port = 4011) => {
                 return;
             }
             res.statusCode = entry.status ?? (entry.draft.seller_id !== 7 ? 404 : 200);
-            res.end(JSON.stringify(
-                res.statusCode === 200
-                    ? { itemDraft: metadata ? { id: entry.draft.id, name: entry.draft.name } : entry.draft }
-                    : { code: "TEST_ERROR" },
-            ));
+            res.end(
+                JSON.stringify(
+                    res.statusCode === 200
+                        ? { itemDraft: metadata ? { id: entry.draft.id, name: entry.draft.name } : entry.draft }
+                        : { code: "TEST_ERROR" },
+                ),
+            );
             return;
         }
         unknown.push(`${req.method} ${url.pathname}`);

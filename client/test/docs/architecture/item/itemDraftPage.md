@@ -44,7 +44,7 @@ client/の対象単体、lint、本番/テスト型検査、production build、t
 | `src/app/item/draft/editButton.tsx`                                                                             | POST成功後、返却itemEditingIdで/uploadへ。失敗トーストと再操作。現行loadingは各インスタンス単位                             |
 | `src/app/item/draft/delete.tsx`                                                                                 | 確認を開閉→DELETE→成功通知・閉じる→1500ms後/my-page。ApiErrorはトースト、その他はalert                                      |
 | `src/app/item/draft/api/client.ts`                                                                              | fetchEditDraftItem：POST /item-editing/draft、JSONの数値ID。fetchDeleteDraftItem：DELETE /item-draft/:id、bodyなし          |
-| `src/app/item/draft/api/server.ts`                                                                              | fetchItemDraftPage：GET /item-draft/:id/item-page・no-store。E2Eは実取得APIを使用し、U/C/P/Bの代替境界とは区別                              |
+| `src/app/item/draft/api/server.ts`                                                                              | fetchItemDraftPage：GET /item-draft/:id/item-page・no-store。E2Eは実取得APIを使用し、U/C/P/Bの代替境界とは区別              |
 | `src/app/item/videoSection/{videoElem,videoTitle,itemPeek,summary}.tsx`                                         | メディア、見出し、商品説明へのスクロール、概要開閉。VideoTitleは非同期Server Component                                      |
 | `src/app/item/itemSection/{slideshow,itemHeader,itemName,variantsList,detail,categoryText,deliverySection}.tsx` | 画像拡大、商品名・価格・セール・属性、バリエーション、説明、配送・在庫・素材                                                |
 | `src/components/container/container.tsx`、`src/lib/formatRelativeTime.ts`                                       | ページの子要素保持、保存日時整形                                                                                            |
@@ -130,7 +130,7 @@ IDは文書内で一意。U/C/P/B/Eはレベル、N=正常、V=値・境界、F=
 | U-F02 P0   | 削除rejectをApiError／通常Errorで個別実施                                             | 前者は失敗トースト、後者は指定alert、確認閉鎖、成功トースト・sleep後pushなし。再度開いて再試行可能            |
 | U-N05 P0   | 専用client API2関数をID11で呼ぶ                                                       | POSTの数値JSON、DELETEのパス・bodyなし。応答同値、rejectを握りつぶさず伝播                                    |
 | U-V04 P1   | POSTのID「0011」、不正文字列                                                          | 前者は11、後者はNumber→JSON上nullの現行変換を検証。wrapperを入力検証層とみなさず400のUI検証はC-F01            |
-| U-N06 P1   | 専用server APIをID11で呼ぶ                                                            | /item-draft/11/item-page・cache:no-storeで共通関数呼出し、応答／失敗伝播。実GET接続保証は含めない                       |
+| U-N06 P1   | 専用server APIをID11で呼ぶ                                                            | /item-draft/11/item-page・cache:no-storeで共通関数呼出し、応答／失敗伝播。実GET接続保証は含めない             |
 | U-N07 P1   | VideoElem：m3u8＋Hls対応／非対応、MP4、両URLなし                                      | Hls load/attach・unmount時destroy、代替src、動画なし。変換URL優先、poster設定。下書きのplayで集計APIなし      |
 | U-N08 P1   | ItemPeekの名前・価格・性別各値・kids、クリック、標的なし                              | 表示とSOLD OUT、#itemNameへsmooth/startスクロール。標的なしでも例外なし                                       |
 | U-N09 P1   | Summary/Detail：短文／overflow、開く→閉じる、本文変更                                 | 長文のみ操作表示、開閉表示が切り替わる。下書きでは展開集計APIなし。寸法モックを復元                           |
@@ -229,7 +229,7 @@ E2E seedはAの対象D1・別下書きD2・BのD3・既存編集E0・参照マ�
 | E-S03 P0   | 表示後の送信IDをPOSTは0、DELETEは0／2147483648に改変                               | 実400、失敗UI、DB不変。POSTにDELETEと同じ上限があるという仕様は作らない                                                                                   |
 | E-F02 P1   | 新規認証ユーザーの実要求で枠を消費し、UIで編集6回目／削除21回目（別API・別ケース） | 実429、失敗UI、追加書込なし。10分5回／5分20回の実レート境界。window待ちを長いsleepで作らない                                                              |
 | E-Q01 P0   | 同じ削除の連打、上下編集交互、編集と削除（Q01〜Q04相当）                           | UIからの重複要求0（最初の1回だけ）、遷移・成功通知1回。別接続で編集増加は最大1、下書きの最終状態が単一操作と一致。DBが安全でも余分なHTTPが出れば失敗      |
-| E-N05 P1   | 同じ下書きの編集／削除成功後、再訪・リロード・戻る                                 | 実GETが不存在404を返し、古い内容で操作可能にしない。編集行の追加生成なし。2026-10-29の追加検証以前の代替取得結果と区別する                                                 |
+| E-N05 P1   | 同じ下書きの編集／削除成功後、再訪・リロード・戻る                                 | 実GETが不存在404を返し、古い内容で操作可能にしない。編集行の追加生成なし。2026-10-29の追加検証以前の代替取得結果と区別する                                |
 
 実500・transaction rollback・ロック待機をE2Eから確実に注入する仕組みは現時点でない。MSWでの500はC-F01/F02、実DB障害とrollback・競合の証明は既存バックエンド設計の対象として区別する。HTTP成功後にブラウザー通信だけを失敗させた場合、DBはcommit済みの可能性があるため「画面失敗ならDB不変」とassertしない。通信の成否不明を扱う追加設計が必要なら別ケース化する。
 

@@ -87,14 +87,31 @@ describe("ItemSection 単体", () => {
         expect(draft).toEqual(before);
     });
     it("U-N04 nullable関連と割引値を補完する", () => {
-        render(<ItemSection itemEditing={createEditing({ detail: null, Category: null, ItemConditionOption: null, ShippingServiceOption: null, ShippingDayOption: null, TodouhukenOption: null, discount_rate: null, discount_amount: null, attributes: {} })} soldout={false} />);
+        render(
+            <ItemSection
+                itemEditing={createEditing({
+                    detail: null,
+                    Category: null,
+                    ItemConditionOption: null,
+                    ShippingServiceOption: null,
+                    ShippingDayOption: null,
+                    TodouhukenOption: null,
+                    discount_rate: null,
+                    discount_amount: null,
+                    attributes: {},
+                })}
+                soldout={false}
+            />,
+        );
         expect(mocks.header.mock.calls[0][0].data).toMatchObject({ discountRate: 0, discountAmount: 0 });
         expect(mocks.detail).toHaveBeenCalledWith({ data: { itemId: null, detail: "", soldout: false } });
         expect(mocks.category).toHaveBeenCalledWith({ categoryName: "" });
-        expect(mocks.delivery).toHaveBeenCalledWith({ data: { itemAttributes: {}, condition: "-", shippingService: "-", shippingPlace: "-", shippingDay: "-" } });
+        expect(mocks.delivery).toHaveBeenCalledWith({
+            data: { itemAttributes: {}, condition: "-", shippingService: "-", shippingPlace: "-", shippingDay: "-" },
+        });
         expect(mocks.variants).not.toHaveBeenCalled();
     });
-    it.each([undefined, [], [{}]])("U-N04 variants=%jの表示条件", colorVariants => {
+    it.each([undefined, [], [{}]])("U-N04 variants=%jの表示条件", (colorVariants) => {
         render(<ItemSection itemEditing={createEditing({ attributes: { colorVariants } })} soldout={false} />);
         expect(mocks.variants).toHaveBeenCalledTimes(colorVariants?.length ? 1 : 0);
     });

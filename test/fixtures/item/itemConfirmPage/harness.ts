@@ -102,7 +102,11 @@ export const test = base.extend<{ e2e: Harness }>({
                         });
                         traffic.push({ path, status: response.status, type: response.headers.get("content-type") });
                         if (req.method === "GET" && /^\/item-editing\/\d+\/(?:confirm|metadata)$/.test(path)) {
-                            getResponses.push({ path, status: response.status, body: await response.clone().json() as Record<string, unknown> });
+                            getResponses.push({
+                                path,
+                                status: response.status,
+                                body: (await response.clone().json()) as Record<string, unknown>,
+                            });
                         }
                         res.writeHead(response.status, {
                             "Content-Type": response.headers.get("content-type") ?? "application/json",
@@ -136,8 +140,15 @@ export const test = base.extend<{ e2e: Harness }>({
                         )
                     ).rows;
                 const expectProtected = async () => {
-                    for (const [table, row] of [["item", seed.protectedItem], ["video", seed.protectedVideo], ["sale", seed.protectedSale], ["item_shipping_profile", seed.protectedShipping]] as const) {
-                        expect((await database.db.query<Row>(`SELECT * FROM "${table}" WHERE id=$1`, [row.id])).rows[0]).toEqual(row);
+                    for (const [table, row] of [
+                        ["item", seed.protectedItem],
+                        ["video", seed.protectedVideo],
+                        ["sale", seed.protectedSale],
+                        ["item_shipping_profile", seed.protectedShipping],
+                    ] as const) {
+                        expect(
+                            (await database.db.query<Row>(`SELECT * FROM "${table}" WHERE id=$1`, [row.id])).rows[0],
+                        ).toEqual(row);
                     }
                     expect(
                         await Promise.all([
@@ -157,19 +168,27 @@ export const test = base.extend<{ e2e: Harness }>({
                     ).toEqual(mastersBefore);
                 };
                 // Forward browser transport to real Express; business responses remain unmodified.
-                await context.route("**/*", async route => {
+                await context.route("**/*", async (route) => {
                     const url = new URL(route.request().url());
                     const nextOrigin = new URL(process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3032").origin;
                     if (url.origin === nextOrigin || !url.pathname.includes("/api/")) return route.continue();
                     const path = url.pathname.slice(url.pathname.indexOf("/api/") + 4);
                     const result = await http(path + url.search, {
-                        method: route.request().method(), headers: route.request().headers(),
-                        body: ["GET", "HEAD"].includes(route.request().method()) ? undefined : route.request().postData() ?? undefined,
+                        method: route.request().method(),
+                        headers: route.request().headers(),
+                        body: ["GET", "HEAD"].includes(route.request().method())
+                            ? undefined
+                            : (route.request().postData() ?? undefined),
                     });
-                    await route.fulfill({ status: result.status, headers: {
-                        "content-type": result.headers.get("content-type") ?? "application/json",
-                        "access-control-allow-origin": nextOrigin, "access-control-allow-credentials": "true",
-                    }, body: Buffer.from(await result.arrayBuffer()) });
+                    await route.fulfill({
+                        status: result.status,
+                        headers: {
+                            "content-type": result.headers.get("content-type") ?? "application/json",
+                            "access-control-allow-origin": nextOrigin,
+                            "access-control-allow-credentials": "true",
+                        },
+                        body: Buffer.from(await result.arrayBuffer()),
+                    });
                 });
                 const login = async (context: BrowserContext, baseURL: string) => {
                     const csrf = await context.request.get(`${baseURL}/api/auth/csrf`);
@@ -192,9 +211,22 @@ export const test = base.extend<{ e2e: Harness }>({
                     expect(String(session.user?.id)).toBe(String(seed.owner.id));
                 };
                 try {
-                    await provide({ getResponses, database, seed, express, protectedBefore, editingRows, expectProtected, login, http });
+                    await provide({
+                        getResponses,
+                        database,
+                        seed,
+                        express,
+                        protectedBefore,
+                        editingRows,
+                        expectProtected,
+                        login,
+                        http,
+                    });
                 } finally {
-                    await info.attach("real-api-traffic", { body: JSON.stringify(traffic), contentType: "application/json" });
+                    await info.attach("real-api-traffic", {
+                        body: JSON.stringify(traffic),
+                        contentType: "application/json",
+                    });
                 }
             } finally {
                 await context.unrouteAll({ behavior: "wait" });
@@ -223,15 +255,24 @@ export const test = base.extend<{ e2e: Harness }>({
 });
 export { expect };
 export const openConfirm = async (
-    page: Page, context: BrowserContext, baseURL: string | undefined, e2e: Harness, mode: "normal" | "edit",
+    page: Page,
+    context: BrowserContext,
+    baseURL: string | undefined,
+    e2e: Harness,
+    mode: "normal" | "edit",
 ) => {
     if (!baseURL) throw new Error("E2E_ENV_STOP: baseURL missing");
     await e2e.login(context, baseURL);
     const editing = mode === "normal" ? e2e.seed.normal : e2e.seed.edit;
     await page.goto(`/item/confirm/${mode === "edit" ? "edit/" : ""}${editing.id}`);
     await expect(page.getByRole("button", { name: "出品する", exact: true })).toBeVisible();
-    const accessCookie = (await context.cookies()).find(cookie => cookie.name === "access-token");
-    await test.info().attach("access-token-cookie", { body: JSON.stringify({ present: Boolean(accessCookie), secure: accessCookie?.secure ?? null }), contentType: "application/json" });
+    const accessCookie = (await context.cookies()).find((cookie) => cookie.name === "access-token");
+    await test
+        .info()
+        .attach("access-token-cookie", {
+            body: JSON.stringify({ present: Boolean(accessCookie), secure: accessCookie?.secure ?? null }),
+            contentType: "application/json",
+        });
 };
 export const submit = async (page: Page) => {
     await page.getByRole("button", { name: "出品する", exact: true }).click();
@@ -240,12 +281,15 @@ export const submit = async (page: Page) => {
 };
 export const snapshot = async (e2e: Harness) => {
     const owners = [e2e.seed.owner.id, e2e.seed.other.id];
-    const result = await e2e.database.db.query<Row>(`
+    const result = await e2e.database.db.query<Row>(
+        `
         SELECT jsonb_build_object('items', (SELECT jsonb_agg(i ORDER BY id) FROM item i WHERE seller_id=ANY($1::int[])),
         'editing', (SELECT jsonb_agg(e ORDER BY id) FROM item_editing e WHERE seller_id=ANY($1::int[])),
         'video', (SELECT jsonb_agg(v ORDER BY v.id) FROM video v JOIN item i ON i.video_id=v.id WHERE i.seller_id=ANY($1::int[])),
         'sale', (SELECT jsonb_agg(s ORDER BY s.id) FROM sale s JOIN item i ON i.sale_id=s.id WHERE i.seller_id=ANY($1::int[])),
-        'shipping', (SELECT jsonb_agg(s ORDER BY s.id) FROM item_shipping_profile s JOIN item i ON i.shipping_id=s.id WHERE i.seller_id=ANY($1::int[]))) AS data`, [owners]);
+        'shipping', (SELECT jsonb_agg(s ORDER BY s.id) FROM item_shipping_profile s JOIN item i ON i.shipping_id=s.id WHERE i.seller_id=ANY($1::int[]))) AS data`,
+        [owners],
+    );
     return result.rows[0].data;
 };
 export const authHeader = async (context: BrowserContext) => {

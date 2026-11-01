@@ -99,7 +99,11 @@ export const test = base.extend<{ e2e: Harness }>({
                             body: ["GET", "HEAD"].includes(req.method ?? "GET") ? undefined : Buffer.concat(chunks),
                         });
                         if (req.method === "GET" && /^\/item-draft\/\d+\/(?:item-page|metadata)$/.test(path)) {
-                            getResponses.push({ path, status: response.status, body: await response.clone().json() as Record<string, unknown> });
+                            getResponses.push({
+                                path,
+                                status: response.status,
+                                body: (await response.clone().json()) as Record<string, unknown>,
+                            });
                         }
                         res.writeHead(response.status, {
                             "Content-Type": response.headers.get("content-type") ?? "application/json",
@@ -170,7 +174,17 @@ export const test = base.extend<{ e2e: Harness }>({
                     };
                     expect(String(session.user?.id)).toBe(String(seed.owner.id));
                 };
-                await provide({ getResponses, database, seed, express, protectedBefore, editingRows, expectProtected, login, http });
+                await provide({
+                    getResponses,
+                    database,
+                    seed,
+                    express,
+                    protectedBefore,
+                    editingRows,
+                    expectProtected,
+                    login,
+                    http,
+                });
             } finally {
                 if (server)
                     await new Promise<void>((resolve, reject) =>

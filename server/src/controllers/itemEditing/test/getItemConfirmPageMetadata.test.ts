@@ -3,13 +3,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../../../errors.js";
 import { deferred, makeMetadata } from "../../../../test/fixtures/itemEditing/getItemConfirmPageMetadata/fixtures.js";
 const mocks = vi.hoisted(() => ({ get: vi.fn(), create: vi.fn() }));
-vi.mock("../../../usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: mocks.get }));
+vi.mock("../../../usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({
+    getItemConfirmPageMetadataUseCase: mocks.get,
+}));
 vi.mock("../../../usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));
-vi.mock("../../../usecases/itemEditing/convertItemEditingVideo.js", () => ({ convertItemEditingVideoUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: vi.fn(),
+}));
 vi.mock("../../../usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: mocks.create }));
 vi.mock("../../../usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
 vi.mock("../../../usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
-vi.mock("../../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
+    createItemEditingCopyUseCase: vi.fn(),
+}));
 import { getItemConfirmPageMetadataController } from "../itemEditing.js";
 const prepare = () => {
     const req = {

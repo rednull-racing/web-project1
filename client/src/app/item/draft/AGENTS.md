@@ -176,12 +176,12 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。下書きID�
 
 `draft/api/server.ts` の `fetchItemDraftPage(itemDraftId)` をルートのServer Componentから呼ぶ。
 
-| 項目           | 内容                                   |
-| -------------- | -------------------------------------- |
-| 共通関数       | `apiFetchServer`（`@/lib/api/server`） |
-| メソッド・パス | `GET /item-draft/${itemDraftId}/item-page`       |
-| キャッシュ     | `cache: "no-store"`                    |
-| 戻り値の型     | `{ itemDraft: ItemDraft }`             |
+| 項目           | 内容                                       |
+| -------------- | ------------------------------------------ |
+| 共通関数       | `apiFetchServer`（`@/lib/api/server`）     |
+| メソッド・パス | `GET /item-draft/${itemDraftId}/item-page` |
+| キャッシュ     | `cache: "no-store"`                        |
+| 戻り値の型     | `{ itemDraft: ItemDraft }`                 |
 
 未ログインなら `/login` へ遷移する。取得後、セッションのユーザーIDと `itemDraft.seller_id` を文字列化・前後の空白除去後に照合し、不一致なら `/` へ遷移する。一致した場合だけ `ItemDraftPage` を表示する。
 

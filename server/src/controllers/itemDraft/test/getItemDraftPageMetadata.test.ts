@@ -4,7 +4,9 @@ import { AppError } from "../../../errors.js";
 import { deferred, makeMetadata } from "../../../../test/fixtures/itemDraft/getItemDraftPageMetadata/fixtures.js";
 const mocks = vi.hoisted(() => ({ get: vi.fn(), create: vi.fn() }));
 vi.mock("../../../usecases/itemDraft/convertItemDraftVideo.js", () => ({ convertItemDraftVideoUseCase: vi.fn() }));
-vi.mock("../../../usecases/itemDraft/getItemDraftPageMetadata.js", () => ({ getItemDraftPageMetadataUseCase: mocks.get }));
+vi.mock("../../../usecases/itemDraft/getItemDraftPageMetadata.js", () => ({
+    getItemDraftPageMetadataUseCase: mocks.get,
+}));
 vi.mock("../../../usecases/itemDraft/deleteItemDraft.js", () => ({ deleteItemDraftUseCase: vi.fn() }));
 vi.mock("../../../usecases/itemDraft/createItemDraft.js", () => ({ createItemDraftUseCase: mocks.create }));
 vi.mock("../../../usecases/itemDraft/getItemDraftPage.js", () => ({ getItemDraftPageUseCase: vi.fn() }));

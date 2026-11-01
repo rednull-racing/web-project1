@@ -30,22 +30,35 @@ describe("P0/P1 確認ページusecaseの取得・存在判定・待機", () => 
     });
     it.each([false, true])("U04: 取得保留中は完了せず解放後に返却/例外伝播 reject=%s", async (fail) => {
         const gate = deferred<ReturnType<typeof makeConfirmRow>>();
-        const row = makeConfirmRow(), error = new Error("delayed DB failure");
+        const row = makeConfirmRow(),
+            error = new Error("delayed DB failure");
         mocks.get.mockReturnValue(gate.promise);
         let completed = false;
         const pending = getItemConfirmPageUseCase({ userId: 7, itemEditingId: 123 });
-        const settled = pending.then(value => { completed = true; return value; }, reason => { completed = true; return reason; });
+        const settled = pending.then(
+            (value) => {
+                completed = true;
+                return value;
+            },
+            (reason) => {
+                completed = true;
+                return reason;
+            },
+        );
         try {
             await Promise.resolve();
             expect(completed).toBe(false);
         } finally {
-            if (fail) gate.reject(error); else gate.resolve(row);
+            if (fail) gate.reject(error);
+            else gate.resolve(row);
         }
         expect(await settled).toBe(fail ? error : row);
     });
     it("U05: 別対象の検索を逆順で完了しても結果が混ざらない", async () => {
-        const first = deferred<ReturnType<typeof makeConfirmRow>>(), second = deferred<ReturnType<typeof makeConfirmRow>>();
-        const row1 = makeConfirmRow(123), row2 = makeConfirmRow(456);
+        const first = deferred<ReturnType<typeof makeConfirmRow>>(),
+            second = deferred<ReturnType<typeof makeConfirmRow>>();
+        const row1 = makeConfirmRow(123),
+            row2 = makeConfirmRow(456);
         mocks.get.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
         const p1 = getItemConfirmPageUseCase({ userId: 7, itemEditingId: 123 });
         const p2 = getItemConfirmPageUseCase({ userId: 8, itemEditingId: 456 });
@@ -53,8 +66,15 @@ describe("P0/P1 確認ページusecaseの取得・存在判定・待機", () => 
         try {
             second.resolve(row2);
             expect(await p2).toBe(row2);
-        } finally { first.resolve(row1); second.resolve(row2); await settled; }
+        } finally {
+            first.resolve(row1);
+            second.resolve(row2);
+            await settled;
+        }
         expect(await p1).toBe(row1);
-        expect(mocks.get.mock.calls).toEqual([[{ userId: 7, itemEditingId: 123 }], [{ userId: 8, itemEditingId: 456 }]]);
+        expect(mocks.get.mock.calls).toEqual([
+            [{ userId: 7, itemEditingId: 123 }],
+            [{ userId: 8, itemEditingId: 456 }],
+        ]);
     });
 });

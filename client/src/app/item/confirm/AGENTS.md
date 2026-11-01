@@ -207,12 +207,12 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。URLの `id` 
 
 両ルートの `generateMetadata` はセッションを確認し、未ログインなら `/login` へ遷移する。その後、`confirm/api/server.ts` の `fetchItemConfirmPageMetadata(id)` を呼ぶ。
 
-| 項目 | 内容 |
-| --- | --- |
-| 共通関数 | `apiFetchServer` |
-| メソッド・パス | `GET /item-editing/${itemEditingId}/metadata` |
-| キャッシュ | `cache: "no-store"` |
-| 戻り値の型 | `{ itemEditing: { id: number; name: string \| null } }` |
+| 項目           | 内容                                                    |
+| -------------- | ------------------------------------------------------- |
+| 共通関数       | `apiFetchServer`                                        |
+| メソッド・パス | `GET /item-editing/${itemEditingId}/metadata`           |
+| キャッシュ     | `cache: "no-store"`                                     |
+| 戻り値の型     | `{ itemEditing: { id: number; name: string \| null } }` |
 
 商品編集IDで取得する所有者限定のAPIを使用する。名前が空文字またはnullなら「商品名未入力」を使う。本文用の取得とは別に呼び出し、メタデータ処理内ではseller_idの照合を行わない。
 
@@ -248,7 +248,7 @@ APIパスは共通fetch関数へ渡す相対パスを記載する。URLの `id` 
 | ページタイトル                 | `title`                                                                     |
 | 保存日時                       | `dateFlex`、`countText`、`countNumber`                                      |
 | 出品ボタン・編集リンク         | `uploadButton`、`editButton`                                                |
-| ポップアップ・背景・閉じる操作 | `popup`（`::backdrop`を含む）、`x`、`popupTitle`                                       |
+| ポップアップ・背景・閉じる操作 | `popup`（`::backdrop`を含む）、`x`、`popupTitle`                            |
 | 禁止事項・同意欄・実行ボタン   | `termsTitle`、`termsDiv`、`checkLabel`、`check`、`checkText`、`popupButton` |
 
 禁止事項の各領域は高さ150pxで縦スクロールする。背景はnative dialogの `::backdrop`、ポップアップはtop layer上のfixed要素として表示する。小さい画面では高さを制限して内容をスクロール可能にする。

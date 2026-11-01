@@ -93,7 +93,7 @@ describe("バリエーション", () => {
     });
 });
 
-it.each([2, 3])("U-S04 保存済み色在庫のratio省略時は既定0.2でcurrent=%sを判定", current => {
+it.each([2, 3])("U-S04 保存済み色在庫のratio省略時は既定0.2でcurrent=%sを判定", (current) => {
     const color = variant("赤", current);
     // 型で必須でも、保存済みJSONが制約を破る場合の既定分岐を検証する。
     Reflect.deleteProperty(color.inventory, "low_stock_ratio");

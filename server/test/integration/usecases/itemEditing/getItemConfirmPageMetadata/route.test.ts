@@ -12,13 +12,27 @@ import {
 } from "../../../../fixtures/itemEditing/getItemConfirmPageMetadata/fixtures.js";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), create: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: mocks.get }));
-vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn(async () => ({ id: 101, name: "編集セッション" })) }));
-vi.mock("../../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({ convertItemEditingVideoUseCase: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({ createItemEditingUseCase: mocks.create }));
-vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({ createItemEditingDraftUseCase: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({ updateItemEditingConfirmUseCase: vi.fn() }));
-vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({ createItemEditingCopyUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({
+    getItemConfirmPageMetadataUseCase: mocks.get,
+}));
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({
+    getItemConfirmPageUseCase: vi.fn(async () => ({ id: 101, name: "編集セッション" })),
+}));
+vi.mock("../../../../../src/usecases/itemEditing/convertItemEditingVideo.js", () => ({
+    convertItemEditingVideoUseCase: vi.fn(),
+}));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditing.js", () => ({
+    createItemEditingUseCase: mocks.create,
+}));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingDraft.js", () => ({
+    createItemEditingDraftUseCase: vi.fn(),
+}));
+vi.mock("../../../../../src/usecases/itemEditing/updateConfirm.js", () => ({
+    updateItemEditingConfirmUseCase: vi.fn(),
+}));
+vi.mock("../../../../../src/usecases/itemEditing/createItemEditingCopy/createItemEditingCopy.js", () => ({
+    createItemEditingCopyUseCase: vi.fn(),
+}));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 let app: ReturnType<typeof express>, secret: string;
 let ErrorClass: typeof import("../../../../../src/errors.js").AppError;
@@ -201,7 +215,9 @@ describe("P0/P1/P2: 実MemoryStoreのユーザー別レート制限", () => {
     });
     it.each([400, 404, 500])("L02: %sも120回分消費する", async (status) => {
         if (status !== 400)
-            mocks.get.mockRejectedValue(status === 404 ? new ErrorClass("ITEM_EDITING_NOT_FOUND", 404) : new Error("db"));
+            mocks.get.mockRejectedValue(
+                status === 404 ? new ErrorClass("ITEM_EDITING_NOT_FOUND", 404) : new Error("db"),
+            );
         for (let i = 0; i < 120; i++) expect((await get(status === 400 ? `bad${i}` : i + 1)).status).toBe(status);
         expect((await get()).status).toBe(429);
         expect(mocks.get).toHaveBeenCalledTimes(status === 400 ? 0 : 120);
@@ -222,7 +238,8 @@ describe("P0/P1/P2: 実MemoryStoreのユーザー別レート制限", () => {
         }
     });
     it("L03 L04: 無認証は枠消費なし、制限超過は入力不正より優先", async () => {
-        for (let i = 0; i < 121; i++) expect((await request(app).get("/api/item-editing/bad/metadata")).status).toBe(401);
+        for (let i = 0; i < 121; i++)
+            expect((await request(app).get("/api/item-editing/bad/metadata")).status).toBe(401);
         await exhaust();
         expect((await get("bad")).status).toBe(429);
         expect((await request(app).get("/api/item-editing/bad/metadata")).status).toBe(401);
@@ -240,8 +257,7 @@ describe("P0/P1/P2: 実MemoryStoreのユーザー別レート制限", () => {
         expect((await get()).headers["ratelimit-remaining"]).toBe("118");
     });
     it.each(["取得先行", "作成先行"])("L05: %sでも作成と取得のstoreは独立", async (order) => {
-        const create = () =>
-            request(app).post("/api/item-editing").set("Authorization", `Bearer ${token()}`);
+        const create = () => request(app).post("/api/item-editing").set("Authorization", `Bearer ${token()}`);
         if (order === "取得先行") {
             await exhaust();
             expect((await create()).status).toBe(200);
@@ -264,9 +280,11 @@ describe("P0/P1/P2: 実MemoryStoreのユーザー別レート制限", () => {
         }
     });
     it("L03: parser拒否は枠を消費しない", async () => {
-        const result = await request(app).get("/api/item-editing/101/metadata")
+        const result = await request(app)
+            .get("/api/item-editing/101/metadata")
             .set("Authorization", `Bearer ${token()}`)
-            .set("Content-Type", "application/json").send('{"broken":');
+            .set("Content-Type", "application/json")
+            .send('{"broken":');
         expect(result.status).toBe(400);
         await exhaust();
         expect((await get()).status).toBe(429);

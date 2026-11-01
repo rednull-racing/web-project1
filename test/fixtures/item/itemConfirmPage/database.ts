@@ -200,7 +200,15 @@ export const openDatabase = async () => {
         ];
         if (!permitted.includes(table) || Object.keys(data).some((key) => !/^[a-zA-Z_]+$/.test(key)))
             throw new Error("invalid fixture table/column");
-        const timestamps = ["user", "item_draft", "item_editing", "item", "video", "sale", "item_shipping_profile"].includes(table)
+        const timestamps = [
+            "user",
+            "item_draft",
+            "item_editing",
+            "item",
+            "video",
+            "sale",
+            "item_shipping_profile",
+        ].includes(table)
             ? { createdAt: new Date("2020-01-01T00:00:00Z"), updatedAt: new Date("2020-01-02T00:00:00Z") }
             : {};
         const entries = Object.entries({ ...data, ...timestamps });
@@ -336,44 +344,110 @@ export const seedDatabase = async (database: Database, empty = false) => {
 export const seedConfirm = async (database: Database) => {
     const seed = await seedDatabase(database);
     const { id, createdAt, updatedAt, ...source } = seed.existingEditing;
-    void id; void createdAt; void updatedAt;
+    void id;
+    void createdAt;
+    void updatedAt;
     const data: Record<string, unknown> = {
-        ...source, name: "確認用シャツ", price: 12000, thumbnail_url: "/no-image(16x9).png",
-        original_url: "/test-confirm.mp4", converted_url: null, title: "確認動画", summary: "確認動画の概要",
-        detail: "確認商品の説明", duration: 30, video_status: "active", sale_flag: false,
-        before_price: 15000, discount_rate: null, discount_amount: null,
-        attributes: { inventory: { initial: 10, current: 5, low_stock_ratio: 0.2 },
-            colorVariants: [{ uiId: "red", color: "赤", image_url: "/no-image(1x1).png",
-                inventory: { initial: 5, current: 2, low_stock_ratio: 0.2 },
-                sizes: [{ size: "M", inventory: { initial: 5, current: 2, low_stock_ratio: 0.2 } }] }],
-            materials: [{ name: "綿", ratio: 100 }] },
+        ...source,
+        name: "確認用シャツ",
+        price: 12000,
+        thumbnail_url: "/no-image(16x9).png",
+        original_url: "/test-confirm.mp4",
+        converted_url: null,
+        title: "確認動画",
+        summary: "確認動画の概要",
+        detail: "確認商品の説明",
+        duration: 30,
+        video_status: "active",
+        sale_flag: false,
+        before_price: 15000,
+        discount_rate: null,
+        discount_amount: null,
+        attributes: {
+            inventory: { initial: 10, current: 5, low_stock_ratio: 0.2 },
+            colorVariants: [
+                {
+                    uiId: "red",
+                    color: "赤",
+                    image_url: "/no-image(1x1).png",
+                    inventory: { initial: 5, current: 2, low_stock_ratio: 0.2 },
+                    sizes: [{ size: "M", inventory: { initial: 5, current: 2, low_stock_ratio: 0.2 } }],
+                },
+            ],
+            materials: [{ name: "綿", ratio: 100 }],
+        },
     };
     const normal = await database.insert("item_editing", { ...data, status: "normal", item_id: null });
-    const otherEditing = await database.insert("item_editing", { ...data, seller_id: seed.other.id, name: "他人の編集" });
+    const otherEditing = await database.insert("item_editing", {
+        ...data,
+        seller_id: seed.other.id,
+        name: "他人の編集",
+    });
     const video = await database.insert("video", { title: "更新前動画", original_url: "/old.mp4", play_count: 0 });
-    const sale = await database.insert("sale", { before_price: 20000, discount_rate: 20, discount_amount: 4000, sale_flag: true });
+    const sale = await database.insert("sale", {
+        before_price: 20000,
+        discount_rate: 20,
+        discount_amount: 4000,
+        sale_flag: true,
+    });
     const shipping = await database.insert("item_shipping_profile", {
-        shipping_day_id: data.shipping_day_id, shipping_service_id: data.shipping_service_id,
-        shipping_place_id: data.shipping_place_id, shipping_service_free_text: "更新前配送",
+        shipping_day_id: data.shipping_day_id,
+        shipping_service_id: data.shipping_service_id,
+        shipping_place_id: data.shipping_place_id,
+        shipping_service_free_text: "更新前配送",
     });
     const item = await database.insert("item", {
-        uploaded_at: new Date(), name: "更新前シャツ", detail: "更新前説明", price: 8000, seller_id: seed.owner.id,
-        image_url: data.image_url, first_image_url: data.first_image_url,
-        item_condition_id: data.item_condition_id, category_id: data.category_id,
-        gender_type: "men", age_type: "adult", attributes: data.attributes, status: "active",
-        video_id: video.id, sale_id: sale.id, shipping_id: shipping.id,
+        uploaded_at: new Date(),
+        name: "更新前シャツ",
+        detail: "更新前説明",
+        price: 8000,
+        seller_id: seed.owner.id,
+        image_url: data.image_url,
+        first_image_url: data.first_image_url,
+        item_condition_id: data.item_condition_id,
+        category_id: data.category_id,
+        gender_type: "men",
+        age_type: "adult",
+        attributes: data.attributes,
+        status: "active",
+        video_id: video.id,
+        sale_id: sale.id,
+        shipping_id: shipping.id,
     });
     const edit = await database.insert("item_editing", { ...data, status: "edit", item_id: item.id });
-    const protectedVideo = await database.insert("video", { title: "保護動画", original_url: "/protected.mp4", play_count: 11 });
+    const protectedVideo = await database.insert("video", {
+        title: "保護動画",
+        original_url: "/protected.mp4",
+        play_count: 11,
+    });
     const protectedSale = await database.insert("sale", { before_price: 1000, sale_flag: false });
     const protectedShipping = await database.insert("item_shipping_profile", {
-        shipping_day_id: data.shipping_day_id, shipping_service_id: data.shipping_service_id, shipping_place_id: data.shipping_place_id,
+        shipping_day_id: data.shipping_day_id,
+        shipping_service_id: data.shipping_service_id,
+        shipping_place_id: data.shipping_place_id,
     });
     const { id: oldId, ...protectedData } = item;
     void oldId;
     const protectedItem = await database.insert("item", {
-        ...protectedData, name: "保護対象商品", seller_id: seed.other.id,
-        video_id: protectedVideo.id, sale_id: protectedSale.id, shipping_id: protectedShipping.id,
+        ...protectedData,
+        name: "保護対象商品",
+        seller_id: seed.other.id,
+        video_id: protectedVideo.id,
+        sale_id: protectedSale.id,
+        shipping_id: protectedShipping.id,
     });
-    return { ...seed, normal, edit, otherEditing, item, video, sale, shipping, protectedItem, protectedVideo, protectedSale, protectedShipping };
+    return {
+        ...seed,
+        normal,
+        edit,
+        otherEditing,
+        item,
+        video,
+        sale,
+        shipping,
+        protectedItem,
+        protectedVideo,
+        protectedSale,
+        protectedShipping,
+    };
 };

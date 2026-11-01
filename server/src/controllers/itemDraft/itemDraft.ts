@@ -88,7 +88,11 @@ export const getItemDraftPageController = async (req: Request, res: Response, ne
 // GET /item-draft/:id/metadata
 // summary: 下書き商品ページ メタデータ取得
 // page: /item/draft/[id]
-export const getItemDraftPageMetadataController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getItemDraftPageMetadataController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
     try {
         const userId = req.user!.id;
         const { id: itemDraftId } = req.validatedParams as z.infer<typeof idParamSchema>;

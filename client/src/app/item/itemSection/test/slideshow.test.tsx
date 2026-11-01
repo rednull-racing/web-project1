@@ -59,11 +59,12 @@ describe("スライドショー", () => {
 });
 
 // 確認ページからの利用契約。Swiper自体の描画は上のモック境界に従う。
-it.each(["{Enter}", " "])("U-S07 2枚目を%sで拡大し閉じたら同じ画像へfocus復帰", async key => {
+it.each(["{Enter}", " "])("U-S07 2枚目を%sで拡大し閉じたら同じ画像へfocus復帰", async (key) => {
     render(<Slideshow images={["/one.png", "/two.png", "/three.png"]} />);
     const user = userEvent.setup();
     const trigger = screen.getByRole("button", { name: "画像2を拡大" });
-    trigger.focus(); await user.keyboard(key);
+    trigger.focus();
+    await user.keyboard(key);
     expect(screen.getByTestId("modal")).toHaveAttribute("data-initial-slide", "1");
     await user.click(screen.getByRole("button", { name: "拡大画像を閉じる" }));
     expect(screen.queryByTestId("modal")).not.toBeInTheDocument();

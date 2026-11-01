@@ -156,6 +156,10 @@ describe("F3/F4: 実Routerのエラー接続", () => {
     });
 });
 
-vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({ getItemConfirmPageUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => ({
+    getItemConfirmPageUseCase: vi.fn(),
+}));
 
-vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({ getItemConfirmPageMetadataUseCase: vi.fn() }));
+vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({
+    getItemConfirmPageMetadataUseCase: vi.fn(),
+}));

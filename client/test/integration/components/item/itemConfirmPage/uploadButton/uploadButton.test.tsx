@@ -22,46 +22,69 @@ for (const page of modes) {
         it("C-N01 正しい本文・成功通知と1500ms後の返却IDへの遷移", async () => {
             const reached = vi.fn();
             let startTimer!: () => void;
-            runtime.sleep.mockImplementation((ms) => new Promise((done) => { startTimer = () => { setTimeout(done, ms); }; }));
-            server.use(method(`${API}/items`, async ({ request }) => {
-                reached(await request.json(), request.headers.get("authorization"));
-                return HttpResponse.json({ itemId: 501 });
-            }));
+            runtime.sleep.mockImplementation(
+                (ms) =>
+                    new Promise((done) => {
+                        startTimer = () => {
+                            setTimeout(done, ms);
+                        };
+                    }),
+            );
+            server.use(
+                method(`${API}/items`, async ({ request }) => {
+                    reached(await request.json(), request.headers.get("authorization"));
+                    return HttpResponse.json({ itemId: 501 });
+                }),
+            );
             render(<UploadButton id="101" page={page} />);
             const user = await openAndAgree();
             await user.click(submit());
-            await waitFor(() => expect(runtime.success).toHaveBeenCalledExactlyOnceWith(
-                page === "normal" ? "商品を出品しました" : "商品情報を更新しました",
-            ));
+            await waitFor(() =>
+                expect(runtime.success).toHaveBeenCalledExactlyOnceWith(
+                    page === "normal" ? "商品を出品しました" : "商品情報を更新しました",
+                ),
+            );
             expect(reached).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 101 }, "Bearer test-access-token");
             // HTTP完了後に待機部分だけ時計を制御する。
             expect(runtime.sleep).toHaveBeenCalledExactlyOnceWith(1500);
             expect(runtime.push).not.toHaveBeenCalled();
             vi.useFakeTimers();
             startTimer();
-            await act(async () => { await vi.advanceTimersByTimeAsync(1499); });
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(1499);
+            });
             expect(runtime.push).not.toHaveBeenCalled();
-            await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(1);
+            });
             expect(runtime.push).toHaveBeenCalledExactlyOnceWith(destination);
             vi.useRealTimers();
             expect(runtime.error).not.toHaveBeenCalled();
         });
         it.each([400, 401, 403, 404, 409, 429, 500, "network", "json"] as const)(
-            "C-E01 %sで通知し停止、同意を保持して再試行", async (status) => {
+            "C-E01 %sで通知し停止、同意を保持して再試行",
+            async (status) => {
                 let fail = true;
                 const reached = vi.fn();
-                server.use(method(`${API}/items`, async ({ request }) => {
-                    reached(await request.json());
-                    if (!fail) return HttpResponse.json({ itemId: 501 });
-                    if (status === "network") return HttpResponse.error();
-                    if (status === "json") return new HttpResponse("invalid", { status: 500 });
-                    return HttpResponse.json({ code: "FAIL" }, { status });
-                }));
+                server.use(
+                    method(`${API}/items`, async ({ request }) => {
+                        reached(await request.json());
+                        if (!fail) return HttpResponse.json({ itemId: 501 });
+                        if (status === "network") return HttpResponse.error();
+                        if (status === "json") return new HttpResponse("invalid", { status: 500 });
+                        return HttpResponse.json({ code: "FAIL" }, { status });
+                    }),
+                );
                 render(<UploadButton id="101" page={page} />);
                 const user = await openAndAgree();
                 await user.click(submit());
                 if (typeof status === "number") await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1));
-                else await waitFor(() => expect(window.alert).toHaveBeenCalledExactlyOnceWith("システムエラーが発生しました。時間をおいて再試行してください"));
+                else
+                    await waitFor(() =>
+                        expect(window.alert).toHaveBeenCalledExactlyOnceWith(
+                            "システムエラーが発生しました。時間をおいて再試行してください",
+                        ),
+                    );
                 expect(runtime.success).not.toHaveBeenCalled();
                 expect(runtime.sleep).not.toHaveBeenCalled();
                 expect(runtime.push).not.toHaveBeenCalled();
@@ -75,10 +98,13 @@ for (const page of modes) {
         it("C-O01 応答保留中の連打を止め失敗後に復旧", async () => {
             const gate = deferred<void>();
             const reached = vi.fn();
-            server.use(method(`${API}/items`, async () => {
-                reached(); await gate.promise;
-                return HttpResponse.json({ code: "FAIL" }, { status: 500 });
-            }));
+            server.use(
+                method(`${API}/items`, async () => {
+                    reached();
+                    await gate.promise;
+                    return HttpResponse.json({ code: "FAIL" }, { status: 500 });
+                }),
+            );
             render(<UploadButton id="101" page={page} />);
             const user = await openAndAgree();
             try {
@@ -95,9 +121,15 @@ for (const page of modes) {
             }
         });
         it("C-O01 成功待機中も再送と編集を止めunmount後に遷移しない", async () => {
-            const gate = deferred<void>(); runtime.sleep.mockReturnValue(gate.promise);
+            const gate = deferred<void>();
+            runtime.sleep.mockReturnValue(gate.promise);
             const reached = vi.fn();
-            server.use(method(`${API}/items`, () => { reached(); return HttpResponse.json({ itemId: 501 }); }));
+            server.use(
+                method(`${API}/items`, () => {
+                    reached();
+                    return HttpResponse.json({ itemId: 501 });
+                }),
+            );
             const view = render(<UploadButton id="101" page={page} />);
             const user = await openAndAgree();
             await user.click(submit());

@@ -14,7 +14,8 @@ try {
         context.fillRect(0, 0, 64, 64);
         const stream = canvas.captureStream(10);
         const mimeType = "video/mp4;codecs=avc1.42E01E";
-        if (!MediaRecorder.isTypeSupported(mimeType)) throw new Error("fixture generator requires MP4/H.264 recording support");
+        if (!MediaRecorder.isTypeSupported(mimeType))
+            throw new Error("fixture generator requires MP4/H.264 recording support");
         const recorder = new MediaRecorder(stream, { mimeType });
         const chunks = [];
         const stopped = new Promise((resolve, reject) => {

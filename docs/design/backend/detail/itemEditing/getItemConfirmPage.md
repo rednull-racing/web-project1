@@ -243,15 +243,15 @@ include: [
 
 ## 7. エラー設計
 
-| 発生条件                                  | HTTP | 公開応答                                                                          |
-| ----------------------------------------- | ---- | --------------------------------------------------------------------------------- |
-| bodyの不正JSON（共通parser）              | 400  | `{ "code": "INVALID_JSON", "message": "JSONの形式を確認してください。" }`         |
-| Bearerトークンなし                        | 401  | `{ "message": "トークンがありません。" }`                                         |
-| トークン不正・期限切れ                    | 401  | `{ "message": "トークンが無効です。" }`                                           |
-| 認証後の制限超過                          | 429  | express-rate-limitの既定本文・ヘッダー                                            |
-| id検証失敗                                | 400  | `{ "code": "INVALID_PARAMS", "message": "INVALID_PARAMS" }`                       |
-| 編集セッション不存在・他人の所有・seller_idがnull | 404  | `{ "code": "ITEM_EDITING_NOT_FOUND", "message": "ITEM_EDITING_NOT_FOUND" }`           |
-| 予期しないDB等の例外                      | 500  | `{ "error": "INTERNAL_SERVER_ERROR", "message": "サーバーエラーが発生しました" }` |
+| 発生条件                                          | HTTP | 公開応答                                                                          |
+| ------------------------------------------------- | ---- | --------------------------------------------------------------------------------- |
+| bodyの不正JSON（共通parser）                      | 400  | `{ "code": "INVALID_JSON", "message": "JSONの形式を確認してください。" }`         |
+| Bearerトークンなし                                | 401  | `{ "message": "トークンがありません。" }`                                         |
+| トークン不正・期限切れ                            | 401  | `{ "message": "トークンが無効です。" }`                                           |
+| 認証後の制限超過                                  | 429  | express-rate-limitの既定本文・ヘッダー                                            |
+| id検証失敗                                        | 400  | `{ "code": "INVALID_PARAMS", "message": "INVALID_PARAMS" }`                       |
+| 編集セッション不存在・他人の所有・seller_idがnull | 404  | `{ "code": "ITEM_EDITING_NOT_FOUND", "message": "ITEM_EDITING_NOT_FOUND" }`       |
+| 予期しないDB等の例外                              | 500  | `{ "error": "INTERNAL_SERVER_ERROR", "message": "サーバーエラーが発生しました" }` |
 
 400/404は既存AppError、予期しない例外は元の例外を共通errorHandlerへ渡す。認証・制限の応答をAppError形式へ変更しない。拒否時は後続処理を実行せず、500に内部エラー内容を含めない。
 
@@ -265,6 +265,5 @@ include: [
 - 再送・並行: 参照に副作用がなく対象・他人の編集セッションとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・関連取得・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。
 - 次工程成果物: `server/test/docs/architecture/itemEditing/getItemConfirmPage.md` と `server/test/docs/report/itemEditing/getItemConfirmPage.md`。実行結果はレポートに記録する。
-
 
 検証結果: [テスト設計](../../../../../server/test/docs/architecture/itemEditing/getItemConfirmPage.md)・[テストレポート](../../../../../server/test/docs/report/itemEditing/getItemConfirmPage.md)を参照。

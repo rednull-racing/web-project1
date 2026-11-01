@@ -13,7 +13,21 @@ describe("ItemSection実子部品", () => {
         const data = createConfirm({ sale_flag: true, discount_rate: 20, discount_amount: 3000 });
         render(<ItemSection itemEditing={data} soldout={false} />);
         expect(screen.getByRole("heading", { name: "確認用シャツ" })).toBeInTheDocument();
-        for (const text of ["￥12,000", "￥15,000", "20% OFF", "3,000円引き", "シャツ分類", "新品", "宅配便", "東京都", "1〜2日", "綿", "60%", "ポリエステル", "40%"]) {
+        for (const text of [
+            "￥12,000",
+            "￥15,000",
+            "20% OFF",
+            "3,000円引き",
+            "シャツ分類",
+            "新品",
+            "宅配便",
+            "東京都",
+            "1〜2日",
+            "綿",
+            "60%",
+            "ポリエステル",
+            "40%",
+        ]) {
             expect(screen.getByText(text)).toBeInTheDocument();
         }
         expect(screen.queryByText("確認ブランド")).not.toBeInTheDocument();
@@ -23,7 +37,8 @@ describe("ItemSection実子部品", () => {
         await user.click(variant);
         expect(variant).toHaveAttribute("aria-expanded", "true");
         expect(screen.getByText("M")).toBeInTheDocument();
-        variant.focus(); await user.keyboard(" ");
+        variant.focus();
+        await user.keyboard(" ");
         expect(variant).toHaveAttribute("aria-expanded", "false");
         const image = screen.getByRole("button", { name: "画像2を拡大" });
         await user.click(image);
@@ -32,8 +47,20 @@ describe("ItemSection実子部品", () => {
         expect(image).toHaveFocus();
     });
     it("C-N02 null補完・空variants・売切表示", () => {
-        render(<ItemSection itemEditing={createConfirm({ detail: null, Category: null, ItemConditionOption: null,
-            ShippingDayOption: null, ShippingServiceOption: null, TodouhukenOption: null, attributes: {} })} soldout />);
+        render(
+            <ItemSection
+                itemEditing={createConfirm({
+                    detail: null,
+                    Category: null,
+                    ItemConditionOption: null,
+                    ShippingDayOption: null,
+                    ShippingServiceOption: null,
+                    TodouhukenOption: null,
+                    attributes: {},
+                })}
+                soldout
+            />,
+        );
         expect(screen.getAllByText("-")).toHaveLength(4);
         expect(screen.getByText("SOLD OUT")).toBeInTheDocument();
         expect(screen.queryByText("￥12,000")).not.toBeInTheDocument();
@@ -42,7 +69,12 @@ describe("ItemSection実子部品", () => {
     });
     it("C-N02 長文説明の開閉でも加点要求なし", async () => {
         const requests = vi.fn();
-        server.use(http.all(`${API}/*`, () => { requests(); return HttpResponse.json({}); }));
+        server.use(
+            http.all(`${API}/*`, () => {
+                requests();
+                return HttpResponse.json({});
+            }),
+        );
         vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(200);
         vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(40);
         render(<ItemSection itemEditing={createConfirm({ detail: "長い説明".repeat(100) })} soldout={false} />);

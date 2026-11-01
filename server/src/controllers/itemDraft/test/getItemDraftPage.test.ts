@@ -83,4 +83,6 @@ describe("P0/P1: getItemDraftPage controller", () => {
     });
 });
 
-vi.mock("../../../usecases/itemDraft/getItemDraftPageMetadata.js", () => ({ getItemDraftPageMetadataUseCase: vi.fn() }));
+vi.mock("../../../usecases/itemDraft/getItemDraftPageMetadata.js", () => ({
+    getItemDraftPageMetadataUseCase: vi.fn(),
+}));

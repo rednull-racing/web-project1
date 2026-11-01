@@ -46,11 +46,11 @@ getItemDraftPage実装により実行可能になったF11の実GET取得込みE
 
 実GETを通した既存代表フロー（E-N01上/下・E-N02・E-N04・E-N05編集/削除）18件も実行。Chromium/Firefoxは各6件成功。WebKitの既存操作不成立は残り、E-N01上/下・E-N02・E-N04は業務HTTP応答待ちでtimeout、E-N05編集/削除はupload/my-pageへの遷移待ちで失敗した。WebKitでも実GET/SSR追加3件は成功しており、取得APIの不成立とは区別する。今回の失敗ではcookie不存在を直接再検査しておらず、以前のcookie観測だけから原因を断定しない。失敗した操作後のDB/再訪assertは未到達。
 
-| project | 成功 | 失敗 | timeout | skip |
-| --- | ---: | ---: | ---: | ---: |
-| e2e-chromium | 9 | 0 | 0 | 0 |
-| e2e-firefox | 9 | 0 | 0 | 0 |
-| e2e-webkit | 3 | 2 | 4 | 0 |
+| project      | 成功 | 失敗 | timeout | skip |
+| ------------ | ---: | ---: | ------: | ---: |
+| e2e-chromium |    9 |    0 |       0 |    0 |
+| e2e-firefox  |    9 |    0 |       0 |    0 |
+| e2e-webkit   |    3 |    2 |       4 |    0 |
 
 計27件：成功21、失敗2、timeout4。トップレベルerrors/flaky/interrupted/未着手0。3実ファイル別では取得9成功、編集8成功/1失敗/3timeout、削除4成功/1失敗/1timeout。先行のChromium追加3件成功は同じ最終27件に含まれるため重複加算しない。過去の383件全体を今回再検証した結果ではない。
 

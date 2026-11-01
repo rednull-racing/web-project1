@@ -1,4 +1,13 @@
-import { test, expect, apiOrigin, confirmPath, openConfirm, openPopup, popup, setBrowserSession } from "../../../../fixtures/item/itemConfirmPage/browser";
+import {
+    test,
+    expect,
+    apiOrigin,
+    confirmPath,
+    openConfirm,
+    openPopup,
+    popup,
+    setBrowserSession,
+} from "../../../../fixtures/item/itemConfirmPage/browser";
 import type { Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 
@@ -12,7 +21,13 @@ const forbiddenRequests = (page: Page) => {
 
 for (const mode of ["normal", "edit"] as const) {
     for (const metadataName of ["確認用シャツ", null, ""]) {
-        test(`B-N01 ${mode} metadata名=${JSON.stringify(metadataName)} SSR・head・専用GET`, async ({ page, editing, putEditing, request, errors }) => {
+        test(`B-N01 ${mode} metadata名=${JSON.stringify(metadataName)} SSR・head・専用GET`, async ({
+            page,
+            editing,
+            putEditing,
+            request,
+            errors,
+        }) => {
             editing.status = mode;
             await putEditing(editing, { metadataName });
             const response = await page.request.get(confirmPath(editing, mode));
@@ -21,10 +36,17 @@ for (const mode of ["normal", "edit"] as const) {
             const before = await (await request.get(`${apiOrigin}/__test__/state`)).json();
             await openConfirm(page, editing, mode);
             const name = metadataName || "商品名未入力";
-            await expect(page).toHaveTitle(`${name} | ${mode === "normal" ? "出品する商品の確認" : "更新する商品の確認"}`);
-            await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", `「${name}」の${mode === "normal" ? "アップロード確認" : "更新内容確認"}`);
+            await expect(page).toHaveTitle(
+                `${name} | ${mode === "normal" ? "出品する商品の確認" : "更新する商品の確認"}`,
+            );
+            await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+                "content",
+                `「${name}」の${mode === "normal" ? "アップロード確認" : "更新内容確認"}`,
+            );
             await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex.*nofollow/);
-            await expect(page.getByText(mode === "normal" ? "出品する商品の確認" : "更新する商品情報の確認", { exact: true })).toBeVisible();
+            await expect(
+                page.getByText(mode === "normal" ? "出品する商品の確認" : "更新する商品情報の確認", { exact: true }),
+            ).toBeVisible();
             const after = await (await request.get(`${apiOrigin}/__test__/state`)).json();
             expect(after.entries[editing.id].requests - before.entries[editing.id].requests).toBe(1);
             expect(after.entries[editing.id].metadataRequests - before.entries[editing.id].metadataRequests).toBe(1);
@@ -43,7 +65,10 @@ for (const mode of ["normal", "edit"] as const) {
         await expect(page.getByRole("heading", { name: editing.name, exact: true })).toBeInViewport();
         await page.locator(".swiper-pagination-bullet").nth(1).click();
         await page.getByRole("button", { name: "画像2を拡大", exact: true }).click();
-        await expect(page.locator('[class*="sliderModal"] .swiper-slide-active img')).toHaveAttribute("alt", "全画面スライド 2");
+        await expect(page.locator('[class*="sliderModal"] .swiper-slide-active img')).toHaveAttribute(
+            "alt",
+            "全画面スライド 2",
+        );
         await page.getByRole("button", { name: "拡大画像を閉じる", exact: true }).click();
         const variant = page.getByRole("button", { name: "赤", exact: true });
         await variant.click();
@@ -57,9 +82,13 @@ for (const mode of ["normal", "edit"] as const) {
         expect(errors).toEqual([]);
     });
     test(`B-N02 ${mode} 元動画を実再生して集計しない`, async ({ page, editing, putEditing, baseURL }) => {
-        const body = await readFile(new URL("../../../../fixtures/item/itemConfirmPage/browserVideo.mp4", import.meta.url));
+        const body = await readFile(
+            new URL("../../../../fixtures/item/itemConfirmPage/browserVideo.mp4", import.meta.url),
+        );
         editing.original_url = new URL("/__test__/confirm-video.mp4", baseURL).href;
-        await page.route("**/__test__/confirm-video.mp4", (route) => route.fulfill({ status: 200, body, contentType: "video/mp4" }));
+        await page.route("**/__test__/confirm-video.mp4", (route) =>
+            route.fulfill({ status: 200, body, contentType: "video/mp4" }),
+        );
         await putEditing(editing);
         const requests = forbiddenRequests(page);
         await openConfirm(page, editing, mode);
@@ -70,7 +99,9 @@ for (const mode of ["normal", "edit"] as const) {
             element.muted = true;
             await element.play();
         });
-        await expect.poll(() => video.evaluate((element) => element instanceof HTMLVideoElement ? element.currentTime : 0)).toBeGreaterThan(0);
+        await expect
+            .poll(() => video.evaluate((element) => (element instanceof HTMLVideoElement ? element.currentTime : 0)))
+            .toBeGreaterThan(0);
         expect(requests).toEqual([]);
     });
     for (const width of [375, 767, 768, 1280]) {
@@ -92,7 +123,9 @@ for (const mode of ["normal", "edit"] as const) {
             await expect(terms).toHaveCount(2);
             for (const term of await terms.all()) {
                 expect(await term.evaluate((element) => element.scrollHeight > element.clientHeight)).toBeTruthy();
-                await term.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+                await term.evaluate((element) => {
+                    element.scrollTop = element.scrollHeight;
+                });
             }
             await popup(page).getByRole("checkbox").check();
             await expect(popup(page).getByRole("button", { name: "出品する", exact: true })).toBeInViewport();
@@ -125,12 +158,19 @@ for (const mode of ["normal", "edit"] as const) {
     });
     for (const status of [401, 404, 500]) {
         for (const metadataOnly of [false, true]) {
-            test(`B-E02 ${mode} ${metadataOnly ? "metadata単独" : "本文"} GET${status}`, async ({ page, editing, putEditing }, info) => {
+            test(`B-E02 ${mode} ${metadataOnly ? "metadata単独" : "本文"} GET${status}`, async ({
+                page,
+                editing,
+                putEditing,
+            }, info) => {
                 await putEditing(editing, metadataOnly ? { metadataStatus: status } : { status });
                 const response = await page.goto(confirmPath(editing, mode));
                 if (status === 401) await expect(page).toHaveURL(/\/login(?:\?|$)/);
                 if (status === 404) await expect(page.getByRole("heading", { name: "404", exact: true })).toBeVisible();
-                await info.attach("error-response-status", { body: JSON.stringify({ apiStatus: status, metadataOnly, documentStatus: response?.status() }), contentType: "application/json" });
+                await info.attach("error-response-status", {
+                    body: JSON.stringify({ apiStatus: status, metadataOnly, documentStatus: response?.status() }),
+                    contentType: "application/json",
+                });
                 await expect(page.getByRole("heading", { name: editing.name, exact: true })).toHaveCount(0);
                 await expect(page.getByRole("button", { name: "出品する", exact: true })).toHaveCount(0);
             });
@@ -154,7 +194,9 @@ for (const mode of ["normal", "edit"] as const) {
     test(`B-E03 ${mode} 遅延GETと送信で成功遷移を先行しない`, async ({ page, editing, putEditing, request }) => {
         await putEditing(editing, { hold: true });
         let release!: () => void;
-        const gate = new Promise<void>((resolve) => { release = resolve; });
+        const gate = new Promise<void>((resolve) => {
+            release = resolve;
+        });
         const requests: string[] = [];
         await page.route(/\/items(?:\?.*)?$/, async (route) => {
             requests.push(route.request().method());
@@ -163,12 +205,17 @@ for (const mode of ["normal", "edit"] as const) {
             await route.fulfill({ status: 500, json: { code: "TEST_END" } });
         });
         let navigationFinished = false;
-        const navigation = page.goto(confirmPath(editing, mode)).then((response) => { navigationFinished = true; return response; });
+        const navigation = page.goto(confirmPath(editing, mode)).then((response) => {
+            navigationFinished = true;
+            return response;
+        });
         try {
-            await expect.poll(async () => {
-                const state = await (await request.get(`${apiOrigin}/__test__/state`)).json();
-                return state.entries[editing.id].requests;
-            }).toBeGreaterThan(0);
+            await expect
+                .poll(async () => {
+                    const state = await (await request.get(`${apiOrigin}/__test__/state`)).json();
+                    return state.entries[editing.id].requests;
+                })
+                .toBeGreaterThan(0);
             expect(requests).toEqual([]);
             // Locatorの自動navigation待ちでhold/releaseをデッドロックさせない。
             expect(navigationFinished).toBe(false);
@@ -190,9 +237,17 @@ for (const mode of ["normal", "edit"] as const) {
             await expect(popup(page).getByRole("button", { name: "出品する", exact: true })).toBeDisabled();
             expect(requests).toHaveLength(1);
             await expect(page).toHaveURL(new RegExp(`${confirmPath(editing, mode)}$`));
-            await expect(page.getByText(mode === "normal" ? "商品を出品しました" : "商品情報を更新しました", { exact: true })).toHaveCount(0);
-        } finally { release(); }
-        await expect(page.getByText("サーバーエラーが発生しました。通信状況を確認し、もう一度ボタンをクリックしてください", { exact: true })).toBeVisible();
+            await expect(
+                page.getByText(mode === "normal" ? "商品を出品しました" : "商品情報を更新しました", { exact: true }),
+            ).toHaveCount(0);
+        } finally {
+            release();
+        }
+        await expect(
+            page.getByText("サーバーエラーが発生しました。通信状況を確認し、もう一度ボタンをクリックしてください", {
+                exact: true,
+            }),
+        ).toBeVisible();
         await expect(popup(page).getByRole("button", { name: "出品する", exact: true })).toBeEnabled();
     });
     test(`B-O01 ${mode} dialogのキー操作・focus・背景操作抑止`, async ({ page, editing }) => {
@@ -247,7 +302,12 @@ for (const mode of ["normal", "edit"] as const) {
         await page.getByRole("button", { name: "拡大画像を閉じる", exact: true }).press("Enter");
         await expect(page.getByRole("button", { name: "画像1を拡大", exact: true })).toBeFocused();
     });
-    test(`B-O02 ${mode} 長文・多数variant・画像失敗・status不一致の観測`, async ({ page, editing, putEditing, errors }, info) => {
+    test(`B-O02 ${mode} 長文・多数variant・画像失敗・status不一致の観測`, async ({
+        page,
+        editing,
+        putEditing,
+        errors,
+    }, info) => {
         editing.status = mode === "normal" ? "edit" : "normal";
         const largeImage = await page.evaluate(() => {
             const canvas = document.createElement("canvas");
@@ -265,15 +325,37 @@ for (const mode of ["normal", "edit"] as const) {
         });
         editing.detail = "とても長い商品説明。".repeat(1000);
         editing.summary = "とても長い動画概要。".repeat(1000);
-        editing.attributes.colorVariants = Array.from({ length: 30 }, (_, index) => ({ color: `色${index}`, image_url: "/no-image(1x1).png" }));
+        editing.attributes.colorVariants = Array.from({ length: 30 }, (_, index) => ({
+            color: `色${index}`,
+            image_url: "/no-image(1x1).png",
+        }));
         await putEditing(editing);
         const failed: string[] = [];
-        page.on("requestfailed", (request) => { if (["image", "media"].includes(request.resourceType())) failed.push(new URL(request.url()).pathname); });
+        page.on("requestfailed", (request) => {
+            if (["image", "media"].includes(request.resourceType())) failed.push(new URL(request.url()).pathname);
+        });
         const started = Date.now();
         await openConfirm(page, editing, mode);
         const image = page.getByRole("img", { name: "商品画像1枚目" });
-        await expect.poll(() => image.evaluate((element) => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBeTruthy();
+        await expect
+            .poll(() =>
+                image.evaluate(
+                    (element) => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0,
+                ),
+            )
+            .toBeTruthy();
         await expect(page.getByRole("button", { name: /^色\d+$/ })).toHaveCount(30);
-        await info.attach("performance-observation", { body: JSON.stringify({ milliseconds: Date.now() - started, failed, errors, status: editing.status, mode, largeImage: { width: 1600, height: 1600 }, delayedMediaStatus: 404 }), contentType: "application/json" });
+        await info.attach("performance-observation", {
+            body: JSON.stringify({
+                milliseconds: Date.now() - started,
+                failed,
+                errors,
+                status: editing.status,
+                mode,
+                largeImage: { width: 1600, height: 1600 },
+                delayedMediaStatus: 404,
+            }),
+            contentType: "application/json",
+        });
     });
 }
