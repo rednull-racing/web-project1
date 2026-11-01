@@ -1,6 +1,52 @@
 # itemConfirmPage テストレポート
 
-## 2026-10-30 実装・実行結果
+## 2026-11-01 F1・F2修正・再検証（最新）
+
+F1/F2を本番コードへ反映した。以下の初回検証と「提案のみ」の記述は修正前の履歴であり、現行契約・解消状況は本節を優先する。F3の対象外静的診断は未修正。
+
+### 変更と期待値の更新
+
+- **F1：修正済み。** UploadButtonのPOST/PUTを同じ送信ガードで保護し、state反映前の同期再入もrefで拒否する。送信開始から成功後1500msの待機・遷移要求まで送信/同意変更/編集を無効にし、失敗時だけ復旧する。閉じる・再表示をしてもpendingは維持する。
+- 応答前/成功待機中にunmountした場合、その後の通知・state更新・遷移要求を無効化する。すでにサーバーで始まった保存処理を取り消したとは扱わない。
+- **F2：修正済み。** native dialogのshowModalでtop layerと背景inertを使用。dialog名、名前付き閉じるbutton、初期focus、Tab/Shift+Tab循環、Escape/閉じる/背景クリック、開くボタンへのfocus復帰を実装。開いている間は背景スクロールを停止し、閉じると元へ戻す。
+- 共通Backを名前付きbuttonへ変更し、従来の履歴戻り/url指定pushと見た目を維持してEnter/Spaceへ対応する。
+- C-O01/B-O01は観測から通常の合否assertへ移行。旧結果は下の履歴へ保持する。AF-F1は同期再入・応答前unmount、AF-F2はdialogのfocus/キー操作を追加し、既存の正常/異常/再試行契約を維持した。
+
+### 今回の実行結果
+
+- 単体・共有回帰：27ファイル222件成功（`/tmp/f1-f2-unit-final.json`）。DOM結合：4ファイル34件成功（`/tmp/f1-f2-integration.json`）。
+- productionブラウザー結合：最終132件成功。停止前runは131成功/1失敗（`/tmp/f1-f2-browser-final.json`）。失敗したWebKit B-N02 normalはログイン画面の事前読込に関するaccess controlエラーをpageerrorとして検出したもので、11月1日の同条件再実行は成功（`/tmp/f1-f2-browser-resume.json`）。旧1件を置換し重複加算しない。元のエラーの恒久解消までは保証しない。
+- F1/F2の通常assertは3ブラウザーで成功。今回の合計は388件で、前回E2E66件を再実行件数へ混ぜない。
+- production build、対象ESLint、テスト専用型検査は成功。全体lintは既存23 errors/37 warnings、build後の本番typecheckは既存49診断で失敗。範囲外のF3は未修正。
+- 上記一括検証は10月30日の停止前結果を確認して採用し、11月1日は残ったブラウザー1件と送信/Backの単体20件を再実行して成功（`/tmp/f1-f2-resume-unit.log`）。過去の検証を今回すべて再実行したとは扱わない。
+
+### 検証境界・途中の失敗
+
+単体はAPI依存・router・通知・待機を制御する。DOM結合は実API wrapper/共通fetchを使用しHTTPだけをMSWへ置換。jsdomのdialog API代替は専用fixtureでshowModal/closeのみ提供し、テストcleanup後に復元する。native top layer/背景inertをjsdomで保証したとは扱わず、production Nextと3ブラウザーで実証する。
+
+初回のDOM失敗はdialog API代替の復元がDOM cleanupより先に走ったため。fixtureでcleanup後に復元するよう訂正し再実行した。B-O01初回はスクロール可能な規約欄がブラウザーでTab対象になることを無視したテストの誤期待。各Tabでdialog内focusを保ったままcheckboxへ到達するassertへ訂正し、背景逸脱防止は弱めていない。途中の作業ディレクトリ指定ミス・中断したrunは最終集計に加算しない。
+
+実認証・Express・DBの66件E2Eは前回結果であり**今回再実行していない**。今回はAPI契約/業務処理/DBを変更せず、UIの排他とnative modal・Backの変更を単体/HTTP結合/productionブラウザー回帰で検証する。全バックエンドの重複防止・すべての競合順序・外部サービスの保証を追加しない。
+
+### 再現コマンド（Node.js 22.22.2、client/）
+
+```bash
+npm run test:unit -- src/app/item/confirm src/app/item/itemSection/test src/app/item/videoSection/test src/components/container/test src/components/title-back/test src/components/terms/test src/lib/api/test/confirmClient.test.ts src/lib/api/test/confirmServer.test.ts src/lib/test/formatRelativeTime.test.ts src/lib/test/sleep.test.ts --maxWorkers=2 --reporter=json --outputFile=/tmp/f1-f2-unit-final.json
+npm run test:integration -- test/integration/components/item/itemConfirmPage test/integration/pages/item/itemConfirmPage --maxWorkers=2 --reporter=json --outputFile=/tmp/f1-f2-integration.json
+npm run build -- --webpack
+# 別ターミナルで専用API・Nextを起動
+node test/fixtures/item/itemConfirmPage/browserApi.mjs
+node test/fixtures/item/itemConfirmPage/browserStart.mjs
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3031 PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/f1-f2-browser-final.json npm run test:pages:browser -- test/integration/pages/item/itemConfirmPage/confirm.spec.ts --workers=2 --reporter=list,json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+今回の変更ファイルに限定した既存ESLintによる検査も実施し、通常lint全体の結果とは区別する。設計書・ページAGENTSも現行の排他/modal契約に更新した。
+
+
+## 2026-10-30 初回検証履歴（F1・F2修正前）
 
 [テスト設計書](../../architecture/item/itemConfirmPage.md)に基づき、新規出品・更新の2ページを検証した。対象の本番コード・共有設定は変更していない。テストの不備はテスト側で修正し、本番の失敗や仕様未確定の観測を分けて記録する。以下のパスは特記しない限りclient/基準。E2Eのtest/はリポジトリルート基準。
 

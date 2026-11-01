@@ -72,7 +72,7 @@ for (const page of modes) {
                 expect(reached.mock.calls).toEqual([[{ itemEditingId: 101 }], [{ itemEditingId: 101 }]]);
             },
         );
-        it("C-O01 観測: 応答保留中の連打を実HTTP境界で数える", async () => {
+        it("C-O01 応答保留中の連打を止め失敗後に復旧", async () => {
             const gate = deferred<void>();
             const reached = vi.fn();
             server.use(method(`${API}/items`, async () => {
@@ -85,14 +85,16 @@ for (const page of modes) {
                 await user.click(submit());
                 await waitFor(() => expect(reached).toHaveBeenCalledTimes(1));
                 await user.click(submit());
-                await waitFor(() => expect(reached).toHaveBeenCalledTimes(2));
+                expect(reached).toHaveBeenCalledTimes(1);
+                expect(submit()).toBeDisabled();
                 expect(runtime.push).not.toHaveBeenCalled();
             } finally {
                 gate.resolve();
-                await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(2));
+                await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1));
+                expect(submit()).toBeEnabled();
             }
         });
-        it("C-O01 観測: 成功待機中の再送・閉じる再表示・unmount後の遷移", async () => {
+        it("C-O01 成功待機中も再送と編集を止めunmount後に遷移しない", async () => {
             const gate = deferred<void>(); runtime.sleep.mockReturnValue(gate.promise);
             const reached = vi.fn();
             server.use(method(`${API}/items`, () => { reached(); return HttpResponse.json({ itemId: 501 }); }));
@@ -105,13 +107,15 @@ for (const page of modes) {
             await user.click(close!);
             await user.click(screen.getByRole("button", { name: "出品する" }));
             expect(screen.getByRole("checkbox")).toBeChecked();
-            expect(screen.getByRole("link", { name: "商品を編集する" })).toHaveAttribute("href", "/upload/edit/101");
+            expect(screen.getByRole("link", { name: "商品を編集する" })).toHaveAttribute("aria-disabled", "true");
+            expect(screen.getByRole("link", { name: "商品を編集する" })).not.toHaveAttribute("href");
             await user.click(submit());
-            await waitFor(() => expect(runtime.success).toHaveBeenCalledTimes(2));
-            expect(reached).toHaveBeenCalledTimes(2);
+            expect(submit()).toBeDisabled();
+            expect(runtime.success).toHaveBeenCalledTimes(1);
+            expect(reached).toHaveBeenCalledTimes(1);
             view.unmount();
             await act(async () => gate.resolve());
-            expect(runtime.push.mock.calls).toEqual([[destination], [destination]]);
+            expect(runtime.push).not.toHaveBeenCalled();
         });
     });
 }

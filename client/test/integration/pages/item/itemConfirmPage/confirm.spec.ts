@@ -183,35 +183,69 @@ for (const mode of ["normal", "edit"] as const) {
             await popup(page).getByRole("button", { name: "出品する", exact: true }).click();
             await expect.poll(() => requests.length).toBe(1);
             expect(requests).toEqual([mode === "normal" ? "POST" : "PUT"]);
+            await expect(popup(page).getByRole("button", { name: "出品する", exact: true })).toBeDisabled();
+            await expect(page.locator('[role="link"][aria-disabled="true"]')).toHaveCount(1);
+            await popup(page).getByRole("button", { name: "確認を閉じる" }).click();
+            await openPopup(page);
+            await expect(popup(page).getByRole("button", { name: "出品する", exact: true })).toBeDisabled();
+            expect(requests).toHaveLength(1);
             await expect(page).toHaveURL(new RegExp(`${confirmPath(editing, mode)}$`));
             await expect(page.getByText(mode === "normal" ? "商品を出品しました" : "商品情報を更新しました", { exact: true })).toHaveCount(0);
         } finally { release(); }
         await expect(page.getByText("サーバーエラーが発生しました。通信状況を確認し、もう一度ボタンをクリックしてください", { exact: true })).toBeVisible();
+        await expect(popup(page).getByRole("button", { name: "出品する", exact: true })).toBeEnabled();
     });
-    test(`B-O01 ${mode} キーボードとfocus・Escapeの観測`, async ({ page, editing }, info) => {
+    test(`B-O01 ${mode} dialogのキー操作・focus・背景操作抑止`, async ({ page, editing }) => {
+        await page.goto("/login");
         await openConfirm(page, editing, mode);
+        const back = page.getByRole("button", { name: "戻る", exact: true });
+        await back.focus();
+        await back.press("Enter");
+        await expect(page).toHaveURL(/\/login$/);
+        await page.goForward();
+        await expect(page.getByRole("link", { name: "商品を編集する" })).toBeVisible();
         const opener = page.getByRole("button", { name: "出品する", exact: true });
         await opener.focus();
-        await page.keyboard.press("Enter");
-        await expect(popup(page)).toBeVisible();
-        const focusOnOpen = await page.evaluate(() => document.activeElement?.outerHTML);
-        const backKeyboard = await page.locator('svg[data-icon="angle-left"]').evaluateAll((elements) => elements.map((element) => ({ role: element.getAttribute("role"), tabIndex: element.getAttribute("tabindex"), label: element.getAttribute("aria-label") })));
+        await opener.press("Enter");
+        const dialog = page.getByRole("dialog", { name: "出品する", exact: true });
+        const close = dialog.getByRole("button", { name: "確認を閉じる" });
+        const submit = dialog.getByRole("button", { name: "出品する", exact: true });
+        await expect(dialog).toBeVisible();
+        await expect(close).toBeFocused();
+        // showModalのtop layerにより背景へプログラム的にfocusしても移動しない。
+        await page.locator('a[href^="/upload/edit/"]').evaluate((element) => {
+            if (element instanceof HTMLElement) element.focus();
+        });
+        await expect(close).toBeFocused();
+        await page.keyboard.press("Shift+Tab");
+        await expect(submit).toBeFocused();
         await page.keyboard.press("Tab");
-        const firstTabInPopup = await popup(page).evaluate((element) => element.contains(document.activeElement));
-        await page.getByRole("checkbox").focus();
+        await expect(close).toBeFocused();
+        // スクロール可能な規約欄もブラウザーによりTab対象になる。
+        for (let index = 0; index < 6; index++) {
+            await page.keyboard.press("Tab");
+            expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
+            if (await dialog.getByRole("checkbox").evaluate((element) => element === document.activeElement)) break;
+        }
+        await expect(dialog.getByRole("checkbox")).toBeFocused();
         await page.keyboard.press("Space");
-        await expect(page.getByRole("checkbox")).toBeChecked();
-        const dialogCount = await page.getByRole("dialog").count();
-        const closeButtonCount = await popup(page).getByRole("button", { name: /閉じる/ }).count();
+        await expect(dialog.getByRole("checkbox")).toBeChecked();
         await page.keyboard.press("Escape");
-        const escapeClosed = !(await page.getByRole("checkbox").isVisible());
-        if (!escapeClosed) await popup(page).locator("svg").click();
-        const focusRestored = await opener.evaluate((element) => element === document.activeElement);
+        await expect(dialog).toHaveCount(0);
+        await expect(opener).toBeFocused();
+        await opener.press("Space");
+        await expect(close).toBeFocused();
+        await close.press("Enter");
+        await expect(opener).toBeFocused();
+        await opener.click();
+        await page.mouse.click(5, 5);
+        await expect(dialog).toHaveCount(0);
+        await expect(opener).toBeFocused();
+        await expect(page).toHaveURL(new RegExp(`${confirmPath(editing, mode)}$`));
         await page.getByRole("button", { name: "画像1を拡大", exact: true }).focus();
         await page.keyboard.press("Space");
         await page.getByRole("button", { name: "拡大画像を閉じる", exact: true }).press("Enter");
         await expect(page.getByRole("button", { name: "画像1を拡大", exact: true })).toBeFocused();
-        await info.attach("keyboard-observation", { body: JSON.stringify({ focusOnOpen, firstTabInPopup, dialogCount, closeButtonCount, escapeClosed, focusRestored, backKeyboard }), contentType: "application/json" });
     });
     test(`B-O02 ${mode} 長文・多数variant・画像失敗・status不一致の観測`, async ({ page, editing, putEditing, errors }, info) => {
         editing.status = mode === "normal" ? "edit" : "normal";

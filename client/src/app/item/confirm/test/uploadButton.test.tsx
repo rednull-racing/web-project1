@@ -1,3 +1,4 @@
+import "@/../test/fixtures/item/itemConfirmPage/dialog";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
@@ -21,19 +22,17 @@ const open = async (page: "normal" | "edit") => {
     await user.click(screen.getByRole("button", { name: "出品する" })); return { user, ...view };
 };
 it.each(["normal", "edit"] as const)("U-N05 %sの開閉・禁止事項・未同意・同意保持", async page => {
-    const { user, container } = await open(page);
+    const { user } = await open(page);
     expect(screen.getAllByTestId("term")).toHaveLength(42);
     expect(screen.getByText("動画・画像禁止事項")).toBeInTheDocument(); expect(screen.getByText("商品禁止事項")).toBeInTheDocument();
     await user.click(screen.getAllByRole("button", { name: "出品する" })[1]);
     expect(window.alert).toHaveBeenCalledExactlyOnceWith("利用規約に同意し、チェックしてください");
     expect(mocks.create).not.toHaveBeenCalled(); expect(mocks.edit).not.toHaveBeenCalled();
     await user.click(screen.getByRole("checkbox")); expect(screen.getByRole("checkbox")).toBeChecked();
-    // Xと背景にはアクセシブル名がないため現行のDOMイベント接続だけを検証する。
-    const close = container.querySelector("svg"); expect(close).not.toBeNull(); fireEvent.click(close!);
+    await user.click(screen.getByRole("button", { name: "確認を閉じる" }));
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "出品する" })); expect(screen.getByRole("checkbox")).toBeChecked();
-    const popup = screen.getByRole("checkbox").closest("label")?.parentElement;
-    expect(popup?.previousElementSibling).not.toBeNull(); fireEvent.click(popup!.previousElementSibling!);
+    fireEvent.click(screen.getByRole("dialog"), { clientX: -1, clientY: -1 });
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "出品する" })); expect(screen.getByRole("checkbox")).toBeChecked();
     await user.click(screen.getByRole("checkbox")); expect(screen.getByRole("checkbox")).not.toBeChecked();
@@ -63,3 +62,44 @@ for (const page of ["normal", "edit"] as const) {
         await act(async () => release()); expect(mocks.push).toHaveBeenCalledExactlyOnceWith(page === "normal" ? "/upload/ok/501" : "/item/501");
     });
 }
+
+it.each(["normal", "edit"] as const)("AF-F2 %s dialogのfocus循環・Escape・復帰", async (page) => {
+    const { user } = await open(page);
+    const close = screen.getByRole("button", { name: "確認を閉じる" });
+    expect(screen.getByRole("dialog", { name: "出品する" })).toHaveAttribute("aria-modal", "true");
+    expect(close).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(screen.getAllByRole("button", { name: "出品する" })[1]).toHaveFocus();
+    await user.tab(); expect(close).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "出品する" })).toHaveFocus();
+});
+it.each(["normal", "edit"] as const)("AF-F1 %s unmount後の応答は通知・待機・遷移なし", async (page) => {
+    let resolve!: (data: { itemId: number }) => void;
+    const request = page === "normal" ? mocks.create : mocks.edit;
+    request.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const { user, unmount } = await open(page);
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getAllByRole("button", { name: "出品する" })[1]);
+    unmount();
+    await act(async () => resolve({ itemId: 501 }));
+    expect(mocks.success).not.toHaveBeenCalled(); expect(mocks.error).not.toHaveBeenCalled();
+    expect(mocks.sleep).not.toHaveBeenCalled(); expect(mocks.push).not.toHaveBeenCalled();
+});
+it.each(["normal", "edit"] as const)("AF-F1 %s state反映前の同期再入も通信1回", async (page) => {
+    let resolve!: (data: { itemId: number }) => void;
+    const request = page === "normal" ? mocks.create : mocks.edit;
+    request.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const { user } = await open(page);
+    await user.click(screen.getByRole("checkbox"));
+    const button = screen.getAllByRole("button", { name: "出品する" })[1];
+    act(() => {
+        button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(request).toHaveBeenCalledExactlyOnceWith("101");
+    expect(button).toBeDisabled();
+    await act(async () => resolve({ itemId: 501 }));
+    expect(mocks.push).toHaveBeenCalledTimes(1);
+});

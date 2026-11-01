@@ -1,3 +1,4 @@
+import "./dialog";
 import { createElement, type ImgHTMLAttributes, type ReactNode } from "react";
 import { beforeEach, vi } from "vitest";
 

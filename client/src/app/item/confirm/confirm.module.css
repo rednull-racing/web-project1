@@ -64,7 +64,7 @@
     transform: translateY(1px);
 }
 
-.overlay {
+.popup::backdrop {
     position: fixed;
     inset: 0;
     width: 100%;
@@ -72,7 +72,7 @@
     background: var(--overlay);
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
-    z-index: 4000;
+
 }
 
 .popup {
@@ -80,6 +80,11 @@
     width: calc(100% - 2rem);
     max-width: 380px;
     top: 60px;
+    margin: 0;
+    border: 0;
+    max-height: calc(100dvh - 80px);
+    overflow-y: auto;
+    color: inherit;
     left: 50%;
     transform: translateX(-50%);
     background-color: var(--background);
@@ -98,6 +103,8 @@
     width: 28px;
     height: 28px;
     padding: 4px;
+    border: 0;
+    background: transparent;
     color: var(--gray-50);
     cursor: pointer;
     border-radius: 50%;
@@ -183,4 +190,16 @@
 .popupButton:hover {
     background-color: var(--action-hover);
     transform: translateY(1px);
+}
+
+.popupButton:disabled,
+.editButton[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.x:focus-visible,
+.uploadButton:focus-visible,
+.popupButton:focus-visible {
+    outline: 2px solid var(--action);
+    outline-offset: 3px;
 }

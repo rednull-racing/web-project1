@@ -4,7 +4,7 @@ import { TermsList } from "@/components/terms";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { ApiError } from "../../../lib/api/apiError";
 import { sleep } from "../../../lib/sleep";
@@ -21,72 +21,109 @@ export const UploadButton = ({ id, page }: Props) => {
     const [check, setCheck] = useState(false);
     const router = useRouter();
 
-    const upload = async () => {
+    const [sending, setSending] = useState(false);
+    const sendingRef = useRef(false);
+    const mountedRef = useRef(false);
+    const openerRef = useRef<HTMLButtonElement>(null);
+    const dialogRef = useRef<HTMLDialogElement>(null);
+    const closeRef = useRef<HTMLButtonElement>(null);
+    const titleId = useId();
+
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => { mountedRef.current = false; };
+    }, []);
+
+    useEffect(() => {
+        if (!popup) return;
+        const dialog = dialogRef.current;
+        const opener = openerRef.current;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        dialog?.showModal();
+        closeRef.current?.focus();
+        return () => {
+            dialog?.close();
+            document.body.style.overflow = previousOverflow;
+            if (opener?.isConnected) opener.focus();
+        };
+    }, [popup]);
+
+    const publish = async () => {
+        if (sendingRef.current) return;
         if (!check) {
             alert("利用規約に同意し、チェックしてください");
             return;
         }
-
+        // stateの反映前に続けて届く操作も止める。
+        sendingRef.current = true;
+        setSending(true);
         try {
-            const data = await fetchCreateItem(id);
-
-            toast.success("商品を出品しました");
+            const data = await (page === "normal" ? fetchCreateItem(id) : fetchEditItem(id));
+            if (!mountedRef.current) return;
+            toast.success(page === "normal" ? "商品を出品しました" : "商品情報を更新しました");
             await sleep(1500);
-
-            router.push(`/upload/ok/${data.itemId}`);
+            if (!mountedRef.current) return;
+            router.push(page === "normal" ? `/upload/ok/${data.itemId}` : `/item/${data.itemId}`);
         } catch (err) {
+            if (!mountedRef.current) return;
+            sendingRef.current = false;
+            setSending(false);
             if (err instanceof ApiError) {
                 toast.error("サーバーエラーが発生しました。通信状況を確認し、もう一度ボタンをクリックしてください");
                 return;
             }
-
             alert("システムエラーが発生しました。時間をおいて再試行してください");
         }
     };
-
-    const edit = async () => {
-        if (!check) {
-            alert("利用規約に同意し、チェックしてください");
-            return;
-        }
-
-        try {
-            const data = await fetchEditItem(id);
-
-            toast.success("商品情報を更新しました");
-            await sleep(1500);
-
-            router.push(`/item/${data.itemId}`);
-        } catch (err) {
-            if (err instanceof ApiError) {
-                toast.error("サーバーエラーが発生しました。通信状況を確認し、もう一度ボタンをクリックしてください");
-                return;
-            }
-
-            alert("システムエラーが発生しました。時間をおいて再試行してください");
-        }
-    };
-
-    const fetch = page === "normal" ? upload : edit;
 
     return (
         <>
-            <button type="button" className={styles.uploadButton} onClick={() => setPopup(true)}>
+            <button ref={openerRef} type="button" className={styles.uploadButton} onClick={() => setPopup(true)}>
                 出品する
             </button>
 
-            <Link href={`/upload/edit/${id}`} className={styles.editButton}>
-                商品を編集する
-            </Link>
+            {sending ? (
+                <span role="link" aria-disabled="true" className={styles.editButton}>商品を編集する</span>
+            ) : (
+                <Link href={`/upload/edit/${id}`} className={styles.editButton}>商品を編集する</Link>
+            )}
 
             {popup && (
-                <>
-                    <div className={styles.overlay} onClick={() => setPopup(false)} />
+                    <dialog
+                        ref={dialogRef}
+                        aria-labelledby={titleId}
+                        aria-modal="true"
+                        className={styles.popup}
+                        onCancel={(event) => { event.preventDefault(); setPopup(false); }}
+                        onClick={(event) => {
+                            if (event.target !== event.currentTarget) return;
+                            const rect = event.currentTarget.getBoundingClientRect();
+                            if (event.clientX < rect.left || event.clientX > rect.right ||
+                                event.clientY < rect.top || event.clientY > rect.bottom) setPopup(false);
+                        }}
+                        onKeyDown={(event) => {
+                            if (event.key === "Escape") {
+                                event.preventDefault(); setPopup(false); return;
+                            }
+                            if (event.key !== "Tab") return;
+                            const controls = event.currentTarget.querySelectorAll<HTMLElement>(
+                                'button:not(:disabled), input:not(:disabled), [href], [tabindex="0"]',
+                            );
+                            const first = controls[0];
+                            const last = controls[controls.length - 1];
+                            if (event.shiftKey && document.activeElement === first) {
+                                event.preventDefault(); last?.focus();
+                            } else if (!event.shiftKey && document.activeElement === last) {
+                                event.preventDefault(); first?.focus();
+                            }
+                        }}
+                    >
+                        <button ref={closeRef} type="button" aria-label="確認を閉じる" className={styles.x} onClick={() => setPopup(false)}>
+                            <X aria-hidden="true" />
+                        </button>
 
-                    <div className={styles.popup}>
-                        <X className={styles.x} onClick={() => setPopup(false)} />
-
-                        <p className={styles.popupTitle}>出品する</p>
+                        <p id={titleId} className={styles.popupTitle}>出品する</p>
 
                         <p className={styles.termsTitle}>動画・画像禁止事項</p>
                         <div className={styles.termsDiv}>
@@ -219,17 +256,17 @@ export const UploadButton = ({ id, page }: Props) => {
                                 type="checkbox"
                                 name="check"
                                 checked={check}
+                                disabled={sending}
                                 onChange={() => setCheck(!check)}
                                 className={styles.check}
                             />
                             <p className={styles.checkText}>この商品は利用規約を遵守しております。</p>
                         </label>
 
-                        <button type="button" className={styles.popupButton} onClick={fetch}>
+                        <button type="button" className={styles.popupButton} disabled={sending} aria-busy={sending} onClick={publish}>
                             出品する
                         </button>
-                    </div>
-                </>
+                    </dialog>
             )}
         </>
     );
