@@ -80,3 +80,32 @@ export type Item = {
     ItemConditionOption: ItemConditionOption | null;
     ItemShippingProfile: ItemShippingProfile | null;
 };
+
+export type ItemEditing = {
+    id: string;
+    status: "normal" | "edit";
+    item_id: number;
+    seller_id: number;
+    name: string;
+    detail: string;
+    price: number;
+    image_url: string[];
+    first_image_url: string;
+    gender_type: "men" | "women" | "unisex";
+    age_type: "adult" | "kids" | "both";
+    attributes: ItemAttributes;
+    Category: Categories | null;
+    Brand: Brands | null;
+    ItemConditionOption: ItemConditionOption | null;
+    thumbnail_url: string;
+    title: string;
+    summary: string;
+    duration: number;
+    original_url: string;
+    converted_url: string;
+    before_price: number;
+    ShippingDayOption: ShippingDayOption | null;
+    ShippingServiceOption: ShippingServiceOption | null;
+    TodouhukenOption: TodouhukenOption | null;
+    shipping_service_free_text: string | null;
+};
