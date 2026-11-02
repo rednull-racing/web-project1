@@ -84,7 +84,6 @@ export type Item = {
 export type ItemEditing = {
     id: string;
     status: "normal" | "edit";
-    item_id: number;
     seller_id: number;
     name: string;
     detail: string;

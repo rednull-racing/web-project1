@@ -62,7 +62,6 @@
     "itemEditing": {
         "id": 123,
         "status": "normal",
-        "item_id": 456,
         "seller_id": 7,
         "name": "商品名",
         "detail": null,
@@ -71,7 +70,6 @@
         "first_image_url": "https://example.test/item.jpg",
         "gender_type": "unisex",
         "age_type": "both",
-        "recommend": false,
         "attributes": {},
         "thumbnail_url": "https://example.test/thumbnail.jpg",
         "title": "動画タイトル",
@@ -80,9 +78,6 @@
         "original_url": "https://example.test/original.mp4",
         "converted_url": null,
         "before_price": 1000,
-        "discount_rate": null,
-        "discount_amount": null,
-        "sale_flag": false,
         "shipping_service_free_text": null,
         "updatedAt": "2026-10-29T00:00:00.000Z",
         "Category": null,
@@ -95,14 +90,14 @@
 }
 ```
 
-参照元は `client/src/app/item/confirm/types.ts`。Brand/Option、Category・parent・childrenの取得列はid/nameとする。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。フロント型そのものは今回変更しない。
+参照元は `client/src/app/item/upload/types/types.ts`。Brand/Option、Category・parent・childrenの取得列はid/nameとする。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。フロント型そのものは今回変更しない。
 
 ### 三行コメント
 
 ```ts
-// GET /item-editing/:id/confirm
-// summary: 編集セッション確認ページ データ取得
-// page: /item/confirm/[id]・/item/confirm/edit/[id]
+// GET /item-editing/:id/form
+// summary: 商品アップロード入力フォーム初期値取得
+// page: /upload/[id]・/upload/edit/[id]
 ```
 
 ## 3. 認証・認可
@@ -160,15 +155,14 @@ flowchart TD
 
 ### 取得データ・レスポンス詳細
 
-取得データの記載は `client/src/app/item/confirm/types.ts` の `ItemEditing` を参考とする。
+取得データの記載は `client/src/app/item/upload/types/types.ts` の `ItemEditing` を参考とする。
 
-- getItemConfirmPageのattributes:
+- getItemEditingFormのattributes:
 
 ```ts
 attributes: [
     "id",
     "status",
-    "item_id",
     "seller_id",
     "name",
     "detail",
@@ -177,7 +171,6 @@ attributes: [
     "first_image_url",
     "gender_type",
     "age_type",
-    "recommend",
     "attributes",
     "thumbnail_url",
     "title",
@@ -186,15 +179,11 @@ attributes: [
     "original_url",
     "converted_url",
     "before_price",
-    "discount_rate",
-    "discount_amount",
-    "sale_flag",
     "shipping_service_free_text",
-    "updatedAt",
 ];
 ```
 
-- getItemConfirmPageのinclude:
+- getItemEditingFormのinclude:
 
 ```ts
 include: [
@@ -260,6 +249,6 @@ include: [
 - 失敗・待機: DB失敗の伝播と500、usecase/controllerの完了待ち、取得失敗時の成功応答未実行を確認する。
 - 再送・並行: 参照に副作用がなく対象・他人の編集セッションとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・関連取得・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。
-- 次工程成果物: `server/test/docs/architecture/itemEditing/getItemConfirmPage.md` と `server/test/docs/report/itemEditing/getItemConfirmPage.md`。実行結果はレポートに記録する。
+- 次工程成果物: `server/test/docs/architecture/itemEditing/getItemEditingForm.md` と `server/test/docs/report/itemEditing/getItemEditingForm.md`。実行結果はレポートに記録する。
 
-検証結果: [テスト設計](../../../../../server/test/docs/architecture/itemEditing/getItemConfirmPage.md)・[テストレポート](../../../../../server/test/docs/report/itemEditing/getItemConfirmPage.md)を参照。
+検証結果: [テスト設計](../../../../../server/test/docs/architecture/itemEditing/getItemEditingForm.md)・[テストレポート](../../../../../server/test/docs/report/itemEditing/getItemEditingForm.md)を参照。
