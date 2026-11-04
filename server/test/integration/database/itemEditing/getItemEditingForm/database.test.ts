@@ -19,7 +19,7 @@ import {
 const json = (value: unknown): Record<string, unknown> => JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
 
 describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0", () => {
-    it("DB01 関連ありの保存値を公開列だけ返し、ID・duration数値を保持する", async () => {
+    it("DB01 F10 関連のlevelを含む保存値を返し、ID・duration数値を保持する", async () => {
         const f = await seed();
         const before = await snapshot();
         const result = await getItemEditingFormUseCase({ itemEditingId: f.editing.id, userId: f.owner.id });
@@ -44,14 +44,16 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
             duration: 17,
             original_url: "https://media.test/original.mp4",
             converted_url: "https://media.test/index.m3u8",
+            video_status: "converted",
             before_price: 4000,
             shipping_service_free_text: "配送備考",
             Category: {
                 id: f.category.id,
+                level: 2,
                 name: "カテゴリー",
                 allowed_gender: "unisex", allowed_age: "both", parent_id: f.parent.id,
-                parent: { id: f.parent.id, name: "親", allowed_gender: "unisex", allowed_age: "both", parent_id: null },
-                children: [{ id: f.child.id, name: "子", allowed_gender: "unisex", allowed_age: "both", parent_id: f.category.id }],
+                parent: { id: f.parent.id, name: "親", level: 1, allowed_gender: "unisex", allowed_age: "both", parent_id: null },
+                children: [{ id: f.child.id, name: "子", level: 3, allowed_gender: "unisex", allowed_age: "both", parent_id: f.category.id }],
             },
             Brand: { id: f.brand.id, name: f.brand.name },
             ItemConditionOption: { id: f.condition.id, name: "新品" },
@@ -61,6 +63,15 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
         });
         expect(await snapshot()).toEqual(before);
     });
+    it.each(["processing", "converted", "failed"])("F9 変換状態%sを所有者に返しDBを変更しない", async (video_status) => {
+        const f = await seed();
+        await f.editing.update({ video_status });
+        const before = await snapshot();
+        const data = json((await getItemEditingFormUseCase({ itemEditingId: f.editing.id, userId: f.owner.id })).itemEditing);
+        expect(data).toMatchObject({ id: f.editing.id, video_status });
+        expect(await snapshot()).toEqual(before);
+    });
+
     it("DB02 edit状態・任意関連なし・nullable列はnullのまま取得できる", async () => {
         const f = await seed();
         const data = json((await getItemEditingFormUseCase({ itemEditingId: f.empty.id, userId: f.owner.id })).itemEditing);
@@ -77,6 +88,7 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
             "duration",
             "original_url",
             "converted_url",
+            "video_status",
             "before_price",
             "shipping_service_free_text",
             "Category",
@@ -124,7 +136,7 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
         });
         const before = await snapshot();
         const data = json((await getItemEditingFormUseCase({ itemEditingId: editing.id, userId: f.owner.id })).itemEditing);
-        expect(data.Category).toEqual({ id: root.id, name: "単独カテゴリー", allowed_gender: "unisex", allowed_age: "both", parent_id: null, parent: null, children: [] });
+        expect(data.Category).toEqual({ id: root.id, name: "単独カテゴリー", level: 1, allowed_gender: "unisex", allowed_age: "both", parent_id: null, parent: null, children: [] });
         expect(data.image_url).toEqual([]);
         expect(data.duration).toBe(0);
         expect(await snapshot()).toEqual(before);

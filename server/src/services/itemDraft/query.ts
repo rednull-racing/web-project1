@@ -70,6 +70,7 @@ export const getMyItemDraftPage = ({ itemDraftId, userId }: PageParams) => {
             "duration",
             "original_url",
             "converted_url",
+            "video_status",
             "before_price",
             "discount_rate",
             "discount_amount",

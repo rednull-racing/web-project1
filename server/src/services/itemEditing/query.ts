@@ -108,6 +108,7 @@ export const getMyItemEditingForm = ({ itemEditingId, userId }: GetMyItemEditing
             "duration",
             "original_url",
             "converted_url",
+            "video_status",
             "before_price",
             "shipping_service_free_text",
         ],
@@ -115,19 +116,19 @@ export const getMyItemEditingForm = ({ itemEditingId, userId }: GetMyItemEditing
             {
                 model: Categories,
                 as: "Category",
-                attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
                 required: false,
                 include: [
                     {
                         model: Categories,
                         as: "children",
-                        attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                        attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
                         required: false,
                     },
                     {
                         model: Categories,
                         as: "parent",
-                        attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                        attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
                         required: false,
                     },
                 ],
