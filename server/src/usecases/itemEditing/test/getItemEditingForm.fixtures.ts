@@ -22,3 +22,13 @@ export const deferred = <T>() => {
     });
     return { promise, resolve, reject };
 };
+
+export const makeFormResult = (id = 123) => ({
+    itemEditing: makeFormRow(id),
+    category: [{ id: 10, name: "親", level: 1, allowed_gender: "unisex", allowed_age: "both", parent_id: null }],
+    allCondition: [{ id: 20, name: "新品" }],
+    allDay: [{ id: 30, name: "翌日" }],
+    allService: [{ id: 40, name: "配送" }],
+    allPlace: [{ id: 50, name: "東京都" }],
+    hasShop: true,
+});

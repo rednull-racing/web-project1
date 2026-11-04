@@ -161,8 +161,8 @@ export const getItemEditingFormController = async (req: Request, res: Response, 
     try {
         const userId = req.user!.id;
         const { id: itemEditingId } = req.validatedParams as { id: number };
-        const itemEditing = await getItemEditingFormUseCase({ itemEditingId, userId });
-        res.status(200).json({ itemEditing });
+        const result = await getItemEditingFormUseCase({ itemEditingId, userId });
+        res.status(200).json(result);
     } catch (err) {
         next(err);
     }

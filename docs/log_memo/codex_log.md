@@ -1268,3 +1268,9 @@
 - 詳細設計の参照先を修正し、毎分80回・updatedAt/item_id非公開でフォーム取得APIを実装。
 - 単体16・HTTP30・実DB8と既存回帰365件、計419件成功。DBガード・自作ID cleanup・全接続終了を確認。
 - lint・本番/テスト型検査・追加ESLint・差分検査が成功。テスト設計と実行/修正履歴をレポートへ記録。
+
+## 20261104_backend-coding_getItemEditingForm追加データ取得
+
+- フォーム応答へカテゴリー・各選択肢一覧とbooleanのhasShopを追加。既存一覧serviceを維持し、詳細設計・テスト設計・レポートを整合。
+- 単体・HTTP・実DBと共有回帰、追加許可された旧import修正の検証は重複を除き458件成功。lint・本番/テスト型検査・追加ESLint成功。
+- test_dbガード・自作ID限定cleanup・接続終了を確認。フロント・DBスキーマ・migrationは変更なし。

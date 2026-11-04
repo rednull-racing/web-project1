@@ -1,5 +1,55 @@
 # getItemEditingForm テストレポート
 
+以下の「追加取得の最新検証」が現在の結果。後半の初回実装結果は同日・契約変更前の履歴である。
+
+## 追加取得の最新検証（2026-11-04）
+
+完了。対象APIは単体31件（S:4、U:21、C:6）・HTTP30件・実DB10件の計71件成功。共有コードと追加許可されたimport修正の回帰387件を含め、重複を除く34ファイル458件が成功。最終結果に失敗・skip/todo・未処理例外なし。カバレッジ未取得。実行環境はNode v20.20.2であり、engines指定のNode26での確認は未実施。
+
+### 変更とケース対応
+
+- usecaseは所有者付き編集データ取得後、カテゴリー・4種の選択肢・認証ユーザーのショップを並列取得し、トップレベル7キーを返す。controllerは結果をそのまま200 JSONへ渡す。
+- カテゴリー一覧は既存getAllLevel1()を変更せず、level1の全カラムをsort_order ASCで取得。Option一覧も既存serviceの全カラム取得を維持。Category/parent/childrenの5列取得は着手時点で本番queryへ反映済みだったため、S01/DB01/DB05の期待値を更新した。
+- U01〜U05は7キー応答、依存引数と参照同一性、404/編集取得失敗時の追加取得未実行、逆順完了時のitemEditing・category・hasShopの分離へ更新。U06はユーザーnull/ShopInfo:null/ありのfalse/false/true、U07は追加6依存の個別失敗と元例外伝播・再検索なし、U08は個別deferredの待機と6取得の並列開始を確認。
+- C01〜C04/H01〜H08は7キーJSONへ更新し、既存の認証・所有者偽装・ID境界・エラー・毎分80回制限・parser優先順位・完了待ちを維持。HTTPは実Router/middleware/errorHandler＋usecaseモック。実アプリ/cron/E2Eは起動していない。
+- DB01〜DB06の公開列/nullable/認可/再送/並行読取/更新後再取得を維持。DB07は独立したlevel1一覧の全カラム・全件数・順序、各Optionの全カラム・全件数を確認。DB08は他ユーザーの承認済みショップ非流入、自分の未登録/未承認false・承認済みtrueを確認。
+- 専用DB fixtureから共有getItemConfirmPage fixtureへShopInfoを登録できる最小のregisterFixtureModelを追加し、全接続スキーマ検査・ID追跡・observer snapshot・Userより先のcleanupへ参加させた。共有利用先getItemConfirmPage実DB7件も成功。
+- ユーザーの追加許可により、todouhukenOption配下のcreateItem/createItemDraft単体2ファイルとitems/createItem/databaseReadFailures.test.tsの旧importを現在のtodouhukenOptionへ修正した。期待値・本番仕様は変更していない。
+
+### 実行結果とコマンド
+
+すべてserver/で実行。HTTP待受とtest_db接続はサンドボックス外の承認付き実行。
+
+| 実行範囲 | 結果 | 重複を除く集計 |
+| --- | --- | --- |
+| 下記共有回帰コマンド | 30ファイル433成功 | 433件 |
+| getItemEditingForm実DB（DB01〜DB08） | 1ファイル10成功 | 10件 |
+| 旧import修正3ファイル | 3ファイル15成功 | 15件 |
+| 最後に補強したU05/U08/DB07を含む再確認 | 2ファイル31成功 | 上記へ重複加算しない |
+
+```bash
+npm run test:run -- src/controllers/itemEditing/test/ src/services/itemEditing/test/ src/usecases/itemEditing/test/getItemEditingForm.test.ts src/usecases/itemEditing/test/getItemConfirmPage.test.ts src/usecases/itemEditing/test/getItemConfirmPageMetadata.test.ts test/integration/database/itemEditing/getItemConfirmPage/database.test.ts test/integration/usecases/itemEditing/getItemEditingForm/route.test.ts test/integration/usecases/itemEditing/getItemConfirmPage/route.test.ts test/integration/usecases/itemEditing/getItemConfirmPageMetadata/route.test.ts test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts test/integration/usecases/itemEditing/updateConfirm/route.test.ts test/integration/usecases/itemEditing/convertItemEditingVideo/http.test.ts test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts test/integration/usecases/itemDraft/convertItemDraftVideo/http.test.ts
+npm run test:run -- src/usecases/itemEditing/test/getItemEditingForm.test.ts test/integration/database/itemEditing/getItemEditingForm/database.test.ts
+npm run test:run -- src/services/todouhukenOption/test/createItem.test.ts src/services/todouhukenOption/test/createItemDraft.test.ts test/integration/usecases/items/createItem/databaseReadFailures.test.ts
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+静的検査3種はすべてexit0（テスト型検査は旧import修正後に再実行）。通常lint対象外の変更test/配下5 TSは、既存ESLint Node APIのoverrideConfigFile:true、@eslint/js recommended・typescript-eslint recommended、files:test/**/*.tsで追加検査し0 diagnostics。共有lint設定は変更していない。git diff --check成功。
+
+### DBガード・後処理・限界
+
+server/.env.testをDB初期化前に検査し、NODE_ENV=test・PostgreSQL/test_dbを確認。app/models/observerの全3接続で設定DB名とcurrent_database()=test_db、必要Model全列/NULL（ShopInfoを追加）、既存INTEGER/JSONB/ARRAYと編集所有者/関連FKを確認してからseedした。ShopInfo.user_idの関連は実取得で検証。対象・他人の編集行/マスター/ショップはobserverの新規SELECTで不変を確認。自作ID限定のFK順cleanup・残存0、hook/spy/env復元・全接続close成功。旧import修正のcreateItem DBテストも既存.env.test/test_dbガード、全要求回収、ID限定cleanup・closeを通過。migration/sync/全件削除は実行していない。参照専用で更新rollback/補償は対象外。複数SELECTの同時点snapshotや並行更新との厳密な直列化は保証しない。
+
+### 今回の実行履歴・修正
+
+- 初回の単体3ファイル31件成功。本番typecheck成功。テストtypecheckは旧都道府県service importによるTS2307が3件、派生TS7006が1件。追加許可後に参照パス3箇所だけを修正し、15件のテストと全体テスト型検査が成功した。
+- 初回HTTP/DB実行はlisten/connect EPERM。HTTP30失敗・未処理例外30、DB10 skipped（setup停止で書込みなし）。同じガード・コマンドを承認付きで再実行し40成功・未処理例外なし、環境制約は解消。
+- 最終補強ではU01の各一覧参照、U04の追加取得未実行、U05の一覧/hasShop分離、U07の再検索なし、U08の空一覧完全一致、DB07の全件数を追加。対象U/DB31件・lint・テスト型検査を再実行し成功。
+
+## 初回実装の履歴（追加取得対応前）
+
 実行日: 2026-11-04。最新結果: 完了。新規54件（単体16・HTTP30・実DB8）と既存回帰365件、重複を除いた計419件が成功。失敗・skip/todo・未処理例外・未実装の必要ケースは残っていない。
 パスとコマンドの基準はserver/。親の検査環境はNode v20.20.2、DB担当は別worktreeの同一実装を検査した。package.jsonのengines指定Node26での実行は今回未実施。
 

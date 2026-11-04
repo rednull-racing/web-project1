@@ -51,7 +51,7 @@ IDのS/U/Cは各層単体、HはHTTP、DBは実DBを示す。P0は公開契約�
 | DB07 | P0 | 編集データの選択カテゴリーとは別に、異なるsort_orderのlevel1とlevel2を用意し実usecase取得 | categoryは全level1のみをsort_order ASCで全カラム返し、各Option一覧も全カラム取得。自作マスターが含まれ、対象・他人の行とマスターが不変 |
 | DB08 | P0 | ショップ未登録、未承認、承認済みを認証ユーザーで取得。他ユーザーの承認済みショップも用意 | hasShopはfalse/false/true、他ユーザーのショップでtrueにならず、7キー以外にUser/ShopInfoを公開しない。追跡したショップも不変・ID限定cleanup |
 
-全3接続（app/models/observer）で設定DB名・実DB名、必要Model列/NULL、INTEGER/JSONB/ARRAY、所有者・関連FKを検査してからseedする。ショップ検証で使うShopInfoも全接続で必要列・NULL・user_id関連を確認し、自作ショップをID追跡・snapshot・FK順cleanupの対象とする。hookで追加行も追跡する。
+全3接続（app/models/observer）で設定DB名・実DB名、必要Model列/NULL、INTEGER/JSONB/ARRAY、所有者・関連FKを検査してからseedする。ショップ検証で使うShopInfoも全接続で必要列・NULLを確認し、user_idによる関連取得は実serviceで検証する。自作ショップをID追跡・snapshot・FK順cleanupの対象とする。hookで追加行も追跡する。
 参照専用のため書込み状態遷移・rollback・補償・通知・実更新ロックの検証は該当しない。JSONBは保存値の保持を確認し、新しい保存値検証を発明しない。並行更新との厳密な直列化や、複数参照の同時点snapshotは保証しない。
 
 ## 実行・完了条件

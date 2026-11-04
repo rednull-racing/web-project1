@@ -6,7 +6,7 @@ import * as categories from "../../../../../src/services/categories/categories.j
 import * as conditions from "../../../../../src/services/itemConditionOption/itemConditionOption.js";
 import * as days from "../../../../../src/services/shippingDayOption/shippingDayOption.js";
 import * as services from "../../../../../src/services/shippingServiceOption/shippingServiceOption.js";
-import * as places from "../../../../../src/services/todouhuken/todouhuken.js";
+import * as places from "../../../../../src/services/todouhukenOption/todouhukenOption.js";
 import * as follow from "../../../../../src/services/follow/follow.js";
 import * as items from "../../../../../src/services/items/items.count.js";
 

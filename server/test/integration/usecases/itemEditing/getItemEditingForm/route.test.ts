@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeHttpApp, makeToken } from "../../../../fixtures/itemEditing/getItemConfirmPage/httpFixtures.js";
+import { makeFormResult } from "../../../../../src/usecases/itemEditing/test/getItemEditingForm.fixtures.js";
 const mocks = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemEditing/getItemEditingForm.js", () => ({
     getItemEditingFormUseCase: mocks.get,
@@ -35,7 +36,7 @@ beforeEach(async () => {
     secret = randomBytes(32).toString("hex");
     vi.stubEnv("NEXTAUTH_SECRET", secret);
     app = await makeHttpApp();
-    mocks.get.mockResolvedValue({ id: 123, duration: 17 });
+    mocks.get.mockResolvedValue(makeFormResult());
 });
 afterEach(() => {
     vi.clearAllTimers();
@@ -48,9 +49,7 @@ describe("P0 HTTP契約と拒否時の停止", () => {
     it("H01: 認証IDと数値paramsだけ採用し200 JSONを返す", async () => {
         const result = await get().query({ userId: 8, seller_id: 8 }).send({ userId: 8, seller_id: 8 });
         expect(result.status).toBe(200);
-        expect(result.body).toEqual({
-            itemEditing: { id: 123, duration: 17 },
-        });
+        expect(result.body).toEqual(makeFormResult());
         expect(mocks.get).toHaveBeenCalledExactlyOnceWith({ itemEditingId: 123, userId: 7 });
     });
     it.each(["なし", "空", "署名不正", "期限切れ"])("H02: %sは不正idより先に401", async (mode) => {

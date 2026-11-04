@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Transaction } from "sequelize";
 const model = vi.hoisted(() => ({ create: vi.fn(), findOne: vi.fn(), findByPk: vi.fn(), count: vi.fn() }));
 vi.mock("../../../models/index.js", () => ({ TodouhukenOption: model }));
-import { getTodouhuken } from "../todouhuken.js";
+import { getTodouhuken } from "../todouhukenOption.js";
 const transaction = { LOCK: { UPDATE: "UPDATE" } } as Transaction;
 beforeEach(() => vi.resetAllMocks());
 describe("S07 S08 参照service", () => {

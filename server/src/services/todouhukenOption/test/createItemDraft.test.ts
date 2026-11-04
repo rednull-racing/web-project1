@@ -26,7 +26,7 @@ vi.mock("../../../models/index.js", () => ({
 beforeEach(() => {
     vi.resetAllMocks();
 });
-import { getTodouhuken } from "../todouhuken.js";
+import { getTodouhuken } from "../todouhukenOption.js";
 describe("P1: DB serviceの契約（DB非接続）", () => {
     const lookups = [["発送元", () => getTodouhuken({ todouhukenId: 13 }), mocks.place.findByPk, 13]] as const;
     describe.each(lookups)("SV01 SV06: %s", (_name, run, mock, args) => {

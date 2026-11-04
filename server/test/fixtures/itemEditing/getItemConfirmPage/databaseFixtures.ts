@@ -35,6 +35,10 @@ const models: ModelStatic<Model>[] = [
     TodouhukenOption,
     User,
 ];
+// 利用側固有の参照テーブルも同じガード・ID追跡・cleanupへ参加させる。
+export const registerFixtureModel = (model: ModelStatic<Model>) => {
+    models.splice(models.length - 1, 0, model);
+};
 const created = new Map<ModelStatic<Model>, number[]>();
 let safe = false;
 const assertSafe = () => {
