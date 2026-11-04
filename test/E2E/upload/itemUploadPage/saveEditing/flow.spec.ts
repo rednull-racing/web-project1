@@ -17,6 +17,7 @@ for (const mode of ['normal', 'edit'] as const)
         const payload: unknown = await response.json().catch(() => null);
         const code = payload && typeof payload === 'object' && 'code' in payload && typeof payload.code === 'string' ? payload.code : null;
         await test.info().attach('D01-response', { body: JSON.stringify({ status: response.status(), code }), contentType: 'application/json' });
+        expect(validation.success).toBe(true);
         expect(response.status()).toBe(200);
         await expect(page).toHaveURL(new RegExp(`/item/confirm/${mode === 'edit' ? 'edit/' : ''}${editing.id}$`));
         expect(await e2e.database.get('item_editing', editing.id)).toMatchObject({ name: '保存したシャツ' });

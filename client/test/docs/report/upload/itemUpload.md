@@ -1,6 +1,10 @@
 # 商品アップロード・商品編集ページ テスト結果・修正案
 
-## 1. 最新結果と範囲
+## 最新状況（2026-11-04）
+
+**F1〜F10の本番コード修正および対応するテストコードの実装完了。** ユーザー指示によりテスト・lint・型検査・buildは実行していない。成功件数・カバレッジは今回取得しておらず、修正後の動作確認済みとはしない。以下の250件の結果と失敗記録はすべて修正前の履歴。実装内容・残る制約は第11節を参照。
+
+## 1. 修正前の実行結果と範囲
 
 実施日: 2026-11-04。対象は `/upload/[id]`・`/upload/edit/[id]`。
 レポート本体は `client/test/docs/report/upload/itemUpload.md` に配置する。旧配置 `client/docs/report/upload/itemUpload.md` から移動した。テスト結果・実行日は移動前の記録を保持し、移動に伴うテスト再実行は行っていない。
@@ -8,7 +12,7 @@
 [設計書](../../architecture/upload/itemUpload.md) に基づきテストコードを追加。本番コード・依存・DBスキーマは変更していない。失敗を修正済みとして扱わず、修正案を第5節に示す。ケースIDと展開後の実行件数は異なる。
 
 
-最新の実行集計は **250件中237成功・13失敗**。単体143件（139成功/4失敗）、Form結合59件（57/2）、ページ結合40件（40/0）、実DB E2E8件（1/7）。skip/todo・未処理例外なし。失敗は描画非収束、既存属性画像の欠落、実APIの入力契約不整合。失敗するテストを残しており、全テスト成功ではない。
+修正前の実行集計は **250件中237成功・13失敗**。単体143件（139成功/4失敗）、Form結合59件（57/2）、ページ結合40件（40/0）、実DB E2E8件（1/7）。skip/todo・未処理例外なし。失敗は描画非収束、既存属性画像の欠落、実APIの入力契約不整合。失敗するテストを残しており、全テスト成功ではない。
 
 以下のパスは `client/` 基準。`test/E2E/`・`docs/`・`server/` はリポジトリルート基準。JSON・ログは `/tmp` の一時集計資料であり、主要結果は本書にも残す。カバレッジ未取得。人間観測 O01〜O05 は全件「人間確認待ち」。
 
@@ -54,7 +58,7 @@ npm run typecheck
 
 ## 5. 失敗・観測に基づく修正案
 
-以下すべて提案のみ。本番修正・修正後検証は未実施。仕様未確定項目は仕様判断後に契約を更新し、元ケースを維持して再検証する。
+以下は修正前の提案履歴。F1〜F10の本番修正・テストコード実装は第11節に記載した。修正後の実行検証は未実施。
 
 | 修正ID・元ケース | 再現条件・実際の結果・原因 | 修正案と修正後の検証 |
 | --- | --- | --- |
@@ -67,8 +71,6 @@ npm run typecheck
 | F7 Q03 | ブランド/カテゴリーの旧応答を後着させると新候補を上書き。ブランド選択後手入力しても旧id保持、`A&B#C`検索はkeyword=Aとして送信 | request世代管理またはAbortControllerで旧応答を抑制し、手入力時はid=null。URLSearchParamsでencode。逆順・空語・特殊文字・unmount後を再検証 |
 | F8 Q08 | 動画のObjectURLが再描画ごとに生成され解放されない。価格props1000→0で利益900/手数料100が残る | メディアURLを安定化しcleanupで解放。価格派生金額をpropsから計算。再描画・削除・unmountと価格0への変更を再検証 |
 | F9 Q09 | 変換PATCHの202受付後、完了照会なしに確認先へ進む現行動作を再現。詳細設計では202は内部エラー/実変換完了を保証しない | 受付と完了のUI契約を明確化し、必要なら状態照会・確認画面でのprocessing/failed表示へ接続する。HTTP非2xxだけの判定を実変換成功とみなさず、非同期完了のケースを追加。APIの202自体は確定仕様であり不具合とは断定しない |
-
-
 | F10 D01/D02/D04 | 正規フォームからのPUT/POSTが400 INVALID_BODY。実送信bodyを本番ZodでsafeParseし、video.type/thumbnail.type=null（optional string期待）、category.id/brand.id/condition.id/shipping.day/service/place=number（string期待）、category.level=0（>=1期待）を検出。GETの関連IDは数値、Categoryの取得属性にlevelがなくFormが0へ初期化する | GET DTO・Form初期値・createBody・PUT/POST schemaを一貫させる。IDの文字列化をフロント境界で行うかAPI契約側を整合し、既存ファイルはtypeの省略/nullの正規契約へ統一。getMyItemEditingFormでCategory.levelを取得する案。型定義だけで修正済みとせず実GET→UI→POST/PUTで確認。parent_idの数値不整合は本fixtureではnullのため未実測。F10解消後にD04転送失敗とD05実変換へ進める |
 
 Q06の負数/小数・MIME・長文の直接注入はUI属性とHook検証の違いを示す観測。すべてを新規フロント制約として追加する案にはせず、API側の確定制約・責務と照合して判断する。
@@ -161,3 +163,29 @@ npm run test:e2e -- E2E/upload --project e2e-chromium --workers 1 --timeout 3000
 E2EのExpress/proxyは既存harnessが起動し、DB接続先をtest_dbと照合する。worktreeで再現する場合は依存・隔離設定への参照を用意する必要がある。今回作成したworktree内の依存/設定symlink、fixture起動プロセスは後片付け済み。既存データ全体の削除・既存migration変更/実行は行っていない。
 
 統合後の追加静的検査: clientの対象ESLint成功（`/tmp/upload-target-lint-final.log`）、clientテスト用型検査成功（`/tmp/upload-test-typecheck-final.log`）、testパッケージ型検査成功（`/tmp/upload-e2e-typecheck-final.log`）。E2E追加TSはリポジトリルートから `client/node_modules/.bin/eslint --config client/eslint.config.mjs test/E2E/upload` で追加検査しexit 0。React/packageとpages探索の設定警告は出たが対象コード診断なし（`/tmp/upload-e2e-lint-final.log`）。共有設定は変更していない。文書の相対リンクと `git diff --check` も確認した。
+
+## 11. F1〜F10 本番修正・テストコード実装完了（未実行）
+
+今回の依頼範囲はコード実装まで。既存の失敗・観測テストは修正後の契約へ移行し、実GenderAgeを置換していた結合fixtureも実部品へ戻した。元ケースIDを維持し、追加回帰をAF-F番号で識別する。テスト・lint・型検査・build・ブラウザー・DBテストは一切実行していない。過去の成功を今回の結果へ再掲しない。
+
+| 修正ID | 本番修正 | 実装したテストコード |
+| --- | --- | --- |
+| F1 | GenderAgeの候補参照を安定化し、ラベル/選択状態はpropsから導出。effectは必要な制約補正だけを親へ通知 | `src/app/upload/test/genderAge.test.tsx`、実Formの収束ケースとAF-F1カテゴリー変更→対象補正→送信本文 |
+| F2 | 属性配列と画像mapを同じ一度限りの初期化で生成し、resolverが保持mapを参照 | 既存C03/C08をAF-F2として維持。uiId欠落データの入力変更後も既存属性画像を保持 |
+| F3 | 下書きカラー在庫の拒否条件を合計在庫より多い場合へ変更 | `hooks/test/useUpload.test.ts`の未満/等値/超過とサイズ判定 |
+| F4 | 属性画像をuiIdで署名mapへ対応させ、削除色・画像なし色を順序で対応させない | `hooks/test/useFileUpload.test.ts`の逆順署名・削除色・画像なし色 |
+| F5 | refによる即時排他と共通busyで両ボタン/入力を制御し、成功後の待機・遷移まで保持。unmount後の処理継続を抑止 | Form結合AF-F5の両送信順、成功待機中再送、保存応答前/待機中unmount |
+| F6 | 必要な署名不足を失敗扱いにし、File/URL単位で完了・転送中Promiseを保持。Formは同一本文/同一Fileの保存応答を再利用。下書きPOST成功後は入力と出品を止め、同じdraftIdで転送を再開 | Hookの署名欠落・成功済み省略・転送中共有・abort、Form結合AF-F6の画像部分失敗再開と下書きPOST二重発行防止 |
+| F7 | カテゴリー/ブランドのrequest世代管理で旧応答とunmount後の反映を抑止。検索語をencodeし、ブランド手入力で旧IDをクリア | `test/category.test.tsx`、`brandInput.test.tsx`の逆順応答・特殊文字・手入力・unmount回帰 |
+| F8 | 動画/サムネイルのObjectURLをFile変更時に生成しcleanupで解放。商品画像URLも削除/unmountで解放。価格利益・手数料をpropsから直接計算 | `videoInput.test.tsx`の再描画/差替え/unmount、`fields.test.tsx`の価格0への更新 |
+| F9 | 202受付仕様は維持し、所有者用の既存GETでvideo_statusを照会。processing観測または変換URL変更とconvertedを確認して先へ進む。failed・120回上限・abortに対応。時間切れ後は受付済みjobの照会を再開 | API/Hookの202・旧converted・processing/failed・時間切れ再開・再受付・中断。Form結合AF-F9で受付直後の成功通知/遷移なしを確認するコード |
+| F10 | GET境界のIDをUI用文字列へ正規化し、送信時もID/parent_idを文字列化。動画等のtype null・画像なし属性等をschemaに合う省略へ変換。サーバーCategory.levelを取得し、editing/formとdraft/item-pageへvideo_statusを追加 | API正規化単体、`form/bodyContract.test.tsx`の実GET相当→Form→本番Zod schema照合（通常/編集/下書き）、既存E2Eの本文契約assert、サーバーprojection/実DB回帰コード |
+
+上表の相対パスは `src/app/upload/` 配下、Form結合は `test/integration/components/upload/itemUploadPage/form/` 配下。サーバー側は `server/src/services/{itemEditing,itemDraft}/` と `server/test/integration/database/` の対応テストを更新した。詳細設計も追加DTO列へ整合した。
+
+残る制約・次回の検証事項:
+
+- テストコード実装完了は実行成功を意味しない。次回は代表正常系と本文契約から確認し、前提が通ってから関連ケースを実行する。
+- 再試行状態は同じマウント中のメモリ保持。下書きPOST後のリロード・署名期限切れからの復旧や別タブの冪等性は保証しない。失敗後の同一保存内容の転送再開を対象とする。
+- 動画照会は1秒間隔・最大120回。旧converted誤認防止のため、processingを観測せずURLも変わらない高速完了は完了確認できない場合がある。実API/実変換で確認が必要。
+- 未入力下書きのprice=0等、既存バックエンドの必須制約そのものは今回変更していない。本文schema整合や実DB永続化、実S3/ffmpeg、人間観測は未確認。新規ライブラリ・migrationの追加/実行はしていない。

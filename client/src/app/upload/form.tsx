@@ -1,7 +1,7 @@
 "use client";
 
 import { TopLoader } from "@/components";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { ApiError } from "../../lib/api/apiError";
 import { sleep } from "../../lib/sleep";
@@ -97,33 +97,33 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
         name: itemEditing.Brand?.name ?? "",
     });
 
-    const initialAttributesValue: AttributesValue = {
-        all_inventory: itemEditing.attributes?.inventory?.current ?? 1,
-        colorVariants:
-            itemEditing.attributes?.colorVariants?.map((v) => ({
-                _uiId: v.uiId ?? crypto.randomUUID(),
-                color: v.color ?? null,
-                inventory: v.inventory?.current ?? 1,
-                image: null,
-                image_uploaded: true,
-                sizes: (v.sizes ?? []).map((s) => ({
-                    size: s.size ?? null,
-                    inventory: s.inventory.current ?? 1,
-                })),
-            })) ?? [],
-    };
+    const [initialAttributes] = useState(() => {
+        const value: AttributesValue = {
+            all_inventory: itemEditing.attributes?.inventory?.current ?? 1,
+            colorVariants:
+                itemEditing.attributes?.colorVariants?.map((v) => ({
+                    _uiId: v.uiId ?? crypto.randomUUID(),
+                    color: v.color ?? null,
+                    inventory: v.inventory?.current ?? 1,
+                    image: null,
+                    image_uploaded: true,
+                    sizes: (v.sizes ?? []).map((s) => ({
+                        size: s.size ?? null,
+                        inventory: s.inventory.current ?? 1,
+                    })),
+                })) ?? [],
+        };
 
-    const initialAttributesImageUrlMap = new Map<string, string>();
-
-    itemEditing.attributes?.colorVariants?.forEach((v, i) => {
-        if (v.image_url && initialAttributesValue.colorVariants[i]) {
-            initialAttributesImageUrlMap.set(initialAttributesValue.colorVariants[i]._uiId, v.image_url);
-        }
+        const images = new Map<string, string>();
+        itemEditing.attributes?.colorVariants?.forEach((variant, index) => {
+            if (variant.image_url && value.colorVariants[index]) {
+                images.set(value.colorVariants[index]._uiId, variant.image_url);
+            }
+        });
+        return { value, images };
     });
-
-    const [attributesValue, setAttributesValue] = useState<AttributesValue>(initialAttributesValue);
-
-    const [attributesImageMap] = useState<Map<string, string>>(initialAttributesImageUrlMap);
+    const [attributesValue, setAttributesValue] = useState(initialAttributes.value);
+    const attributesImageMap = initialAttributes.images;
 
     const [materialValue, setMaterialValue] = useState<MaterialValue>({
         materials: (itemEditing.attributes?.materials ?? []).map((m) => ({
@@ -151,24 +151,40 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
         price: itemEditing.before_price && !Number.isNaN(itemEditing.before_price) ? itemEditing.before_price : itemEditing.price,
     });
 
-    const initialItemImage = (itemEditing.image_url ?? []).map((url) => ({
-        id: crypto.randomUUID(),
-        file: null,
-        preview: url,
-        uploaded: true,
-    }));
-
-    const [itemImages, setItemImages] = useState<ItemImage[]>(initialItemImage);
-
+    const [itemImages, setItemImages] = useState<ItemImage[]>(() => (itemEditing.image_url ?? []).map((url) => ({
+        id: crypto.randomUUID(), file: null, preview: url, uploaded: true,
+    })));
     const [loading, setLoading] = useState(false);
     const [draftLoading, setDraftLoading] = useState(false);
+    const [draftSaved, setDraftSaved] = useState(false);
+    const busy = loading || draftLoading;
+    const submitting = useRef(false);
+    const mounted = useRef(true);
+    const imageUrls = useRef(new Set<string>());
+    const saved = useRef<{
+        action: "main" | "draft";
+        key: string;
+        files: Array<File | null>;
+        response: Awaited<ReturnType<typeof fetchMain>> & { itemDraftId?: number };
+    } | null>(null);
 
     const videoRef = useRef<HTMLInputElement | null>(null);
     const thumbnailRef = useRef<HTMLInputElement | null>(null);
 
     const { validateUpload, validateForDraft, createBody } = useUpload();
 
-    const { videoUploadAndConvert, thumbnailUpload, itemImageUpload, attributesImageUpload } = useFileUpload();
+    const { videoUploadAndConvert, thumbnailUpload, itemImageUpload, attributesImageUpload, cancelUploads } = useFileUpload();
+
+    useEffect(() => {
+        mounted.current = true;
+        const previews = imageUrls.current;
+        return () => {
+            mounted.current = false;
+            cancelUploads();
+            previews.forEach((url) => URL.revokeObjectURL(url));
+            previews.clear();
+        };
+    }, [cancelUploads]);
 
     const addItemImage = (files: FileList) => {
         const newImages = Array.from(files)
@@ -176,7 +192,11 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
             .map((file) => ({
                 id: crypto.randomUUID(),
                 file,
-                preview: URL.createObjectURL(file),
+                preview: (() => {
+                    const url = URL.createObjectURL(file);
+                    imageUrls.current.add(url);
+                    return url;
+                })(),
                 uploaded: false,
             }));
 
@@ -184,238 +204,76 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
     };
 
     const removeItemImage = (index: number) => {
+        const preview = itemImages[index]?.preview;
+        if (preview && imageUrls.current.delete(preview)) URL.revokeObjectURL(preview);
         setItemImages((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const upload = async () => {
-        setLoading(true);
-
-        const resolveAttributesImage = (v: (typeof attributesValue.colorVariants)[number]) => {
-            if (v.image) {
-                return {
-                    name: v.image.name,
-                    type: v.image.type,
-                    uploaded: false,
-                };
-            }
-
-            const existingUrl = initialAttributesImageUrlMap.get(v._uiId);
-            if (existingUrl) {
-                return {
-                    name: existingUrl.split("/").pop(),
-                    type: null,
-                    uploaded: true,
-                };
-            }
-
-            return null;
-        };
-
+    const submit = async (action: "main" | "draft") => {
+        if (submitting.current || (draftSaved && action !== "draft")) return;
+        submitting.current = true;
+        const setPending = action === "main" ? setLoading : setDraftLoading;
+        setPending(true);
+        let navigating = false;
         const params = {
-            videoInput,
-            itemImages,
-            itemNameDetail,
-            categoryValue,
-            genderAgeValue,
-            brandValue,
-            attributesValue,
-            materialValue,
-            conditionValue,
-            shippingValue,
-            priceValue,
-            resolveAttributesImage,
+            videoInput, itemImages, itemNameDetail, categoryValue, genderAgeValue, brandValue,
+            attributesValue, materialValue, conditionValue, shippingValue, priceValue,
+            resolveAttributesImage: (variant: AttributesValue["colorVariants"][number]) => {
+                if (variant.image) return { name: variant.image.name, type: variant.image.type, uploaded: false };
+                const url = attributesImageMap.get(variant._uiId);
+                return url ? { name: url.split("/").pop(), type: null, uploaded: true } : null;
+            },
         };
-
-        const validate = validateUpload(params);
-        if (!validate.ok) {
-            toast.error(validate.message ?? "");
-            setLoading(false);
-            return;
-        }
-
-        const body = createBody(params);
-
         try {
-            const data = await fetchMain(itemEditingId, body);
-
-            // 動画アップロード
-            const videoOk = await videoUploadAndConvert({
-                target: "editing",
-                videoFile: videoInput.videoFile,
-                videoSignedUrl: data.videoSignedUrl,
-                itemEditingId: itemEditingId,
-            });
-
-            if (!videoOk) {
-                setLoading(false);
+            const validation = action === "main" ? validateUpload(params) : validateForDraft(params);
+            if (!validation.ok) {
+                toast.error(validation.message ?? "");
                 return;
             }
-
-            // サムネイルアップロード
-            const thumbnailOk = await thumbnailUpload({
-                thumbnailFile: videoInput.thumbnailFile,
-                thumbnailSignedUrl: data.thumbnailSignedUrl,
-            });
-
-            if (!thumbnailOk) {
-                setLoading(false);
+            const body = createBody(params);
+            const key = JSON.stringify(body);
+            const files = [videoInput.videoFile, videoInput.thumbnailFile,
+                ...itemImages.map((image) => image.file), ...attributesValue.colorVariants.map((variant) => variant.image)];
+            const previous = saved.current;
+            const reusable = previous?.action === action && previous.key === key &&
+                previous.files.length === files.length && previous.files.every((file, index) => file === files[index]);
+            // 下書きPOSTで削除済みの編集セッションへ再POSTしない。転送失敗時は同じ署名と保存先で再開する。
+            if (draftSaved && !reusable) {
+                toast.error("保存済みの下書きは転送の再試行のみ可能です");
                 return;
             }
-
-            // 商品画像アップロード
-            const itemImagesOk = await itemImageUpload({
-                itemImageFiles: itemImages,
-                itemImageSignedUrls: data.itemImageSignedUrls,
-            });
-
-            if (!itemImagesOk) {
-                setLoading(false);
-                return;
+            const data: Awaited<ReturnType<typeof fetchMain>> & { itemDraftId?: number } = reusable && previous ? previous.response : action === "main"
+                ? await fetchMain(itemEditingId, body) : await fetchDraft(itemEditingId, body);
+            if (!mounted.current) return;
+            if (action === "draft" && !("itemDraftId" in data && typeof data.itemDraftId === "number")) {
+                throw new Error("下書きの保存先を確認できませんでした");
             }
-
-            // attributes.imagesアップロード
-            const attributesImagesOk = await attributesImageUpload({
-                attributesValue: attributesValue,
-                signedUrlMap: data.attributesImageSignedUrls,
-            });
-
-            if (!attributesImagesOk) {
-                setLoading(false);
-                return;
-            }
-
-            toast.success("商品データを登録しました");
-            setLoading(false);
+            saved.current = { action, key, files, response: data };
+            if (action === "draft") setDraftSaved(true);
+            const videoOk = action === "main"
+                ? await videoUploadAndConvert({ target: "editing", videoFile: videoInput.videoFile,
+                    videoSignedUrl: data.videoSignedUrl, itemEditingId })
+                : await videoUploadAndConvert({ target: "draft", videoFile: videoInput.videoFile,
+                    videoSignedUrl: data.videoSignedUrl, itemDraftId: data.itemDraftId! });
+            if (!videoOk || !mounted.current) return;
+            if (!await thumbnailUpload({ thumbnailFile: videoInput.thumbnailFile, thumbnailSignedUrl: data.thumbnailSignedUrl }) || !mounted.current) return;
+            if (!await itemImageUpload({ itemImageFiles: itemImages, itemImageSignedUrls: data.itemImageSignedUrls }) || !mounted.current) return;
+            if (!await attributesImageUpload({ attributesValue, signedUrlMap: data.attributesImageSignedUrls }) || !mounted.current) return;
+            toast.success(action === "main" ? "商品データを登録しました" : "下書き保存しました");
             await sleep(1500);
-
-            if (page === "edit") {
-                    window.location.assign(`/item/confirm/edit/${itemEditingId}`);
-            } else {
-                window.location.assign(`/item/confirm/${itemEditingId}`);
+            if (!mounted.current) return;
+            window.location.assign(action === "draft" ? "/item-list/draft"
+                : page === "edit" ? `/item/confirm/edit/${itemEditingId}` : `/item/confirm/${itemEditingId}`);
+            navigating = true;
+        } catch (error) {
+            if (!mounted.current) return;
+            if (error instanceof ApiError) toast.error(action === "main" ? "データ作成に失敗しました" : "下書き保存に失敗しました");
+            else alert("システムエラーが発生しました。時間をおいて再試行してください");
+        } finally {
+            if (!navigating) {
+                submitting.current = false;
+                if (mounted.current) setPending(false);
             }
-        } catch (err) {
-            if (err instanceof ApiError) {
-                toast.error("データ作成に失敗しました");
-            } else {
-                alert("システムエラーが発生しました。時間をおいて再試行してください");
-            }
-
-            setLoading(false);
-        }
-    };
-
-    const draft = async () => {
-        setDraftLoading(true);
-
-        const resolveAttributesImage = (v: (typeof attributesValue.colorVariants)[number]) => {
-            // 新規アップロード
-            if (v.image && !v.image_uploaded) {
-                return {
-                    name: v.image.name,
-                    type: v.image.type,
-                    uploaded: false,
-                };
-            }
-
-            // 既存画像
-            const existingUrl = initialAttributesImageUrlMap.get(v._uiId);
-            if (existingUrl) {
-                return {
-                    name: existingUrl.split("/").pop(),
-                    type: null,
-                    uploaded: true,
-                };
-            }
-
-            return null;
-        };
-
-        const params = {
-            videoInput,
-            itemImages,
-            itemNameDetail,
-            categoryValue,
-            genderAgeValue,
-            brandValue,
-            attributesValue,
-            materialValue,
-            conditionValue,
-            shippingValue,
-            priceValue,
-            resolveAttributesImage,
-        };
-
-        const validate = validateForDraft(params);
-        if (!validate.ok) {
-            toast.error(validate.message ?? "");
-            setDraftLoading(false);
-            return;
-        }
-
-        const body = createBody(params);
-
-        try {
-            const data = await fetchDraft(itemEditingId, body);
-
-            // 動画アップロード
-            const videoOk = await videoUploadAndConvert({
-                target: "draft",
-                videoFile: videoInput.videoFile,
-                videoSignedUrl: data.videoSignedUrl,
-                itemDraftId: data.itemDraftId,
-            });
-
-            if (!videoOk) {
-                setDraftLoading(false);
-                return;
-            }
-
-            // サムネイルアップロード
-            const thumbnailOk = await thumbnailUpload({
-                thumbnailFile: videoInput.thumbnailFile,
-                thumbnailSignedUrl: data.thumbnailSignedUrl,
-            });
-
-            if (!thumbnailOk) {
-                setDraftLoading(false);
-                return;
-            }
-
-            // 商品画像アップロード
-            const itemImagesOk = await itemImageUpload({
-                itemImageFiles: itemImages,
-                itemImageSignedUrls: data.itemImageSignedUrls,
-            });
-
-            if (!itemImagesOk) {
-                setDraftLoading(false);
-                return;
-            }
-
-            // attributes.imagesアップロード
-            const attributesImagesOk = await attributesImageUpload({
-                attributesValue: attributesValue,
-                signedUrlMap: data.attributesImageSignedUrls,
-            });
-
-            if (!attributesImagesOk) {
-                setDraftLoading(false);
-                return;
-            }
-
-            toast.success("下書き保存しました");
-            setDraftLoading(false);
-            await sleep(1500);
-
-            window.location.assign("/item-list/draft");
-        } catch (err) {
-            if (err instanceof ApiError) {
-                toast.error("下書き保存に失敗しました");
-            } else {
-                alert("システムエラーが発生しました。時間をおいて再試行してください");
-            }
-
-            setDraftLoading(false);
         }
     };
 
@@ -424,6 +282,8 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
             <TopLoader loading={loading} />
             <TopLoader loading={draftLoading} />
 
+            {draftSaved && <p role="status">下書きデータは保存済みです。転送に失敗した場合は下書き保存ボタンから再試行してください。</p>}
+            <fieldset disabled={busy || draftSaved} inert={busy || draftSaved} className={styles.fields}>
             <h2 className={styles.subtitle}>動画をアップロード</h2>
 
             <VideoInput
@@ -477,13 +337,14 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
 
             <PriceInput value={priceValue} onChange={setPriceValue} />
 
+            </fieldset>
             <div className={styles.formButtonDiv}>
-                <button type="button" className={styles.uploadButton} onClick={upload} disabled={loading}>
+                <button type="button" className={styles.uploadButton} onClick={() => submit("main")} disabled={busy || draftSaved}>
                     {loading ? "登録中..." : "出品する"}
                 </button>
 
                 {page !== "edit" && (
-                    <button type="button" className={styles.draftButton} onClick={draft} disabled={draftLoading}>
+                    <button type="button" className={styles.draftButton} onClick={() => submit("draft")} disabled={busy}>
                         {draftLoading ? "保存中..." : "下書き保存する"}
                     </button>
                 )}

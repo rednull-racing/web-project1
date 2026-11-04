@@ -1,5 +1,5 @@
 import { API, runtime } from "@/../test/fixtures/upload/itemUploadPage/setup";
-import { emptySigned, formProps } from "@/../test/fixtures/upload/itemUploadPage/fixtures";
+import { deferred, emptySigned, formProps } from "@/../test/fixtures/upload/itemUploadPage/fixtures";
 import { server } from "@/../test/fixtures/server";
 import { Form } from "@/app/upload/form";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -33,6 +33,9 @@ for (const action of ["main", "draft"] as const) {
                 expect(request.headers.get("authorization")).toBe("Bearer test-access-token");
                 return handle("convert");
             }),
+            http.get(`${API}/${action === "main" ? "item-editing/123/form" : "item-draft/456/item-page"}`, () => HttpResponse.json({
+                [action === "main" ? "itemEditing" : "itemDraft"]: { video_status: "converted", converted_url: events.includes("convert") ? "new.m3u8" : "old.m3u8" },
+            })),
             ...(["thumbnail", "item", "attribute"] as const).map((stage) => http.put(`http://storage.test/${stage}`, ({ request }) => {
                 expect(request.headers.get("authorization")).toBeNull();
                 expect(request.headers.get("content-type")).toBe("image/jpeg");
@@ -57,21 +60,32 @@ for (const action of ["main", "draft"] as const) {
             expect(runtime.assign).not.toHaveBeenCalled();
             expect(runtime.sleep).not.toHaveBeenCalled();
         }
-        expect(screen.getByRole("button", { name: action === "main" ? "出品する" : "下書き保存する" })).toBeEnabled();
+        if (failure !== "none") {
+            const button = screen.getByRole("button", { name: action === "main" ? "出品する" : "下書き保存する" });
+            expect(button).toBeEnabled();
+        }
     });
 }
 
-it("Q09 観測: 動画変換202受付後に完了照会せず確認先へ進む", async () => {
-    const events: string[] = [];
+it("AF-F9 動画変換202受付では遷移せずconvertedを確認して進む", async () => {
+    let converted = false; let accepted = false;
+    const polled = deferred<void>();
     server.use(
-        http.put(`${API}/item-editing/123`, () => { events.push("save"); return HttpResponse.json({ ...emptySigned(), videoSignedUrl: { url: "http://storage.test/video", fields: { key: "test-video" } } }); }),
-        http.post("http://storage.test/video", () => { events.push("video"); return new HttpResponse(null, { status: 204 }); }),
-        http.patch(`${API}/item-editing/123/convert`, () => { events.push("accepted"); return HttpResponse.json({ message: "変換処理を受け付けました" }, { status: 202 }); }),
+        http.put(`${API}/item-editing/123`, () => HttpResponse.json({ ...emptySigned(), videoSignedUrl: { url: "http://storage.test/video", fields: { key: "test-video" } } })),
+        http.post("http://storage.test/video", () => new HttpResponse(null, { status: 204 })),
+        http.patch(`${API}/item-editing/123/convert`, () => { accepted = true; return HttpResponse.json({ message: "変換処理を受け付けました" }, { status: 202 }); }),
+        http.get(`${API}/item-editing/123/form`, () => {
+            if (accepted) polled.resolve();
+            return HttpResponse.json({ itemEditing: { video_status: !accepted ? "converted" : converted ? "converted" : "processing",
+                converted_url: converted ? "new.m3u8" : "old.m3u8" } });
+        }),
     );
     render(<Form {...formProps()} />);
     fireEvent.change(screen.getByPlaceholderText("動画ファイルをアップロード"), { target: { files: [new File(["video"], "v.mp4", { type: "video/mp4" })] } });
     await userEvent.click(screen.getByRole("button", { name: "出品する" }));
-    await waitFor(() => expect(runtime.assign).toHaveBeenCalledExactlyOnceWith("/item/confirm/123"));
-    expect(events).toEqual(["save", "video", "accepted"]);
-    expect(runtime.success).toHaveBeenCalledTimes(1);
+    await polled.promise;
+    expect(runtime.assign).not.toHaveBeenCalled();
+    expect(runtime.success).not.toHaveBeenCalled();
+    converted = true;
+    await waitFor(() => expect(runtime.assign).toHaveBeenCalledExactlyOnceWith("/item/confirm/123"), { timeout: 3000 });
 });

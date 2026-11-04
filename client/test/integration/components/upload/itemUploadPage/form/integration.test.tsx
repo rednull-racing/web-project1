@@ -123,36 +123,42 @@ it.each([true, false])("C03 hasShop=%sで表示と非表示属性の送信を区
     expect(reached.mock.calls[0][0].attributes.allInventory).toBe(2);
 });
 
-it("Q02 観測: 成功待機中に送信ボタンが再有効化され再送できる", async () => {
+it("AF-F5 成功待機中の再送を止めunmount後に遷移しない", async () => {
     const gate = deferred<void>(); runtime.sleep.mockReturnValue(gate.promise);
     const reached = vi.fn();
     server.use(http.put(`${API}/item-editing/123`, () => { reached(); return HttpResponse.json(emptySigned()); }));
-    render(<Form {...formProps()} />);
+    const view = render(<Form {...formProps()} />);
     await userEvent.click(screen.getByRole("button", { name: "出品する" }));
     await waitFor(() => expect(runtime.success).toHaveBeenCalledTimes(1));
-    expect(screen.getByRole("button", { name: "出品する" })).toBeEnabled();
-    await userEvent.click(screen.getByRole("button", { name: "出品する" }));
-    await waitFor(() => expect(reached).toHaveBeenCalledTimes(2));
-    expect(runtime.assign).not.toHaveBeenCalled();
+    const main = screen.getByRole("button", { name: "登録中..." });
+    expect(main).toBeDisabled();
+    expect(screen.getByRole("button", { name: "下書き保存する" })).toBeDisabled();
+    await userEvent.click(main);
+    expect(reached).toHaveBeenCalledTimes(1);
+    expect(screen.getByDisplayValue("綿シャツ")).toBeDisabled();
+    view.unmount();
     await act(async () => gate.resolve());
-    expect(runtime.assign).toHaveBeenCalledTimes(2);
+    expect(runtime.assign).not.toHaveBeenCalled();
 });
 
-it("Q02 観測: 出品中も下書き送信が実行できる", async () => {
+it.each(["main", "draft"] as const)("AF-F5 %s処理中は別操作も送信しない", async (action) => {
     const gate = deferred<void>(); const events: string[] = [];
-    server.use(
-        http.put(`${API}/item-editing/123`, async () => { events.push("main"); await gate.promise; return HttpResponse.json({ code: "FAIL" }, { status: 500 }); }),
-        http.post(`${API}/item-draft`, () => { events.push("draft"); return HttpResponse.json(emptySigned()); }),
-    );
+    const handler = async (kind: string) => {
+        events.push(kind); await gate.promise;
+        return HttpResponse.json({ code: "FAIL" }, { status: 500 });
+    };
+    server.use(http.put(`${API}/item-editing/123`, () => handler("main")),
+        http.post(`${API}/item-draft`, () => handler("draft")));
     render(<Form {...formProps()} />);
-    await userEvent.click(screen.getByRole("button", { name: "出品する" }));
-    await waitFor(() => expect(events).toEqual(["main"]));
-    expect(screen.getByRole("button", { name: "下書き保存する" })).toBeEnabled();
-    await userEvent.click(screen.getByRole("button", { name: "下書き保存する" }));
-    await waitFor(() => expect(runtime.assign).toHaveBeenCalledWith("/item-list/draft"));
-    expect(events).toEqual(["main", "draft"]);
+    await userEvent.click(screen.getByRole("button", { name: action === "main" ? "出品する" : "下書き保存する" }));
+    await waitFor(() => expect(events).toEqual([action]));
+    const other = screen.getByRole("button", { name: action === "main" ? "下書き保存する" : "出品する" });
+    expect(other).toBeDisabled(); await userEvent.click(other);
+    expect(events).toEqual([action]);
     gate.resolve();
     await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("button", { name: "出品する" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "下書き保存する" })).toBeEnabled();
 });
 
 it("C08 商品画像は9枚から複数追加して10枚で停止し超過分を送信しない", async () => {
@@ -172,7 +178,7 @@ it("C08 商品画像は9枚から複数追加して10枚で停止し超過分を
 });
 
 
-it("C03 C08 uiIdのない既存属性画像を入力変更後もbodyへ保持する", async () => {
+it("AF-F2 C03 C08 uiIdのない既存属性画像を入力変更後もbodyへ保持する", async () => {
     const props = formProps();
     props.itemEditing.attributes.colorVariants?.forEach((variant) => { delete variant.uiId; });
     const reached = vi.fn();
@@ -184,8 +190,8 @@ it("C03 C08 uiIdのない既存属性画像を入力変更後もbodyへ保持す
     await userEvent.click(screen.getByRole("button", { name: "出品する" }));
     await waitFor(() => expect(reached).toHaveBeenCalledTimes(1));
     expect(reached.mock.calls[0][0].attributes.colorVariants.map((v: { image: unknown }) => v.image)).toEqual([
-        { name: "color-0.jpg", type: null, uploaded: true },
-        { name: "color-1.jpg", type: null, uploaded: true },
+        { name: "color-0.jpg", uploaded: true },
+        { name: "color-1.jpg", uploaded: true },
     ]);
 });
 
@@ -273,23 +279,6 @@ it.each(["network", "json", 401] as const)("C01 C05 C06 下書き%s失敗で停�
     expect(runtime.success).not.toHaveBeenCalled();
 });
 
-it("Q02 観測: 下書き処理中も出品を送信できる", async () => {
-    const gate = deferred<void>(); const events: string[] = [];
-    server.use(
-        http.post(`${API}/item-draft`, async () => { events.push("draft"); await gate.promise; return HttpResponse.json({ code: "FAIL" }, { status: 500 }); }),
-        http.put(`${API}/item-editing/123`, () => { events.push("main"); return HttpResponse.json(emptySigned()); }),
-    );
-    render(<Form {...formProps()} />);
-    await userEvent.click(screen.getByRole("button", { name: "下書き保存する" }));
-    await waitFor(() => expect(events).toEqual(["draft"]));
-    expect(screen.getByRole("button", { name: "出品する" })).toBeEnabled();
-    await userEvent.click(screen.getByRole("button", { name: "出品する" }));
-    await waitFor(() => expect(runtime.assign).toHaveBeenCalledWith("/item/confirm/123"));
-    expect(events).toEqual(["draft", "main"]);
-    gate.resolve();
-    await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1));
-});
-
 it("U16 UploadUIの戻るアイコンが実TitleAndBackを通じてrouter.backを要求", async () => {
     const view = render(<Form {...formProps()} />);
     // 現行の戻るsvgにはrole/ラベルがない。アクセシビリティはO03で別途確認。
@@ -298,4 +287,75 @@ it("U16 UploadUIの戻るアイコンが実TitleAndBackを通じてrouter.back�
     fireEvent.click(back!);
     expect(runtime.back).toHaveBeenCalledExactlyOnceWith();
     expect(runtime.assign).not.toHaveBeenCalled();
+});
+
+it("AF-F6 下書き転送失敗後は同じdraftIdと署名で再開しPOSTし直さない", async () => {
+    const posts = vi.fn(); const puts = vi.fn();
+    server.use(
+        http.post(`${API}/item-draft`, () => { posts(); return HttpResponse.json({ ...emptySigned(), thumbnailSignedUrl: "http://storage.test/thumb" }); }),
+        http.put("http://storage.test/thumb", () => { puts(); return new HttpResponse(null, { status: puts.mock.calls.length === 1 ? 500 : 204 }); }),
+    );
+    render(<Form {...formProps()} />);
+    fireEvent.change(screen.getByPlaceholderText("画像ファイルをアップロード"), { target: { files: [new File(["thumb"], "new.jpg", { type: "image/jpeg" })] } });
+    await userEvent.click(screen.getByRole("button", { name: "下書き保存する" }));
+    await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1));
+    expect(screen.getByDisplayValue("綿シャツ")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "出品する" })).toBeDisabled();
+    expect(runtime.assign).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "下書き保存する" }));
+    await waitFor(() => expect(runtime.assign).toHaveBeenCalledExactlyOnceWith("/item-list/draft"));
+    expect(posts).toHaveBeenCalledTimes(1);
+    expect(puts).toHaveBeenCalledTimes(2);
+});
+
+it("AF-F6 通常保存の画像部分失敗は成功済みFileを転送せず再開", async () => {
+    const saves = vi.fn(); const transferred = { a: 0, b: 0 };
+    server.use(
+        http.put(`${API}/item-editing/123`, () => { saves(); return HttpResponse.json({ ...emptySigned(),
+            itemImageSignedUrls: [{ index: 1, url: "http://storage.test/a" }, { index: 2, url: "http://storage.test/b" }] }); }),
+        http.put("http://storage.test/a", () => { transferred.a++; return new HttpResponse(null, { status: 204 }); }),
+        http.put("http://storage.test/b", () => { transferred.b++; return new HttpResponse(null, { status: transferred.b === 1 ? 500 : 204 }); }),
+    );
+    render(<Form {...formProps()} />);
+    fireEvent.change(screen.getByPlaceholderText("商品画像をアップロード"), { target: { files: [
+        new File(["a"], "a.jpg", { type: "image/jpeg" }), new File(["b"], "b.jpg", { type: "image/jpeg" }),
+    ] } });
+    await userEvent.click(screen.getByRole("button", { name: "出品する" }));
+    await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1));
+    await userEvent.click(screen.getByRole("button", { name: "出品する" }));
+    await waitFor(() => expect(runtime.assign).toHaveBeenCalledTimes(1));
+    expect(saves).toHaveBeenCalledTimes(1);
+    expect(transferred).toEqual({ a: 1, b: 2 });
+});
+
+it("AF-F5 保存応答前にunmountした場合は転送・通知・遷移しない", async () => {
+    const gate = deferred<void>(); const reached = vi.fn();
+    server.use(http.put(`${API}/item-editing/123`, async () => {
+        reached(); await gate.promise; return HttpResponse.json(emptySigned());
+    }));
+    const view = render(<Form {...formProps()} />);
+    await userEvent.click(screen.getByRole("button", { name: "出品する" }));
+    await waitFor(() => expect(reached).toHaveBeenCalledTimes(1));
+    view.unmount();
+    await act(async () => gate.resolve());
+    expect(runtime.success).not.toHaveBeenCalled();
+    expect(runtime.assign).not.toHaveBeenCalled();
+});
+
+it("AF-F1 カテゴリー変更が実GenderAgeを補正し送信本文へ反映", async () => {
+    const props = formProps();
+    props.category.push({ ...props.category[0], id: "20", name: "子供服", allowed_gender: "women", allowed_age: "kids" });
+    const reached = vi.fn();
+    server.use(
+        http.get(`${API}/categories/20/level2`, () => HttpResponse.json({ category2: [] })),
+        http.put(`${API}/item-editing/123`, async ({ request }) => { reached(await request.json()); return HttpResponse.json(emptySigned()); }),
+    );
+    render(<Form {...props} />);
+    await userEvent.click(screen.getAllByPlaceholderText("カテゴリーを選択してください")[0]);
+    fireEvent.mouseDown(screen.getByText("子供服"));
+    expect(screen.getByRole("radio", { name: "レディース" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "キッズ向け" })).toBeChecked();
+    await userEvent.click(screen.getByRole("button", { name: "出品する" }));
+    await waitFor(() => expect(reached).toHaveBeenCalledTimes(1));
+    expect(reached.mock.calls[0][0]).toMatchObject({ category: { id: "20" }, genderAge: { gender: "women", age: "kids" } });
 });

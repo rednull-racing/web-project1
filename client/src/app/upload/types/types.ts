@@ -50,6 +50,7 @@ export type Item = {
 export type ItemEditing = {
     id: string;
     status: "normal" | "edit";
+    video_status?: "processing" | "converted" | "failed" | null;
     seller_id: number;
     name: string;
     detail: string;
