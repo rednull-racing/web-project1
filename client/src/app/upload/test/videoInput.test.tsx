@@ -44,7 +44,7 @@ describe("VideoInput", () => {
         const { change } = setup();
         const file = new File(["image"], "thumb.png", { type: "image/png" });
         await userEvent.upload(screen.getByPlaceholderText("画像ファイルをアップロード"), file);
-        expect(change).toHaveBeenLastCalledWith(expect.objectContaining({ thumbnailFile: file, thumbnailUploaded: false, thumbnailPreview: "blob:test-preview" }));
+        expect(change).toHaveBeenLastCalledWith(expect.objectContaining({ thumbnailFile: file, thumbnailUploaded: false, thumbnailPreview: null }));
     });
     it.each([[49, 499], [50, 500], [51, 501]])("U07 動画文字数 %d/%d のUI上限と他値保持", async (titleLength, summaryLength) => {
         const { change } = setup();
@@ -62,13 +62,27 @@ describe("VideoInput", () => {
         fireEvent.change(screen.getByPlaceholderText("動画ファイルをアップロード"), { target: { files: [file] } });
         expect(change).toHaveBeenCalledWith(expect.objectContaining({ videoFile: file }));
     });
-    it("Q08 動画再描画/unmount時にObjectURLが解放されない（観測）", async () => {
+    it("AF-F8 動画再描画ではURLを再生成せずunmountで解放", async () => {
         const revoke = vi.spyOn(URL, "revokeObjectURL");
         const { unmount } = setup();
         await userEvent.upload(screen.getByPlaceholderText("動画ファイルをアップロード"), new File(["clip"], "clip.mp4", { type: "video/mp4" }));
         await userEvent.type(screen.getByPlaceholderText("動画のタイトル（50文字以内）"), "x");
         unmount();
-        expect(vi.mocked(URL.createObjectURL).mock.calls.length).toBeGreaterThan(1);
-        expect(revoke).not.toHaveBeenCalled();
+        expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+        expect(revoke).toHaveBeenCalledExactlyOnceWith("blob:test-preview");
     });
+});
+
+it("AF-F8 サムネイル差替え時とunmount時に生成URLを解放する", async () => {
+    const revoke = vi.spyOn(URL, "revokeObjectURL");
+    const { unmount } = setup();
+    const input = screen.getByPlaceholderText("画像ファイルをアップロード");
+    await userEvent.upload(input, new File(["a"], "a.png", { type: "image/png" }));
+    await userEvent.type(screen.getByPlaceholderText("動画のタイトル（50文字以内）"), "変更");
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    await userEvent.upload(input, new File(["b"], "b.png", { type: "image/png" }));
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
+    expect(revoke).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(revoke).toHaveBeenCalledTimes(2);
 });

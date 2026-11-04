@@ -51,9 +51,19 @@ describe("Category", () => {
         if (kind === "empty") expect(await screen.findByText("選択しない")).toBeInTheDocument();
         else await waitFor(() => expect(error).toHaveBeenCalledWith("詳細カテゴリーの取得に失敗しました。"));
     });
-    it("Q03 親Aの遅い応答がB選択後の候補を上書きする（観測）", async () => {
+    it("AF-F7 親Aの遅い応答はB選択後の候補を上書きしない", async () => {
         let resolveA!: () => void;
         const delayed = new Promise<void>((resolve) => { resolveA = resolve; });
+        const originalFetch = globalThis.fetch;
+        let oldParsed = false;
+        vi.spyOn(globalThis, "fetch").mockImplementation(async (...args) => {
+            const response = await originalFetch(...args);
+            if (String(args[0]).includes("/categories/1/level2")) {
+                const parse = response.json.bind(response);
+                response.json = async () => { const data = await parse(); oldParsed = true; return data; };
+            }
+            return response;
+        });
         let requested = false;
         server.use(http.get("https://api.test/categories/:id/level2", async ({ params }) => {
             if (params.id === "1") { requested = true; await delayed; return HttpResponse.json({ category2: [child] }); }
@@ -67,8 +77,34 @@ describe("Category", () => {
         fireEvent.focus(screen.getAllByPlaceholderText("カテゴリーを選択してください")[1]);
         expect(await screen.findByText("ズボン")).toBeInTheDocument();
         resolveA();
-        expect(await screen.findByText("シャツ")).toBeInTheDocument();
-        expect(screen.queryByText("ズボン")).not.toBeInTheDocument();
+        await waitFor(() => expect(oldParsed).toBe(true));
+        await waitFor(() => expect(screen.getByText("ズボン")).toBeInTheDocument());
+        expect(screen.queryByText("シャツ")).not.toBeInTheDocument();
         expect(screen.getAllByPlaceholderText("カテゴリーを選択してください")[0]).toHaveValue("ボトムス");
     });
+});
+
+it("AF-F7 unmount後のカテゴリー取得失敗は通知しない", async () => {
+    let finish!: () => void;
+    const gate = new Promise<void>((resolve) => { finish = resolve; });
+    const originalFetch = globalThis.fetch;
+    let parsed = false;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (...args) => {
+        const response = await originalFetch(...args);
+        const parse = response.json.bind(response);
+        response.json = async () => { const data = await parse(); parsed = true; return data; };
+        return response;
+    });
+    let requested = false;
+    const error = vi.spyOn(toast, "error");
+    server.use(http.get("https://api.test/categories/1/level2", async () => {
+        requested = true; await gate; return HttpResponse.json({ message: "failed" }, { status: 500 });
+    }));
+    const { unmount } = setup();
+    await userEvent.click(screen.getByPlaceholderText("カテゴリーを選択してください"));
+    await userEvent.click(screen.getByText("トップス"));
+    await waitFor(() => expect(requested).toBe(true));
+    unmount(); finish();
+    await waitFor(() => expect(parsed).toBe(true));
+    expect(error).not.toHaveBeenCalled();
 });

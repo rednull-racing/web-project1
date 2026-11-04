@@ -1,5 +1,5 @@
 import { Profiler, useState } from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GenderAge, type GenderAgeValue } from "../genderAge";
 
@@ -22,4 +22,19 @@ describe("GenderAge", () => {
         expect(() => render(<Host />)).not.toThrow();
         expect(screen.getByRole("radio", { name: constraint?.allowed_gender === "men" ? "メンズ" : constraint?.allowed_gender === "women" ? "レディース" : "ユニセックス" })).toBeChecked();
     });
+});
+
+it("AF-F1 制約変更で対象を補正し解除後はラジオ操作できる", () => {
+    const change = vi.fn();
+    function Host({ constrained }: { constrained: boolean }) {
+        const [value, set] = useState<GenderAgeValue>({ gender_type: "men", age_type: "adult" });
+        return <GenderAge value={value} onChange={(next) => { change(next); set(next); }} categoryConstraint={constrained ? { allowed_gender: "women", allowed_age: "kids" } : null} />;
+    }
+    const { rerender } = render(<Host constrained={false} />);
+    rerender(<Host constrained />);
+    expect(screen.getByRole("radio", { name: "レディース" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "キッズ向け" })).toBeChecked();
+    rerender(<Host constrained={false} />);
+    fireEvent.click(screen.getByRole("radio", { name: "メンズ" }));
+    expect(change).toHaveBeenLastCalledWith({ gender_type: "men", age_type: "kids" });
 });

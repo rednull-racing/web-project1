@@ -2,6 +2,7 @@
 
 import { InputStr, InputTitle, Textarea } from "@/components/inputForm";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import styles from "./upload.module.css";
 
 export type VideoInputValue = {
@@ -25,6 +26,21 @@ type Props = {
 const MAX_SIZE = 500 * 1024 * 1024; // 500MB
 
 export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVideoUrl }: Props) => {
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    useEffect(() => {
+        if (!value.videoFile) { setVideoPreview(null); return; }
+        const url = URL.createObjectURL(value.videoFile);
+        setVideoPreview(url);
+        return () => URL.revokeObjectURL(url);
+    }, [value.videoFile]);
+    useEffect(() => {
+        if (!value.thumbnailFile) { setThumbnailPreview(null); return; }
+        const url = URL.createObjectURL(value.thumbnailFile);
+        setThumbnailPreview(url);
+        return () => URL.revokeObjectURL(url);
+    }, [value.thumbnailFile]);
+
     const handleChangeVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -46,12 +62,10 @@ export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVi
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const preview = URL.createObjectURL(file);
-
         onChange({
             ...value,
             thumbnailFile: file,
-            thumbnailPreview: preview,
+            thumbnailPreview: null,
             thumbnailUploaded: false,
         });
     };
@@ -87,7 +101,7 @@ export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVi
 
                     {value.videoFile ? (
                         <video
-                            src={URL.createObjectURL(value.videoFile)}
+                            src={videoPreview ?? undefined}
                             className={styles.videoPreview}
                             width={320}
                             controls
@@ -109,7 +123,7 @@ export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVi
                         required
                     />
                     <Image
-                        src={value.thumbnailPreview || "/no-image(1x1).png"}
+                        src={thumbnailPreview || value.thumbnailPreview || "/no-image(1x1).png"}
                         alt="サムネイル"
                         width={220}
                         height={160}

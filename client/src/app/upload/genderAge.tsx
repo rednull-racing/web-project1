@@ -1,7 +1,7 @@
-"use state";
+"use client";
 
 import { InputTitle } from "@/components/inputForm";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import styles from "./upload.module.css";
 
@@ -20,24 +20,14 @@ type Props = {
 };
 
 export const GenderAge = ({ value, onChange, categoryConstraint }: Props) => {
-    const [genderLabelOptions, setGenderLabelOptions] = useState<string[]>(["メンズ", "レディース", "ユニセックス"]);
-    const [ageLabelOptions, setAgeLabelOptions] = useState<string[]>(["大人向け", "キッズ向け", "指定なし"]);
-
-    const [selectedGenderLabel, setSelectedGenderLabel] = useState("");
-    const [selectedAgeLabel, setSelectedAgeLabel] = useState("");
-
-    const allGenderOptions = ["men", "women", "unisex"] as const;
-    const allAgeOptions = ["adult", "kids", "both"] as const;
-
-    const genderOptions =
-        !categoryConstraint?.allowed_gender || categoryConstraint.allowed_gender === "unisex"
-            ? allGenderOptions
-            : [categoryConstraint.allowed_gender];
-
-    const ageOptions =
-        !categoryConstraint?.allowed_age || categoryConstraint.allowed_age === "both"
-            ? allAgeOptions
-            : [categoryConstraint.allowed_age];
+    const genderOptions = useMemo(() => {
+        const allowed = categoryConstraint?.allowed_gender;
+        return !allowed || allowed === "unisex" ? ["men", "women", "unisex"] as const : [allowed];
+    }, [categoryConstraint?.allowed_gender]);
+    const ageOptions = useMemo(() => {
+        const allowed = categoryConstraint?.allowed_age;
+        return !allowed || allowed === "both" ? ["adult", "kids", "both"] as const : [allowed];
+    }, [categoryConstraint?.allowed_age]);
 
     const genderLabelMap = {
         men: "メンズ",
@@ -50,41 +40,16 @@ export const GenderAge = ({ value, onChange, categoryConstraint }: Props) => {
         both: "指定なし",
     } as const;
 
+    const genderLabelOptions = genderOptions.map((g) => genderLabelMap[g]);
+    const ageLabelOptions = ageOptions.map((a) => ageLabelMap[a]);
+    const selectedGenderLabel = value.gender_type ? genderLabelMap[value.gender_type] : "";
+    const selectedAgeLabel = value.age_type ? ageLabelMap[value.age_type] : "";
+
     useEffect(() => {
-        const nextGenderLabelOptions = genderOptions.map((g) => genderLabelMap[g]);
-        const nextAgeLabelOptions = ageOptions.map((a) => ageLabelMap[a]);
-
-        setGenderLabelOptions(nextGenderLabelOptions);
-        setAgeLabelOptions(nextAgeLabelOptions);
-
-        let nextValue = value;
-
-        if (genderOptions.length === 1 && value.gender_type !== genderOptions[0]) {
-            nextValue = {
-                ...nextValue,
-                gender_type: genderOptions[0],
-            };
-        }
-
-        if (ageOptions.length === 1 && value.age_type !== ageOptions[0]) {
-            nextValue = {
-                ...nextValue,
-                age_type: ageOptions[0],
-            };
-        }
-
-        if (nextValue !== value) {
-            onChange(nextValue);
-        }
-
-        if (nextValue.gender_type) {
-            setSelectedGenderLabel(genderLabelMap[nextValue.gender_type]);
-        }
-
-        if (nextValue.age_type) {
-            setSelectedAgeLabel(ageLabelMap[nextValue.age_type]);
-        }
-    }, [ageOptions, genderOptions, onChange, value]);
+        const gender_type = genderOptions.length === 1 ? genderOptions[0] : value.gender_type;
+        const age_type = ageOptions.length === 1 ? ageOptions[0] : value.age_type;
+        if (gender_type !== value.gender_type || age_type !== value.age_type) onChange({ gender_type, age_type });
+    }, [genderOptions, ageOptions, value, onChange]);
 
     const handleGenderSet = (label: string) => {
         const map: Record<string, GenderAgeValue["gender_type"]> = {
@@ -99,8 +64,6 @@ export const GenderAge = ({ value, onChange, categoryConstraint }: Props) => {
             toast.error("着用対象（性別）が正しく選択されていません");
             return;
         }
-
-        setSelectedGenderLabel(label);
 
         if (value.gender_type !== gender) {
             onChange({
@@ -123,8 +86,6 @@ export const GenderAge = ({ value, onChange, categoryConstraint }: Props) => {
             toast.error("着用対象（年齢）が正しく設定されていません。");
             return;
         }
-
-        setSelectedAgeLabel(label);
 
         if (value.age_type !== age) {
             onChange({

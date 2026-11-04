@@ -27,6 +27,14 @@ export const BrandInput = ({ value, onChange }: Props) => {
         }[]
     >([]);
 
+    const requestVersion = useRef(0);
+    const selectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => () => {
+        requestVersion.current++;
+        if (selectionTimeout.current) clearTimeout(selectionTimeout.current);
+        if (blurTimeout.current) clearTimeout(blurTimeout.current);
+    }, []);
     const suggestTimeout = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -36,6 +44,7 @@ export const BrandInput = ({ value, onChange }: Props) => {
     }, [value.id, value.name]);
 
     useEffect(() => {
+        const version = ++requestVersion.current;
         if (brandName.length === 0) {
             setSuggestions([]);
             return;
@@ -49,11 +58,12 @@ export const BrandInput = ({ value, onChange }: Props) => {
 
         suggestTimeout.current = setTimeout(async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/brands/suggest?keyword=${brandName}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/brands/suggest?${new URLSearchParams({ keyword: brandName })}`, {
                     cache: "no-store",
                 });
 
                 const data = await res.json();
+                if (version !== requestVersion.current) return;
 
                 if (!res.ok) {
                     console.error("ブランド名検索エラー：", data.message);
@@ -64,21 +74,25 @@ export const BrandInput = ({ value, onChange }: Props) => {
 
                 setSuggestions(data.brands);
             } catch (err) {
+                if (version !== requestVersion.current) return;
                 console.error(err);
                 setSuggestions([]);
             }
         }, 300);
 
         return () => {
+            requestVersion.current++;
             if (suggestTimeout.current) clearTimeout(suggestTimeout.current);
         };
     }, [brandName, isSelecting, value.name]);
 
     const handleChangeBrand = (name: string) => {
+        requestVersion.current++;
+        setIsSelecting(false);
         setBrandName(name);
 
         onChange({
-            ...value,
+            id: null,
             name,
         });
     };
@@ -92,7 +106,7 @@ export const BrandInput = ({ value, onChange }: Props) => {
                 onChange={(e) => handleChangeBrand(e.target.value)}
                 placeholder="ブランド名を入力"
                 onFocus={() => setOpenSuggest(true)}
-                onBlur={() => setTimeout(() => setOpenSuggest(false), 150)}
+                onBlur={() => { blurTimeout.current = setTimeout(() => setOpenSuggest(false), 150); }}
                 className={styles.input}
             />
 
@@ -102,6 +116,7 @@ export const BrandInput = ({ value, onChange }: Props) => {
                         <li
                             key={i}
                             onMouseDown={() => {
+                                requestVersion.current++;
                                 setIsSelecting(true);
                                 setBrandName(brand.name);
                                 onChange({
@@ -110,7 +125,7 @@ export const BrandInput = ({ value, onChange }: Props) => {
                                 });
                                 setOpenSuggest(false);
 
-                                setTimeout(() => setIsSelecting(false), 500);
+                                selectionTimeout.current = setTimeout(() => setIsSelecting(false), 500);
                             }}
                             className={styles.selectLi}
                         >

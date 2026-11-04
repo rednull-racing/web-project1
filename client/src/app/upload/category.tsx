@@ -35,6 +35,8 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
     const [openLevel2, setOpenLevel2] = useState(false);
 
     const initializedRef = useRef(false);
+    const requestVersion = useRef(0);
+    useEffect(() => () => { requestVersion.current++; }, []);
 
     useEffect(() => {
         if (initializedRef.current) return;
@@ -113,6 +115,7 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
     };
 
     const fetchLevel2 = async (parentId: number) => {
+        const version = ++requestVersion.current;
         setLoading(true);
         setLevel2List([]);
 
@@ -122,6 +125,7 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
             });
 
             const data = await res.json();
+            if (version !== requestVersion.current) return;
 
             if (!res.ok) {
                 console.error(data.message);
@@ -136,6 +140,7 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
 
             setLoading(false);
         } catch (err) {
+            if (version !== requestVersion.current) return;
             toast.error("詳細カテゴリーの取得に失敗しました。");
             console.error(err);
             setLoading(false);

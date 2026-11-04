@@ -1,7 +1,6 @@
 "use client";
 
 import { InputTitle } from "@/components/inputForm";
-import { useEffect, useState } from "react";
 import styles from "./upload.module.css";
 
 export type PriceValue = {
@@ -14,15 +13,8 @@ type Props = {
 };
 
 export const PriceInput = ({ value, onChange }: Props) => {
-    const [gain, setGain] = useState(0);
-    const [commission, setCommission] = useState(0);
-
-    useEffect(() => {
-        if (value.price > 0) {
-            setGain(value.price * 0.9);
-            setCommission(value.price * 0.1);
-        }
-    }, [value.price]);
+    const gain = value.price * 0.9;
+    const commission = value.price * 0.1;
 
     const handleChangePrice = (num: number) => {
         onChange({
@@ -30,8 +22,6 @@ export const PriceInput = ({ value, onChange }: Props) => {
             price: num,
         });
 
-        setGain(num * 0.9);
-        setCommission(num * 0.1);
     };
 
     return (

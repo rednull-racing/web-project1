@@ -79,11 +79,10 @@ describe("入力部品", () => {
         fireEvent.change(screen.getByPlaceholderText("例：30,000"), { target: { value: text } });
         expect(change).toHaveBeenLastCalledWith({ price: expected });
     });
-    it("Q08 propsを正値から0へ変えても派生金額が残る（観測）", () => {
+    it("AF-F8 propsを0へ変えると派生金額も0へ更新", () => {
         const { rerender } = render(<PriceInput value={{ price: 1000 }} onChange={vi.fn()} />);
         rerender(<PriceInput value={{ price: 0 }} onChange={vi.fn()} />);
         expect(screen.getByPlaceholderText("例：30,000")).toHaveValue("");
-        expect(screen.getByText("￥900")).toBeInTheDocument();
-        expect(screen.getByText("￥100")).toBeInTheDocument();
+        expect(screen.getAllByText("￥0")).toHaveLength(2);
     });
 });

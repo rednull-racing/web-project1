@@ -57,21 +57,21 @@ describe("BrandInput", () => {
         await act(() => vi.advanceTimersByTimeAsync(1000));
         expect(request).not.toHaveBeenCalled();
     });
-    it("Q03 選択済みブランドの手入力変更はidを保持（観測）", () => {
+    it("AF-F7 選択済みブランドの手入力変更でidをクリア", () => {
         vi.useFakeTimers();
         const { change } = setup({ id: "4", name: "BrandA" });
         fireEvent.change(screen.getByPlaceholderText("ブランド名を入力"), { target: { value: "別ブランド" } });
-        expect(change).toHaveBeenCalledWith({ id: "4", name: "別ブランド" });
+        expect(change).toHaveBeenCalledWith({ id: null, name: "別ブランド" });
     });
-    it("Q03 検索語&/#はencodeされずクエリ/fragment扱い（観測）", async () => {
+    it("AF-F7 検索語&/#をencodeして全文を送る", async () => {
         const urls: string[] = [];
         server.use(http.get("https://api.test/brands/suggest", ({ request }) => { urls.push(request.url); return HttpResponse.json({ brands: [] }); }));
         setup();
         fireEvent.change(screen.getByPlaceholderText("ブランド名を入力"), { target: { value: "A&B#C" } });
         await waitFor(() => expect(urls).toHaveLength(1));
-        expect(new URL(urls[0]).searchParams.get("keyword")).toBe("A");
+        expect(new URL(urls[0]).searchParams.get("keyword")).toBe("A&B#C");
     });
-    it("Q03 古い応答が新しいブランド候補を上書き（観測）", async () => {
+    it("AF-F7 古い応答は新しいブランド候補を上書きしない", async () => {
         let release!: () => void;
         const delayed = new Promise<void>((resolve) => { release = resolve; }); let started = false;
         server.use(http.get("https://api.test/brands/suggest", async ({ request }) => {
@@ -79,12 +79,24 @@ describe("BrandInput", () => {
             if (keyword === "A") { started = true; await delayed; }
             return HttpResponse.json({ brands: [{ id: keyword, name: `候補${keyword}`, name_normalized: keyword }] });
         }));
+        const originalFetch = globalThis.fetch;
+        let oldParsed = false;
+        vi.spyOn(globalThis, "fetch").mockImplementation(async (...args) => {
+            const response = await originalFetch(...args);
+            if (String(args[0]).includes("keyword=A")) {
+                const parse = response.json.bind(response);
+                response.json = async () => { const data = await parse(); oldParsed = true; return data; };
+            }
+            return response;
+        });
         setup(); const input = screen.getByPlaceholderText("ブランド名を入力");
         fireEvent.focus(input); fireEvent.change(input, { target: { value: "A" } });
         await waitFor(() => expect(started).toBe(true));
         fireEvent.change(input, { target: { value: "B" } });
         expect(await screen.findByText("候補B")).toBeInTheDocument();
-        release(); expect(await screen.findByText("候補A")).toBeInTheDocument();
-        expect(screen.queryByText("候補B")).not.toBeInTheDocument();
+        await act(async () => { release(); });
+        await waitFor(() => expect(oldParsed).toBe(true));
+        await waitFor(() => expect(screen.getByText("候補B")).toBeInTheDocument());
+        expect(screen.queryByText("候補A")).not.toBeInTheDocument();
     });
 });
