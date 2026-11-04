@@ -1,8 +1,12 @@
 # 商品アップロード・商品編集ページ テスト結果・修正案
 
-## 最新状況（2026-11-04）
+## 最新結果（2026-11-04・F1〜F10修正後）
 
-**F1〜F10の本番コード修正および対応するテストコードの実装完了。** ユーザー指示によりテスト・lint・型検査・buildは実行していない。成功件数・カバレッジは今回取得しておらず、修正後の動作確認済みとはしない。以下の250件の結果と失敗記録はすべて修正前の履歴。実装内容・残る制約は第11節を参照。
+**関連テスト301件すべて成功（28ファイル）、失敗・skip・未処理例外なし。** フロント単体155、フォーム結合66、サーバー単体7、実DB25、Chromiumページ結合40、実DB E2E8。代表ケース・初回失敗・再実行を重複加算していない。ファイル別件数は [機械集計](itemUpload.results.json)、実行内容と残件は第12節を参照。
+
+client/serverのテスト用型検査・serverのlint/本番型検査・E2E型検査と追加ESLintは成功。client全体lintは23 errors/34 warnings、本番型検査は50診断で失敗しており、検査全体の完了・成功とはしない。実S3/ffmpegによる動画変換と人間目視は未確認。
+
+第1〜10節は修正前の実行履歴、第11節は前回の未実行時点の実装記録。今回の結果は第12節を正とする。
 
 ## 1. 修正前の実行結果と範囲
 
@@ -164,7 +168,7 @@ E2EのExpress/proxyは既存harnessが起動し、DB接続先をtest_dbと照合
 
 統合後の追加静的検査: clientの対象ESLint成功（`/tmp/upload-target-lint-final.log`）、clientテスト用型検査成功（`/tmp/upload-test-typecheck-final.log`）、testパッケージ型検査成功（`/tmp/upload-e2e-typecheck-final.log`）。E2E追加TSはリポジトリルートから `client/node_modules/.bin/eslint --config client/eslint.config.mjs test/E2E/upload` で追加検査しexit 0。React/packageとpages探索の設定警告は出たが対象コード診断なし（`/tmp/upload-e2e-lint-final.log`）。共有設定は変更していない。文書の相対リンクと `git diff --check` も確認した。
 
-## 11. F1〜F10 本番修正・テストコード実装完了（未実行）
+## 11. F1〜F10 本番修正・テストコード実装完了（当時未実行）
 
 今回の依頼範囲はコード実装まで。既存の失敗・観測テストは修正後の契約へ移行し、実GenderAgeを置換していた結合fixtureも実部品へ戻した。元ケースIDを維持し、追加回帰をAF-F番号で識別する。テスト・lint・型検査・build・ブラウザー・DBテストは一切実行していない。過去の成功を今回の結果へ再掲しない。
 
@@ -189,3 +193,66 @@ E2EのExpress/proxyは既存harnessが起動し、DB接続先をtest_dbと照合
 - 再試行状態は同じマウント中のメモリ保持。下書きPOST後のリロード・署名期限切れからの復旧や別タブの冪等性は保証しない。失敗後の同一保存内容の転送再開を対象とする。
 - 動画照会は1秒間隔・最大120回。旧converted誤認防止のため、processingを観測せずURLも変わらない高速完了は完了確認できない場合がある。実API/実変換で確認が必要。
 - 未入力下書きのprice=0等、既存バックエンドの必須制約そのものは今回変更していない。本文schema整合や実DB永続化、実S3/ffmpeg、人間観測は未確認。新規ライブラリ・migrationの追加/実行はしていない。
+
+## 12. F1〜F10修正後の実行結果（2026-11-04）
+
+### 結果・対象・境界
+
+本番コミット `acfc7304` の変更を検証した。本番コードの追加修正は行わず、実行時に見つかったテスト側の待機時間・旧期待値のみ修正した。実行環境は既存依存とNode.js 22.22.2。package指定Node26では未実施。
+
+| 階層 | 成功 | 失敗/skip | 確認内容 |
+| --- | ---: | ---: | --- |
+| フロント単体（14ファイル） | 155 | 0/0 | F1/F3/F4/F6〜F10。入力境界・収束・候補競合・URL寿命・転送/状態照会・本文変換 |
+| フォーム結合（4ファイル） | 66 | 0/0 | 実GenderAge・F2画像保持・F5排他/unmount・F6再送再開・F9完了前停止・F10本番schema適合。HTTPはMSW |
+| サーバー単体（2ファイル） | 7 | 0/0 | editing/form・draft/item-pageの取得列、Category.level・video_status、所有者条件 |
+| サーバー実DB（2ファイル） | 25 | 0/0 | test_db、関連/nullableデータ・変換3状態・所有者拒否とDB不変 |
+| ページ結合（2ファイル） | 40 | 0/0 | Chromium、本番webpack build/start、サーバーGETはfixture API。両モードの認証・metadata・初期値・Client更新 |
+| 実DB E2E（4ファイル） | 8 | 0/0 | 実Express/test_db。通常・編集保存、下書き、所有者拒否、動画/サムネイル/商品/属性の外部転送失敗 |
+| 合計 | **301** | **0/0** | ファイル別の内訳は機械集計参照 |
+
+F1/F2の修正前失敗は実Form/単体で再現しなくなった。F10は実ブラウザーからのPUT/POSTが本番schemaへ適合し、実保存まで成功。D04の4件も保存APIを通過して外部転送失敗の停止/DB残存確認まで到達した。変換202後の完了待ち・failed・時間切れ再開・旧converted拒否・abortはHook/フォーム結合で確認したが、実ffmpeg/S3の成功変換は実施していない。認可・永続化の業務APIはE2Eでモックせず、D04のストレージ通信だけ500へ置換した。
+
+### 初回失敗とテスト側の修正
+
+| 対象 | 初回結果・原因 | 修正・最終確認 |
+| --- | --- | --- |
+| Form media | 全体66件中58成功/8失敗。1秒ポーリングに対してwaitForの既定1秒で時間切れ | mediaの非同期待機上限だけ3秒へ変更。assert・停止位置は維持。該当15件のみ再実行し全成功。他3ファイル51成功と合算 |
+| editing/form実DB | 25件中24成功/1失敗。DB02でvideo_status=nullを期待する一方、同じ値を非公開列リストに含めていた | 新DTO契約に従い非公開リストからvideo_statusを除去し、nullのassertは保持。編集側13件のみ再実行し全成功、下書き側12成功と合算 |
+| 下書きE2E | 8件中7成功/1失敗。POST成功が既存契約200なのにテストだけ201を期待 | controllerと既存サーバー設計の200に合わせた。本文schema/DB保存・editing削除のassertは保持。下書き1件のみ再実行して成功、他7成功と合算 |
+
+サンドボックス内のDB接続・サービス待受はEPERMで失敗し、許可された制限外実行へ切り替えた。DBの最初の25件pendingはsetup失敗による本体未実行であり、最終25成功へ加算していない。初回の失敗を隠すskipや本番修正、期待値の業務契約変更はしていない。
+
+### 実行コマンド・集計根拠
+
+以下は既存Node22のPATHを設定して実行。API接続・TLS・起動手順は第10節と同じ。代表の本文契約3件、ページ1件、実DB E2E通常保存1件の成功を確認してから関連ケースを実行した。
+
+```bash
+# client/
+npm run test:unit -- src/app/upload --reporter=json --outputFile=/tmp/upload-fixes-unit.json
+npm run test:integration -- test/integration/components/upload --reporter=json --outputFile=/tmp/upload-fixes-integration.json
+npm run test:integration -- test/integration/components/upload/itemUploadPage/form/media.test.tsx --reporter=json --outputFile=/tmp/upload-fixes-media.json
+NEXT_PUBLIC_API_URL=http://127.0.0.1:4043/api npm run build -- --webpack
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3041 npm run test:pages:browser -- test/integration/pages/upload --project pages-chromium --workers 1 --timeout 12000 --reporter=json
+
+# server/
+npm run test -- src/services/itemEditing/test/getItemEditingForm.test.ts src/services/itemDraft/test/getItemDraftPage.test.ts --reporter=json --outputFile=/tmp/upload-fixes-server-unit.json
+npm run test -- test/integration/database/itemEditing/getItemEditingForm/database.test.ts test/integration/database/itemDraft/getItemDraftPage/database.test.ts --maxWorkers=1 --reporter=json --outputFile=/tmp/upload-fixes-server-db.json
+npm run test -- test/integration/database/itemEditing/getItemEditingForm/database.test.ts --maxWorkers=1 --reporter=json --outputFile=/tmp/upload-fixes-server-db-editing.json
+
+# test/（第10節と同じloopback URLの環境変数を設定）
+npm run test:e2e -- E2E/upload --project e2e-chromium --workers 1 --timeout 30000 --reporter=json
+npm run test:e2e -- E2E/upload/itemUploadPage/saveDraft/flow.spec.ts --project e2e-chromium --workers 1 --timeout 30000 --reporter=json
+```
+
+集計元は上記Vitest JSONと `/tmp/upload-fixes-server-db-initial.json`、`/tmp/upload-fixes-pages.json`、`/tmp/upload-fixes-e2e-initial.json`、`/tmp/upload-fixes-e2e-draft.json`。再実行ファイルは最新結果で上書き集計した。Playwrightのページケースは共通helper内の定義位置でなく、entryの2つのpage.spec.tsに対応付けている。npmの前置出力があるブラウザーJSONはJSON本文を抽出して集計。主要結果とファイル別件数は永続化した機械集計に残す。
+
+### 静的検査・残る問題
+
+- client: `npm run lint` は23 errors/34 warnings。既存の診断に加え、F8で追加した `videoInput.tsx` のプレビューeffect内setStateも2件のエラー。動画/サムネイルのURL寿命を保ちつつ、effect内の同期setStateを避ける実装へ変更する案が残る。今回は本番修正していない。
+- client: `npm run typecheck` は50診断。49件は既存Next生成型の非Promise params、1件は既存 `upload/ok/[id]/page.tsx` のItem.seller_id型。変更したテスト型の失敗とは区別する。
+- client: `tsc --noEmit -p test/tsconfig.json` は成功。server: lint・本番typecheck・テスト用tscは全成功。test: typecheck成功。E2E追加ESLintもexit 0（React/pages探索の設定警告のみ）。共有設定変更なし。
+- webpack buildは成功したが、既存ignoreBuildErrors設定により本番型検査成功を意味しない。
+- 実DBは既存test_dbガード・自作ID限定cleanup・接続終了を使用。migrationは実行していない。起動したfixture API・Next.js/TLSは停止済み。
+- Firefox/WebKit、実動画変換・署名期限切れ/リロード復旧・別タブ競合、Node26、人間観測O01〜O05、カバレッジは未確認。テスト成功をこれらの完了とはしない。
+
+各検査ログは `/tmp/upload-fixes-{client-lint,client-types,client-test-types,server-lint,server-types,server-test-types,e2e-types,e2e-lint,build}.log`。今回の完了範囲は関連テスト実行・テスト側の前提修正・結果記録であり、静的検査を含む全項目の成功ではない。

@@ -104,7 +104,6 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
             "item_id",
             "updatedAt",
             "createdAt",
-            "video_status",
             "category_id",
             "recommend",
             "sale_flag",

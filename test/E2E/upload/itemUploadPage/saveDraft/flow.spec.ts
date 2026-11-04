@@ -15,7 +15,7 @@ test('D02 保存でediting削除とdraft値確認', async ({ page, context, base
     const code = payload && typeof payload === 'object' && 'code' in payload && typeof payload.code === 'string' ? payload.code : null;
     await test.info().attach('D02-response', { body: JSON.stringify({ status: response.status(), code }), contentType: 'application/json' });
     expect(validation.success).toBe(true);
-    expect(response.status()).toBe(201);
+    expect(response.status()).toBe(200);
     expect(await e2e.database.get('item_editing', editing.id)).toBeNull();
     expect((await e2e.database.db.query('SELECT * FROM item_draft WHERE seller_id=$1 AND name=$2', [e2e.seed.owner.id, '下書き保存したシャツ'])).rows).toHaveLength(1);
     await e2e.expectProtected();

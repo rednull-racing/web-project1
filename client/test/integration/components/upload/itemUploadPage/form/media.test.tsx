@@ -50,11 +50,11 @@ for (const action of ["main", "draft"] as const) {
         fireEvent.change(screen.getAllByPlaceholderText("画像をアップロード")[0], { target: { files: [file("red.jpg", "image/jpeg")] } });
         await userEvent.click(screen.getByRole("button", { name: action === "main" ? "出品する" : "下書き保存する" }));
         if (failure === "none") {
-            await waitFor(() => expect(runtime.assign).toHaveBeenCalledTimes(1));
+            await waitFor(() => expect(runtime.assign).toHaveBeenCalledTimes(1), { timeout: 3000 });
             expect(events).toEqual(stages);
             expect(runtime.error).not.toHaveBeenCalled();
         } else {
-            await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1));
+            await waitFor(() => expect(runtime.error).toHaveBeenCalledTimes(1), { timeout: 3000 });
             expect(events).toEqual(stages.slice(0, stages.indexOf(failure) + 1));
             expect(runtime.success).not.toHaveBeenCalled();
             expect(runtime.assign).not.toHaveBeenCalled();
