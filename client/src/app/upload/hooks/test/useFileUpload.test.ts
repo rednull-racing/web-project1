@@ -1,46 +1,176 @@
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { beforeEach, expect, it, vi } from "vitest";
 import { server } from "../../../../../test/fixtures/server";
 import { useFileUpload } from "../useFileUpload";
 import { params } from "./fixtures";
-const calls = vi.hoisted(() => ({ editing: vi.fn(), draft: vi.fn(), error: vi.fn() }));
-vi.mock("../../api/video", () => ({ fetchVideoConvert: calls.editing, fetchDraftVideoConvert: calls.draft }));
+const calls = vi.hoisted(() => ({ editing: vi.fn(), draft: vi.fn(), state: vi.fn(), error: vi.fn() }));
+vi.mock("../../api/video", () => ({ fetchVideoConvert: calls.editing, fetchDraftVideoConvert: calls.draft, fetchVideoConversionState: calls.state }));
 vi.mock("react-hot-toast", () => ({ default: { error: calls.error } }));
 const file = (name = "red", type = "image/png") => new File([name], `${name}.png`, { type });
 const signed = { url: "https://storage.test/video", fields: { key: "v", policy: "test-policy" } };
-beforeEach(() => { Object.values(calls).forEach(fn => fn.mockReset()); calls.editing.mockResolvedValue({}); calls.draft.mockResolvedValue({}); });
-it.each(["editing", "draft"] as const)("U20 %s POST後だけ正しいIDで変換", async target => {
+beforeEach(() => {
+    Object.values(calls).forEach(fn => fn.mockReset());
+    calls.editing.mockResolvedValue({}); calls.draft.mockResolvedValue({});
+    calls.state.mockResolvedValueOnce({ video_status: null, converted_url: null })
+        .mockResolvedValue({ video_status: "converted", converted_url: "https://media.test/new.m3u8" });
+});
+it.each(["editing", "draft"] as const)("U20 AF-F9 %s POST→202受付→状態完了まで待機", async target => {
     const order: string[] = []; let text = "";
-    server.use(http.post(signed.url, async ({ request }) => { order.push("post"); expect(request.headers.get("content-type")).toContain("multipart/form-data"); expect(request.headers.get("authorization")).toBeNull(); text = await request.text(); return new HttpResponse(null, { status: 204 }); }));
-    calls[target].mockImplementation(async () => { order.push("convert"); });
-    const { result } = renderHook(useFileUpload); const common = { videoFile: file("video", "video/mp4"), videoSignedUrl: signed };
-    expect(await result.current.videoUploadAndConvert(target === "editing" ? { ...common, target, itemEditingId: "123" } : { ...common, target, itemDraftId: 456 })).toBe(true);
-    expect(order).toEqual(["post", "convert"]); expect(text).toContain("test-policy"); expect(text.indexOf('name="file"')).toBeGreaterThan(text.indexOf('name="policy"')); expect(calls[target]).toHaveBeenCalledExactlyOnceWith(target === "editing" ? "123" : 456); expect(calls[target === "editing" ? "draft" : "editing"]).not.toHaveBeenCalled();
+    server.use(http.post(signed.url, async ({ request }) => {
+        order.push("post"); expect(request.headers.get("content-type")).toContain("multipart/form-data");
+        expect(request.headers.get("authorization")).toBeNull(); text = await request.text();
+        return new HttpResponse(null, { status: 204 });
+    }));
+    calls[target].mockImplementation(async () => { order.push("accepted"); });
+    const { result } = renderHook(useFileUpload);
+    const args = target === "editing" ? { target, itemEditingId: "123", videoFile: file("video", "video/mp4"), videoSignedUrl: signed } : { target, itemDraftId: 456, videoFile: file("video", "video/mp4"), videoSignedUrl: signed };
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const operation = result.current.videoUploadAndConvert(args);
+    await vi.waitFor(() => expect(calls[target]).toHaveBeenCalledOnce());
+    expect(order).toEqual(["post", "accepted"]);
+    expect(calls.state).toHaveBeenCalledTimes(1);
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(await operation).toBe(true);
+    expect(calls.state).toHaveBeenLastCalledWith(target, target === "editing" ? "123" : 456, expect.any(AbortSignal));
+    expect(text.indexOf('name="file"')).toBeGreaterThan(text.indexOf('name="policy"'));
+    expect(await result.current.videoUploadAndConvert(args)).toBe(true);
+    expect(calls[target]).toHaveBeenCalledOnce();
 });
-it.each(["file", "url"])("U21 Q05 欠落%sはskip成功", async missing => { const { result } = renderHook(useFileUpload); expect(await result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: missing === "file" ? null : file(), videoSignedUrl: missing === "url" ? null : signed })).toBe(true); expect(calls.editing).not.toHaveBeenCalled(); });
-it("U21 動画HTTP失敗はfalse、変換未実行", async () => { server.use(http.post(signed.url, () => new HttpResponse(null, { status: 500 }))); const { result } = renderHook(useFileUpload); expect(await result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: file(), videoSignedUrl: signed })).toBe(false); expect(calls.error).toHaveBeenCalledWith("動画のアップロードに失敗しました"); expect(calls.editing).not.toHaveBeenCalled(); });
-it("U21 動画ネットワーク失敗はthrow、変換未実行", async () => { server.use(http.post(signed.url, () => HttpResponse.error())); const { result } = renderHook(useFileUpload); await expect(result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: file(), videoSignedUrl: signed })).rejects.toThrow(); expect(calls.editing).not.toHaveBeenCalled(); });
-it("U21 変換例外伝播", async () => { server.use(http.post(signed.url, () => new HttpResponse(null, { status: 204 }))); const error = new Error("convert failed"); calls.editing.mockRejectedValue(error); const { result } = renderHook(useFileUpload); await expect(result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: file(), videoSignedUrl: signed })).rejects.toBe(error); });
-it("U22 サムネイルPUTの内容と認証非転送", async () => { let body = ""; server.use(http.put("https://storage.test/thumb", async ({ request }) => { expect(request.headers.get("content-type")).toBe("image/png"); expect(request.headers.get("authorization")).toBeNull(); body = await request.text(); return new HttpResponse(null, { status: 204 }); })); const { result } = renderHook(useFileUpload); expect(await result.current.thumbnailUpload({ thumbnailFile: file("thumb"), thumbnailSignedUrl: "https://storage.test/thumb" })).toBe(true); expect(body).toBe("thumb"); });
-it.each(["file", "url"])("U22 欠落%sをskip", async missing => { const { result } = renderHook(useFileUpload); expect(await result.current.thumbnailUpload({ thumbnailFile: missing === "file" ? null : file(), thumbnailSignedUrl: missing === "url" ? null : "https://storage.test/thumb" })).toBe(true); });
-it.each(["http", "network"])("U22 サムネイル%s失敗", async mode => { server.use(http.put("https://storage.test/thumb", () => mode === "http" ? new HttpResponse(null, { status: 500 }) : HttpResponse.error())); const { result } = renderHook(useFileUpload); const operation = result.current.thumbnailUpload({ thumbnailFile: file(), thumbnailSignedUrl: "https://storage.test/thumb" }); if (mode === "network") await expect(operation).rejects.toThrow(); else { expect(await operation).toBe(false); expect(calls.error).toHaveBeenCalledWith("サムネイルのアップロードに失敗しました"); } });
-it("U23 indexで対応し既存・Fileなし・範囲外をskip", async () => { const received: Record<string, string> = {}; server.use(http.put("https://storage.test/:index", async ({ request, params: path }) => { received[String(path.index)] = await request.text(); expect(request.headers.get("content-type")).toBe("image/png"); return new HttpResponse(null, { status: 204 }); })); const files = ["a", "b"].map(name => ({ id: name, file: file(name), preview: "", uploaded: false })); const { result } = renderHook(useFileUpload); expect(await result.current.itemImageUpload({ itemImageFiles: [...files, { ...files[0], uploaded: true }, { ...files[0], file: null }], itemImageSignedUrls: [1, 0, 2, 3, 9].map(index => ({ index, url: `https://storage.test/${index}` })) })).toBe(true); expect(received).toEqual({ "0": "a", "1": "b" }); });
-it("U23 署名空", async () => { const { result } = renderHook(useFileUpload); expect(await result.current.itemImageUpload({ itemImageFiles: [], itemImageSignedUrls: [] })).toBe(true); });
-it.each(["http", "network"])("U23 商品画像%s失敗はfalse", async mode => { server.use(http.put("https://storage.test/image", () => mode === "http" ? new HttpResponse(null, { status: 500 }) : HttpResponse.error())); const { result } = renderHook(useFileUpload); expect(await result.current.itemImageUpload({ itemImageFiles: [{ id: "a", file: file(), preview: "", uploaded: false }], itemImageSignedUrls: [{ index: 0, url: "https://storage.test/image" }] })).toBe(false); expect(calls.error).toHaveBeenCalledWith("商品画像のアップロードに失敗しました"); });
-it.each([null, undefined, {}])("U24 空map %sは成功", async signedUrlMap => { const { result } = renderHook(useFileUpload); expect(await result.current.attributesImageUpload({ attributesValue: params().attributesValue, signedUrlMap })).toBe(true); });
-it("U24 Q04 観測 map逆順とFileなし色混在で順番に転送", async () => { const received: Record<string, string> = {}; server.use(http.put("https://storage.test/:color", async ({ request, params: path }) => { received[String(path.color)] = await request.text(); return new HttpResponse(null, { status: 204 }); })); const attributesValue = params().attributesValue; const red = attributesValue.colorVariants[0]; attributesValue.colorVariants = [{ ...red, image: file("RED") }, { ...red, _uiId: "none", image: null }, { ...red, _uiId: "blue", image: file("BLUE") }]; const { result } = renderHook(useFileUpload); expect(await result.current.attributesImageUpload({ attributesValue, signedUrlMap: { blue: "https://storage.test/blue", red: "https://storage.test/red" } })).toBe(true); expect(received).toEqual({ blue: "RED", red: "BLUE" }); });
-it("U24 画像不足はwarnしてskip成功", async () => { const warn = vi.spyOn(console, "warn").mockImplementation(() => {}); const { result } = renderHook(useFileUpload); expect(await result.current.attributesImageUpload({ attributesValue: params().attributesValue, signedUrlMap: { absent: "https://storage.test/absent" } })).toBe(true); expect(warn).toHaveBeenCalledOnce(); });
-it.each(["http", "network"])("U24 属性%s失敗はfalse", async mode => { server.use(http.put("https://storage.test/image", () => mode === "http" ? new HttpResponse(null, { status: 500 }) : HttpResponse.error())); const attributesValue = params().attributesValue; attributesValue.colorVariants[0].image = file(); const { result } = renderHook(useFileUpload); expect(await result.current.attributesImageUpload({ attributesValue, signedUrlMap: { red: "https://storage.test/image" } })).toBe(false); expect(calls.error).toHaveBeenCalledWith("商品画像のアップロードに失敗しました"); });
-it("Q05 観測 転送成功後も引数を更新せず再呼出しすると再転送", async () => {
-    let count = 0; server.use(http.put("https://storage.test/thumb", () => { count++; return new HttpResponse(null, { status: 204 }); }));
-    const { result } = renderHook(useFileUpload); const args = { thumbnailFile: file(), thumbnailSignedUrl: "https://storage.test/thumb" };
-    expect(await result.current.thumbnailUpload(args)).toBe(true); expect(await result.current.thumbnailUpload(args)).toBe(true); expect(count).toBe(2);
+it("U21 動画なし・署名なしは既存動画として省略", async () => {
+    const { result } = renderHook(useFileUpload);
+    expect(await result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: null, videoSignedUrl: null })).toBe(true);
+    expect(calls.editing).not.toHaveBeenCalled();
 });
-it("Q04 観測 色削除後の署名mapには削除色のURLが先頭に残る", async () => {
-    const received: Record<string, string> = {}; server.use(http.put("https://storage.test/:color", async ({ request, params: path }) => { received[String(path.color)] = await request.text(); return new HttpResponse(null, { status: 204 }); }));
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {}); const attributesValue = params().attributesValue;
-    attributesValue.colorVariants = [{ ...attributesValue.colorVariants[0], _uiId: "blue", image: file("BLUE") }];
-    const { result } = renderHook(useFileUpload); expect(await result.current.attributesImageUpload({ attributesValue, signedUrlMap: { red: "https://storage.test/red", blue: "https://storage.test/blue" } })).toBe(true);
-    expect(received).toEqual({ red: "BLUE" }); expect(warn).toHaveBeenCalledOnce();
+it.each(["file", "url"])("AF-F6 動画片方不足%sは失敗", async missing => {
+    const { result } = renderHook(useFileUpload);
+    expect(await result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: missing === "file" ? null : file(), videoSignedUrl: missing === "url" ? null : signed })).toBe(false);
+    expect(calls.editing).not.toHaveBeenCalled();
+});
+it.each(["http", "network"])("U21 動画%s失敗で変換しない", async kind => {
+    server.use(http.post(signed.url, () => kind === "http" ? new HttpResponse(null, { status: 500 }) : HttpResponse.error()));
+    const { result } = renderHook(useFileUpload);
+    const operation = result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: file(), videoSignedUrl: signed });
+    if (kind === "network") await expect(operation).rejects.toThrow(); else expect(await operation).toBe(false);
+    expect(calls.editing).not.toHaveBeenCalled();
+});
+it.each(["failed", "processing", "stale", "abort"])("AF-F9 %sは完了扱いしない", async kind => {
+    server.use(http.post(signed.url, () => new HttpResponse(null, { status: 204 })));
+    const old = { video_status: "converted", converted_url: "https://media.test/old.m3u8" };
+    calls.state.mockReset().mockResolvedValueOnce(old).mockResolvedValue(kind === "stale" ? old : { video_status: kind, converted_url: null });
+    const { result } = renderHook(useFileUpload);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const operation = result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: file(), videoSignedUrl: signed });
+    await vi.waitFor(() => expect(calls.editing).toHaveBeenCalledOnce());
+    if (kind === "abort") { result.current.cancelUploads(); await expect(operation).rejects.toMatchObject({ name: "AbortError" }); }
+    else { await act(() => vi.advanceTimersByTimeAsync(kind === "failed" ? 1000 : 120000)); expect(await operation).toBe(false); }
+});
+it("AF-F9 processing後は同じURLのconvertedも新処理完了とする", async () => {
+    server.use(http.post(signed.url, () => new HttpResponse(null, { status: 204 })));
+    calls.state.mockReset().mockResolvedValueOnce({ video_status: "converted", converted_url: "same" })
+        .mockResolvedValueOnce({ video_status: "processing", converted_url: null })
+        .mockResolvedValue({ video_status: "converted", converted_url: "same" });
+    const { result } = renderHook(useFileUpload);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const operation = result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: file(), videoSignedUrl: signed });
+    await vi.waitFor(() => expect(calls.editing).toHaveBeenCalledOnce());
+    await act(() => vi.advanceTimersByTimeAsync(2000)); expect(await operation).toBe(true);
+});
+it("AF-F6 サムネイル転送は成功したFileとURLの組だけ再送しない", async () => {
+    const received: string[] = [];
+    server.use(http.put("https://storage.test/:key", async ({ request }) => { received.push(await request.text()); expect(request.headers.get("authorization")).toBeNull(); expect(request.headers.get("content-type")).toBe("image/png"); return new HttpResponse(null, { status: 204 }); }));
+    const { result } = renderHook(useFileUpload); const first = file("first");
+    expect(await result.current.thumbnailUpload({ thumbnailFile: first, thumbnailSignedUrl: "https://storage.test/a" })).toBe(true);
+    expect(await result.current.thumbnailUpload({ thumbnailFile: first, thumbnailSignedUrl: "https://storage.test/a" })).toBe(true);
+    expect(await result.current.thumbnailUpload({ thumbnailFile: first, thumbnailSignedUrl: "https://storage.test/b" })).toBe(true);
+    expect(received).toEqual(["first", "first"]);
+});
+it.each(["file", "url"])("AF-F6 サムネイル片方不足%sは失敗", async missing => {
+    const { result } = renderHook(useFileUpload);
+    expect(await result.current.thumbnailUpload({ thumbnailFile: missing === "file" ? null : file(), thumbnailSignedUrl: missing === "url" ? null : "https://storage.test/thumb" })).toBe(false);
+});
+it.each(["http", "network"])("U22 U23 U24 各画像%s失敗はfalse、再試行可能", async kind => {
+    let fail = true;
+    server.use(http.put("https://storage.test/image", () => fail ? kind === "http" ? new HttpResponse(null, { status: 500 }) : HttpResponse.error() : new HttpResponse(null, { status: 204 })));
+    const { result } = renderHook(useFileUpload); const image = file();
+    const values = params().attributesValue; values.colorVariants[0].image = image; values.colorVariants[0].image_uploaded = false;
+    const operations = [() => result.current.thumbnailUpload({ thumbnailFile: image, thumbnailSignedUrl: "https://storage.test/image" }), () => result.current.itemImageUpload({ itemImageFiles: [{ id: "a", file: image, preview: "", uploaded: false }], itemImageSignedUrls: [{ index: 0, url: "https://storage.test/image" }] }), () => result.current.attributesImageUpload({ attributesValue: values, signedUrlMap: { red: "https://storage.test/image" } })];
+    for (const operation of operations) expect(await operation()).toBe(false);
+    fail = false; for (const operation of operations) expect(await operation()).toBe(true);
+});
+it("U23 AF-F6 商品画像はindexで解決し署名不足は失敗", async () => {
+    const received: Record<string, string> = {};
+    server.use(http.put("https://storage.test/:key", async ({ request, params: path }) => { received[String(path.key)] = await request.text(); return new HttpResponse(null, { status: 204 }); }));
+    const files = ["a", "b"].map(name => ({ id: name, file: file(name), preview: "", uploaded: false }));
+    const { result } = renderHook(useFileUpload);
+    expect(await result.current.itemImageUpload({ itemImageFiles: files, itemImageSignedUrls: [] })).toBe(false);
+    expect(await result.current.itemImageUpload({ itemImageFiles: files, itemImageSignedUrls: [{ index: 1, url: "https://storage.test/b" }, { index: 0, url: "https://storage.test/a" }] })).toBe(true);
+    expect(received).toEqual({ a: "a", b: "b" });
+});
+it("AF-F4 逆順署名と画像なし色を挟んでもuiIdで対応", async () => {
+    const received: Record<string, string> = {};
+    server.use(http.put("https://storage.test/:color", async ({ request, params: path }) => { received[String(path.color)] = await request.text(); return new HttpResponse(null, { status: 204 }); }));
+    const values = params().attributesValue; const red = values.colorVariants[0];
+    values.colorVariants = [{ ...red, image: file("RED"), image_uploaded: false }, { ...red, _uiId: "none", image: null }, { ...red, _uiId: "blue", image: file("BLUE"), image_uploaded: false }];
+    const { result } = renderHook(useFileUpload);
+    expect(await result.current.attributesImageUpload({ attributesValue: values, signedUrlMap: { blue: "https://storage.test/blue", red: "https://storage.test/red" } })).toBe(true);
+    expect(received).toEqual({ red: "RED", blue: "BLUE" });
+});
+it("AF-F4 削除色の署名を無視し残った色へ正しく転送", async () => {
+    const received: string[] = [];
+    server.use(http.put("https://storage.test/blue", async ({ request }) => { received.push(await request.text()); return new HttpResponse(null, { status: 204 }); }));
+    const values = params().attributesValue; values.colorVariants[0] = { ...values.colorVariants[0], _uiId: "blue", image: file("BLUE"), image_uploaded: false };
+    const { result } = renderHook(useFileUpload);
+    expect(await result.current.attributesImageUpload({ attributesValue: values, signedUrlMap: { red: "https://storage.test/red", blue: "https://storage.test/blue" } })).toBe(true);
+    expect(received).toEqual(["BLUE"]);
+});
+it("AF-F6 新規属性画像の署名欠落はfalse、既存だけならmap不要", async () => {
+    const values = params().attributesValue; const { result } = renderHook(useFileUpload);
+    expect(await result.current.attributesImageUpload({ attributesValue: values, signedUrlMap: null })).toBe(true);
+    values.colorVariants[0].image = file(); values.colorVariants[0].image_uploaded = false;
+    expect(await result.current.attributesImageUpload({ attributesValue: values, signedUrlMap: {} })).toBe(false);
+});
+it("AF-F6 unmountは実行中リクエストをabort", async () => {
+    let signal: AbortSignal | undefined;
+    const pending = new Promise<Response>((_, reject) => {
+        vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+            signal = init?.signal ?? undefined;
+            signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+            return pending;
+        });
+    });
+    const { result, unmount } = renderHook(useFileUpload);
+    const operation = result.current.thumbnailUpload({ thumbnailFile: file(), thumbnailSignedUrl: "https://storage.test/thumb" });
+    unmount(); await expect(operation).rejects.toMatchObject({ name: "AbortError" }); expect(signal?.aborted).toBe(true);
+});
+it("AF-F6 成功した画像だけcallbackでstate同期し失敗画像を再試行", async () => {
+    const uploaded = vi.fn(); const requests: string[] = []; let fail = true;
+    server.use(http.put("https://storage.test/:key", ({ params: path }) => {
+        requests.push(String(path.key));
+        return new HttpResponse(null, { status: path.key === "b" && fail ? 500 : 204 });
+    }));
+    const { result } = renderHook(useFileUpload);
+    const args = {
+        itemImageFiles: ["a", "b"].map(id => ({ id, file: file(id), preview: "", uploaded: false })),
+        itemImageSignedUrls: ["a", "b"].map((id, index) => ({ index, url: `https://storage.test/${id}` })),
+        onUploaded: uploaded,
+    };
+    expect(await result.current.itemImageUpload(args)).toBe(false);
+    expect(uploaded).toHaveBeenCalledWith("a"); expect(uploaded).not.toHaveBeenCalledWith("b");
+    fail = false; expect(await result.current.itemImageUpload(args)).toBe(true);
+    expect(requests.filter(id => id === "a")).toHaveLength(1);
+    expect(requests.filter(id => id === "b")).toHaveLength(2);
+    expect(uploaded).toHaveBeenCalledWith("b");
+});
+it.each(["state", "editing"] as const)("U21 AF-F9 %s例外で完了通知なし", async target => {
+    server.use(http.post(signed.url, () => new HttpResponse(null, { status: 204 })));
+    const error = new Error("conversion failed"); calls[target].mockRejectedValue(error);
+    const uploaded = vi.fn(); const { result } = renderHook(useFileUpload);
+    await expect(result.current.videoUploadAndConvert({ target: "editing", itemEditingId: "123", videoFile: file(), videoSignedUrl: signed, onUploaded: uploaded })).rejects.toBe(error);
+    expect(uploaded).not.toHaveBeenCalled();
+});
+it("U24 署名なし・画像なしの既存属性はskip成功", async () => {
+    const { result } = renderHook(useFileUpload);
+    for (const signedUrlMap of [null, undefined, {}])
+        expect(await result.current.attributesImageUpload({ attributesValue: params().attributesValue, signedUrlMap })).toBe(true);
 });
