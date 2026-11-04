@@ -3,18 +3,61 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AttributesInput, type AttributesValue } from "../attributes";
-const colored = (): AttributesValue => ({ all_inventory: 2, colorVariants: [{ _uiId: "red", color: "赤", inventory: 2, image: null, image_uploaded: true, sizes: [{ size: "M", inventory: 2 }] }] });
+const colored = (): AttributesValue => ({
+    all_inventory: 2,
+    colorVariants: [
+        {
+            _uiId: "red",
+            color: "赤",
+            inventory: 2,
+            image: null,
+            image_uploaded: true,
+            sizes: [{ size: "M", inventory: 2 }],
+        },
+    ],
+});
 function setup(initial: AttributesValue = { all_inventory: 1, colorVariants: [] }) {
     const change = vi.fn();
-    function Host() { const [value, set] = useState(initial); return <AttributesInput value={value} onChange={(next) => { change(next); set(next); }} imageUrlMap={new Map([["red", "https://example.test/red.png"]])} />; }
+    function Host() {
+        const [value, set] = useState(initial);
+        return (
+            <AttributesInput
+                value={value}
+                onChange={(next) => {
+                    change(next);
+                    set(next);
+                }}
+                imageUrlMap={new Map([["red", "https://example.test/red.png"]])}
+            />
+        );
+    }
     return { ...render(<Host />), change };
 }
-beforeEach(() => { vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:attribute-preview"); vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {}); });
+beforeEach(() => {
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:attribute-preview");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+});
 describe("AttributesInput", () => {
     it.each([0, 2])("U12 全在庫%dで補正・色生成", (quantity) => {
         const { change } = setup();
         fireEvent.change(screen.getByRole("spinbutton"), { target: { value: String(quantity) } });
-        expect(change).toHaveBeenLastCalledWith(quantity === 2 ? { all_inventory: 2, colorVariants: [{ _uiId: expect.any(String), color: null, inventory: 1, image: null, image_uploaded: true, sizes: [] }] } : { all_inventory: 1, colorVariants: [] });
+        expect(change).toHaveBeenLastCalledWith(
+            quantity === 2
+                ? {
+                      all_inventory: 2,
+                      colorVariants: [
+                          {
+                              _uiId: expect.any(String),
+                              color: null,
+                              inventory: 1,
+                              image: null,
+                              image_uploaded: true,
+                              sizes: [],
+                          },
+                      ],
+                  }
+                : { all_inventory: 1, colorVariants: [] },
+        );
     });
     it("U12 全在庫1へ変更すると既存色削除", () => {
         const { change } = setup(colored());
@@ -49,9 +92,14 @@ describe("AttributesInput", () => {
         expect(screen.getByAltText("attributes_preview").getAttribute("src")).toContain("red.png");
         const file = new File(["blue"], "blue.png", { type: "image/png" });
         await userEvent.upload(screen.getByPlaceholderText("画像をアップロード"), file);
-        expect(change).toHaveBeenLastCalledWith(expect.objectContaining({ colorVariants: [expect.objectContaining({ image: file, image_uploaded: false })] }));
+        expect(change).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                colorVariants: [expect.objectContaining({ image: file, image_uploaded: false })],
+            }),
+        );
         expect(screen.getByAltText("attributes_preview")).toHaveAttribute("src", "blob:attribute-preview");
-        unmount(); expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:attribute-preview");
+        unmount();
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:attribute-preview");
     });
     it("Q06 小数在庫は整数へ補正されない（観測）", () => {
         const { change } = setup(colored());

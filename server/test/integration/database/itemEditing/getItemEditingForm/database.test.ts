@@ -51,9 +51,27 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
                 id: f.category.id,
                 level: 2,
                 name: "カテゴリー",
-                allowed_gender: "unisex", allowed_age: "both", parent_id: f.parent.id,
-                parent: { id: f.parent.id, name: "親", level: 1, allowed_gender: "unisex", allowed_age: "both", parent_id: null },
-                children: [{ id: f.child.id, name: "子", level: 3, allowed_gender: "unisex", allowed_age: "both", parent_id: f.category.id }],
+                allowed_gender: "unisex",
+                allowed_age: "both",
+                parent_id: f.parent.id,
+                parent: {
+                    id: f.parent.id,
+                    name: "親",
+                    level: 1,
+                    allowed_gender: "unisex",
+                    allowed_age: "both",
+                    parent_id: null,
+                },
+                children: [
+                    {
+                        id: f.child.id,
+                        name: "子",
+                        level: 3,
+                        allowed_gender: "unisex",
+                        allowed_age: "both",
+                        parent_id: f.category.id,
+                    },
+                ],
             },
             Brand: { id: f.brand.id, name: f.brand.name },
             ItemConditionOption: { id: f.condition.id, name: "新品" },
@@ -63,18 +81,25 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
         });
         expect(await snapshot()).toEqual(before);
     });
-    it.each(["processing", "converted", "failed"])("F9 変換状態%sを所有者に返しDBを変更しない", async (video_status) => {
-        const f = await seed();
-        await f.editing.update({ video_status });
-        const before = await snapshot();
-        const data = json((await getItemEditingFormUseCase({ itemEditingId: f.editing.id, userId: f.owner.id })).itemEditing);
-        expect(data).toMatchObject({ id: f.editing.id, video_status });
-        expect(await snapshot()).toEqual(before);
-    });
+    it.each(["processing", "converted", "failed"])(
+        "F9 変換状態%sを所有者に返しDBを変更しない",
+        async (video_status) => {
+            const f = await seed();
+            await f.editing.update({ video_status });
+            const before = await snapshot();
+            const data = json(
+                (await getItemEditingFormUseCase({ itemEditingId: f.editing.id, userId: f.owner.id })).itemEditing,
+            );
+            expect(data).toMatchObject({ id: f.editing.id, video_status });
+            expect(await snapshot()).toEqual(before);
+        },
+    );
 
     it("DB02 edit状態・任意関連なし・nullable列はnullのまま取得できる", async () => {
         const f = await seed();
-        const data = json((await getItemEditingFormUseCase({ itemEditingId: f.empty.id, userId: f.owner.id })).itemEditing);
+        const data = json(
+            (await getItemEditingFormUseCase({ itemEditingId: f.empty.id, userId: f.owner.id })).itemEditing,
+        );
         expect(data.status).toBe("edit");
         for (const key of [
             "name",
@@ -100,14 +125,7 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
         ])
             expect(data[key], key).toBeNull();
         expect(data.attributes).toEqual({});
-        for (const key of [
-            "item_id",
-            "updatedAt",
-            "createdAt",
-            "category_id",
-            "recommend",
-            "sale_flag",
-        ])
+        for (const key of ["item_id", "updatedAt", "createdAt", "category_id", "recommend", "sale_flag"])
             expect(data).not.toHaveProperty(key);
     });
     it.each(["otherEditing", "ownerless", "missingId"] as const)("DB03 %sは同じ404で全行不変", async (target) => {
@@ -134,8 +152,19 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
             duration: 0,
         });
         const before = await snapshot();
-        const data = json((await getItemEditingFormUseCase({ itemEditingId: editing.id, userId: f.owner.id })).itemEditing);
-        expect(data.Category).toEqual({ id: root.id, name: "単独カテゴリー", level: 1, allowed_gender: "unisex", allowed_age: "both", parent_id: null, parent: null, children: [] });
+        const data = json(
+            (await getItemEditingFormUseCase({ itemEditingId: editing.id, userId: f.owner.id })).itemEditing,
+        );
+        expect(data.Category).toEqual({
+            id: root.id,
+            name: "単独カテゴリー",
+            level: 1,
+            allowed_gender: "unisex",
+            allowed_age: "both",
+            parent_id: null,
+            parent: null,
+            children: [],
+        });
         expect(data.image_url).toEqual([]);
         expect(data.duration).toBe(0);
         expect(await snapshot()).toEqual(before);
@@ -155,7 +184,11 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
             if (result.status === "rejected") throw result.reason;
             return result.value;
         });
-        expect(results.map((result) => json(result.itemEditing).id)).toEqual([f.editing.id, f.otherEditing.id, f.empty.id]);
+        expect(results.map((result) => json(result.itemEditing).id)).toEqual([
+            f.editing.id,
+            f.otherEditing.id,
+            f.empty.id,
+        ]);
         expect(await snapshot()).toEqual(before);
     });
     it("DB06 更新後の次回取得は最新保存値、削除後は404を返す", async () => {
@@ -177,15 +210,40 @@ describe("P0 追加選択肢と認証ユーザーのショップ有無", () => {
     it("DB07 level1全カラムと選択肢全件を返しカテゴリーをsort_order順にする", async () => {
         const f = await seed();
         await f.parent.update({ sort_order: 20 });
-        const first = await Categories.create({ name: "先頭", level: 1, path: `form-first-${f.editing.id}`, layer: "outer", sort_order: 10, allowed_gender: "women", allowed_age: "adult" });
+        const first = await Categories.create({
+            name: "先頭",
+            level: 1,
+            path: `form-first-${f.editing.id}`,
+            layer: "outer",
+            sort_order: 10,
+            allowed_gender: "women",
+            allowed_age: "adult",
+        });
         const before = await snapshot();
         const result = await getItemEditingFormUseCase({ itemEditingId: f.editing.id, userId: f.owner.id });
-        expect(Object.keys(result).sort()).toEqual(["allCondition", "allDay", "allPlace", "allService", "category", "hasShop", "itemEditing"]);
+        expect(Object.keys(result).sort()).toEqual([
+            "allCondition",
+            "allDay",
+            "allPlace",
+            "allService",
+            "category",
+            "hasShop",
+            "itemEditing",
+        ]);
         expect(result.category.every((row) => row.level === 1)).toBe(true);
         expect(result.category).toHaveLength(await Categories.count({ where: { level: 1 } }));
-        expect(result.category.filter((row) => [first.id, f.parent.id].includes(row.id)).map((row) => json(row))).toEqual([json(first), json(f.parent)]);
-        expect(result.category.map((row) => row.sort_order)).toEqual(result.category.map((row) => row.sort_order).sort((a, b) => a - b));
-        for (const [rows, row] of [[result.allCondition, f.condition], [result.allDay, f.day], [result.allService, f.service], [result.allPlace, f.place]] as const) {
+        expect(
+            result.category.filter((row) => [first.id, f.parent.id].includes(row.id)).map((row) => json(row)),
+        ).toEqual([json(first), json(f.parent)]);
+        expect(result.category.map((row) => row.sort_order)).toEqual(
+            result.category.map((row) => row.sort_order).sort((a, b) => a - b),
+        );
+        for (const [rows, row] of [
+            [result.allCondition, f.condition],
+            [result.allDay, f.day],
+            [result.allService, f.service],
+            [result.allPlace, f.place],
+        ] as const) {
             expect(rows.map((value) => json(value))).toContainEqual(json(row));
         }
         expect(result.allCondition).toHaveLength(await ItemConditionOption.count());

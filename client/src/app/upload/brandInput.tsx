@@ -30,11 +30,14 @@ export const BrandInput = ({ value, onChange }: Props) => {
     const requestVersion = useRef(0);
     const selectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-    useEffect(() => () => {
-        requestVersion.current++;
-        if (selectionTimeout.current) clearTimeout(selectionTimeout.current);
-        if (blurTimeout.current) clearTimeout(blurTimeout.current);
-    }, []);
+    useEffect(
+        () => () => {
+            requestVersion.current++;
+            if (selectionTimeout.current) clearTimeout(selectionTimeout.current);
+            if (blurTimeout.current) clearTimeout(blurTimeout.current);
+        },
+        [],
+    );
     const suggestTimeout = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -58,9 +61,12 @@ export const BrandInput = ({ value, onChange }: Props) => {
 
         suggestTimeout.current = setTimeout(async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/brands/suggest?${new URLSearchParams({ keyword: brandName })}`, {
-                    cache: "no-store",
-                });
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/brands/suggest?${new URLSearchParams({ keyword: brandName })}`,
+                    {
+                        cache: "no-store",
+                    },
+                );
 
                 const data = await res.json();
                 if (version !== requestVersion.current) return;
@@ -106,7 +112,9 @@ export const BrandInput = ({ value, onChange }: Props) => {
                 onChange={(e) => handleChangeBrand(e.target.value)}
                 placeholder="ブランド名を入力"
                 onFocus={() => setOpenSuggest(true)}
-                onBlur={() => { blurTimeout.current = setTimeout(() => setOpenSuggest(false), 150); }}
+                onBlur={() => {
+                    blurTimeout.current = setTimeout(() => setOpenSuggest(false), 150);
+                }}
                 className={styles.input}
             />
 

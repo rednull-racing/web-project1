@@ -13,17 +13,38 @@ import UploadLayout from "../layout";
 
 describe("UploadUI/layout", () => {
     it("U16 見出しと子をContainerへ引き渡す", () => {
-        render(<UploadUI title="商品をアップロード"><button>子操作</button></UploadUI>);
+        render(
+            <UploadUI title="商品をアップロード">
+                <button>子操作</button>
+            </UploadUI>,
+        );
         expect(screen.getByRole("main")).toContainElement(screen.getByRole("heading", { name: "商品をアップロード" }));
         expect(screen.getByRole("main")).toContainElement(screen.getByRole("button", { name: "子操作" }));
     });
     it("U16 layoutは通知ホストとchildrenを接続", async () => {
-        vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false, addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() })));
-        render(<UploadLayout><p>フォーム本体</p></UploadLayout>);
+        vi.stubGlobal(
+            "matchMedia",
+            vi.fn(() => ({
+                matches: false,
+                addListener: vi.fn(),
+                removeListener: vi.fn(),
+                addEventListener: vi.fn(),
+                removeEventListener: vi.fn(),
+            })),
+        );
+        render(
+            <UploadLayout>
+                <p>フォーム本体</p>
+            </UploadLayout>,
+        );
         expect(screen.getByText("フォーム本体")).toBeInTheDocument();
-        act(() => { toast.success("登録しました"); });
+        act(() => {
+            toast.success("登録しました");
+        });
         expect(await screen.findByText("登録しました")).toBeInTheDocument();
-        act(() => { toast.remove(); });
+        act(() => {
+            toast.remove();
+        });
     });
     it("U16 TopLoaderはloading時のみ表示", () => {
         const { container, rerender } = render(<TopLoader loading={false} />);

@@ -1,207 +1,207 @@
 {
-  "date": "2026-11-04",
-  "runtime": "Node.js 22.22.2",
-  "summary": {
-    "passed": 301,
-    "failed": 0,
-    "skipped": 0
-  },
-  "files": [
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/attributes.test.tsx",
-      "passed": 6,
-      "failed": 0,
-      "skipped": 0
+    "date": "2026-11-04",
+    "runtime": "Node.js 22.22.2",
+    "summary": {
+        "passed": 301,
+        "failed": 0,
+        "skipped": 0
     },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/brandInput.test.tsx",
-      "passed": 9,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/category.test.tsx",
-      "passed": 9,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/fields.test.tsx",
-      "passed": 13,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/genderAge.test.tsx",
-      "passed": 5,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/itemImage.test.tsx",
-      "passed": 7,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/layout.test.tsx",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/uploadUI.test.tsx",
-      "passed": 3,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/test/videoInput.test.tsx",
-      "passed": 11,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/api/test/item.test.ts",
-      "passed": 4,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/api/test/server.test.ts",
-      "passed": 3,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/api/test/video.test.ts",
-      "passed": 7,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/hooks/test/useFileUpload.test.ts",
-      "passed": 29,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "frontend-unit",
-      "file": "client/src/app/upload/hooks/test/useUpload.test.ts",
-      "passed": 48,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "component-integration",
-      "file": "client/test/integration/components/upload/itemUploadPage/form/bodyContract.test.tsx",
-      "passed": 3,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "component-integration",
-      "file": "client/test/integration/components/upload/itemUploadPage/form/fullForm.test.tsx",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "component-integration",
-      "file": "client/test/integration/components/upload/itemUploadPage/form/integration.test.tsx",
-      "passed": 47,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "component-integration",
-      "file": "client/test/integration/components/upload/itemUploadPage/form/media.test.tsx",
-      "passed": 15,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "server-unit",
-      "file": "server/src/services/itemDraft/test/getItemDraftPage.test.ts",
-      "passed": 3,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "server-unit",
-      "file": "server/src/services/itemEditing/test/getItemEditingForm.test.ts",
-      "passed": 4,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "server-database",
-      "file": "server/test/integration/database/itemDraft/getItemDraftPage/database.test.ts",
-      "passed": 12,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "server-database",
-      "file": "server/test/integration/database/itemEditing/getItemEditingForm/database.test.ts",
-      "passed": 13,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "e2e",
-      "file": "test/E2E/upload/itemUploadPage/authorization/flow.spec.ts",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "e2e",
-      "file": "test/E2E/upload/itemUploadPage/saveDraft/flow.spec.ts",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "e2e",
-      "file": "test/E2E/upload/itemUploadPage/saveEditing/flow.spec.ts",
-      "passed": 2,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "e2e",
-      "file": "test/E2E/upload/itemUploadPage/transferFailure/flow.spec.ts",
-      "passed": 4,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "page-integration",
-      "file": "client/test/integration/pages/upload/itemUploadEditPage/page.spec.ts",
-      "passed": 20,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "level": "page-integration",
-      "file": "client/test/integration/pages/upload/itemUploadPage/page.spec.ts",
-      "passed": 20,
-      "failed": 0,
-      "skipped": 0
-    }
-  ]
+    "files": [
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/attributes.test.tsx",
+            "passed": 6,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/brandInput.test.tsx",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/category.test.tsx",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/fields.test.tsx",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/genderAge.test.tsx",
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/itemImage.test.tsx",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/layout.test.tsx",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/uploadUI.test.tsx",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/test/videoInput.test.tsx",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/api/test/item.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/api/test/server.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/api/test/video.test.ts",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/hooks/test/useFileUpload.test.ts",
+            "passed": 29,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "frontend-unit",
+            "file": "client/src/app/upload/hooks/test/useUpload.test.ts",
+            "passed": 48,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "component-integration",
+            "file": "client/test/integration/components/upload/itemUploadPage/form/bodyContract.test.tsx",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "component-integration",
+            "file": "client/test/integration/components/upload/itemUploadPage/form/fullForm.test.tsx",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "component-integration",
+            "file": "client/test/integration/components/upload/itemUploadPage/form/integration.test.tsx",
+            "passed": 47,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "component-integration",
+            "file": "client/test/integration/components/upload/itemUploadPage/form/media.test.tsx",
+            "passed": 15,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "server-unit",
+            "file": "server/src/services/itemDraft/test/getItemDraftPage.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "server-unit",
+            "file": "server/src/services/itemEditing/test/getItemEditingForm.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "server-database",
+            "file": "server/test/integration/database/itemDraft/getItemDraftPage/database.test.ts",
+            "passed": 12,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "server-database",
+            "file": "server/test/integration/database/itemEditing/getItemEditingForm/database.test.ts",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "e2e",
+            "file": "test/E2E/upload/itemUploadPage/authorization/flow.spec.ts",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "e2e",
+            "file": "test/E2E/upload/itemUploadPage/saveDraft/flow.spec.ts",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "e2e",
+            "file": "test/E2E/upload/itemUploadPage/saveEditing/flow.spec.ts",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "e2e",
+            "file": "test/E2E/upload/itemUploadPage/transferFailure/flow.spec.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "page-integration",
+            "file": "client/test/integration/pages/upload/itemUploadEditPage/page.spec.ts",
+            "passed": 20,
+            "failed": 0,
+            "skipped": 0
+        },
+        {
+            "level": "page-integration",
+            "file": "client/test/integration/pages/upload/itemUploadPage/page.spec.ts",
+            "passed": 20,
+            "failed": 0,
+            "skipped": 0
+        }
+    ]
 }

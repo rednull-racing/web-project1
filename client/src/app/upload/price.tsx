@@ -21,7 +21,6 @@ export const PriceInput = ({ value, onChange }: Props) => {
             ...value,
             price: num,
         });
-
     };
 
     return (

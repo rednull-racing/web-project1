@@ -81,14 +81,14 @@ flowchart TD
 
 APIパスはバックエンドのベースURLからの相対パス。
 
-| 操作 | メソッド・パス | 呼び出し元 |
-| --- | --- | --- |
-| 編集データ保存・署名付きURL取得 | `PUT /item-editing/:id` | `api/item.ts` |
-| 下書き保存・署名付きURL取得 | `POST /item-draft` | `api/item.ts`（bodyにitemEditingIdを追加） |
-| 動画変換要求 | `PATCH /item-editing/:id/convert` | `api/video.ts` |
-| 下書き動画変換要求 | `PATCH /item-draft/:id/convert` | `api/video.ts` |
-| 子カテゴリー取得 | `GET /categories/:parentId/level2` | `category.tsx` |
-| ブランド候補検索 | `GET /brands/suggest?keyword=...` | `brandInput.tsx` |
+| 操作                            | メソッド・パス                     | 呼び出し元                                 |
+| ------------------------------- | ---------------------------------- | ------------------------------------------ |
+| 編集データ保存・署名付きURL取得 | `PUT /item-editing/:id`            | `api/item.ts`                              |
+| 下書き保存・署名付きURL取得     | `POST /item-draft`                 | `api/item.ts`（bodyにitemEditingIdを追加） |
+| 動画変換要求                    | `PATCH /item-editing/:id/convert`  | `api/video.ts`                             |
+| 下書き動画変換要求              | `PATCH /item-draft/:id/convert`    | `api/video.ts`                             |
+| 子カテゴリー取得                | `GET /categories/:parentId/level2` | `category.tsx`                             |
+| ブランド候補検索                | `GET /brands/suggest?keyword=...`  | `brandInput.tsx`                           |
 
 - 保存・変換は共通の `apiFetch` を使用する。取得した署名情報で動画はS3へPOST、サムネイル・商品画像・属性画像はPUTする。新規動画の転送後に変換APIを呼ぶ。
 - 関連する `/upload/before` では `POST /item-editing` で編集データを作成して出品ページへ進む。
@@ -96,7 +96,6 @@ APIパスはバックエンドのベースURLからの相対パス。
 ---
 
 ## デザイン・CSS
-
 
 - 共通の入力欄・ボタン・見出しは `upload.module.css`、素材入力は `material.module.css`、属性カードは `attributesCard.module.css` を使用する。
 - `UploadUI` が共通の `Container` と `TitleAndBack` を配置し、`layout.tsx` の `ToastBoundary` が通知を提供する。

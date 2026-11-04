@@ -29,13 +29,19 @@ export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVi
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     useEffect(() => {
-        if (!value.videoFile) { setVideoPreview(null); return; }
+        if (!value.videoFile) {
+            setVideoPreview(null);
+            return;
+        }
         const url = URL.createObjectURL(value.videoFile);
         setVideoPreview(url);
         return () => URL.revokeObjectURL(url);
     }, [value.videoFile]);
     useEffect(() => {
-        if (!value.thumbnailFile) { setThumbnailPreview(null); return; }
+        if (!value.thumbnailFile) {
+            setThumbnailPreview(null);
+            return;
+        }
         const url = URL.createObjectURL(value.thumbnailFile);
         setThumbnailPreview(url);
         return () => URL.revokeObjectURL(url);
@@ -100,12 +106,7 @@ export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVi
                     <p className={styles.centerSmall}>※アップロードに少々お時間がかかります。</p>
 
                     {value.videoFile ? (
-                        <video
-                            src={videoPreview ?? undefined}
-                            className={styles.videoPreview}
-                            width={320}
-                            controls
-                        />
+                        <video src={videoPreview ?? undefined} className={styles.videoPreview} width={320} controls />
                     ) : existingVideoUrl ? (
                         <video src={existingVideoUrl} className={styles.videoPreview} width={320} controls />
                     ) : null}

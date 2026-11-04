@@ -239,7 +239,9 @@ export const useUpload = () => {
                     inventory: v.inventory,
                     image: (() => {
                         const image = resolveAttributesImage(v);
-                        return image ? { ...image, name: image.name ?? "unknown", type: image.type ?? undefined } : undefined;
+                        return image
+                            ? { ...image, name: image.name ?? "unknown", type: image.type ?? undefined }
+                            : undefined;
                     })(),
                     sizes: v.sizes.map((s) => ({
                         size: s.size ?? "",

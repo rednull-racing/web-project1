@@ -22,11 +22,11 @@ type Props = {
 export const GenderAge = ({ value, onChange, categoryConstraint }: Props) => {
     const genderOptions = useMemo(() => {
         const allowed = categoryConstraint?.allowed_gender;
-        return !allowed || allowed === "unisex" ? ["men", "women", "unisex"] as const : [allowed];
+        return !allowed || allowed === "unisex" ? (["men", "women", "unisex"] as const) : [allowed];
     }, [categoryConstraint?.allowed_gender]);
     const ageOptions = useMemo(() => {
         const allowed = categoryConstraint?.allowed_age;
-        return !allowed || allowed === "both" ? ["adult", "kids", "both"] as const : [allowed];
+        return !allowed || allowed === "both" ? (["adult", "kids", "both"] as const) : [allowed];
     }, [categoryConstraint?.allowed_age]);
 
     const genderLabelMap = {

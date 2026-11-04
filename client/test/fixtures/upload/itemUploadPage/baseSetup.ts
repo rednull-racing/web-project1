@@ -3,7 +3,10 @@ import { afterEach, beforeEach, vi } from "vitest";
 
 const mocked = vi.hoisted(() => ({
     token: vi.fn<() => Promise<string | null>>(),
-    success: vi.fn(), error: vi.fn(), assign: vi.fn(), back: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    assign: vi.fn(),
+    back: vi.fn(),
     sleep: vi.fn<(ms: number) => Promise<unknown>>(),
 }));
 vi.mock("@/lib/getAccessToken", () => ({ getAccessToken: mocked.token }));
@@ -20,7 +23,10 @@ vi.mock("@/components", async () => ({
 const originalCreateURL = Object.getOwnPropertyDescriptor(URL, "createObjectURL");
 const originalRevokeURL = Object.getOwnPropertyDescriptor(URL, "revokeObjectURL");
 afterEach(() => {
-    for (const [name, descriptor] of [["createObjectURL", originalCreateURL], ["revokeObjectURL", originalRevokeURL]] as const) {
+    for (const [name, descriptor] of [
+        ["createObjectURL", originalCreateURL],
+        ["revokeObjectURL", originalRevokeURL],
+    ] as const) {
         if (descriptor) Object.defineProperty(URL, name, descriptor);
         else Reflect.deleteProperty(URL, name);
     }
@@ -33,11 +39,20 @@ beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", API);
     // jsdomのLocation.assignは置換不可。window参照のlocationだけを観測用にする。
     const original = globalThis.window;
-    vi.stubGlobal("window", new Proxy(original, {
-        get(target, key) { return key === "location" ? { assign: mocked.assign } : Reflect.get(target, key); },
-    }));
+    vi.stubGlobal(
+        "window",
+        new Proxy(original, {
+            get(target, key) {
+                return key === "location" ? { assign: mocked.assign } : Reflect.get(target, key);
+            },
+        }),
+    );
     vi.spyOn(globalThis, "alert").mockImplementation(() => undefined);
-    Object.defineProperty(URL, "createObjectURL", { configurable: true, writable: true, value: vi.fn(() => "blob:test-preview") });
+    Object.defineProperty(URL, "createObjectURL", {
+        configurable: true,
+        writable: true,
+        value: vi.fn(() => "blob:test-preview"),
+    });
     Object.defineProperty(URL, "revokeObjectURL", { configurable: true, writable: true, value: vi.fn() });
 });
 

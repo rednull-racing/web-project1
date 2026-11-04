@@ -20,8 +20,20 @@ type UploadResponse = {
 };
 
 type IdDto<T extends { id: string }> = Omit<T, "id"> & { id: string | number };
-type UploadResponseDto = Omit<UploadResponse, "itemEditing" | "category" | "allCondition" | "allDay" | "allService" | "allPlace"> & {
-    itemEditing: Omit<ItemEditing, "id" | "Category" | "Brand" | "ItemConditionOption" | "ShippingDayOption" | "ShippingServiceOption" | "TodouhukenOption"> & {
+type UploadResponseDto = Omit<
+    UploadResponse,
+    "itemEditing" | "category" | "allCondition" | "allDay" | "allService" | "allPlace"
+> & {
+    itemEditing: Omit<
+        ItemEditing,
+        | "id"
+        | "Category"
+        | "Brand"
+        | "ItemConditionOption"
+        | "ShippingDayOption"
+        | "ShippingServiceOption"
+        | "TodouhukenOption"
+    > & {
         id: string | number;
         Category: IdDto<Categories> | null;
         Brand: IdDto<NonNullable<ItemEditing["Brand"]>> | null;
@@ -38,7 +50,7 @@ type UploadResponseDto = Omit<UploadResponse, "itemEditing" | "category" | "allC
 };
 
 const withStringId = <T extends { id: string | number }>(value: T) => ({ ...value, id: String(value.id) });
-const nullableOption = <T extends { id: string | number }>(value: T | null) => value ? withStringId(value) : null;
+const nullableOption = <T extends { id: string | number }>(value: T | null) => (value ? withStringId(value) : null);
 
 export const normalizeUploadPage = (data: UploadResponseDto): UploadResponse => ({
     ...data,
@@ -64,9 +76,11 @@ type ItemHighlightResponse = {
 };
 
 export const fetchUploadPage = async (itemEditingId: string): Promise<UploadResponse> => {
-    return normalizeUploadPage(await apiFetchServer<UploadResponseDto>(`/item-editing/${itemEditingId}/form`, {
-        cache: "no-store",
-    }));
+    return normalizeUploadPage(
+        await apiFetchServer<UploadResponseDto>(`/item-editing/${itemEditingId}/form`, {
+            cache: "no-store",
+        }),
+    );
 };
 
 export const fetchItemHighlight = async (itemId: string): Promise<ItemHighlightResponse> => {

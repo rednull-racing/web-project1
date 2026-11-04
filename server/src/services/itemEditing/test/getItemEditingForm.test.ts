@@ -58,8 +58,18 @@ describe("P0/P1 所有者限定・関連付き参照service", () => {
                     attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
                     required: false,
                     include: [
-                        { model: Categories, attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"], as: "children", required: false },
-                        { model: Categories, attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"], as: "parent", required: false },
+                        {
+                            model: Categories,
+                            attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
+                            as: "children",
+                            required: false,
+                        },
+                        {
+                            model: Categories,
+                            attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
+                            as: "parent",
+                            required: false,
+                        },
                     ],
                 },
                 { model: Brands, as: "Brand", attributes: ["id", "name"], required: false },

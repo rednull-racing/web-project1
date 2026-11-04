@@ -4,7 +4,31 @@ import { useUpload } from "../../hooks/useUpload";
 import { params } from "../../hooks/test/fixtures";
 const apiFetch = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/api/client", () => ({ apiFetch }));
-beforeEach(() => { apiFetch.mockReset(); });
-it("U18 mainのPUTと返却値", async () => { const body = useUpload().createBody(params()); const response = { videoSignedUrl: null }; apiFetch.mockResolvedValue(response); expect(await fetchMain("123", body)).toBe(response); expect(apiFetch).toHaveBeenCalledExactlyOnceWith("/item-editing/123", { method: "PUT", body: JSON.stringify(body) }); });
-it("U18 draftのPOSTはIDを数値化、返却draftID保持", async () => { const body = useUpload().createBody(params()); const response = { itemDraftId: 456 }; apiFetch.mockResolvedValue(response); expect(await fetchDraft("00123", body)).toBe(response); expect(apiFetch).toHaveBeenCalledExactlyOnceWith("/item-draft", { method: "POST", body: JSON.stringify({ ...body, itemEditingId: 123 }) }); });
-it.each([fetchMain, fetchDraft])("U18 API例外伝播 %s", async fn => { const error = new Error("failed"); apiFetch.mockRejectedValue(error); await expect(fn("123", useUpload().createBody(params()))).rejects.toBe(error); });
+beforeEach(() => {
+    apiFetch.mockReset();
+});
+it("U18 mainのPUTと返却値", async () => {
+    const body = useUpload().createBody(params());
+    const response = { videoSignedUrl: null };
+    apiFetch.mockResolvedValue(response);
+    expect(await fetchMain("123", body)).toBe(response);
+    expect(apiFetch).toHaveBeenCalledExactlyOnceWith("/item-editing/123", {
+        method: "PUT",
+        body: JSON.stringify(body),
+    });
+});
+it("U18 draftのPOSTはIDを数値化、返却draftID保持", async () => {
+    const body = useUpload().createBody(params());
+    const response = { itemDraftId: 456 };
+    apiFetch.mockResolvedValue(response);
+    expect(await fetchDraft("00123", body)).toBe(response);
+    expect(apiFetch).toHaveBeenCalledExactlyOnceWith("/item-draft", {
+        method: "POST",
+        body: JSON.stringify({ ...body, itemEditingId: 123 }),
+    });
+});
+it.each([fetchMain, fetchDraft])("U18 API例外伝播 %s", async (fn) => {
+    const error = new Error("failed");
+    apiFetch.mockRejectedValue(error);
+    await expect(fn("123", useUpload().createBody(params()))).rejects.toBe(error);
+});

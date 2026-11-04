@@ -36,7 +36,12 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
 
     const initializedRef = useRef(false);
     const requestVersion = useRef(0);
-    useEffect(() => () => { requestVersion.current++; }, []);
+    useEffect(
+        () => () => {
+            requestVersion.current++;
+        },
+        [],
+    );
 
     useEffect(() => {
         if (initializedRef.current) return;

@@ -15,33 +15,32 @@ client/serverのテスト用型検査・serverのlint/本番型検査・E2E型�
 
 [設計書](../../architecture/upload/itemUpload.md) に基づきテストコードを追加。本番コード・依存・DBスキーマは変更していない。失敗を修正済みとして扱わず、修正案を第5節に示す。ケースIDと展開後の実行件数は異なる。
 
-
 修正前の実行集計は **250件中237成功・13失敗**。単体143件（139成功/4失敗）、Form結合59件（57/2）、ページ結合40件（40/0）、実DB E2E8件（1/7）。skip/todo・未処理例外なし。失敗は描画非収束、既存属性画像の欠落、実APIの入力契約不整合。失敗するテストを残しており、全テスト成功ではない。
 
 以下のパスは `client/` 基準。`test/E2E/`・`docs/`・`server/` はリポジトリルート基準。JSON・ログは `/tmp` の一時集計資料であり、主要結果は本書にも残す。カバレッジ未取得。人間観測 O01〜O05 は全件「人間確認待ち」。
 
 ## 2. 実装と検証境界
 
-| 対象 | 実処理・置換 | 保証限界 |
-| --- | --- | --- |
-| Hook検証・body変換 | useUpload本体、型付きfixture。必須・在庫・価格・素材境界と本文比較 | APIでの業務検証を代替しない |
-| 転送Hook | 実fetchをMSWで受け、POST fields/file順序、PUT内容・Content-Type・Bearer非転送。変換API関数は単体でspy | S3/ffmpeg品質・DB反映は保証しない |
-| 機能API単体 | 共通apiFetch/serverをspyしpath/options/body/応答/rejectを検証 | 実認証・HTTP/DBを保証しない |
-| 分離したForm結合 | 実Form・入力部品・Hooks・API・共通apiFetch、HTTPのみMSW。barrelは使用3部品の実装へ限定。Image/Router/通知/assign/sleepは観測用代替 | GenderAgeは実装の無限更新によりこの群のみnullへ置換。フォーム全体が成功したとはみなさない。遷移はassign引数まで |
-| 実Form全体 | 実GenderAgeを含む初期描画。Profilerで30commitを超えたら明示エラー | 無限ループでランナーが停止しないためのガード。合否を緩和しない。SSR保証は含まない |
+| 対象               | 実処理・置換                                                                                                                       | 保証限界                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Hook検証・body変換 | useUpload本体、型付きfixture。必須・在庫・価格・素材境界と本文比較                                                                 | APIでの業務検証を代替しない                                                                                     |
+| 転送Hook           | 実fetchをMSWで受け、POST fields/file順序、PUT内容・Content-Type・Bearer非転送。変換API関数は単体でspy                              | S3/ffmpeg品質・DB反映は保証しない                                                                               |
+| 機能API単体        | 共通apiFetch/serverをspyしpath/options/body/応答/rejectを検証                                                                      | 実認証・HTTP/DBを保証しない                                                                                     |
+| 分離したForm結合   | 実Form・入力部品・Hooks・API・共通apiFetch、HTTPのみMSW。barrelは使用3部品の実装へ限定。Image/Router/通知/assign/sleepは観測用代替 | GenderAgeは実装の無限更新によりこの群のみnullへ置換。フォーム全体が成功したとはみなさない。遷移はassign引数まで |
+| 実Form全体         | 実GenderAgeを含む初期描画。Profilerで30commitを超えたら明示エラー                                                                  | 無限ループでランナーが停止しないためのガード。合否を緩和しない。SSR保証は含まない                               |
 
 Form結合はnormal/edit双方の本文・Bearer・成功先、HTTP失敗/ネットワーク/不正JSON、トークンなしのHTTP未実行、同一操作の連打、validation停止を検証。新規メディアでは登録/下書きそれぞれ「保存→動画→変換→サムネイル→商品画像→属性画像」の各段階へ失敗を注入し、後続通信・成功通知・遷移がないことを確認した。
 
 ## 3. ケース対応と残る範囲
 
-| 設計ID | 主な実装ファイル/結果の読み方 |
-| --- | --- |
-| U01〜U05、Q01/Q06 | `src/app/upload/hooks/test/useUpload.test.ts`。必須単項欠落、価格・素材境界、色/サイズ合計、下書き緩和、body・不変性 |
-| U06〜U16、Q03/Q06/Q08 | `src/app/upload/test/` の8ファイル。UI実操作・親state更新・HTTP候補取得。GenderAgeは4条件とも描画段階で失敗し、制約変更後の操作は未到達 |
-| U17〜U19 | `src/app/upload/api/test/{server,item,video}.test.ts` |
-| U20〜U24、Q04/Q05 | `src/app/upload/hooks/test/useFileUpload.test.ts`。逆順署名・画像不足・再転送は現行観測として成功しても問題解消を意味しない |
-| C01/C03〜C08、Q02/Q07/Q09 | `test/integration/components/upload/itemUploadPage/form/integration.test.tsx`、`media.test.tsx`。一部条件は下記残件参照 |
-| U10/C03 | `test/integration/components/upload/itemUploadPage/form/fullForm.test.tsx`。実初期描画の収束に失敗 |
+| 設計ID                    | 主な実装ファイル/結果の読み方                                                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| U01〜U05、Q01/Q06         | `src/app/upload/hooks/test/useUpload.test.ts`。必須単項欠落、価格・素材境界、色/サイズ合計、下書き緩和、body・不変性                    |
+| U06〜U16、Q03/Q06/Q08     | `src/app/upload/test/` の8ファイル。UI実操作・親state更新・HTTP候補取得。GenderAgeは4条件とも描画段階で失敗し、制約変更後の操作は未到達 |
+| U17〜U19                  | `src/app/upload/api/test/{server,item,video}.test.ts`                                                                                   |
+| U20〜U24、Q04/Q05         | `src/app/upload/hooks/test/useFileUpload.test.ts`。逆順署名・画像不足・再転送は現行観測として成功しても問題解消を意味しない             |
+| C01/C03〜C08、Q02/Q07/Q09 | `test/integration/components/upload/itemUploadPage/form/integration.test.tsx`、`media.test.tsx`。一部条件は下記残件参照                 |
+| U10/C03                   | `test/integration/components/upload/itemUploadPage/form/fullForm.test.tsx`。実初期描画の収束に失敗                                      |
 
 未確認条件をIDが登場するだけで完了としない。特に、実GenderAgeを含むC08のカテゴリー→対象補正→送信、別タブのQ02、再送時のDB結果、ファイル転送とDBの全体整合性は、分離Formテストでは保証していない。UIメディア選択はfireEventでFileList相当を注入しており、OSファイル選択の操作感は人間観測に残す。
 
@@ -64,18 +63,18 @@ npm run typecheck
 
 以下は修正前の提案履歴。F1〜F10の本番修正・テストコード実装は第11節に記載した。修正後の実行検証は未実施。
 
-| 修正ID・元ケース | 再現条件・実際の結果・原因 | 修正案と修正後の検証 |
-| --- | --- | --- |
-| F1 U10/C03 | 実Form初期描画が30commit以内に収束せず失敗。GenderAgeで毎render生成する候補配列をeffect依存に持ち、effectで新しいラベル配列をsetStateして再renderする | 候補/ラベルをpropsから導出し、effectは値補正のみに限定。候補の参照を安定させるか不要な派生stateを削除。無制約/単一制約/制約変更で収束、親state補正、送信bodyを実結合で再検証。分離テストの代替を実部品へ戻す |
-| F2 C03/C08 | 既存色にuiIdがない状態で商品名を入力後出品すると属性imageが2件ともnullとなり保持テスト失敗。Formは初期配列/mapを毎render生成し新UUIDを採番するが、state側_uiIdは初回のまま | 初期属性値・画像mapを同じ一度限りの初期化で生成し、resolverは保持したmapを参照。uiIdあり/なし、入力変更・色削除・画像差替え・下書きの各経路で対応と画像保持を再検証 |
-| F3 Q01 | 下書き色合計2/全在庫3を「超過」と拒否、3/2は通過。現行条件は `<` | 許容条件を業務確認。超過拒否が契約なら `>` へ修正し、未満/等値/超過とサイズの対応を確認。現行観測を仕様成功としない |
-| F4 Q04 | 署名mapがblue→red順だとREDをblue先、BLUEをred先へ転送。色削除後も先頭署名へ残存Fileを送る。Object.valuesとFile抽出順を対応させている | 応答mapキーの契約を確認し、uiIdをキーに対象Fileを解決。署名順序/画像なし色/削除色の混在で内容を比較。バックエンド返却キーも合わせて確認 |
-| F5 Q02/C07 | 成功後1500ms待機に入る前にloading解除され、再クリックでPUT・遷移が2回。出品中も下書きPOSTが開始できる | 共通送信状態で両ボタンを相互排他にし、遷移完了まで保持。即時の二重呼出しもref等で防止し、unmount後遷移を抑制。別タブの冪等性/競合制御はAPI側責務として別途検証 |
-| F6 Q05/D04 | Fileと署名の片方不足でskip成功。成功後flagsは更新されず同じ引数で再転送。保存と転送のtransactionは別 | 必要転送の署名欠落をエラーとし、転送済み状態と再試行対象を管理。下書きPOSTでediting削除後の再送方針はAPI契約と合わせて検討。単純なフロント再試行だけで原子性を保証しない |
-| F7 Q03 | ブランド/カテゴリーの旧応答を後着させると新候補を上書き。ブランド選択後手入力しても旧id保持、`A&B#C`検索はkeyword=Aとして送信 | request世代管理またはAbortControllerで旧応答を抑制し、手入力時はid=null。URLSearchParamsでencode。逆順・空語・特殊文字・unmount後を再検証 |
-| F8 Q08 | 動画のObjectURLが再描画ごとに生成され解放されない。価格props1000→0で利益900/手数料100が残る | メディアURLを安定化しcleanupで解放。価格派生金額をpropsから計算。再描画・削除・unmountと価格0への変更を再検証 |
-| F9 Q09 | 変換PATCHの202受付後、完了照会なしに確認先へ進む現行動作を再現。詳細設計では202は内部エラー/実変換完了を保証しない | 受付と完了のUI契約を明確化し、必要なら状態照会・確認画面でのprocessing/failed表示へ接続する。HTTP非2xxだけの判定を実変換成功とみなさず、非同期完了のケースを追加。APIの202自体は確定仕様であり不具合とは断定しない |
-| F10 D01/D02/D04 | 正規フォームからのPUT/POSTが400 INVALID_BODY。実送信bodyを本番ZodでsafeParseし、video.type/thumbnail.type=null（optional string期待）、category.id/brand.id/condition.id/shipping.day/service/place=number（string期待）、category.level=0（>=1期待）を検出。GETの関連IDは数値、Categoryの取得属性にlevelがなくFormが0へ初期化する | GET DTO・Form初期値・createBody・PUT/POST schemaを一貫させる。IDの文字列化をフロント境界で行うかAPI契約側を整合し、既存ファイルはtypeの省略/nullの正規契約へ統一。getMyItemEditingFormでCategory.levelを取得する案。型定義だけで修正済みとせず実GET→UI→POST/PUTで確認。parent_idの数値不整合は本fixtureではnullのため未実測。F10解消後にD04転送失敗とD05実変換へ進める |
+| 修正ID・元ケース | 再現条件・実際の結果・原因                                                                                                                                                                                                                                                                                                         | 修正案と修正後の検証                                                                                                                                                                                                                                                                                                                                                   |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1 U10/C03       | 実Form初期描画が30commit以内に収束せず失敗。GenderAgeで毎render生成する候補配列をeffect依存に持ち、effectで新しいラベル配列をsetStateして再renderする                                                                                                                                                                              | 候補/ラベルをpropsから導出し、effectは値補正のみに限定。候補の参照を安定させるか不要な派生stateを削除。無制約/単一制約/制約変更で収束、親state補正、送信bodyを実結合で再検証。分離テストの代替を実部品へ戻す                                                                                                                                                           |
+| F2 C03/C08       | 既存色にuiIdがない状態で商品名を入力後出品すると属性imageが2件ともnullとなり保持テスト失敗。Formは初期配列/mapを毎render生成し新UUIDを採番するが、state側\_uiIdは初回のまま                                                                                                                                                        | 初期属性値・画像mapを同じ一度限りの初期化で生成し、resolverは保持したmapを参照。uiIdあり/なし、入力変更・色削除・画像差替え・下書きの各経路で対応と画像保持を再検証                                                                                                                                                                                                    |
+| F3 Q01           | 下書き色合計2/全在庫3を「超過」と拒否、3/2は通過。現行条件は `<`                                                                                                                                                                                                                                                                   | 許容条件を業務確認。超過拒否が契約なら `>` へ修正し、未満/等値/超過とサイズの対応を確認。現行観測を仕様成功としない                                                                                                                                                                                                                                                    |
+| F4 Q04           | 署名mapがblue→red順だとREDをblue先、BLUEをred先へ転送。色削除後も先頭署名へ残存Fileを送る。Object.valuesとFile抽出順を対応させている                                                                                                                                                                                               | 応答mapキーの契約を確認し、uiIdをキーに対象Fileを解決。署名順序/画像なし色/削除色の混在で内容を比較。バックエンド返却キーも合わせて確認                                                                                                                                                                                                                                |
+| F5 Q02/C07       | 成功後1500ms待機に入る前にloading解除され、再クリックでPUT・遷移が2回。出品中も下書きPOSTが開始できる                                                                                                                                                                                                                              | 共通送信状態で両ボタンを相互排他にし、遷移完了まで保持。即時の二重呼出しもref等で防止し、unmount後遷移を抑制。別タブの冪等性/競合制御はAPI側責務として別途検証                                                                                                                                                                                                         |
+| F6 Q05/D04       | Fileと署名の片方不足でskip成功。成功後flagsは更新されず同じ引数で再転送。保存と転送のtransactionは別                                                                                                                                                                                                                               | 必要転送の署名欠落をエラーとし、転送済み状態と再試行対象を管理。下書きPOSTでediting削除後の再送方針はAPI契約と合わせて検討。単純なフロント再試行だけで原子性を保証しない                                                                                                                                                                                               |
+| F7 Q03           | ブランド/カテゴリーの旧応答を後着させると新候補を上書き。ブランド選択後手入力しても旧id保持、`A&B#C`検索はkeyword=Aとして送信                                                                                                                                                                                                      | request世代管理またはAbortControllerで旧応答を抑制し、手入力時はid=null。URLSearchParamsでencode。逆順・空語・特殊文字・unmount後を再検証                                                                                                                                                                                                                              |
+| F8 Q08           | 動画のObjectURLが再描画ごとに生成され解放されない。価格props1000→0で利益900/手数料100が残る                                                                                                                                                                                                                                        | メディアURLを安定化しcleanupで解放。価格派生金額をpropsから計算。再描画・削除・unmountと価格0への変更を再検証                                                                                                                                                                                                                                                          |
+| F9 Q09           | 変換PATCHの202受付後、完了照会なしに確認先へ進む現行動作を再現。詳細設計では202は内部エラー/実変換完了を保証しない                                                                                                                                                                                                                 | 受付と完了のUI契約を明確化し、必要なら状態照会・確認画面でのprocessing/failed表示へ接続する。HTTP非2xxだけの判定を実変換成功とみなさず、非同期完了のケースを追加。APIの202自体は確定仕様であり不具合とは断定しない                                                                                                                                                     |
+| F10 D01/D02/D04  | 正規フォームからのPUT/POSTが400 INVALID_BODY。実送信bodyを本番ZodでsafeParseし、video.type/thumbnail.type=null（optional string期待）、category.id/brand.id/condition.id/shipping.day/service/place=number（string期待）、category.level=0（>=1期待）を検出。GETの関連IDは数値、Categoryの取得属性にlevelがなくFormが0へ初期化する | GET DTO・Form初期値・createBody・PUT/POST schemaを一貫させる。IDの文字列化をフロント境界で行うかAPI契約側を整合し、既存ファイルはtypeの省略/nullの正規契約へ統一。getMyItemEditingFormでCategory.levelを取得する案。型定義だけで修正済みとせず実GET→UI→POST/PUTで確認。parent_idの数値不整合は本fixtureではnullのため未実測。F10解消後にD04転送失敗とD05実変換へ進める |
 
 Q06の負数/小数・MIME・長文の直接注入はUI属性とHook検証の違いを示す観測。すべてを新規フロント制約として追加する案にはせず、API側の確定制約・責務と照合して判断する。
 
@@ -83,25 +82,25 @@ Q06の負数/小数・MIME・長文の直接注入はUI属性とHook検証の違
 
 単体本体142件と追加layout1件は対象ファイルが重ならないため合算する。Form結合59件も別群。合計202件中196成功・6失敗、skip/todo・未処理例外なし。過去の試行を重複加算しない。
 
-| 階層 | ファイル | 成功 | 失敗 |
-| --- | --- | ---: | ---: |
-| 単体 | `src/app/upload/test/attributes.test.tsx` | 6 | 0 |
-| 単体 | `src/app/upload/test/brandInput.test.tsx` | 9 | 0 |
-| 単体 | `src/app/upload/test/category.test.tsx` | 8 | 0 |
-| 単体 | `src/app/upload/test/fields.test.tsx` | 13 | 0 |
-| 単体 | `src/app/upload/test/genderAge.test.tsx` | 0 | 4 |
-| 単体 | `src/app/upload/test/itemImage.test.tsx` | 7 | 0 |
-| 単体 | `src/app/upload/test/uploadUI.test.tsx` | 3 | 0 |
-| 単体 | `src/app/upload/test/videoInput.test.tsx` | 10 | 0 |
-| 単体 | `src/app/upload/api/test/item.test.ts` | 4 | 0 |
-| 単体 | `src/app/upload/api/test/server.test.ts` | 2 | 0 |
-| 単体 | `src/app/upload/api/test/video.test.ts` | 4 | 0 |
-| 単体 | `src/app/upload/hooks/test/useFileUpload.test.ts` | 25 | 0 |
-| 単体 | `src/app/upload/hooks/test/useUpload.test.ts` | 47 | 0 |
-| 単体追加 | `src/app/upload/test/layout.test.tsx` | 1 | 0 |
-| Form結合 | `test/integration/components/upload/itemUploadPage/form/fullForm.test.tsx` | 0 | 1 |
-| Form結合 | `test/integration/components/upload/itemUploadPage/form/integration.test.tsx` | 42 | 1 |
-| Form結合 | `test/integration/components/upload/itemUploadPage/form/media.test.tsx` | 15 | 0 |
+| 階層     | ファイル                                                                      | 成功 | 失敗 |
+| -------- | ----------------------------------------------------------------------------- | ---: | ---: |
+| 単体     | `src/app/upload/test/attributes.test.tsx`                                     |    6 |    0 |
+| 単体     | `src/app/upload/test/brandInput.test.tsx`                                     |    9 |    0 |
+| 単体     | `src/app/upload/test/category.test.tsx`                                       |    8 |    0 |
+| 単体     | `src/app/upload/test/fields.test.tsx`                                         |   13 |    0 |
+| 単体     | `src/app/upload/test/genderAge.test.tsx`                                      |    0 |    4 |
+| 単体     | `src/app/upload/test/itemImage.test.tsx`                                      |    7 |    0 |
+| 単体     | `src/app/upload/test/uploadUI.test.tsx`                                       |    3 |    0 |
+| 単体     | `src/app/upload/test/videoInput.test.tsx`                                     |   10 |    0 |
+| 単体     | `src/app/upload/api/test/item.test.ts`                                        |    4 |    0 |
+| 単体     | `src/app/upload/api/test/server.test.ts`                                      |    2 |    0 |
+| 単体     | `src/app/upload/api/test/video.test.ts`                                       |    4 |    0 |
+| 単体     | `src/app/upload/hooks/test/useFileUpload.test.ts`                             |   25 |    0 |
+| 単体     | `src/app/upload/hooks/test/useUpload.test.ts`                                 |   47 |    0 |
+| 単体追加 | `src/app/upload/test/layout.test.tsx`                                         |    1 |    0 |
+| Form結合 | `test/integration/components/upload/itemUploadPage/form/fullForm.test.tsx`    |    0 |    1 |
+| Form結合 | `test/integration/components/upload/itemUploadPage/form/integration.test.tsx` |   42 |    1 |
+| Form結合 | `test/integration/components/upload/itemUploadPage/form/media.test.tsx`       |   15 |    0 |
 
 集計根拠: `/tmp/upload-unit-results.json`、`/tmp/upload-layout-results.json`、`/tmp/upload-form-results.json`。ファイルは単体14・Form結合3。describe数の集計ではない。
 
@@ -119,12 +118,12 @@ Q06の負数/小数・MIME・長文の直接注入はUI属性とHook検証の違
 
 最終8件中1成功・7失敗。集計根拠 `/tmp/upload-e2e-diagnosed.json`。業務APIは実Express・実test_db、既存confirm用harnessを再利用し、専用ユーザー/自作IDでseed・cleanup。マイグレーションは実行していない。
 
-| ファイル（リポジトリルート基準） | 成功 | 失敗 | 到達範囲 |
-| --- | ---: | ---: | --- |
-| `test/E2E/upload/itemUploadPage/saveEditing/flow.spec.ts` | 0 | 2 | normal/edit両モードで実PUT→400 INVALID_BODY。保存・確認GET・公開item不変の後続assertは未到達 |
-| `test/E2E/upload/itemUploadPage/saveDraft/flow.spec.ts` | 0 | 1 | 実POST→400 INVALID_BODY。editing削除/draft保存のassertは未到達 |
-| `test/E2E/upload/itemUploadPage/authorization/flow.spec.ts` | 1 | 0 | 他人GET404、完全な有効bodyのPUT/POSTで他人404、不正ID400、未認証GET401。前後DB snapshotと保護行の不変を検証 |
-| `test/E2E/upload/itemUploadPage/transferFailure/flow.spec.ts` | 0 | 4 | 動画/サムネイル/商品/属性の外部転送失敗を予定する4件。実保存API400で停止し転送障害注入と保存後DB確認は未到達 |
+| ファイル（リポジトリルート基準）                              | 成功 | 失敗 | 到達範囲                                                                                                     |
+| ------------------------------------------------------------- | ---: | ---: | ------------------------------------------------------------------------------------------------------------ |
+| `test/E2E/upload/itemUploadPage/saveEditing/flow.spec.ts`     |    0 |    2 | normal/edit両モードで実PUT→400 INVALID_BODY。保存・確認GET・公開item不変の後続assertは未到達                 |
+| `test/E2E/upload/itemUploadPage/saveDraft/flow.spec.ts`       |    0 |    1 | 実POST→400 INVALID_BODY。editing削除/draft保存のassertは未到達                                               |
+| `test/E2E/upload/itemUploadPage/authorization/flow.spec.ts`   |    1 |    0 | 他人GET404、完全な有効bodyのPUT/POSTで他人404、不正ID400、未認証GET401。前後DB snapshotと保護行の不変を検証  |
+| `test/E2E/upload/itemUploadPage/transferFailure/flow.spec.ts` |    0 |    4 | 動画/サムネイル/商品/属性の外部転送失敗を予定する4件。実保存API400で停止し転送障害注入と保存後DB確認は未到達 |
 
 D01の編集モードは通常側ファイルのmodeパラメーターで実行する（編集側README参照）。D04の失敗をストレージ障害として数えず、保存前の契約不一致として扱う。正規送信を改変してAPIを通過させていない。実送信bodyの検証診断はpath/code/messageのみ記録し、署名URLやトークンを添付しない。
 
@@ -172,18 +171,18 @@ E2EのExpress/proxyは既存harnessが起動し、DB接続先をtest_dbと照合
 
 今回の依頼範囲はコード実装まで。既存の失敗・観測テストは修正後の契約へ移行し、実GenderAgeを置換していた結合fixtureも実部品へ戻した。元ケースIDを維持し、追加回帰をAF-F番号で識別する。テスト・lint・型検査・build・ブラウザー・DBテストは一切実行していない。過去の成功を今回の結果へ再掲しない。
 
-| 修正ID | 本番修正 | 実装したテストコード |
-| --- | --- | --- |
-| F1 | GenderAgeの候補参照を安定化し、ラベル/選択状態はpropsから導出。effectは必要な制約補正だけを親へ通知 | `src/app/upload/test/genderAge.test.tsx`、実Formの収束ケースとAF-F1カテゴリー変更→対象補正→送信本文 |
-| F2 | 属性配列と画像mapを同じ一度限りの初期化で生成し、resolverが保持mapを参照 | 既存C03/C08をAF-F2として維持。uiId欠落データの入力変更後も既存属性画像を保持 |
-| F3 | 下書きカラー在庫の拒否条件を合計在庫より多い場合へ変更 | `hooks/test/useUpload.test.ts`の未満/等値/超過とサイズ判定 |
-| F4 | 属性画像をuiIdで署名mapへ対応させ、削除色・画像なし色を順序で対応させない | `hooks/test/useFileUpload.test.ts`の逆順署名・削除色・画像なし色 |
-| F5 | refによる即時排他と共通busyで両ボタン/入力を制御し、成功後の待機・遷移まで保持。unmount後の処理継続を抑止 | Form結合AF-F5の両送信順、成功待機中再送、保存応答前/待機中unmount |
-| F6 | 必要な署名不足を失敗扱いにし、File/URL単位で完了・転送中Promiseを保持。Formは同一本文/同一Fileの保存応答を再利用。下書きPOST成功後は入力と出品を止め、同じdraftIdで転送を再開 | Hookの署名欠落・成功済み省略・転送中共有・abort、Form結合AF-F6の画像部分失敗再開と下書きPOST二重発行防止 |
-| F7 | カテゴリー/ブランドのrequest世代管理で旧応答とunmount後の反映を抑止。検索語をencodeし、ブランド手入力で旧IDをクリア | `test/category.test.tsx`、`brandInput.test.tsx`の逆順応答・特殊文字・手入力・unmount回帰 |
-| F8 | 動画/サムネイルのObjectURLをFile変更時に生成しcleanupで解放。商品画像URLも削除/unmountで解放。価格利益・手数料をpropsから直接計算 | `videoInput.test.tsx`の再描画/差替え/unmount、`fields.test.tsx`の価格0への更新 |
-| F9 | 202受付仕様は維持し、所有者用の既存GETでvideo_statusを照会。processing観測または変換URL変更とconvertedを確認して先へ進む。failed・120回上限・abortに対応。時間切れ後は受付済みjobの照会を再開 | API/Hookの202・旧converted・processing/failed・時間切れ再開・再受付・中断。Form結合AF-F9で受付直後の成功通知/遷移なしを確認するコード |
-| F10 | GET境界のIDをUI用文字列へ正規化し、送信時もID/parent_idを文字列化。動画等のtype null・画像なし属性等をschemaに合う省略へ変換。サーバーCategory.levelを取得し、editing/formとdraft/item-pageへvideo_statusを追加 | API正規化単体、`form/bodyContract.test.tsx`の実GET相当→Form→本番Zod schema照合（通常/編集/下書き）、既存E2Eの本文契約assert、サーバーprojection/実DB回帰コード |
+| 修正ID | 本番修正                                                                                                                                                                                                        | 実装したテストコード                                                                                                                                           |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1     | GenderAgeの候補参照を安定化し、ラベル/選択状態はpropsから導出。effectは必要な制約補正だけを親へ通知                                                                                                             | `src/app/upload/test/genderAge.test.tsx`、実Formの収束ケースとAF-F1カテゴリー変更→対象補正→送信本文                                                            |
+| F2     | 属性配列と画像mapを同じ一度限りの初期化で生成し、resolverが保持mapを参照                                                                                                                                        | 既存C03/C08をAF-F2として維持。uiId欠落データの入力変更後も既存属性画像を保持                                                                                   |
+| F3     | 下書きカラー在庫の拒否条件を合計在庫より多い場合へ変更                                                                                                                                                          | `hooks/test/useUpload.test.ts`の未満/等値/超過とサイズ判定                                                                                                     |
+| F4     | 属性画像をuiIdで署名mapへ対応させ、削除色・画像なし色を順序で対応させない                                                                                                                                       | `hooks/test/useFileUpload.test.ts`の逆順署名・削除色・画像なし色                                                                                               |
+| F5     | refによる即時排他と共通busyで両ボタン/入力を制御し、成功後の待機・遷移まで保持。unmount後の処理継続を抑止                                                                                                       | Form結合AF-F5の両送信順、成功待機中再送、保存応答前/待機中unmount                                                                                              |
+| F6     | 必要な署名不足を失敗扱いにし、File/URL単位で完了・転送中Promiseを保持。Formは同一本文/同一Fileの保存応答を再利用。下書きPOST成功後は入力と出品を止め、同じdraftIdで転送を再開                                   | Hookの署名欠落・成功済み省略・転送中共有・abort、Form結合AF-F6の画像部分失敗再開と下書きPOST二重発行防止                                                       |
+| F7     | カテゴリー/ブランドのrequest世代管理で旧応答とunmount後の反映を抑止。検索語をencodeし、ブランド手入力で旧IDをクリア                                                                                             | `test/category.test.tsx`、`brandInput.test.tsx`の逆順応答・特殊文字・手入力・unmount回帰                                                                       |
+| F8     | 動画/サムネイルのObjectURLをFile変更時に生成しcleanupで解放。商品画像URLも削除/unmountで解放。価格利益・手数料をpropsから直接計算                                                                               | `videoInput.test.tsx`の再描画/差替え/unmount、`fields.test.tsx`の価格0への更新                                                                                 |
+| F9     | 202受付仕様は維持し、所有者用の既存GETでvideo_statusを照会。processing観測または変換URL変更とconvertedを確認して先へ進む。failed・120回上限・abortに対応。時間切れ後は受付済みjobの照会を再開                   | API/Hookの202・旧converted・processing/failed・時間切れ再開・再受付・中断。Form結合AF-F9で受付直後の成功通知/遷移なしを確認するコード                          |
+| F10    | GET境界のIDをUI用文字列へ正規化し、送信時もID/parent_idを文字列化。動画等のtype null・画像なし属性等をschemaに合う省略へ変換。サーバーCategory.levelを取得し、editing/formとdraft/item-pageへvideo_statusを追加 | API正規化単体、`form/bodyContract.test.tsx`の実GET相当→Form→本番Zod schema照合（通常/編集/下書き）、既存E2Eの本文契約assert、サーバーprojection/実DB回帰コード |
 
 上表の相対パスは `src/app/upload/` 配下、Form結合は `test/integration/components/upload/itemUploadPage/form/` 配下。サーバー側は `server/src/services/{itemEditing,itemDraft}/` と `server/test/integration/database/` の対応テストを更新した。詳細設計も追加DTO列へ整合した。
 
@@ -200,25 +199,25 @@ E2EのExpress/proxyは既存harnessが起動し、DB接続先をtest_dbと照合
 
 本番コミット `acfc7304` の変更を検証した。本番コードの追加修正は行わず、実行時に見つかったテスト側の待機時間・旧期待値のみ修正した。実行環境は既存依存とNode.js 22.22.2。package指定Node26では未実施。
 
-| 階層 | 成功 | 失敗/skip | 確認内容 |
-| --- | ---: | ---: | --- |
-| フロント単体（14ファイル） | 155 | 0/0 | F1/F3/F4/F6〜F10。入力境界・収束・候補競合・URL寿命・転送/状態照会・本文変換 |
-| フォーム結合（4ファイル） | 66 | 0/0 | 実GenderAge・F2画像保持・F5排他/unmount・F6再送再開・F9完了前停止・F10本番schema適合。HTTPはMSW |
-| サーバー単体（2ファイル） | 7 | 0/0 | editing/form・draft/item-pageの取得列、Category.level・video_status、所有者条件 |
-| サーバー実DB（2ファイル） | 25 | 0/0 | test_db、関連/nullableデータ・変換3状態・所有者拒否とDB不変 |
-| ページ結合（2ファイル） | 40 | 0/0 | Chromium、本番webpack build/start、サーバーGETはfixture API。両モードの認証・metadata・初期値・Client更新 |
-| 実DB E2E（4ファイル） | 8 | 0/0 | 実Express/test_db。通常・編集保存、下書き、所有者拒否、動画/サムネイル/商品/属性の外部転送失敗 |
-| 合計 | **301** | **0/0** | ファイル別の内訳は機械集計参照 |
+| 階層                       |    成功 | 失敗/skip | 確認内容                                                                                                  |
+| -------------------------- | ------: | --------: | --------------------------------------------------------------------------------------------------------- |
+| フロント単体（14ファイル） |     155 |       0/0 | F1/F3/F4/F6〜F10。入力境界・収束・候補競合・URL寿命・転送/状態照会・本文変換                              |
+| フォーム結合（4ファイル）  |      66 |       0/0 | 実GenderAge・F2画像保持・F5排他/unmount・F6再送再開・F9完了前停止・F10本番schema適合。HTTPはMSW           |
+| サーバー単体（2ファイル）  |       7 |       0/0 | editing/form・draft/item-pageの取得列、Category.level・video_status、所有者条件                           |
+| サーバー実DB（2ファイル）  |      25 |       0/0 | test_db、関連/nullableデータ・変換3状態・所有者拒否とDB不変                                               |
+| ページ結合（2ファイル）    |      40 |       0/0 | Chromium、本番webpack build/start、サーバーGETはfixture API。両モードの認証・metadata・初期値・Client更新 |
+| 実DB E2E（4ファイル）      |       8 |       0/0 | 実Express/test_db。通常・編集保存、下書き、所有者拒否、動画/サムネイル/商品/属性の外部転送失敗            |
+| 合計                       | **301** |   **0/0** | ファイル別の内訳は機械集計参照                                                                            |
 
 F1/F2の修正前失敗は実Form/単体で再現しなくなった。F10は実ブラウザーからのPUT/POSTが本番schemaへ適合し、実保存まで成功。D04の4件も保存APIを通過して外部転送失敗の停止/DB残存確認まで到達した。変換202後の完了待ち・failed・時間切れ再開・旧converted拒否・abortはHook/フォーム結合で確認したが、実ffmpeg/S3の成功変換は実施していない。認可・永続化の業務APIはE2Eでモックせず、D04のストレージ通信だけ500へ置換した。
 
 ### 初回失敗とテスト側の修正
 
-| 対象 | 初回結果・原因 | 修正・最終確認 |
-| --- | --- | --- |
-| Form media | 全体66件中58成功/8失敗。1秒ポーリングに対してwaitForの既定1秒で時間切れ | mediaの非同期待機上限だけ3秒へ変更。assert・停止位置は維持。該当15件のみ再実行し全成功。他3ファイル51成功と合算 |
-| editing/form実DB | 25件中24成功/1失敗。DB02でvideo_status=nullを期待する一方、同じ値を非公開列リストに含めていた | 新DTO契約に従い非公開リストからvideo_statusを除去し、nullのassertは保持。編集側13件のみ再実行し全成功、下書き側12成功と合算 |
-| 下書きE2E | 8件中7成功/1失敗。POST成功が既存契約200なのにテストだけ201を期待 | controllerと既存サーバー設計の200に合わせた。本文schema/DB保存・editing削除のassertは保持。下書き1件のみ再実行して成功、他7成功と合算 |
+| 対象             | 初回結果・原因                                                                                | 修正・最終確認                                                                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Form media       | 全体66件中58成功/8失敗。1秒ポーリングに対してwaitForの既定1秒で時間切れ                       | mediaの非同期待機上限だけ3秒へ変更。assert・停止位置は維持。該当15件のみ再実行し全成功。他3ファイル51成功と合算                       |
+| editing/form実DB | 25件中24成功/1失敗。DB02でvideo_status=nullを期待する一方、同じ値を非公開列リストに含めていた | 新DTO契約に従い非公開リストからvideo_statusを除去し、nullのassertは保持。編集側13件のみ再実行し全成功、下書き側12成功と合算           |
+| 下書きE2E        | 8件中7成功/1失敗。POST成功が既存契約200なのにテストだけ201を期待                              | controllerと既存サーバー設計の200に合わせた。本文schema/DB保存・editing削除のassertは保持。下書き1件のみ再実行して成功、他7成功と合算 |
 
 サンドボックス内のDB接続・サービス待受はEPERMで失敗し、許可された制限外実行へ切り替えた。DBの最初の25件pendingはsetup失敗による本体未実行であり、最終25成功へ加算していない。初回の失敗を隠すskipや本番修正、期待値の業務契約変更はしていない。
 

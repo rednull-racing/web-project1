@@ -20,12 +20,12 @@
 
 すべてserver/で実行。HTTP待受とtest_db接続はサンドボックス外の承認付き実行。
 
-| 実行範囲 | 結果 | 重複を除く集計 |
-| --- | --- | --- |
-| 下記共有回帰コマンド | 30ファイル433成功 | 433件 |
-| getItemEditingForm実DB（DB01〜DB08） | 1ファイル10成功 | 10件 |
-| 旧import修正3ファイル | 3ファイル15成功 | 15件 |
-| 最後に補強したU05/U08/DB07を含む再確認 | 2ファイル31成功 | 上記へ重複加算しない |
+| 実行範囲                               | 結果              | 重複を除く集計       |
+| -------------------------------------- | ----------------- | -------------------- |
+| 下記共有回帰コマンド                   | 30ファイル433成功 | 433件                |
+| getItemEditingForm実DB（DB01〜DB08）   | 1ファイル10成功   | 10件                 |
+| 旧import修正3ファイル                  | 3ファイル15成功   | 15件                 |
+| 最後に補強したU05/U08/DB07を含む再確認 | 2ファイル31成功   | 上記へ重複加算しない |
 
 ```bash
 npm run test:run -- src/controllers/itemEditing/test/ src/services/itemEditing/test/ src/usecases/itemEditing/test/getItemEditingForm.test.ts src/usecases/itemEditing/test/getItemConfirmPage.test.ts src/usecases/itemEditing/test/getItemConfirmPageMetadata.test.ts test/integration/database/itemEditing/getItemConfirmPage/database.test.ts test/integration/usecases/itemEditing/getItemEditingForm/route.test.ts test/integration/usecases/itemEditing/getItemConfirmPage/route.test.ts test/integration/usecases/itemEditing/getItemConfirmPageMetadata/route.test.ts test/integration/usecases/itemEditing/createItemEditingDraft/route.test.ts test/integration/usecases/itemEditing/createItemEditingCopy/route.test.ts test/integration/usecases/itemEditing/updateConfirm/route.test.ts test/integration/usecases/itemEditing/convertItemEditingVideo/http.test.ts test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts test/integration/usecases/itemDraft/convertItemDraftVideo/http.test.ts
@@ -36,7 +36,7 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-静的検査3種はすべてexit0（テスト型検査は旧import修正後に再実行）。通常lint対象外の変更test/配下5 TSは、既存ESLint Node APIのoverrideConfigFile:true、@eslint/js recommended・typescript-eslint recommended、files:test/**/*.tsで追加検査し0 diagnostics。共有lint設定は変更していない。git diff --check成功。
+静的検査3種はすべてexit0（テスト型検査は旧import修正後に再実行）。通常lint対象外の変更test/配下5 TSは、既存ESLint Node APIのoverrideConfigFile:true、@eslint/js recommended・typescript-eslint recommended、files:test/\*_/_.tsで追加検査し0 diagnostics。共有lint設定は変更していない。git diff --check成功。
 
 ### DBガード・後処理・限界
 

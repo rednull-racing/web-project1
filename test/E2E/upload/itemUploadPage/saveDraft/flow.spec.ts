@@ -1,22 +1,55 @@
-import { createItemDraftBodySchema } from '../../../../../server/src/validators/body/itemDraft.js';
-import { test, expect } from '../../../../fixtures/item/itemConfirmPage/harness.js';
-test('D02 保存でediting削除とdraft値確認', async ({ page, context, baseURL, e2e }) => {
+import { createItemDraftBodySchema } from "../../../../../server/src/validators/body/itemDraft.js";
+import { test, expect } from "../../../../fixtures/item/itemConfirmPage/harness.js";
+test("D02 保存でediting削除とdraft値確認", async ({ page, context, baseURL, e2e }) => {
     await e2e.login(context, baseURL!);
     const editing = e2e.seed.normal;
-    await e2e.database.db.query('UPDATE item_editing SET attributes=$1 WHERE id=$2', [JSON.stringify({ inventory: { initial: 1, current: 1 }, colorVariants: [], materials: [] }), editing.id]);
+    await e2e.database.db.query("UPDATE item_editing SET attributes=$1 WHERE id=$2", [
+        JSON.stringify({ inventory: { initial: 1, current: 1 }, colorVariants: [], materials: [] }),
+        editing.id,
+    ]);
     await page.goto(`/upload/${editing.id}`);
-    await page.getByPlaceholder('商品名（50文字以内）').fill('下書き保存したシャツ');
-    const pending = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname.endsWith('/item-draft'));
-    await page.getByRole('button', { name: '下書き保存する', exact: true }).click();
+    await page.getByPlaceholder("商品名（50文字以内）").fill("下書き保存したシャツ");
+    const pending = page.waitForResponse(
+        (r) => r.request().method() === "POST" && new URL(r.url()).pathname.endsWith("/item-draft"),
+    );
+    await page.getByRole("button", { name: "下書き保存する", exact: true }).click();
     const response = await pending;
     const validation = createItemDraftBodySchema.safeParse(response.request().postDataJSON());
-    await test.info().attach('body-contract-issues', { body: JSON.stringify(validation.success ? [] : validation.error.issues.map(issue => ({ path: issue.path, code: issue.code, message: issue.message }))), contentType: 'application/json' });
+    await test
+        .info()
+        .attach("body-contract-issues", {
+            body: JSON.stringify(
+                validation.success
+                    ? []
+                    : validation.error.issues.map((issue) => ({
+                          path: issue.path,
+                          code: issue.code,
+                          message: issue.message,
+                      })),
+            ),
+            contentType: "application/json",
+        });
     const payload: unknown = await response.json().catch(() => null);
-    const code = payload && typeof payload === 'object' && 'code' in payload && typeof payload.code === 'string' ? payload.code : null;
-    await test.info().attach('D02-response', { body: JSON.stringify({ status: response.status(), code }), contentType: 'application/json' });
+    const code =
+        payload && typeof payload === "object" && "code" in payload && typeof payload.code === "string"
+            ? payload.code
+            : null;
+    await test
+        .info()
+        .attach("D02-response", {
+            body: JSON.stringify({ status: response.status(), code }),
+            contentType: "application/json",
+        });
     expect(validation.success).toBe(true);
     expect(response.status()).toBe(200);
-    expect(await e2e.database.get('item_editing', editing.id)).toBeNull();
-    expect((await e2e.database.db.query('SELECT * FROM item_draft WHERE seller_id=$1 AND name=$2', [e2e.seed.owner.id, '下書き保存したシャツ'])).rows).toHaveLength(1);
+    expect(await e2e.database.get("item_editing", editing.id)).toBeNull();
+    expect(
+        (
+            await e2e.database.db.query("SELECT * FROM item_draft WHERE seller_id=$1 AND name=$2", [
+                e2e.seed.owner.id,
+                "下書き保存したシャツ",
+            ])
+        ).rows,
+    ).toHaveLength(1);
     await e2e.expectProtected();
 });

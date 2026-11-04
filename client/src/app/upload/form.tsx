@@ -49,7 +49,17 @@ type ItemImage = {
     preview: string;
 };
 
-export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDay, allService, allPlace, hasShop, page }: Props) => {
+export const Form = ({
+    itemEditingId,
+    itemEditing,
+    category,
+    allCondition,
+    allDay,
+    allService,
+    allPlace,
+    hasShop,
+    page,
+}: Props) => {
     const initialThumbnailPreview = itemEditing.thumbnail_url ?? null;
     const existingVideoUrl = itemEditing.converted_url ?? itemEditing.original_url ?? null;
 
@@ -148,12 +158,20 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
     });
 
     const [priceValue, setPriceValue] = useState<PriceValue>({
-        price: itemEditing.before_price && !Number.isNaN(itemEditing.before_price) ? itemEditing.before_price : itemEditing.price,
+        price:
+            itemEditing.before_price && !Number.isNaN(itemEditing.before_price)
+                ? itemEditing.before_price
+                : itemEditing.price,
     });
 
-    const [itemImages, setItemImages] = useState<ItemImage[]>(() => (itemEditing.image_url ?? []).map((url) => ({
-        id: crypto.randomUUID(), file: null, preview: url, uploaded: true,
-    })));
+    const [itemImages, setItemImages] = useState<ItemImage[]>(() =>
+        (itemEditing.image_url ?? []).map((url) => ({
+            id: crypto.randomUUID(),
+            file: null,
+            preview: url,
+            uploaded: true,
+        })),
+    );
     const [loading, setLoading] = useState(false);
     const [draftLoading, setDraftLoading] = useState(false);
     const [draftSaved, setDraftSaved] = useState(false);
@@ -173,7 +191,8 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
 
     const { validateUpload, validateForDraft, createBody } = useUpload();
 
-    const { videoUploadAndConvert, thumbnailUpload, itemImageUpload, attributesImageUpload, cancelUploads } = useFileUpload();
+    const { videoUploadAndConvert, thumbnailUpload, itemImageUpload, attributesImageUpload, cancelUploads } =
+        useFileUpload();
 
     useEffect(() => {
         mounted.current = true;
@@ -216,8 +235,17 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
         setPending(true);
         let navigating = false;
         const params = {
-            videoInput, itemImages, itemNameDetail, categoryValue, genderAgeValue, brandValue,
-            attributesValue, materialValue, conditionValue, shippingValue, priceValue,
+            videoInput,
+            itemImages,
+            itemNameDetail,
+            categoryValue,
+            genderAgeValue,
+            brandValue,
+            attributesValue,
+            materialValue,
+            conditionValue,
+            shippingValue,
+            priceValue,
             resolveAttributesImage: (variant: AttributesValue["colorVariants"][number]) => {
                 if (variant.image) return { name: variant.image.name, type: variant.image.type, uploaded: false };
                 const url = attributesImageMap.get(variant._uiId);
@@ -232,42 +260,86 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
             }
             const body = createBody(params);
             const key = JSON.stringify(body);
-            const files = [videoInput.videoFile, videoInput.thumbnailFile,
-                ...itemImages.map((image) => image.file), ...attributesValue.colorVariants.map((variant) => variant.image)];
+            const files = [
+                videoInput.videoFile,
+                videoInput.thumbnailFile,
+                ...itemImages.map((image) => image.file),
+                ...attributesValue.colorVariants.map((variant) => variant.image),
+            ];
             const previous = saved.current;
-            const reusable = previous?.action === action && previous.key === key &&
-                previous.files.length === files.length && previous.files.every((file, index) => file === files[index]);
+            const reusable =
+                previous?.action === action &&
+                previous.key === key &&
+                previous.files.length === files.length &&
+                previous.files.every((file, index) => file === files[index]);
             // 下書きPOSTで削除済みの編集セッションへ再POSTしない。転送失敗時は同じ署名と保存先で再開する。
             if (draftSaved && !reusable) {
                 toast.error("保存済みの下書きは転送の再試行のみ可能です");
                 return;
             }
-            const data: Awaited<ReturnType<typeof fetchMain>> & { itemDraftId?: number } = reusable && previous ? previous.response : action === "main"
-                ? await fetchMain(itemEditingId, body) : await fetchDraft(itemEditingId, body);
+            const data: Awaited<ReturnType<typeof fetchMain>> & { itemDraftId?: number } =
+                reusable && previous
+                    ? previous.response
+                    : action === "main"
+                      ? await fetchMain(itemEditingId, body)
+                      : await fetchDraft(itemEditingId, body);
             if (!mounted.current) return;
             if (action === "draft" && !("itemDraftId" in data && typeof data.itemDraftId === "number")) {
                 throw new Error("下書きの保存先を確認できませんでした");
             }
             saved.current = { action, key, files, response: data };
             if (action === "draft") setDraftSaved(true);
-            const videoOk = action === "main"
-                ? await videoUploadAndConvert({ target: "editing", videoFile: videoInput.videoFile,
-                    videoSignedUrl: data.videoSignedUrl, itemEditingId })
-                : await videoUploadAndConvert({ target: "draft", videoFile: videoInput.videoFile,
-                    videoSignedUrl: data.videoSignedUrl, itemDraftId: data.itemDraftId! });
+            const videoOk =
+                action === "main"
+                    ? await videoUploadAndConvert({
+                          target: "editing",
+                          videoFile: videoInput.videoFile,
+                          videoSignedUrl: data.videoSignedUrl,
+                          itemEditingId,
+                      })
+                    : await videoUploadAndConvert({
+                          target: "draft",
+                          videoFile: videoInput.videoFile,
+                          videoSignedUrl: data.videoSignedUrl,
+                          itemDraftId: data.itemDraftId!,
+                      });
             if (!videoOk || !mounted.current) return;
-            if (!await thumbnailUpload({ thumbnailFile: videoInput.thumbnailFile, thumbnailSignedUrl: data.thumbnailSignedUrl }) || !mounted.current) return;
-            if (!await itemImageUpload({ itemImageFiles: itemImages, itemImageSignedUrls: data.itemImageSignedUrls }) || !mounted.current) return;
-            if (!await attributesImageUpload({ attributesValue, signedUrlMap: data.attributesImageSignedUrls }) || !mounted.current) return;
+            if (
+                !(await thumbnailUpload({
+                    thumbnailFile: videoInput.thumbnailFile,
+                    thumbnailSignedUrl: data.thumbnailSignedUrl,
+                })) ||
+                !mounted.current
+            )
+                return;
+            if (
+                !(await itemImageUpload({
+                    itemImageFiles: itemImages,
+                    itemImageSignedUrls: data.itemImageSignedUrls,
+                })) ||
+                !mounted.current
+            )
+                return;
+            if (
+                !(await attributesImageUpload({ attributesValue, signedUrlMap: data.attributesImageSignedUrls })) ||
+                !mounted.current
+            )
+                return;
             toast.success(action === "main" ? "商品データを登録しました" : "下書き保存しました");
             await sleep(1500);
             if (!mounted.current) return;
-            window.location.assign(action === "draft" ? "/item-list/draft"
-                : page === "edit" ? `/item/confirm/edit/${itemEditingId}` : `/item/confirm/${itemEditingId}`);
+            window.location.assign(
+                action === "draft"
+                    ? "/item-list/draft"
+                    : page === "edit"
+                      ? `/item/confirm/edit/${itemEditingId}`
+                      : `/item/confirm/${itemEditingId}`,
+            );
             navigating = true;
         } catch (error) {
             if (!mounted.current) return;
-            if (error instanceof ApiError) toast.error(action === "main" ? "データ作成に失敗しました" : "下書き保存に失敗しました");
+            if (error instanceof ApiError)
+                toast.error(action === "main" ? "データ作成に失敗しました" : "下書き保存に失敗しました");
             else alert("システムエラーが発生しました。時間をおいて再試行してください");
         } finally {
             if (!navigating) {
@@ -282,69 +354,86 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
             <TopLoader loading={loading} />
             <TopLoader loading={draftLoading} />
 
-            {draftSaved && <p role="status">下書きデータは保存済みです。転送に失敗した場合は下書き保存ボタンから再試行してください。</p>}
-            <fieldset disabled={busy || draftSaved} inert={busy || draftSaved} className={styles.fields}>
-            <h2 className={styles.subtitle}>動画をアップロード</h2>
-
-            <VideoInput
-                value={videoInput}
-                onChange={setVideoInput}
-                videoRef={videoRef}
-                thumbnailRef={thumbnailRef}
-                existingVideoUrl={existingVideoUrl}
-            />
-
-            <h2 className={styles.subtitle}>商品をアップロード</h2>
-
-            <ItemImage images={itemImages} onAdd={addItemImage} onRemove={removeItemImage} />
-
-            <ItemNameDetail value={itemNameDetail} onChange={setItemNameDetail} />
-
-            <Category
-                level1List={category}
-                value={categoryValue}
-                onChange={setCategoryValue}
-                onConstraintChange={setCategoryConstraint}
-            />
-
-            <GenderAge value={genderAgeValue} onChange={setGenderAgeValue} categoryConstraint={categoryConstraint} />
-
-            <BrandInput value={brandValue} onChange={setBrandValue} />
-
-            {hasShop && (
-                <AttributesInput
-                    value={attributesValue}
-                    onChange={setAttributesValue}
-                    imageUrlMap={attributesImageMap}
-                />
+            {draftSaved && (
+                <p role="status">
+                    下書きデータは保存済みです。転送に失敗した場合は下書き保存ボタンから再試行してください。
+                </p>
             )}
+            <fieldset disabled={busy || draftSaved} inert={busy || draftSaved} className={styles.fields}>
+                <h2 className={styles.subtitle}>動画をアップロード</h2>
 
-            <MaterialInput value={materialValue} onChange={setMaterialValue} />
+                <VideoInput
+                    value={videoInput}
+                    onChange={setVideoInput}
+                    videoRef={videoRef}
+                    thumbnailRef={thumbnailRef}
+                    existingVideoUrl={existingVideoUrl}
+                />
 
-            <ConditionInput allCondition={allCondition} value={conditionValue} onChange={setConditionValue} />
+                <h2 className={styles.subtitle}>商品をアップロード</h2>
 
-            <h2 className={styles.subtitle}>配送について</h2>
+                <ItemImage images={itemImages} onAdd={addItemImage} onRemove={removeItemImage} />
 
-            <ShippingInput
-                allDay={allDay}
-                allService={allService}
-                allPlace={allPlace}
-                value={shippingValue}
-                onChange={setShippingValue}
-            />
+                <ItemNameDetail value={itemNameDetail} onChange={setItemNameDetail} />
 
-            <h2 className={styles.subtitle}>価格</h2>
+                <Category
+                    level1List={category}
+                    value={categoryValue}
+                    onChange={setCategoryValue}
+                    onConstraintChange={setCategoryConstraint}
+                />
 
-            <PriceInput value={priceValue} onChange={setPriceValue} />
+                <GenderAge
+                    value={genderAgeValue}
+                    onChange={setGenderAgeValue}
+                    categoryConstraint={categoryConstraint}
+                />
 
+                <BrandInput value={brandValue} onChange={setBrandValue} />
+
+                {hasShop && (
+                    <AttributesInput
+                        value={attributesValue}
+                        onChange={setAttributesValue}
+                        imageUrlMap={attributesImageMap}
+                    />
+                )}
+
+                <MaterialInput value={materialValue} onChange={setMaterialValue} />
+
+                <ConditionInput allCondition={allCondition} value={conditionValue} onChange={setConditionValue} />
+
+                <h2 className={styles.subtitle}>配送について</h2>
+
+                <ShippingInput
+                    allDay={allDay}
+                    allService={allService}
+                    allPlace={allPlace}
+                    value={shippingValue}
+                    onChange={setShippingValue}
+                />
+
+                <h2 className={styles.subtitle}>価格</h2>
+
+                <PriceInput value={priceValue} onChange={setPriceValue} />
             </fieldset>
             <div className={styles.formButtonDiv}>
-                <button type="button" className={styles.uploadButton} onClick={() => submit("main")} disabled={busy || draftSaved}>
+                <button
+                    type="button"
+                    className={styles.uploadButton}
+                    onClick={() => submit("main")}
+                    disabled={busy || draftSaved}
+                >
                     {loading ? "登録中..." : "出品する"}
                 </button>
 
                 {page !== "edit" && (
-                    <button type="button" className={styles.draftButton} onClick={() => submit("draft")} disabled={busy}>
+                    <button
+                        type="button"
+                        className={styles.draftButton}
+                        onClick={() => submit("draft")}
+                        disabled={busy}
+                    >
                         {draftLoading ? "保存中..." : "下書き保存する"}
                     </button>
                 )}

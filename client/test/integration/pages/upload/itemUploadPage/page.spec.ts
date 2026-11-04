@@ -1,2 +1,2 @@
-import { uploadCases } from '../../../../fixtures/upload/browser/cases';
-uploadCases('normal');
+import { uploadCases } from "../../../../fixtures/upload/browser/cases";
+uploadCases("normal");

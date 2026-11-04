@@ -3,7 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ItemImage } from "../itemImage";
 
-const images = (count: number) => Array.from({ length: count }, (_, id) => ({ id: String(id), file: null, uploaded: true, preview: `https://example.test/${id}.png` }));
+const images = (count: number) =>
+    Array.from({ length: count }, (_, id) => ({
+        id: String(id),
+        file: null,
+        uploaded: true,
+        preview: `https://example.test/${id}.png`,
+    }));
 describe("ItemImage", () => {
     it.each([0, 9, 10])("U08 %d枚で追加可否と元順序", (count) => {
         render(<ItemImage images={images(count)} onAdd={vi.fn()} onRemove={vi.fn()} />);
