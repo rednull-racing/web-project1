@@ -1,3 +1,4 @@
+import { updateItemEditingConfirmBodySchema } from '../../../../../server/src/validators/body/itemEditing.js';
 import { test, expect, authHeader } from '../../../../fixtures/item/itemConfirmPage/harness.js';
 for (const mode of ['normal', 'edit'] as const)
     test(`D01 D05 ${mode} 保存と公開データ不変`, async ({ page, context, baseURL, e2e }) => {
@@ -11,7 +12,11 @@ for (const mode of ['normal', 'edit'] as const)
         const pending = page.waitForResponse(r => r.request().method() === 'PUT' && new URL(r.url()).pathname.endsWith(`/item-editing/${editing.id}`));
         await page.getByRole('button', { name: '出品する', exact: true }).click();
         const response = await pending;
-        await test.info().attach('D01-response', { body: JSON.stringify({ status: response.status(), body: await response.json() }), contentType: 'application/json' });
+        const validation = updateItemEditingConfirmBodySchema.safeParse(response.request().postDataJSON());
+        await test.info().attach('body-contract-issues', { body: JSON.stringify(validation.success ? [] : validation.error.issues.map(issue => ({ path: issue.path, code: issue.code, message: issue.message }))), contentType: 'application/json' });
+        const payload: unknown = await response.json().catch(() => null);
+        const code = payload && typeof payload === 'object' && 'code' in payload && typeof payload.code === 'string' ? payload.code : null;
+        await test.info().attach('D01-response', { body: JSON.stringify({ status: response.status(), code }), contentType: 'application/json' });
         expect(response.status()).toBe(200);
         await expect(page).toHaveURL(new RegExp(`/item/confirm/${mode === 'edit' ? 'edit/' : ''}${editing.id}$`));
         expect(await e2e.database.get('item_editing', editing.id)).toMatchObject({ name: '保存したシャツ' });
