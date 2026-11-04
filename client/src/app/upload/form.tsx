@@ -123,7 +123,7 @@ export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDa
 
     const [attributesValue, setAttributesValue] = useState<AttributesValue>(initialAttributesValue);
 
-    const [attributesImageMap, setAttributesImageMap] = useState<Map<string, string>>(initialAttributesImageUrlMap);
+    const [attributesImageMap] = useState<Map<string, string>>(initialAttributesImageUrlMap);
 
     const [materialValue, setMaterialValue] = useState<MaterialValue>({
         materials: (itemEditing.attributes?.materials ?? []).map((m) => ({

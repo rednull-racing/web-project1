@@ -29,10 +29,8 @@ export default async function Page({ params }: Props) {
 
     const data = await fetchUploadPage(id);
 
-    const item = data.item;
-
     const userId = String(session?.user.id).trim();
-    const sellerId = String(item.seller_id).trim();
+    const sellerId = String(data.itemEditing.seller_id).trim();
 
     if (userId !== sellerId) {
         redirect("/upload/before");
@@ -40,8 +38,8 @@ export default async function Page({ params }: Props) {
 
     return (
         <Form
-            itemId={id}
-            item={item}
+            itemEditingId={id}
+            itemEditing={data.itemEditing}
             category={data.category}
             allCondition={data.allCondition}
             allDay={data.allDay}

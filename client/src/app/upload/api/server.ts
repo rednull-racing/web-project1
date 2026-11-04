@@ -3,13 +3,14 @@ import {
     Categories,
     Item,
     ItemConditionOption,
+    ItemEditing,
     ShippingDayOption,
     ShippingServiceOption,
     TodouhukenOption,
 } from "../types/types";
 
 type UploadResponse = {
-    item: Item;
+    itemEditing: ItemEditing;
     category: Categories[];
     allCondition: ItemConditionOption[];
     allDay: ShippingDayOption[];
@@ -22,8 +23,8 @@ type ItemHighlightResponse = {
     item: Item;
 };
 
-export const fetchUploadPage = async (itemId: string): Promise<UploadResponse> => {
-    return apiFetchServer(`/items/${itemId}/form-data`, {
+export const fetchUploadPage = async (itemEditingId: string): Promise<UploadResponse> => {
+    return apiFetchServer(`/item-editing/${itemEditingId}/form`, {
         cache: "no-store",
     });
 };
