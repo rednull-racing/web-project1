@@ -84,3 +84,50 @@ export const getMyItemConfirmPageMetadata = ({ itemEditingId, userId }: GetMyIte
         attributes: ["id", "name"],
     });
 };
+
+type GetMyItemEditingFormParams = Pick<ItemEditingUserIdParams, "itemEditingId" | "userId">;
+
+export const getMyItemEditingForm = ({ itemEditingId, userId }: GetMyItemEditingFormParams) => {
+    return ItemEditing.findOne({
+        where: { id: itemEditingId, seller_id: userId },
+        attributes: [
+            "id",
+            "status",
+            "seller_id",
+            "name",
+            "detail",
+            "price",
+            "image_url",
+            "first_image_url",
+            "gender_type",
+            "age_type",
+            "attributes",
+            "thumbnail_url",
+            "title",
+            "summary",
+            "duration",
+            "original_url",
+            "converted_url",
+            "before_price",
+            "shipping_service_free_text",
+        ],
+        include: [
+            {
+                model: Categories,
+                as: "Category",
+                attributes: ["id", "name"],
+                required: false,
+                include: [
+                    { model: Categories, as: "children", attributes: ["id", "name"], required: false },
+                    { model: Categories, as: "parent", attributes: ["id", "name"], required: false },
+                ],
+            },
+            { model: Brands, as: "Brand", attributes: ["id", "name"], required: false },
+            { model: ItemConditionOption, attributes: ["id", "name"], required: false },
+            { model: ShippingDayOption, attributes: ["id", "name"], required: false },
+            { model: ShippingServiceOption, attributes: ["id", "name"], required: false },
+            { model: TodouhukenOption, attributes: ["id", "name"], required: false },
+        ],
+    });
+};
+

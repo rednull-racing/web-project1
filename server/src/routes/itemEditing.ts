@@ -1,3 +1,5 @@
+import { getItemEditingFormController } from "../controllers/itemEditing/itemEditing.js";
+import { getItemEditingFormRateLimit } from "../middleware/rateLimit/itemEditingRateLimit.js";
 import {
     getItemConfirmPageController,
     getItemConfirmPageMetadataController,
@@ -107,6 +109,17 @@ router.get(
     getItemConfirmPageMetadataRateLimit,
     validateParams(idParamSchema),
     getItemConfirmPageMetadataController,
+);
+
+// GET /item-editing/:id/form
+// summary: 商品アップロード入力フォーム初期値取得
+// page: /upload/[id]・/upload/edit/[id]
+router.get(
+    "/:id/form",
+    authenticateToken,
+    getItemEditingFormRateLimit,
+    validateParams(idParamSchema),
+    getItemEditingFormController,
 );
 
 export default router;

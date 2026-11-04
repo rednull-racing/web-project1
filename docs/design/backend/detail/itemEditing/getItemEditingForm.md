@@ -2,6 +2,8 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
+更新日: 2026-11-04。ユーザー確認により毎分80回、`updatedAt`・`item_id`非公開、フロント型参照先を修正。
+
 ## 1. 概要
 
 `client/src/app/upload/[id]`ページで表示するデータをDBから取得し、フロントエンドにJSONで返す。
@@ -15,8 +17,8 @@
 - 認可: 商品編集セッション（ItemEditing）所有者のみ（item_editing.seller_idが認証済みuserIdと一致すること）
 - Content-Type: application/json（レスポンス。リクエストbodyは不要）
 - レート制限: 認証ユーザー単位で1分間に80回。超過時は429。
-- 制限設定: `windowMs: 60000`、`limit: 50`、`standardHeaders: true`、`legacyHeaders: false`。既存形式の `admin:${認証済みuserId}` をキーとするAPI専用インスタンスを追加する。
-- 制限計上: 認証後の400・404・500も含む。未認証は計上しない。51回目以降は429と既存ライブラリの既定本文・RateLimit/Retry-Afterヘッダーを返し、窓終了後に再受付する。GETでも不正JSONを送った場合はアプリ共通parserが先に400とし、認証・制限へ到達しない。
+- 制限設定: `windowMs: 60000`、`limit: 80`、`standardHeaders: true`、`legacyHeaders: false`。既存形式の `admin:${認証済みuserId}` をキーとするAPI専用インスタンスを追加する。
+- 制限計上: 認証後の400・404・500も含む。未認証は計上しない。81回目以降は429と既存ライブラリの既定本文・RateLimit/Retry-Afterヘッダーを返し、窓終了後に再受付する。GETでも不正JSONを送った場合はアプリ共通parserが先に400とし、認証・制限へ到達しない。
 - 順序: authenticateToken → getItemEditingFormRateLimit → validateParams(idParamSchema) → getItemEditingFormController
 
 ### ファイル・関数名
@@ -79,7 +81,6 @@
         "converted_url": null,
         "before_price": 1000,
         "shipping_service_free_text": null,
-        "updatedAt": "2026-10-29T00:00:00.000Z",
         "Category": null,
         "Brand": null,
         "ItemConditionOption": null,
@@ -90,7 +91,7 @@
 }
 ```
 
-参照元は `client/src/app/item/upload/types/types.ts`。Brand/Option、Category・parent・childrenの取得列はid/nameとする。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。フロント型そのものは今回変更しない。
+参照元は `client/src/app/upload/types/types.ts`。Brand/Option、Category・parent・childrenの取得列はid/nameとする。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。フロント型そのものは今回変更しない。
 
 ### 三行コメント
 
@@ -104,7 +105,7 @@
 
 `authenticateToken` の認証済みuserIdと、URLのitemEditingIdで所有者の編集セッションを検索する。未認証は401、存在しない場合・他人の編集セッションの場合はともに404を返す。
 
-### getMyItemConfirmPage 認可
+### getMyItemEditingForm 認可
 
 ```ts
 where: {
@@ -149,13 +150,13 @@ flowchart TD
     - `id = itemEditingId AND seller_id = userId` で取得する。
 
 - 関連参照: categories（Category・parent・children）、brands（Brand）、item_condition_option、shipping_day_option、shipping_service_option、todouhuken_option。aliasはModelのassociate定義に合わせる。
-- `status`（"normal" | "edit"）と`item_id`を確認ページ用の取得項目に含める。
+- `status`（"normal" | "edit"）を取得する。`item_id`・`updatedAt`は公開しない。
 - 取得列・関連は以下を確定契約とする。createdAt・video_status・各FKなど列挙しない列は公開しない。
 - 実DBの検証結果は本APIのテストレポートに記録し、他APIの検証結果で代替しない。
 
 ### 取得データ・レスポンス詳細
 
-取得データの記載は `client/src/app/item/upload/types/types.ts` の `ItemEditing` を参考とする。
+取得データの記載は `client/src/app/upload/types/types.ts` の `ItemEditing` を参考とする。
 
 - getItemEditingFormのattributes:
 
@@ -245,7 +246,7 @@ include: [
 - 正常: 所有者の取得、取得列・関連・任意項目のnull/値あり・画像配列・JSONBの保持、対象外カラムの非公開、取得完了後の200を確認する。公開レスポンスは第2・5章に合わせる。
 - 認証・認可: 未認証/不正JWTの401、他人・不存在・所有者nullの404、body/queryへの所有者偽装の無視。認証拒否時は制限・DBが未実行であることを確認する。
 - 入力境界: 1/2147483647を許可し、0/負数/小数/非数値/上限超過を拒否する。数値coerceの実契約と検証済みparamsの採用を確認する。
-- 制限・優先順位: 同じユーザーの50回と51回目、他ユーザーとの分離、窓終了後の再開、不正paramsと404の計上、制限超過と不正idが重なる場合の429を確認する。parser拒否は別経路として確認する。
+- 制限・優先順位: 同じユーザーの80回と81回目、他ユーザーとの分離、窓終了後の再開、不正paramsと404の計上、制限超過と不正idが重なる場合の429を確認する。parser拒否は別経路として確認する。
 - 失敗・待機: DB失敗の伝播と500、usecase/controllerの完了待ち、取得失敗時の成功応答未実行を確認する。
 - 再送・並行: 参照に副作用がなく対象・他人の編集セッションとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・関連取得・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。

@@ -1,3 +1,4 @@
+import { getItemEditingFormUseCase } from "../../usecases/itemEditing/getItemEditingForm.js";
 import { getItemConfirmPageMetadataUseCase } from "../../usecases/itemEditing/getItemConfirmPageMetadata.js";
 import { getItemConfirmPageUseCase } from "../../usecases/itemEditing/getItemConfirmPage.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
@@ -152,3 +153,18 @@ export const getItemConfirmPageMetadataController = async (
         next(err);
     }
 };
+
+// GET /item-editing/:id/form
+// summary: 商品アップロード入力フォーム初期値取得
+// page: /upload/[id]・/upload/edit/[id]
+export const getItemEditingFormController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { id: itemEditingId } = req.validatedParams as { id: number };
+        const itemEditing = await getItemEditingFormUseCase({ itemEditingId, userId });
+        res.status(200).json({ itemEditing });
+    } catch (err) {
+        next(err);
+    }
+};
+
