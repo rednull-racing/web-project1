@@ -1298,3 +1298,9 @@
 - upload/AGENTS.mdの空欄に構成図・遷移図・SSR/CSR API・CSSの役割を現行実装に基づき記載。
 - 出品と編集の差、検証・ファイル転送の責務を簡潔に補足。
 - 実装との対応と差分を確認。文書のみのためテスト・lint・型検査は未実行。
+
+## 20261104_documents_商品アップロードテストレポートの移動
+
+- client/docs/report/upload/itemUpload.mdをclient/test/docs/report/upload/itemUpload.mdへ移動。
+- 設計書の参照とレポート内の相対リンクを更新し、既存の結果・修正案を保持。
+- リンク・差分確認済み。文書移動のみのためテスト未実行。
