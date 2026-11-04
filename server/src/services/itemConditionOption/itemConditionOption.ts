@@ -6,7 +6,7 @@ type ConditionIdParams = {
     transaction?: Transaction;
 };
 
-export const findAllCondition = async () => {
+export const getAllCondition = async () => {
     return ItemConditionOption.findAll();
 };
 

@@ -9,3 +9,7 @@ type ShippingDayIdParams = {
 export const getShippingDay = ({ dayId, transaction }: ShippingDayIdParams) => {
     return transaction ? ShippingDayOption.findByPk(dayId, { transaction }) : ShippingDayOption.findByPk(dayId);
 };
+
+export const getAllShippingDay = async () => {
+    return ShippingDayOption.findAll();
+};

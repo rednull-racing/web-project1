@@ -1,10 +1,10 @@
 import { AppError } from "../../../errors.js";
 import { getAllLevel1 } from "../../../services/categories/categories.js";
-import { findAllCondition } from "../../../services/itemConditionOption/itemConditionOption.js";
+import { getAllCondition } from "../../../services/itemConditionOption/itemConditionOption.js";
 import { getItemFormData } from "../../../services/items/index.js";
-import { findAllShippingDay } from "../../../services/shippingDay/shippingDay.js";
-import { findAllShippingService } from "../../../services/shippingService/shippingService.js";
-import { getAllTodouhuken } from "../../../services/todouhuken/todouhuken.js";
+import { getAllShippingDay } from "../../../services/shippingDayOption/shippingDayOption.js";
+import { getAllShippingService } from "../../../services/shippingServiceOption/shippingServiceOption.js";
+import { getAllTodouhuken } from "../../../services/todouhukenOption/todouhukenOption.js";
 import { getUserHasShop } from "../../../services/users/query.js";
 
 type Params = {
@@ -25,9 +25,9 @@ export const getFormDataUseCase = async ({ itemId, userId }: Params) => {
 
     const [category, allCondition, allDay, allService, allPlace, userHasShop] = await Promise.all([
         getAllLevel1(),
-        findAllCondition(),
-        findAllShippingDay(),
-        findAllShippingService(),
+        getAllCondition(),
+        getAllShippingDay(),
+        getAllShippingService(),
         getAllTodouhuken(),
         getUserHasShop({ userId: Number(item.seller_id) }),
     ]);

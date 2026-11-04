@@ -8,7 +8,7 @@ import { createIdCard, deleteIdCard } from "../../../services/idCard/idCard.js";
 import { updateName } from "../../../services/name/name.js";
 import { createNotification } from "../../../services/notification/notification.js";
 import { createS3Metadata, deleteS3Metadata, getS3Metadata } from "../../../services/s3Metadata/s3Metadata.js";
-import { getTodouhukenOne } from "../../../services/todouhuken/todouhuken.js";
+import { getTodouhukenOne } from "../../../services/todouhukenOption/todouhukenOption.js";
 import { updateHonninUser, updateIdCardIdUser } from "../../../services/users/command.js";
 import { getUserHasAddressNameId } from "../../../services/users/query.js";
 import { HonninBody } from "../../../validators/body/users.js";

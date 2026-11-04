@@ -4,7 +4,7 @@ import { getCategories } from "../../services/categories/categories.js";
 import { getItemCondition } from "../../services/itemConditionOption/itemConditionOption.js";
 import { getShippingDay } from "../../services/shippingDayOption/shippingDayOption.js";
 import { getShippingService } from "../../services/shippingServiceOption/shippingServiceOption.js";
-import { getTodouhuken } from "../../services/todouhuken/todouhuken.js";
+import { getTodouhuken } from "../../services/todouhukenOption/todouhukenOption.js";
 
 type Params = {
     categoryId: number | null;

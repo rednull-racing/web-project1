@@ -11,3 +11,7 @@ export const getShippingService = ({ serviceId, transaction }: ShippingServiceId
         ? ShippingServiceOption.findByPk(serviceId, { transaction })
         : ShippingServiceOption.findByPk(serviceId);
 };
+
+export const getAllShippingService = async () => {
+    return ShippingServiceOption.findAll();
+};

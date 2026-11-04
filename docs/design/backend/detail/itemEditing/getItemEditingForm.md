@@ -42,6 +42,18 @@
     - itemEditing取得: /services/itemEditing/query.ts
         - getMyItemEditingForm（新規）
         - 引数型: `Pick<ItemEditingUserIdParams, "itemEditingId" | "userId">`
+    - 全カテゴリー取得: /services/categories/categories.ts
+        - getAllLevel1（既存）
+    - 全コンディション取得: /services/itemConditionOption/itemConditionOption.ts
+        - getAllCondition（既存）
+    - 全配送予定日取得: /services/shippingDayOption/shippingDayOption.ts
+        - getAllShippingDay（既存）
+    - 全配送サービス取得: /services/shippingServiceOption/shippingServiceOption.ts
+        - getAllShippingService（既存）
+    - 全都道府県取得: /services/todouhukenOption/todouhukenOption.ts
+        - getAllTodouhuken（既存）
+    - ショップ有無取得: /services/users/query.ts
+        - getUserHasShop（既存）
 
 ### リクエスト
 
@@ -87,8 +99,59 @@
         "ShippingDayOption": null,
         "ShippingServiceOption": null,
         "TodouhukenOption": null
+    },
+    "category": [
+        {
+            "id": 123,
+            "name": "カテゴリー",
+            "allowed_gender": "unisex",
+            "allowed_age": "both",
+            "parent_id": null
+        }
+    ],
+    "allCondition": [
+        {
+            "id": 123,
+            "name": "新品"
+        }
+    ],
+    "allDay": [
+        {
+            "id": 123,
+            "name": "5日～7日"
+        }
+    ],
+    "allService": [
+        {
+            "id": 123,
+            "name": "ゆうパック"
+        }
+    ],
+    "allPlace": [
+        {
+            "id": 123,
+            "name": "東京都"
+        }
+    ],
+    "hasShop": {
+        "ShopInfo": null
     }
 }
+```
+
+- `category`, `allCondition`, `allDay`, `allService`, `allPlace`, `hasShop` 取得例
+
+```ts
+const [category, allCondition, allDay, allService, allPlace, userHasShop] = await Promise.all([
+    getAllLevel1(),
+    getAllCondition(),
+    getAllShippingDay(),
+    getAllShippingService(),
+    getAllTodouhuken(),
+    getUserHasShop({ userId }),
+]);
+
+const hasShop = !!userHasShop?.ShopInfo;
 ```
 
 参照元は `client/src/app/upload/types/types.ts`。Brand/Option、Category・parent・childrenの取得列はid/nameとする。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。フロント型そのものは今回変更しない。
