@@ -91,3 +91,7 @@ describe("P0/P1: getItemConfirmPageMetadata controller", () => {
         expect(mocks.create).not.toHaveBeenCalled();
     });
 });
+
+vi.mock("../../../usecases/itemEditing/getItemEditingForm.js", () => ({
+    getItemEditingFormUseCase: vi.fn(),
+}));

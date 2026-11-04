@@ -143,3 +143,7 @@ describe("P1 実制限とparserの優先順位", () => {
 vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({
     getItemConfirmPageMetadataUseCase: vi.fn(),
 }));
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemEditingForm.js", () => ({
+    getItemEditingFormUseCase: vi.fn(),
+}));

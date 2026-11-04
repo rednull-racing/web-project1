@@ -163,3 +163,7 @@ vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPage.js", () => (
 vi.mock("../../../../../src/usecases/itemEditing/getItemConfirmPageMetadata.js", () => ({
     getItemConfirmPageMetadataUseCase: vi.fn(),
 }));
+
+vi.mock("../../../../../src/usecases/itemEditing/getItemEditingForm.js", () => ({
+    getItemEditingFormUseCase: vi.fn(),
+}));
