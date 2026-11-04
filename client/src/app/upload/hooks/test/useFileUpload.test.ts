@@ -174,3 +174,58 @@ it("U24 署名なし・画像なしの既存属性はskip成功", async () => {
     for (const signedUrlMap of [null, undefined, {}])
         expect(await result.current.attributesImageUpload({ attributesValue: params().attributesValue, signedUrlMap })).toBe(true);
 });
+it("AF-F6 兄弟失敗後の再試行は転送中の同File/URLを共有する", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const counts = { a: 0, b: 0 };
+    server.use(http.put("https://storage.test/:key", async ({ params: path }) => {
+        const key = String(path.key) as "a" | "b";
+        counts[key]++;
+        if (key === "a") await gate;
+        return new HttpResponse(null, { status: key === "b" && counts.b === 1 ? 500 : 204 });
+    }));
+    const { result } = renderHook(useFileUpload);
+    const args = {
+        itemImageFiles: ["a", "b"].map(id => ({ id, file: file(id), preview: "", uploaded: false })),
+        itemImageSignedUrls: ["a", "b"].map((id, index) => ({ index, url: `https://storage.test/${id}` })),
+    };
+    expect(await result.current.itemImageUpload(args)).toBe(false);
+    const retry = result.current.itemImageUpload(args);
+    await vi.waitFor(() => expect(counts.b).toBe(2));
+    expect(counts.a).toBe(1);
+    release(); expect(await retry).toBe(true);
+});
+it("AF-F9 時間切れ再試行で進行中jobを再受付せず元baselineを保持", async () => {
+    server.use(http.post(signed.url, () => new HttpResponse(null, { status: 204 })));
+    calls.state.mockReset().mockResolvedValueOnce({ video_status: "converted", converted_url: "same" })
+        .mockResolvedValue({ video_status: "processing", converted_url: null });
+    const { result } = renderHook(useFileUpload);
+    const args = { target: "editing" as const, itemEditingId: "123", videoFile: file(), videoSignedUrl: signed };
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const first = result.current.videoUploadAndConvert(args);
+    await vi.waitFor(() => expect(calls.editing).toHaveBeenCalledTimes(1));
+    await act(() => vi.advanceTimersByTimeAsync(120000));
+    expect(await first).toBe(false);
+    calls.state.mockResolvedValueOnce({ video_status: "processing", converted_url: null })
+        .mockResolvedValue({ video_status: "converted", converted_url: "same" });
+    const retry = result.current.videoUploadAndConvert(args);
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(await retry).toBe(true);
+    expect(calls.editing).toHaveBeenCalledTimes(1);
+});
+it("AF-F9 failed後の再試行は新しい変換を受付できる", async () => {
+    server.use(http.post(signed.url, () => new HttpResponse(null, { status: 204 })));
+    calls.state.mockReset().mockResolvedValueOnce({ video_status: null, converted_url: null })
+        .mockResolvedValue({ video_status: "failed", converted_url: null });
+    const { result } = renderHook(useFileUpload);
+    const args = { target: "editing" as const, itemEditingId: "123", videoFile: file(), videoSignedUrl: signed };
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const first = result.current.videoUploadAndConvert(args);
+    await vi.waitFor(() => expect(calls.editing).toHaveBeenCalledTimes(1));
+    await act(() => vi.advanceTimersByTimeAsync(1000)); expect(await first).toBe(false);
+    calls.state.mockResolvedValueOnce({ video_status: "failed", converted_url: null })
+        .mockResolvedValue({ video_status: "converted", converted_url: "new" });
+    const retry = result.current.videoUploadAndConvert(args);
+    await vi.waitFor(() => expect(calls.editing).toHaveBeenCalledTimes(2));
+    await act(() => vi.advanceTimersByTimeAsync(1000)); expect(await retry).toBe(true);
+});
