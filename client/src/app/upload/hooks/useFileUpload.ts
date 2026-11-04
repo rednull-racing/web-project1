@@ -16,6 +16,8 @@ type AttributesImageArgs = { attributesValue: AttributesValue; signedUrlMap: Rec
 
 export const useFileUpload = () => {
     const completed = useRef(new WeakMap<File, Set<string>>());
+    const inFlight = useRef(new WeakMap<File, Map<string, Promise<void>>>());
+    const conversions = useRef(new WeakMap<File, Map<string, { baselineUrl: string | null; processingSeen: boolean }>>());
     const controller = useRef<AbortController | null>(null);
     const cancelUploads = useCallback(() => { controller.current?.abort(); }, []);
     useEffect(() => cancelUploads, [cancelUploads]);
@@ -31,9 +33,18 @@ export const useFileUpload = () => {
     };
     const put = async (file: File, url: string, signal: AbortSignal) => {
         if (hasCompleted(file, url)) return;
-        const response = await fetch(url, { method: "PUT", headers: { "Content-Type": file.type }, body: file, signal });
-        if (!response.ok) throw new Error("ファイルの転送に失敗しました");
-        markCompleted(file, url);
+        const pending = inFlight.current.get(file) ?? new Map<string, Promise<void>>();
+        inFlight.current.set(file, pending);
+        const existing = pending.get(url);
+        if (existing) return existing;
+        const operation = (async () => {
+            const response = await fetch(url, { method: "PUT", headers: { "Content-Type": file.type }, body: file, signal });
+            if (!response.ok) throw new Error("ファイルの転送に失敗しました");
+            markCompleted(file, url);
+        })();
+        pending.set(url, operation);
+        try { await operation; }
+        finally { if (pending.get(url) === operation) pending.delete(url); }
     };
 
     const videoUploadAndConvert = async (args: VideoArgs): Promise<boolean> => {
@@ -57,9 +68,23 @@ export const useFileUpload = () => {
             markCompleted(videoFile, postKey);
         }
         const previous = await fetchVideoConversionState(args.target, id, signal);
-        if (args.target === "draft") await fetchDraftVideoConvert(args.itemDraftId, signal);
-        else await fetchVideoConvert(args.itemEditingId, signal);
-        let processingSeen = false;
+        const records = conversions.current.get(videoFile) ?? new Map<string, { baselineUrl: string | null; processingSeen: boolean }>();
+        conversions.current.set(videoFile, records);
+        let progress = records.get(conversionKey);
+        if (!progress || previous.video_status === "failed") {
+            progress = { baselineUrl: previous.converted_url, processingSeen: false };
+            if (args.target === "draft") await fetchDraftVideoConvert(args.itemDraftId, signal);
+            else await fetchVideoConvert(args.itemEditingId, signal);
+            records.set(conversionKey, progress);
+        } else {
+            if (previous.video_status === "processing") progress.processingSeen = true;
+            if (previous.video_status === "converted" && previous.converted_url &&
+                (progress.processingSeen || previous.converted_url !== progress.baselineUrl)) {
+                markCompleted(videoFile, conversionKey);
+                args.onUploaded?.();
+                return true;
+            }
+        }
         // 202は受付のみ。旧converted状態を今回の完了として扱わない。
         for (let attempt = 0; attempt < 120; attempt++) {
             await new Promise<void>((resolve, reject) => {
@@ -69,10 +94,10 @@ export const useFileUpload = () => {
                 signal.addEventListener("abort", abort, { once: true });
             });
             const state = await fetchVideoConversionState(args.target, id, signal);
-            if (state.video_status === "processing") processingSeen = true;
+            if (state.video_status === "processing") progress.processingSeen = true;
             if (state.video_status === "failed") { toast.error("動画の変換に失敗しました"); return false; }
             if (state.video_status === "converted" && state.converted_url &&
-                (processingSeen || state.converted_url !== previous.converted_url)) {
+                (progress.processingSeen || state.converted_url !== progress.baselineUrl)) {
                 markCompleted(videoFile, conversionKey);
                 args.onUploaded?.();
                 return true;
