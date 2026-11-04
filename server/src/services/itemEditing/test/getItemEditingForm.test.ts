@@ -47,6 +47,7 @@ describe("P0/P1 所有者限定・関連付き参照service", () => {
                 "duration",
                 "original_url",
                 "converted_url",
+                "video_status",
                 "before_price",
                 "shipping_service_free_text",
             ],
@@ -54,11 +55,11 @@ describe("P0/P1 所有者限定・関連付き参照service", () => {
                 {
                     model: Categories,
                     as: "Category",
-                    attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                    attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
                     required: false,
                     include: [
-                        { model: Categories, attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"], as: "children", required: false },
-                        { model: Categories, attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"], as: "parent", required: false },
+                        { model: Categories, attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"], as: "children", required: false },
+                        { model: Categories, attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"], as: "parent", required: false },
                     ],
                 },
                 { model: Brands, as: "Brand", attributes: ["id", "name"], required: false },

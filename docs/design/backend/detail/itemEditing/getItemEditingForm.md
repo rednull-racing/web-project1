@@ -2,7 +2,7 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
-更新日: 2026-11-04。ユーザー確認により追加一覧をトップレベルで返し、`hasShop`をbooleanとする。カテゴリー一覧は既存`getAllLevel1()`の全カラム取得を維持する。毎分80回、`updatedAt`・`item_id`非公開の契約は維持する。
+更新日: 2026-11-04。F9/F10対応でvideo_statusとCategory/parent/childrenのlevelを追加。追加分はテストコード実装済み・未実行。ユーザー確認により追加一覧をトップレベルで返し、`hasShop`をbooleanとする。カテゴリー一覧は既存`getAllLevel1()`の全カラム取得を維持する。毎分80回、`updatedAt`・`item_id`非公開の契約は維持する。
 
 ## 1. 概要
 
@@ -91,6 +91,7 @@
         "duration": null,
         "original_url": "https://example.test/original.mp4",
         "converted_url": null,
+        "video_status": null,
         "before_price": 1000,
         "shipping_service_free_text": null,
         "Category": null,
@@ -158,7 +159,7 @@ const [category, allCondition, allDay, allService, allPlace, userHasShop] = awai
 const hasShop = !!userHasShop?.ShopInfo;
 ```
 
-参照元は `client/src/app/upload/types/types.ts`。`itemEditing`内のBrand/Optionはid/name、Category・parent・childrenはid/name/allowed_gender/allowed_age/parent_idを取得する。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。
+参照元は `client/src/app/upload/types/types.ts`。`itemEditing`内のBrand/Optionはid/name、Category・parent・childrenはid/name/level/allowed_gender/allowed_age/parent_idを取得する。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。
 
 トップレベルの`category`は編集データのCategoryとは別の一覧であり、既存`getAllLevel1()`を変更せず使用する。`level = 1`の全カテゴリーを全カラム取得し、`sort_order ASC`で返す。同順位の順序は保証しない。各Option一覧も既存の全件・全カラム取得を維持し、順序は保証しない。一覧に該当行がなければ空配列を返す。
 
@@ -256,6 +257,7 @@ attributes: [
     "duration",
     "original_url",
     "converted_url",
+    "video_status",
     "before_price",
     "shipping_service_free_text",
 ];
@@ -268,18 +270,18 @@ include: [
     {
         model: Categories,
         as: "Category",
-        attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+        attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
         required: false,
         include: [
             {
                 model: Categories,
-                attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
                 as: "children",
                 required: false,
             },
             {
                 model: Categories,
-                attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                attributes: ["id", "name", "level", "allowed_gender", "allowed_age", "parent_id"],
                 as: "parent",
                 required: false,
             },
@@ -321,7 +323,7 @@ include: [
 
 ## 8. テスト設計
 
-- 正常: 所有者の取得、取得列・関連・任意項目のnull/値あり・画像配列・JSONBの保持、編集データの対象外カラム非公開、7キーの応答を確認する。Category/parent/childrenの5列、独立したlevel1カテゴリー一覧の全カラムと順序、各Option一覧の全件を確認する。公開レスポンスは第2・5章に合わせる。
+- 正常: 所有者の取得、取得列・関連・任意項目のnull/値あり・画像配列・JSONBの保持、編集データの対象外カラム非公開、7キーの応答を確認する。Category/parent/childrenの6列、独立したlevel1カテゴリー一覧の全カラムと順序、各Option一覧の全件を確認する。公開レスポンスは第2・5章に合わせる。
 - ショップ有無: 認証ユーザーの未登録・未承認はfalse、承認済みはtrueとし、他人の承認済みショップが混入しないこと、User/ShopInfo本体を公開しないことを確認する。
 - 認証・認可: 未認証/不正JWTの401、他人・不存在・所有者nullの404、body/queryへの所有者偽装の無視。認証拒否時は制限・DBが未実行であることを確認する。
 - 入力境界: 1/2147483647を許可し、0/負数/小数/非数値/上限超過を拒否する。数値coerceの実契約と検証済みparamsの採用を確認する。

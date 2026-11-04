@@ -81,6 +81,7 @@
         "duration": null,
         "original_url": null,
         "converted_url": null,
+        "video_status": null,
         "before_price": null,
         "discount_rate": null,
         "discount_amount": null,
@@ -185,6 +186,7 @@ attributes: [
     "duration",
     "original_url",
     "converted_url",
+    "video_status",
     "before_price",
     "discount_rate",
     "discount_amount",
@@ -261,3 +263,5 @@ include: [
 - 再送・並行: 参照に副作用がなく対象・他人の下書きとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・関連取得・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。
 - 次工程成果物: `server/test/docs/architecture/itemDraft/getItemDraftPage.md` と `server/test/docs/report/itemDraft/getItemDraftPage.md`。実行結果はレポートに記録する。
+
+F9対応（2026-11-04）: 所有者限定の既存item-page応答にvideo_statusを追加し、非同期変換の完了照会で使用する。値はDBのnullable文字列を保持する。対応テストコード実装済み・未実行。

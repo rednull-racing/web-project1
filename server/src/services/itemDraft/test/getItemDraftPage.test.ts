@@ -44,6 +44,7 @@ describe("P0/P1 getMyItemDraftPage", () => {
                 "duration",
                 "original_url",
                 "converted_url",
+                "video_status",
                 "before_price",
                 "discount_rate",
                 "discount_amount",

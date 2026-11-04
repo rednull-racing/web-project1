@@ -39,6 +39,7 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
             duration: 30,
             original_url: "https://media.test/original",
             converted_url: "https://media.test/converted",
+            video_status: f.draft.video_status,
             before_price: 1200,
             discount_rate: 25,
             discount_amount: 400,
@@ -68,6 +69,14 @@ describe("getItemDraftPage 実DB取得・所有権・副作用なし", () => {
         });
         expect(Category.children).toHaveLength(2);
         expect(JSON.parse(JSON.stringify(result)).updatedAt).toBe("2020-01-02T00:00:00.000Z");
+        expect(await snapshotAll(f)).toEqual(before);
+    });
+
+    it.each(["processing", "converted", "failed"])("F9 変換状態%sを取得してDBを書き換えない", async (video_status) => {
+        const f = await seed();
+        await f.draft.update({ video_status });
+        const before = await snapshotAll(f);
+        expect((await run(f)).get({ plain: true })).toMatchObject({ id: f.draft.id, video_status });
         expect(await snapshotAll(f)).toEqual(before);
     });
 
