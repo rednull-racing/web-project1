@@ -1,0 +1,90 @@
+import { useState } from "react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { server } from "../../../../test/fixtures/server";
+import { BrandInput, type BrandValue } from "../brandInput";
+function setup(initial: BrandValue = { id: null, name: "" }) {
+    const change = vi.fn();
+    function Host() { const [value, set] = useState(initial); return <BrandInput value={value} onChange={(next) => { change(next); set(next); }} />; }
+    return { ...render(<Host />), change };
+}
+beforeEach(() => { vi.stubEnv("NEXT_PUBLIC_API_URL", "https://api.test"); });
+describe("BrandInput", () => {
+    it("U11 300ms debounce・候補選択・選択中検索抑止", async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        const requests: string[] = [];
+        server.use(http.get("https://api.test/brands/suggest", ({ request }) => { requests.push(new URL(request.url).searchParams.get("keyword") ?? ""); return HttpResponse.json({ brands: [{ id: "4", name: "BrandA", name_normalized: "branda" }] }); }));
+        const { change } = setup();
+        const input = screen.getByPlaceholderText("ブランド名を入力");
+        fireEvent.focus(input);
+        fireEvent.change(input, { target: { value: "B" } });
+        await act(() => vi.advanceTimersByTimeAsync(100));
+        fireEvent.change(input, { target: { value: "Br" } });
+        await act(() => vi.advanceTimersByTimeAsync(299));
+        expect(requests).toEqual([]);
+        await act(() => vi.advanceTimersByTimeAsync(1));
+        await waitFor(() => expect(requests).toEqual(["Br"]));
+        fireEvent.mouseDown(await screen.findByText("BrandA"));
+        expect(change).toHaveBeenLastCalledWith({ id: "4", name: "BrandA" });
+        await act(() => vi.advanceTimersByTimeAsync(499));
+        expect(requests).toEqual(["Br"]);
+        await act(() => vi.advanceTimersByTimeAsync(301));
+        await waitFor(() => expect(requests).toEqual(["Br", "BrandA"]));
+        fireEvent.focus(input);
+        expect(await screen.findByText("BrandA")).toBeInTheDocument();
+        fireEvent.blur(input);
+        await act(() => vi.advanceTimersByTimeAsync(150));
+        expect(screen.queryByText("BrandA")).not.toBeInTheDocument();
+    });
+    it.each(["empty", "http", "network", "json"])("U11 %sの候補失敗/空応答", async (kind) => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        const request = vi.fn();
+        server.use(http.get("https://api.test/brands/suggest", () => { request(); return kind === "network" ? HttpResponse.error() : kind === "json" ? new HttpResponse("invalid") : HttpResponse.json(kind === "http" ? { message: "error" } : { brands: [] }, { status: kind === "http" ? 500 : 200 }); }));
+        setup();
+        await userEvent.type(screen.getByPlaceholderText("ブランド名を入力"), "x");
+        await waitFor(() => expect(request).toHaveBeenCalledOnce());
+        expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+    });
+    it("U11 unmountで予約検索を解除", async () => {
+        vi.useFakeTimers();
+        const request = vi.fn();
+        server.use(http.get("https://api.test/brands/suggest", () => { request(); return HttpResponse.json({ brands: [] }); }));
+        const { unmount } = setup();
+        fireEvent.change(screen.getByPlaceholderText("ブランド名を入力"), { target: { value: "ABC" } });
+        unmount();
+        await act(() => vi.advanceTimersByTimeAsync(1000));
+        expect(request).not.toHaveBeenCalled();
+    });
+    it("Q03 選択済みブランドの手入力変更はidを保持（観測）", () => {
+        vi.useFakeTimers();
+        const { change } = setup({ id: "4", name: "BrandA" });
+        fireEvent.change(screen.getByPlaceholderText("ブランド名を入力"), { target: { value: "別ブランド" } });
+        expect(change).toHaveBeenCalledWith({ id: "4", name: "別ブランド" });
+    });
+    it("Q03 検索語&/#はencodeされずクエリ/fragment扱い（観測）", async () => {
+        const urls: string[] = [];
+        server.use(http.get("https://api.test/brands/suggest", ({ request }) => { urls.push(request.url); return HttpResponse.json({ brands: [] }); }));
+        setup();
+        fireEvent.change(screen.getByPlaceholderText("ブランド名を入力"), { target: { value: "A&B#C" } });
+        await waitFor(() => expect(urls).toHaveLength(1));
+        expect(new URL(urls[0]).searchParams.get("keyword")).toBe("A");
+    });
+    it("Q03 古い応答が新しいブランド候補を上書き（観測）", async () => {
+        let release!: () => void;
+        const delayed = new Promise<void>((resolve) => { release = resolve; }); let started = false;
+        server.use(http.get("https://api.test/brands/suggest", async ({ request }) => {
+            const keyword = new URL(request.url).searchParams.get("keyword");
+            if (keyword === "A") { started = true; await delayed; }
+            return HttpResponse.json({ brands: [{ id: keyword, name: `候補${keyword}`, name_normalized: keyword }] });
+        }));
+        setup(); const input = screen.getByPlaceholderText("ブランド名を入力");
+        fireEvent.focus(input); fireEvent.change(input, { target: { value: "A" } });
+        await waitFor(() => expect(started).toBe(true));
+        fireEvent.change(input, { target: { value: "B" } });
+        expect(await screen.findByText("候補B")).toBeInTheDocument();
+        release(); expect(await screen.findByText("候補A")).toBeInTheDocument();
+        expect(screen.queryByText("候補B")).not.toBeInTheDocument();
+    });
+});
