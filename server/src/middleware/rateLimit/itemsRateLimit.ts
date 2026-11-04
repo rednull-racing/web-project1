@@ -118,13 +118,6 @@ export const getItemPageRateLimit = rateLimit({
     legacyHeaders: false,
 });
 
-export const getItemUploadFormDataRateLimit = rateLimit({
-    windowMs: 1000 * 60,
-    limit: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-
 export const getItemHighlightRateLimit = rateLimit({
     windowMs: 1000 * 60,
     limit: 100,

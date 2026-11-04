@@ -26,7 +26,6 @@ export {
     getItem,
     getItemByVideoId,
     getItemForBuy,
-    getItemFormData,
     getItemHighlight,
     getItemPageData,
     getItemPageRecommendItems,

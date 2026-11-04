@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express-serve-static-core";
+import { createItemUseCase } from "../../usecases/items/create/createItem.js";
 import { deleteItemLogicallyUseCase } from "../../usecases/items/delete/logicalDelete.js";
 import { deleteItemPerfectUseCase } from "../../usecases/items/delete/perfectDelete.js";
-import { getFormDataUseCase } from "../../usecases/items/formData/getFormData.js";
 import { getItemHighlightUseCase } from "../../usecases/items/highlight/getItemHighlight.js";
 import { getItemListUseCase } from "../../usecases/items/itemList/itemList.js";
 import { getRecommendItemsUseCase } from "../../usecases/items/itemList/recommendItems.js";
@@ -14,9 +14,8 @@ import {
     patchSortNumberAddUseCase,
     patchSortNumberDecreaseUseCase,
 } from "../../usecases/items/sortNumber/sortNumber.js";
-import { createItemUseCase } from "../../usecases/items/create/createItem.js";
-import { runDetachedTask } from "../../utils/runDetachedTask.js";
 import { updateItemUseCase } from "../../usecases/items/update/updateItem.js";
+import { runDetachedTask } from "../../utils/runDetachedTask.js";
 import type { CreateItemBody, UpdateItemBody } from "../../validators/body/items.js";
 import type {
     ItemListQuery,
@@ -258,33 +257,6 @@ export const getItemMetadataController = async (req: Request, res: Response, nex
         const item = await getMetadataUseCase({ itemId });
 
         res.status(200).json({ item });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// GET /items/:id/form-data
-// summary: アップロードフォーム表示データ取得
-// page: /upload
-export const getItemFormDataController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const itemId = Number(req.params.id);
-        const userId = req.user!.id;
-
-        const { item, category, allCondition, allDay, allService, allPlace, hasShop } = await getFormDataUseCase({
-            itemId,
-            userId,
-        });
-
-        res.status(200).json({
-            item,
-            category,
-            allCondition,
-            hasShop,
-            allDay,
-            allService,
-            allPlace,
-        });
     } catch (err) {
         next(err);
     }

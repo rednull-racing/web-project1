@@ -2,11 +2,9 @@ import { Router } from "express";
 import {
     addItemSortNumberController,
     createItemController,
-    updateItemController,
     decreaseItemSortNumberController,
     deleteItemLogicallyController,
     deleteItemPerfectController,
-    getItemFormDataController,
     getItemHighlightController,
     getItemListController,
     getItemMetadataController,
@@ -15,21 +13,21 @@ import {
     patchItemAccessLogsController,
     restoreItemController,
     searchItemsController,
+    updateItemController,
 } from "../controllers/items/items.js";
 import { authenticateOptional, authenticateToken } from "../middleware/index.js";
 import {
     createItemRateLimit,
-    updateItemRateLimit,
     editSortItemRateLimit,
     getItemHighlightRateLimit,
     getItemListRateLimit,
     getItemPageRateLimit,
     getItemRecommendRateLimit,
     getItemSearchRateLimit,
-    getItemUploadFormDataRateLimit,
     logicalDeleteItemRateLimit,
     perfectDeleteItemRateLimit,
     restoreItemRateLimit,
+    updateItemRateLimit,
 } from "../middleware/rateLimit/itemsRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
@@ -159,17 +157,6 @@ router.get(
 // summary: 商品ページメタデータ
 // page: /item
 router.get("/:id/metadata", validateParams(idParamSchema), getItemMetadataController);
-
-// GET /items/:id/form-data
-// summary: アップロードフォーム表示データ取得
-// page: /upload
-router.get(
-    "/:id/form-data",
-    getItemUploadFormDataRateLimit,
-    authenticateToken,
-    validateParams(idParamSchema),
-    getItemFormDataController,
-);
 
 // GET /items/:id/highlight
 // summary: 商品データ簡易表示
