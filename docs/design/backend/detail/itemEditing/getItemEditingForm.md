@@ -2,7 +2,7 @@
 
 基本設計: [商品アップロードAPI設計](../../itemUpload.md)
 
-更新日: 2026-11-04。ユーザー確認により毎分80回、`updatedAt`・`item_id`非公開、フロント型参照先を修正。
+更新日: 2026-11-04。ユーザー確認により追加一覧をトップレベルで返し、`hasShop`をbooleanとする。カテゴリー一覧は既存`getAllLevel1()`の全カラム取得を維持する。毎分80回、`updatedAt`・`item_id`非公開の契約は維持する。
 
 ## 1. 概要
 
@@ -69,7 +69,7 @@
 
 成功時: 200 OK
 
-取得完了後に `{ "itemEditing": ... }` の1キーを返す。
+編集セッションと追加データの取得完了後に、`itemEditing`・`category`・`allCondition`・`allDay`・`allService`・`allPlace`・`hasShop`の7キーをトップレベルで返す。usecaseはこれらを持つ結果オブジェクトを返し、controllerは`res.status(200).json(result)`で応答する。
 
 ```json
 {
@@ -104,9 +104,15 @@
         {
             "id": 123,
             "name": "カテゴリー",
+            "level": 1,
+            "sort_order": 0,
             "allowed_gender": "unisex",
             "allowed_age": "both",
-            "parent_id": null
+            "parent_id": null,
+            "body_category": null,
+            "lifestyle_category": null,
+            "layer": "middle",
+            "path": "category"
         }
     ],
     "allCondition": [
@@ -133,9 +139,7 @@
             "name": "東京都"
         }
     ],
-    "hasShop": {
-        "ShopInfo": null
-    }
+    "hasShop": false
 }
 ```
 
@@ -154,7 +158,11 @@ const [category, allCondition, allDay, allService, allPlace, userHasShop] = awai
 const hasShop = !!userHasShop?.ShopInfo;
 ```
 
-参照元は `client/src/app/upload/types/types.ts`。Brand/Option、Category・parent・childrenの取得列はid/nameとする。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。フロント型そのものは今回変更しない。
+参照元は `client/src/app/upload/types/types.ts`。`itemEditing`内のBrand/Optionはid/name、Category・parent・childrenはid/name/allowed_gender/allowed_age/parent_idを取得する。Category/parentや任意関連の未設定はnull、childrenがなければ空配列。Categoryのchildren順序は保証しない。
+
+トップレベルの`category`は編集データのCategoryとは別の一覧であり、既存`getAllLevel1()`を変更せず使用する。`level = 1`の全カテゴリーを全カラム取得し、`sort_order ASC`で返す。同順位の順序は保証しない。各Option一覧も既存の全件・全カラム取得を維持し、順序は保証しない。一覧に該当行がなければ空配列を返す。
+
+`hasShop`は`!!userHasShop?.ShopInfo`によるboolean。`getUserHasShop({ userId })`は認証ユーザーに紐づく`verified: true`のShopInfoだけを任意関連として取得するため、承認済みショップがあればtrue、未登録・未承認・ユーザー取得結果nullならfalse。User/ShopInfoの取得内容そのものはレスポンスへ含めない。フロント型そのものは今回変更しない。
 
 ### 三行コメント
 
@@ -184,8 +192,9 @@ where: {
 3. params.idを検証し、itemEditingIdと認証済みuserIdをusecaseに渡す（不正は400）。
 4. serviceで編集セッションと関連を所有者条件付きで取得する。
 5. nullならusecaseで `new AppError("ITEM_EDITING_NOT_FOUND", 404)` を送出する。DB例外はそのまま伝播させる。
-6. 編集セッションがあればusecaseからcontrollerへ返し、controllerが200で `{ itemEditing }` を返す。
-7. controllerは例外を `next(err)` へ渡し、共通errorHandlerが公開応答を生成する。
+6. 編集セッションがあれば、usecaseでカテゴリー・コンディション・配送予定日・配送サービス・都道府県・認証ユーザーのショップ有無の6取得を`Promise.all`で並列実行し、すべての完了を待つ。編集セッションの取得失敗・404時には開始しない。
+7. `hasShop`をbooleanへ変換し、usecaseから7キーの結果をcontrollerへ返す。controllerが200で第2章のJSONを返す。追加取得のいずれかが失敗した場合も元例外を伝播し、成功応答を返さない。開始済み並列処理の取消しは保証しない。
+8. controllerは例外を `next(err)` へ渡し、共通errorHandlerが公開応答を生成する。
 
 ### 処理フロー図
 
@@ -202,7 +211,10 @@ flowchart TD
     F --> G{編集セッションが存在するか}
     F -->|DB例外| E500[共通errorHandler・500]
     G -->|No| E404[共通errorHandler・404]
-    G -->|Yes| H[controller・200 JSON]
+    G -->|Yes| I[一覧とショップ有無の6取得・並列完了待ち]
+    I -->|DB例外| E500
+    I --> J[hasShopをbooleanへ変換・7キーの結果生成]
+    J --> H[controller・200 JSON]
 ```
 
 ## 5. DB操作仕様
@@ -214,7 +226,9 @@ flowchart TD
 
 - 関連参照: categories（Category・parent・children）、brands（Brand）、item_condition_option、shipping_day_option、shipping_service_option、todouhuken_option。aliasはModelのassociate定義に合わせる。
 - `status`（"normal" | "edit"）を取得する。`item_id`・`updatedAt`は公開しない。
-- 取得列・関連は以下を確定契約とする。createdAt・video_status・各FKなど列挙しない列は公開しない。
+- `itemEditing`の取得列・関連は以下を確定契約とする。createdAt・video_status・各FKなど列挙しない編集列は公開しない。
+- 追加一覧はcategories（`level = 1`、`sort_order ASC`）と4つのOptionテーブルを全件・全カラム参照する。既存の一覧取得serviceを変更しない。
+- ショップ判定はuserを認証済みuserIdで取得し、shop_infoの`verified = true`を条件とする任意関連ShopInfoを参照する。結果はbooleanだけを公開する。
 - 実DBの検証結果は本APIのテストレポートに記録し、他APIの検証結果で代替しない。
 
 ### 取得データ・レスポンス詳細
@@ -286,7 +300,8 @@ include: [
 
 ## 6. トランザクション設計
 
-- 関連を含む単一の参照であり、明示的なtransaction・行ロック・更新は行わない。更新用ロックを持つ既存 `getMyItemEditing` は利用しない。
+- 編集セッションの関連付き参照後に追加6取得を行う。すべて参照処理であり、明示的なtransaction・行ロック・更新は行わない。更新用ロックを持つ既存 `getMyItemEditing` は利用しない。
+- 各取得は同一transactionのsnapshotへ固定しないため、編集データ・マスター・ショップ有無の厳密な同時点整合は保証しない。
 - 繰返し取得はその時点の保存値を返す。並行する更新・削除との厳密な直列化や、取得後も行が残ることは保証しない。取得時点で存在しなければ404。
 - 書込み・外部通信・通知がないため、rollback・補償・副作用の再送は該当しない。
 
@@ -306,11 +321,12 @@ include: [
 
 ## 8. テスト設計
 
-- 正常: 所有者の取得、取得列・関連・任意項目のnull/値あり・画像配列・JSONBの保持、対象外カラムの非公開、取得完了後の200を確認する。公開レスポンスは第2・5章に合わせる。
+- 正常: 所有者の取得、取得列・関連・任意項目のnull/値あり・画像配列・JSONBの保持、編集データの対象外カラム非公開、7キーの応答を確認する。Category/parent/childrenの5列、独立したlevel1カテゴリー一覧の全カラムと順序、各Option一覧の全件を確認する。公開レスポンスは第2・5章に合わせる。
+- ショップ有無: 認証ユーザーの未登録・未承認はfalse、承認済みはtrueとし、他人の承認済みショップが混入しないこと、User/ShopInfo本体を公開しないことを確認する。
 - 認証・認可: 未認証/不正JWTの401、他人・不存在・所有者nullの404、body/queryへの所有者偽装の無視。認証拒否時は制限・DBが未実行であることを確認する。
 - 入力境界: 1/2147483647を許可し、0/負数/小数/非数値/上限超過を拒否する。数値coerceの実契約と検証済みparamsの採用を確認する。
 - 制限・優先順位: 同じユーザーの80回と81回目、他ユーザーとの分離、窓終了後の再開、不正paramsと404の計上、制限超過と不正idが重なる場合の429を確認する。parser拒否は別経路として確認する。
-- 失敗・待機: DB失敗の伝播と500、usecase/controllerの完了待ち、取得失敗時の成功応答未実行を確認する。
+- 失敗・待機: 編集データの取得失敗・404時には追加取得を開始しない。追加6取得の各失敗で元例外を伝播し500となること、各保留中に成功結果を返さず、すべて完了してからusecase/controllerが返すことを確認する。
 - 再送・並行: 参照に副作用がなく対象・他人の編集セッションとマスターが不変であること、別リクエスト間で結果が混ざらないことを確認する。書込みの状態遷移・rollback・ロック待機は本APIには該当しない。
 - 検証レベル: service/usecase/controller単体、実Router・認証・schema・制限・errorHandlerのHTTP接続、実DBによる所有者絞込み・関連取得・非対象不変を分ける。DB検証はtest_dbガードと必要スキーマ確認後に自作IDで行う。
 - 次工程成果物: `server/test/docs/architecture/itemEditing/getItemEditingForm.md` と `server/test/docs/report/itemEditing/getItemEditingForm.md`。実行結果はレポートに記録する。
