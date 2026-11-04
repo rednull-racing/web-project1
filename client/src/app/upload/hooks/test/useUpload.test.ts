@@ -33,15 +33,15 @@ describe("upload検証とbody", () => {
     it.each([0, 1, 2, 3])("U03 サイズ合計 %s", total => { const p = params(); p.attributesValue.colorVariants[0].sizes[0].inventory = total; expect(validateUpload(p).ok).toBe(total < 2 || total === 2); });
     it("U03 素材→色→サイズの検証順", () => { const p = params(); p.materialValue.materials[0].ratio = 101; p.attributesValue.all_inventory = 4; expect(validateUpload(p).message).toContain("素材"); p.materialValue.materials = []; expect(validateUpload(p).message).toContain("カラー"); });
     it("U04 下書きは必須未入力と価格0を許容", () => { const p = params(); required.forEach(([, change]) => change(p)); p.priceValue.price = 0; expect(validateForDraft(p)).toEqual({ ok: true }); });
-    it.each([[2, 3, false], [2, 2, true], [3, 2, true], [1, 3, true]])("U04 Q01 観測 色%s 全%s", (total, all, ok) => { const p = params(); p.attributesValue.all_inventory = all; p.attributesValue.colorVariants[0].inventory = total; p.attributesValue.colorVariants[0].sizes = []; expect(validateForDraft(p).ok).toBe(ok); });
+    it.each([[2, 3, true], [2, 2, true], [3, 2, false], [1, 3, true]])("U04 AF-F3 色%s 全%s", (total, all, ok) => { const p = params(); p.attributesValue.all_inventory = all; p.attributesValue.colorVariants[0].inventory = total; p.attributesValue.colorVariants[0].sizes = []; expect(validateForDraft(p).ok).toBe(ok); });
     it.each([[2, 3, true], [2, 2, true], [3, 2, false], [1, 3, true]])("U04 サイズ%s 全%s", (total, all, ok) => { const p = params(); p.attributesValue.all_inventory = all; p.attributesValue.colorVariants[0].inventory = 1; p.attributesValue.colorVariants[0].sizes[0].inventory = total; expect(validateForDraft(p).ok).toBe(ok); });
     it("U05 全項目のJSON変換と非破壊", () => {
         const p = params(); const before = structuredClone(p.itemNameDetail);
         expect(createBody(p)).toEqual({
-            video: { name: "unknown", type: null, uploaded: true }, thumbnail: { name: "unknown", type: null, uploaded: true },
+            video: { name: "unknown", type: undefined, uploaded: true }, thumbnail: { name: "unknown", type: undefined, uploaded: true },
             videoMeta: { title: "着用動画", summary: "概要" }, itemImages: [{ name: "old.jpg", type: null, uploaded: true }],
-            itemMeta: before, category: { id: "10", name: "シャツ", parent_id: 1, level: 2 }, genderAge: { gender: "unisex", age: "adult" }, brand: { id: "20", name: "ブランド" },
-            attributes: { allInventory: 2, colorVariants: [{ uiId: "red", color: "赤", inventory: 2, image: null, sizes: [{ size: "M", inventory: 2 }] }], materials: [{ name: "綿", ratio: 60 }, { name: "麻", ratio: 40 }] },
+            itemMeta: before, category: { id: "10", name: "シャツ", parent_id: "1", level: 2 }, genderAge: { gender: "unisex", age: "adult" }, brand: { id: "20", name: "ブランド" },
+            attributes: { allInventory: 2, colorVariants: [{ uiId: "red", color: "赤", inventory: 2, image: undefined, sizes: [{ size: "M", inventory: 2 }] }], materials: [{ name: "綿", ratio: 60 }, { name: "麻", ratio: 40 }] },
             condition: { id: "1", name: "新品" }, shipping: { day: "2", service: "3", place: "4", freeText: null }, price: 1000,
         }); expect(p.itemNameDetail).toEqual(before);
     });
@@ -55,4 +55,25 @@ it("Q06 観測 Hookは文字数・MIME・小数在庫を追加検査しない", 
     p.attributesValue.all_inventory = 1.5; p.attributesValue.colorVariants = [];
     const { result } = renderHook(useUpload); expect(result.current.validateUpload(p).ok).toBe(true);
     expect(result.current.createBody(p).video.type).toBe("text/plain");
+});
+
+it("AF-F10 API由来数値IDとnullのメタ情報を送信契約へ正規化", () => {
+    const p = params();
+    // API応答とUI型の不一致を境界入力で再現する。
+    p.categoryValue = JSON.parse('{"id":10,"name":"親","parent_id":2,"level":2}');
+    p.brandValue = JSON.parse('{"id":20,"name":"ブランド"}');
+    p.conditionValue = JSON.parse('{"id":1,"name":"新品"}');
+    p.shippingValue = { ...p.shippingValue, ...JSON.parse('{"day_id":2,"service_id":3,"place_id":4}') };
+    p.attributesValue.colorVariants[0].color = null;
+    p.attributesValue.colorVariants[0].sizes[0].size = null;
+    const body = JSON.parse(JSON.stringify(createBody(p)));
+    expect(body.category).toEqual({ id: "10", name: "親", parent_id: "2", level: 2 });
+    expect(body.brand.id).toBe("20"); expect(body.condition.id).toBe("1");
+    expect(body.shipping).toMatchObject({ day: "2", service: "3", place: "4" });
+    expect(body.video).not.toHaveProperty("type"); expect(body.thumbnail).not.toHaveProperty("type");
+    expect(body.attributes.colorVariants[0]).not.toHaveProperty("image");
+    expect(body.attributes.colorVariants[0]).not.toHaveProperty("color");
+    expect(body.attributes.colorVariants[0].sizes[0].size).toBe("");
+    p.categoryValue.id = null; p.categoryValue.level = 0;
+    expect(createBody(p).category).toMatchObject({ id: null, level: 1 });
 });

@@ -148,7 +148,7 @@ export const useUpload = () => {
             (sum, v) => sum + (v.inventory ?? 0),
             0,
         );
-        if (colorTotalInventory >= 2 && colorTotalInventory < params.attributesValue.all_inventory) {
+        if (colorTotalInventory >= 2 && colorTotalInventory > params.attributesValue.all_inventory) {
             return { ok: false, message: "カラーの出品点数が合計点数を超過しています" };
         }
 
@@ -200,12 +200,12 @@ export const useUpload = () => {
         return {
             video: {
                 name: videoInput.videoFile?.name ?? "unknown",
-                type: videoInput.videoFile?.type ?? null,
+                type: videoInput.videoFile?.type,
                 uploaded: videoInput.videoUploaded,
             },
             thumbnail: {
                 name: videoInput.thumbnailFile?.name ?? "unknown",
-                type: videoInput.thumbnailFile?.type ?? null,
+                type: videoInput.thumbnailFile?.type,
                 uploaded: videoInput.thumbnailUploaded,
             },
             videoMeta: {
@@ -218,28 +218,31 @@ export const useUpload = () => {
                 detail: itemNameDetail.detail,
             },
             category: {
-                id: categoryValue.id,
+                id: categoryValue.id == null || categoryValue.id === "" ? null : String(categoryValue.id),
                 name: categoryValue.name,
-                parent_id: categoryValue.parent_id,
-                level: categoryValue.level,
+                parent_id: categoryValue.parent_id == null ? null : String(categoryValue.parent_id),
+                level: categoryValue.id ? categoryValue.level : 1,
             },
             genderAge: {
                 gender: genderAgeValue.gender_type,
                 age: genderAgeValue.age_type,
             },
             brand: {
-                id: brandValue.id,
+                id: brandValue.id == null ? null : String(brandValue.id),
                 name: brandValue.name,
             },
             attributes: {
                 allInventory: attributesValue.all_inventory,
                 colorVariants: attributesValue.colorVariants.map((v) => ({
                     uiId: v._uiId,
-                    color: v.color,
+                    color: v.color ?? undefined,
                     inventory: v.inventory,
-                    image: resolveAttributesImage(v),
+                    image: (() => {
+                        const image = resolveAttributesImage(v);
+                        return image ? { ...image, name: image.name ?? "unknown", type: image.type ?? undefined } : undefined;
+                    })(),
                     sizes: v.sizes.map((s) => ({
-                        size: s.size,
+                        size: s.size ?? "",
                         inventory: s.inventory,
                     })),
                 })),
@@ -249,13 +252,13 @@ export const useUpload = () => {
                 })),
             },
             condition: {
-                id: conditionValue.id,
+                id: String(conditionValue.id),
                 name: conditionValue.name,
             },
             shipping: {
-                day: shippingValue.day_id,
-                service: shippingValue.service_id,
-                place: shippingValue.place_id,
+                day: shippingValue.day_id == null ? null : String(shippingValue.day_id),
+                service: shippingValue.service_id == null ? null : String(shippingValue.service_id),
+                place: shippingValue.place_id == null ? null : String(shippingValue.place_id),
                 freeText: shippingValue.free_text,
             },
             price: Number(priceValue.price),

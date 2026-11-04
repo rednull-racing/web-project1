@@ -1,22 +1,24 @@
-import { UploadMeta } from "../hooks/useUpload";
+type FileMeta = { name?: string; type?: string; uploaded: boolean };
+type ImageMeta = { name?: string; type: string | null; uploaded: boolean };
 
 export type Body = {
-    video?: UploadMeta;
-    thumbnail?: UploadMeta;
+    video?: FileMeta;
+    thumbnail?: FileMeta;
     videoMeta: { title: string; summary: string };
-    itemImages: UploadMeta[];
+    itemImages: ImageMeta[];
     itemMeta: { name: string; detail: string };
-    category: { id: string | null; name: string; parent_id: number | null; level: number };
+    category: { id: string | null; name: string; parent_id: string | null; level: number };
     genderAge: { gender: string | null; age: string | null };
     brand: { id: string | null; name: string | null };
     attributes: {
         allInventory: number;
         colorVariants: Array<{
             uiId: string;
-            color: string | null;
-            image: UploadMeta | null;
+            color?: string;
+            inventory: number;
+            image?: FileMeta;
             sizes: Array<{
-                size: string | null;
+                size: string;
                 inventory: number;
             }>;
         }>;
