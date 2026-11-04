@@ -1,3 +1,4 @@
+import { createItemDraftBodySchema } from '../../../../../server/src/validators/body/itemDraft.js';
 import { test, expect } from '../../../../fixtures/item/itemConfirmPage/harness.js';
 test('D02 保存でediting削除とdraft値確認', async ({ page, context, baseURL, e2e }) => {
     await e2e.login(context, baseURL!);
@@ -8,7 +9,11 @@ test('D02 保存でediting削除とdraft値確認', async ({ page, context, base
     const pending = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname.endsWith('/item-draft'));
     await page.getByRole('button', { name: '下書き保存する', exact: true }).click();
     const response = await pending;
-    await test.info().attach('D02-response', { body: JSON.stringify({ status: response.status(), body: await response.json() }), contentType: 'application/json' });
+    const validation = createItemDraftBodySchema.safeParse(response.request().postDataJSON());
+    await test.info().attach('body-contract-issues', { body: JSON.stringify(validation.success ? [] : validation.error.issues.map(issue => ({ path: issue.path, code: issue.code, message: issue.message }))), contentType: 'application/json' });
+    const payload: unknown = await response.json().catch(() => null);
+    const code = payload && typeof payload === 'object' && 'code' in payload && typeof payload.code === 'string' ? payload.code : null;
+    await test.info().attach('D02-response', { body: JSON.stringify({ status: response.status(), code }), contentType: 'application/json' });
     expect(response.status()).toBe(201);
     expect(await e2e.database.get('item_editing', editing.id)).toBeNull();
     expect((await e2e.database.db.query('SELECT * FROM item_draft WHERE seller_id=$1 AND name=$2', [e2e.seed.owner.id, '下書き保存したシャツ'])).rows).toHaveLength(1);
