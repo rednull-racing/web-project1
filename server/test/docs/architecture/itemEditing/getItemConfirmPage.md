@@ -39,5 +39,5 @@ DBケースIDの詳細はテスト名とレポートへ対応付ける。fixture
 
 server/で npm run test:run -- src/services/itemEditing/test/getItemConfirmPage.test.ts src/usecases/itemEditing/test/getItemConfirmPage.test.ts src/controllers/itemEditing/test/getItemConfirmPage.test.ts test/integration/usecases/itemEditing/getItemConfirmPage/route.test.ts を実行し、実DBは npm run test:run -- test/integration/database/itemEditing/getItemConfirmPage/ を別実行する。
 共有controllerへのimport追加の影響は既存itemEditingの単体・HTTPテストを対象指定して回帰する。
-npm run lint、npm run typecheck、./node_modules/.bin/tsc --noEmit -p test/tsconfig.json、通常lint対象外のtest/\*_/_.tsは既存typescript-eslintで追加検査する。
+npm run lint、npm run typecheck、./node*modules/.bin/tsc --noEmit -p test/tsconfig.json、通常lint対象外のtest/\**/\_.tsは既存typescript-eslintで追加検査する。
 全必須ケース成功、skip/未実行/未処理例外なし、静的検査とcleanup成功を完了条件とする。実行履歴は[レポート](../../report/itemEditing/getItemConfirmPage.md)へ記録する。

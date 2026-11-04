@@ -80,7 +80,15 @@ describe("getItemEditingForm 実DB 所有者限定・公開列・参照不変 P0
         ])
             expect(data[key], key).toBeNull();
         expect(data.attributes).toEqual({});
-        for (const key of ["item_id", "updatedAt", "createdAt", "video_status", "category_id", "recommend", "sale_flag"])
+        for (const key of [
+            "item_id",
+            "updatedAt",
+            "createdAt",
+            "video_status",
+            "category_id",
+            "recommend",
+            "sale_flag",
+        ])
             expect(data).not.toHaveProperty(key);
     });
     it.each(["otherEditing", "ownerless", "missingId"] as const)("DB03 %sは同じ404で全行不変", async (target) => {

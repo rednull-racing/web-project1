@@ -8,13 +8,13 @@
 [詳細設計](../../../../../docs/design/backend/detail/itemEditing/getItemEditingForm.md)と[テスト設計](../../architecture/itemEditing/getItemEditingForm.md)に対応するGET /api/item-editing/:id/formを実装。
 認証→専用毎分80回制限→id検証→controller→usecase→所有者条件付きserviceを接続。updatedAt/item_id・管理列を公開せず、指定列と任意関連のid/nameのみ取得。参照先はclient/src/app/upload/types/types.tsへ訂正。フロント型・DBスキーマ・migrationは変更していない。
 
-| ファイル | ケース | 最新結果 |
-| --- | --- | --- |
-| src/services/itemEditing/test/getItemEditingForm.test.ts | S01〜S04 | 4成功 |
-| src/usecases/itemEditing/test/getItemEditingForm.test.ts | U01〜U05（U04を成功/失敗展開） | 6成功 |
-| src/controllers/itemEditing/test/getItemEditingForm.test.ts | C01〜C04（C02/C03展開） | 6成功 |
-| test/integration/usecases/itemEditing/getItemEditingForm/route.test.ts | H01〜H08（認証/境界/制限の条件展開） | 30成功 |
-| test/integration/database/itemEditing/getItemEditingForm/database.test.ts | DB01〜DB06（DB03を3条件展開） | 8成功 |
+| ファイル                                                                  | ケース                               | 最新結果 |
+| ------------------------------------------------------------------------- | ------------------------------------ | -------- |
+| src/services/itemEditing/test/getItemEditingForm.test.ts                  | S01〜S04                             | 4成功    |
+| src/usecases/itemEditing/test/getItemEditingForm.test.ts                  | U01〜U05（U04を成功/失敗展開）       | 6成功    |
+| src/controllers/itemEditing/test/getItemEditingForm.test.ts               | C01〜C04（C02/C03展開）              | 6成功    |
+| test/integration/usecases/itemEditing/getItemEditingForm/route.test.ts    | H01〜H08（認証/境界/制限の条件展開） | 30成功   |
+| test/integration/database/itemEditing/getItemEditingForm/database.test.ts | DB01〜DB06（DB03を3条件展開）        | 8成功    |
 
 最終のDBなし実行は29ファイル・411成功（新規46＋既存365）。別実行のDB1ファイル8成功を加え30ファイル419成功。初回や中間再実行を加算していない。カバレッジは未取得。
 
@@ -56,7 +56,7 @@ npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
 
-通常lint対象外の変更test/配下10 TSを、ESLint Node APIのoverrideConfigFile:trueと既存@eslint/js recommended・typescript-eslint recommended、files:test/**/*.tsで追加検査。10 files/0 diagnostics、exit0。共有設定は変更していない。対象は新規DB fixture/DB test/HTTP test、既存convert動画httpMocks、sharedIdRoutesと既存itemEditingの5 route.test.ts。DB担当側でも新規2 TSを追加ESLint・本番/テスト型検査・lintで検査済み。
+通常lint対象外の変更test/配下10 TSを、ESLint Node APIのoverrideConfigFile:trueと既存@eslint/js recommended・typescript-eslint recommended、files:test/\*_/_.tsで追加検査。10 files/0 diagnostics、exit0。共有設定は変更していない。対象は新規DB fixture/DB test/HTTP test、既存convert動画httpMocks、sharedIdRoutesと既存itemEditingの5 route.test.ts。DB担当側でも新規2 TSを追加ESLint・本番/テスト型検査・lintで検査済み。
 git diff --check成功。
 
 ## 実行履歴・修正

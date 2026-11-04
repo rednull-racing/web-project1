@@ -267,12 +267,10 @@ export const openConfirm = async (
     await page.goto(`/item/confirm/${mode === "edit" ? "edit/" : ""}${editing.id}`);
     await expect(page.getByRole("button", { name: "出品する", exact: true })).toBeVisible();
     const accessCookie = (await context.cookies()).find((cookie) => cookie.name === "access-token");
-    await test
-        .info()
-        .attach("access-token-cookie", {
-            body: JSON.stringify({ present: Boolean(accessCookie), secure: accessCookie?.secure ?? null }),
-            contentType: "application/json",
-        });
+    await test.info().attach("access-token-cookie", {
+        body: JSON.stringify({ present: Boolean(accessCookie), secure: accessCookie?.secure ?? null }),
+        contentType: "application/json",
+    });
 };
 export const submit = async (page: Page) => {
     await page.getByRole("button", { name: "出品する", exact: true }).click();
