@@ -3,10 +3,10 @@ import {
     Brands,
     Categories,
     ItemConditionOption,
+    ItemEditing,
     ShippingDayOption,
     ShippingServiceOption,
     TodouhukenOption,
-    ItemEditing,
 } from "../../models/index.js";
 import type { ItemEditingUserIdParams } from "../../types/serviceType/itemEditing.js";
 
@@ -115,11 +115,21 @@ export const getMyItemEditingForm = ({ itemEditingId, userId }: GetMyItemEditing
             {
                 model: Categories,
                 as: "Category",
-                attributes: ["id", "name"],
+                attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
                 required: false,
                 include: [
-                    { model: Categories, as: "children", attributes: ["id", "name"], required: false },
-                    { model: Categories, as: "parent", attributes: ["id", "name"], required: false },
+                    {
+                        model: Categories,
+                        as: "children",
+                        attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                        required: false,
+                    },
+                    {
+                        model: Categories,
+                        as: "parent",
+                        attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
+                        required: false,
+                    },
                 ],
             },
             { model: Brands, as: "Brand", attributes: ["id", "name"], required: false },

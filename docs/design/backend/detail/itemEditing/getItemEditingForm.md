@@ -191,18 +191,18 @@ include: [
     {
         model: Categories,
         as: "Category",
-        attributes: ["id", "name"],
+        attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
         required: false,
         include: [
             {
                 model: Categories,
-                attributes: ["id", "name"],
+                attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
                 as: "children",
                 required: false,
             },
             {
                 model: Categories,
-                attributes: ["id", "name"],
+                attributes: ["id", "name", "allowed_gender", "allowed_age", "parent_id"],
                 as: "parent",
                 required: false,
             },

@@ -20,8 +20,8 @@ import { PriceInput, PriceValue } from "./price";
 import { ShippingInput, ShippingValue } from "./shipping";
 import {
     Categories,
-    Item,
     ItemConditionOption,
+    ItemEditing,
     ShippingDayOption,
     ShippingServiceOption,
     TodouhukenOption,
@@ -31,8 +31,8 @@ import UploadUI from "./uploadUI";
 import { VideoInput, VideoInputValue } from "./videoInput";
 
 type Props = {
-    itemId: string;
-    item: Item;
+    itemEditingId: string;
+    itemEditing: ItemEditing;
     category: Categories[];
     allCondition: ItemConditionOption[];
     allDay: ShippingDayOption[];
@@ -49,58 +49,58 @@ type ItemImage = {
     preview: string;
 };
 
-export const Form = ({ itemId, item, category, allCondition, allDay, allService, allPlace, hasShop, page }: Props) => {
-    const initialThumbnailPreview = item.Video?.thumbnail_url ?? null;
-    const existingVideoUrl = item.Video?.converted_url ?? item.Video?.original_url ?? null;
+export const Form = ({ itemEditingId, itemEditing, category, allCondition, allDay, allService, allPlace, hasShop, page }: Props) => {
+    const initialThumbnailPreview = itemEditing.thumbnail_url ?? null;
+    const existingVideoUrl = itemEditing.converted_url ?? itemEditing.original_url ?? null;
 
     const [videoInput, setVideoInput] = useState<VideoInputValue>({
         videoFile: null,
         thumbnailFile: null,
         thumbnailPreview: initialThumbnailPreview,
-        title: item.Video?.title ?? "",
-        summary: item.Video?.summary ?? "",
+        title: itemEditing.title ?? "",
+        summary: itemEditing.summary ?? "",
         videoUploaded: !!existingVideoUrl,
         thumbnailUploaded: !!initialThumbnailPreview,
     });
 
     const [itemNameDetail, setItemNameDetail] = useState<ItemNameDetailValue>({
-        name: item.name ?? "",
-        detail: item.detail ?? "",
+        name: itemEditing.name ?? "",
+        detail: itemEditing.detail ?? "",
     });
 
     const [categoryValue, setCategoryValue] = useState<CategoryValue>({
-        id: item.Category?.id ?? "",
-        name: item.Category?.name ?? "",
-        parent_id: item.Category?.parent_id ?? null,
-        level: item.Category?.level ?? 0,
+        id: itemEditing.Category?.id ?? "",
+        name: itemEditing.Category?.name ?? "",
+        parent_id: itemEditing.Category?.parent_id ?? null,
+        level: itemEditing.Category?.level ?? 0,
     });
 
     const [categoryConstraint, setCategoryConstraint] = useState<{
         allowed_gender: "men" | "women" | "unisex" | null;
         allowed_age: "adult" | "kids" | "both" | null;
     } | null>(
-        item.Category
+        itemEditing.Category
             ? {
-                  allowed_gender: item.Category?.allowed_gender ?? null,
-                  allowed_age: item.Category?.allowed_age ?? null,
+                  allowed_gender: itemEditing.Category?.allowed_gender ?? null,
+                  allowed_age: itemEditing.Category?.allowed_age ?? null,
               }
             : null,
     );
 
     const [genderAgeValue, setGenderAgeValue] = useState<GenderAgeValue>({
-        gender_type: item.gender_type ?? "unisex",
-        age_type: item.age_type ?? "both",
+        gender_type: itemEditing.gender_type ?? "unisex",
+        age_type: itemEditing.age_type ?? "both",
     });
 
     const [brandValue, setBrandValue] = useState<BrandValue>({
-        id: item.Brand?.id ?? null,
-        name: item.Brand?.name ?? "",
+        id: itemEditing.Brand?.id ?? null,
+        name: itemEditing.Brand?.name ?? "",
     });
 
     const initialAttributesValue: AttributesValue = {
-        all_inventory: item.attributes?.inventory?.current ?? 1,
+        all_inventory: itemEditing.attributes?.inventory?.current ?? 1,
         colorVariants:
-            item.attributes?.colorVariants?.map((v) => ({
+            itemEditing.attributes?.colorVariants?.map((v) => ({
                 _uiId: v.uiId ?? crypto.randomUUID(),
                 color: v.color ?? null,
                 inventory: v.inventory?.current ?? 1,
@@ -115,7 +115,7 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
 
     const initialAttributesImageUrlMap = new Map<string, string>();
 
-    item.attributes?.colorVariants?.forEach((v, i) => {
+    itemEditing.attributes?.colorVariants?.forEach((v, i) => {
         if (v.image_url && initialAttributesValue.colorVariants[i]) {
             initialAttributesImageUrlMap.set(initialAttributesValue.colorVariants[i]._uiId, v.image_url);
         }
@@ -126,34 +126,32 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
     const [attributesImageMap, setAttributesImageMap] = useState<Map<string, string>>(initialAttributesImageUrlMap);
 
     const [materialValue, setMaterialValue] = useState<MaterialValue>({
-        materials: (item.attributes?.materials ?? []).map((m) => ({
+        materials: (itemEditing.attributes?.materials ?? []).map((m) => ({
             name: m.name ?? "",
             ratio: m.ratio ?? 1,
         })),
     });
 
     const [conditionValue, setConditionValue] = useState<ConditionValue>({
-        id: item.ItemConditionOption?.id ?? "",
-        name: item.ItemConditionOption?.name ?? "",
+        id: itemEditing.ItemConditionOption?.id ?? "",
+        name: itemEditing.ItemConditionOption?.name ?? "",
     });
 
-    const shipping = item.ItemShippingProfile;
-
     const [shippingValue, setShippingValue] = useState<ShippingValue>({
-        day_id: shipping?.ShippingDayOption?.id ?? null,
-        day_name: shipping?.ShippingDayOption?.name ?? null,
-        service_id: shipping?.ShippingServiceOption?.id ?? null,
-        service_name: shipping?.ShippingServiceOption?.name ?? null,
-        place_id: shipping?.TodouhukenOption?.id ?? null,
-        place_name: shipping?.TodouhukenOption?.name ?? null,
-        free_text: shipping?.shipping_service_free_text ?? null,
+        day_id: itemEditing.ShippingDayOption?.id ?? null,
+        day_name: itemEditing.ShippingDayOption?.name ?? null,
+        service_id: itemEditing.ShippingServiceOption?.id ?? null,
+        service_name: itemEditing.ShippingServiceOption?.name ?? null,
+        place_id: itemEditing.TodouhukenOption?.id ?? null,
+        place_name: itemEditing.TodouhukenOption?.name ?? null,
+        free_text: itemEditing.shipping_service_free_text ?? null,
     });
 
     const [priceValue, setPriceValue] = useState<PriceValue>({
-        price: item.Sale?.before_price && !Number.isNaN(item.Sale?.before_price) ? item.Sale?.before_price : item.price,
+        price: itemEditing.before_price && !Number.isNaN(itemEditing.before_price) ? itemEditing.before_price : itemEditing.price,
     });
 
-    const initialItemImage = (item.image_url ?? []).map((url) => ({
+    const initialItemImage = (itemEditing.image_url ?? []).map((url) => ({
         id: crypto.randomUUID(),
         file: null,
         preview: url,
@@ -238,14 +236,14 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
         const body = createBody(params);
 
         try {
-            const data = await fetchMain(itemId, body);
+            const data = await fetchMain(itemEditingId, body);
 
             // 動画アップロード
             const videoOk = await videoUploadAndConvert({
                 target: "editing",
                 videoFile: videoInput.videoFile,
                 videoSignedUrl: data.videoSignedUrl,
-                itemEditingId: itemId,
+                itemEditingId: itemEditingId,
             });
 
             if (!videoOk) {
@@ -291,13 +289,9 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
             await sleep(1500);
 
             if (page === "edit") {
-                if (item.status === "active") {
-                    window.location.assign(`/item/${itemId}`);
-                } else {
-                    window.location.assign(`/item/confirm/${itemId}`);
-                }
+                    window.location.assign(`/item/confirm/edit/${itemEditingId}`);
             } else {
-                window.location.assign(`/item/confirm/${itemId}`);
+                window.location.assign(`/item/confirm/${itemEditingId}`);
             }
         } catch (err) {
             if (err instanceof ApiError) {
@@ -361,7 +355,7 @@ export const Form = ({ itemId, item, category, allCondition, allDay, allService,
         const body = createBody(params);
 
         try {
-            const data = await fetchDraft(itemId, body);
+            const data = await fetchDraft(itemEditingId, body);
 
             // 動画アップロード
             const videoOk = await videoUploadAndConvert({
