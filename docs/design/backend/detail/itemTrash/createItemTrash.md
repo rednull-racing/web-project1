@@ -3,7 +3,7 @@
 基本設計: [商品削除API設計](../../itemDelete.md)
 
 確認日: 2026-11-05。ユーザー回答を反映した確定仕様。外部キー廃止による元ID保持、注文・購入セッション・編集中データのSET NULL、通報の明示NULL更新、関連欠落許可、sale.before_price採用、通知文維持を根拠とする。
-DB適用状況は未確認。Modelと新規migrationを整合させるが、migrationを実行しない。
+ユーザーの明示許可により新規migration 2件をtest_dbへ適用し、実DBテストのスキーマ検査まで確認済み。test_db以外へは適用していない。
 
 ## 1. 概要
 
@@ -163,7 +163,8 @@ ItemのFOR UPDATEを最初に取得し、関連もvideo→sale→shippingの順�
 
 新規migrationでItemTrashのitem_id FKを削除し、Orders/PurchaseSession/ItemEditingの削除アクションをSET NULL、ItemReportをnullableへ変更する。onUpdateは従来値を維持。
 downは旧制約へ戻すが、削除済みItemへの履歴参照やPurchaseSession/ItemReportのNULLがあると復元できない。既存データを削除・補正せずtransaction全体を失敗させる。
-migration実行は禁止されているため、実DBテスト前には適用済みスキーマの検査が必要。不一致なら書込み前に停止する。
+実DBテスト前には適用済みスキーマを検査し、不一致なら書込み前に停止する。
+20261105100000に加え、Sequelize 6のREFERENCES付きchangeColumnによるNULL許可反映漏れを補う20261105101000でPurchaseSession/ItemReport.item_idのNOT NULLを明示解除する。適用済みmigrationは変更しない。両方ともtest_dbへ適用済み。
 
 ## 7. エラー設計
 

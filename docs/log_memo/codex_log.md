@@ -1358,3 +1358,9 @@
 - Modelの参照保持仕様と新規migrationのup/downを作成（未実行）、テスト設計・fixture・統合レポートを整備。
 - 単体/HTTP85件、lint・本番/テスト型検査・追加test lint成功。
 - 実DB15件はpurchase_session.item_idのNULL制約不一致で書込み前停止。DB反映待ちのためdevelop未統合。
+
+## 20261105_backend-test_createItemTrashのDB反映と検証完了
+
+- ユーザー許可によりtest_dbへmigrationを適用し、NULL制約の反映漏れは追加migrationで修正（適用済みファイルは変更なし）。
+- 実DB・競合15件を含む全100件成功。スキーマガード・自作ID限定cleanup・全接続closeも確認。
+- 詳細設計・テストレポート・関連Todoを最新結果へ更新。復元・期限削除は後続開発として維持。
