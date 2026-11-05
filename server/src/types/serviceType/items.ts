@@ -12,10 +12,6 @@ export type ItemIdParams = {
     itemId: number;
 };
 
-export type CronEditingDeleteParams = {
-    createdBefore: Date;
-};
-
 export type GetItemsSortDecayCronParams = {
     minSortNumber: number;
 };

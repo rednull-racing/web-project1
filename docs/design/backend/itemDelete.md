@@ -15,14 +15,14 @@
 
 ## API基本設計
 
-### createItemDeleted（item論理削除・item_deleted作成）
+### createItemTrash（item論理削除・item_trash作成）
 
 - フロント: /item/[id]
-- route: POST /item-deleted
+- route: POST /item-trash
 - usecase: 
     - transaction
         - item取得
-        - item_deletedテーブル作成
+        - item_trashテーブル作成
         - item関連テーブル削除
         - itemテーブル削除
     - お知らせ作成（非同期）

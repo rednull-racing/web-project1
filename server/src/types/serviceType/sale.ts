@@ -10,7 +10,7 @@ export type CreateSaleParams = {
     transaction: Transaction;
 };
 
-export type LogicalDeleteUpdateParams = {
+export type SaleTransactionParams = {
     sale: InstanceType<typeof Sale>;
     transaction: Transaction;
 };

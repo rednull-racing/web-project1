@@ -1,7 +1,7 @@
 import sequelize from "../../../db.js";
 import { AppError } from "../../../errors.js";
 import { createPerfectDelete } from "../../../services/itemDeleteLogs/itemDeleteLogs.js";
-import { destroyPerfectItem, getMyItem } from "../../../services/items/index.js";
+import { deleteItem, getMyItem } from "../../../services/items/index.js";
 
 type Params = {
     itemId: number;
@@ -22,6 +22,6 @@ export const deleteItemPerfectUseCase = async ({ itemId, userId }: Params) => {
     await sequelize.transaction(async (t) => {
         await createPerfectDelete({ itemId, userId, transaction: t });
 
-        await destroyPerfectItem({ item, transaction: t });
+        await deleteItem({ item, transaction: t });
     });
 };

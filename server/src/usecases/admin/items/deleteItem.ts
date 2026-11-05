@@ -6,7 +6,7 @@ import { upsertCancel } from "../../../services/cancel/cancel.js";
 import { updateDeliveryCancel } from "../../../services/delivery/delivery.js";
 import { createItemDeleted } from "../../../services/itemDeleted/itemDeleted.js";
 import { createAdminItemDeleteLogs } from "../../../services/itemDeleteLogs/itemDeleteLogs.js";
-import { destroyPerfectItem, getItemWithVideoSaleShipping } from "../../../services/items/index.js";
+import { deleteItem, getItemWithVideoSaleShipping } from "../../../services/items/index.js";
 import { createNotification } from "../../../services/notification/notification.js";
 import { bulkCreateOrderDeleted } from "../../../services/orderDeleted/orderDeleted.js";
 import { getTradingOrdersAll, updateOrdersStatus } from "../../../services/orders/orders.js";
@@ -211,7 +211,7 @@ export const deleteAdminItemUseCase = async ({ itemId, adminId, deleteReason }: 
             transaction: t,
         });
 
-        await destroyPerfectItem({
+        await deleteItem({
             item,
             transaction: t,
         });

@@ -12,7 +12,7 @@ import { deleteFollowerUserLogical, deleteFollowUserLogical } from "../../../ser
 import { bulkCreateItemDeleted } from "../../../services/itemDeleted/itemDeleted.js";
 import { bulkCreateItemDeleteLogs } from "../../../services/itemDeleteLogs/itemDeleteLogs.js";
 import { deleteItemLikeUserLogical } from "../../../services/itemLike/itemLike.js";
-import { destroyPerfectItem, getMyItemsWithVideoAll } from "../../../services/items/index.js";
+import { deleteItem, getMyItemsWithVideoAll } from "../../../services/items/index.js";
 import { createJournal } from "../../../services/journal/journal.js";
 import { createNotification, deleteNotificationUserLogical } from "../../../services/notification/notification.js";
 import { bulkCreateOrderDeleted } from "../../../services/orderDeleted/orderDeleted.js";
@@ -370,7 +370,7 @@ export const deleteUserAdminUseCase = async ({ pageUserId, adminId, deleteReason
             // 商品完全削除
             await Promise.all(
                 items.map(async (item: InstanceType<typeof Item>) => {
-                    await destroyPerfectItem({
+                    await deleteItem({
                         item,
                         transaction: t,
                     });
