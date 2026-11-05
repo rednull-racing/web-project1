@@ -52,7 +52,9 @@ vi.mock("../../../../../src/routes/users/me/items.js", () => ({ default: express
 vi.mock("../../../../../src/routes/video.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/watchHistory.js", () => ({ default: express.Router() }));
 
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => {
+    vi.restoreAllMocks();
+});
 it("HTTP-12: 実registerRoutesがPOST /api/item-trashを対象controllerへ接続", async () => {
     const { registerRoutes } = await import("../../../../../src/routes/index.js");
     const { errorHandler } = await import("../../../../../src/middleware/errorHandler.js");

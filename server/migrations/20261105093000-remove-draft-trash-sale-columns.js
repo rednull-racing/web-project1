@@ -20,14 +20,21 @@ export default {
             // カラム定義のみ復元する。削除した割引情報の値は復元できない。
             for (const table of [...tables].reverse()) {
                 for (const column of [...columns].reverse()) {
-                    await queryInterface.addColumn(table, column, column === "sale_flag" ? {
-                        type: Sequelize.BOOLEAN,
-                        allowNull: false,
-                        defaultValue: false,
-                    } : {
-                        type: Sequelize.INTEGER,
-                        allowNull: true,
-                    }, { transaction });
+                    await queryInterface.addColumn(
+                        table,
+                        column,
+                        column === "sale_flag"
+                            ? {
+                                  type: Sequelize.BOOLEAN,
+                                  allowNull: false,
+                                  defaultValue: false,
+                              }
+                            : {
+                                  type: Sequelize.INTEGER,
+                                  allowNull: true,
+                              },
+                        { transaction },
+                    );
                 }
             }
         });

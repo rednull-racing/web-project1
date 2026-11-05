@@ -22,45 +22,49 @@
 
 ## 実行結果と保証範囲
 
-| 対象 | 実行コマンド・範囲 | 結果 |
-| --- | --- | --- |
-| usecase・取得/作成service | npm run test:run -- src/usecases/itemTrash/test src/services/itemTrash/test | 39件成功 |
-| 関連削除・通報更新service | 対象4ディレクトリのtest/createItemTrash.test.tsを明示 | 18件成功 |
-| HTTP | npm run test:run -- test/integration/usecases/itemTrash/createItemTrash（競合テスト追加前） | 28件成功 |
-| 統合後のDB非接続テスト | 下記の8ファイル指定コマンド | 85件成功、8ファイル成功、未処理例外なし |
-| 修正後service再確認 | video/sale/itemShippingProfileのtest/createItemTrash.test.tsを明示 | 12件成功（85件へ重複加算しない） |
-| lint | npm run lint | 成功 |
-| 本番型 | npm run typecheck | 成功 |
-| テスト型 | ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json | モック型修正後に成功 |
-| 対象test/**/*.ts追加lint | 下記ESLint API、fixture3件・DB1件・HTTP2件・競合1件 | エラー/警告0 |
-| migration構文 | node --check migrations/20261105100000-preserve-item-trash-and-related-records.js | 成功（適用結果ではない） |
-| 実DB | 下記DB/競合コマンド | 適用後2ファイル・15件成功 |
-| 最終一括実行 | 下記最終コマンド | 10ファイル・100件成功、skip・失敗・未処理例外0 |
+| 対象                      | 実行コマンド・範囲                                                                          | 結果                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| usecase・取得/作成service | npm run test:run -- src/usecases/itemTrash/test src/services/itemTrash/test                 | 39件成功                                       |
+| 関連削除・通報更新service | 対象4ディレクトリのtest/createItemTrash.test.tsを明示                                       | 18件成功                                       |
+| HTTP                      | npm run test:run -- test/integration/usecases/itemTrash/createItemTrash（競合テスト追加前） | 28件成功                                       |
+| 統合後のDB非接続テスト    | 下記の8ファイル指定コマンド                                                                 | 85件成功、8ファイル成功、未処理例外なし        |
+| 修正後service再確認       | video/sale/itemShippingProfileのtest/createItemTrash.test.tsを明示                          | 12件成功（85件へ重複加算しない）               |
+| lint                      | npm run lint                                                                                | 成功                                           |
+| 本番型                    | npm run typecheck                                                                           | 成功                                           |
+| テスト型                  | ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json                                      | モック型修正後に成功                           |
+| 対象test/\*_/_.ts追加lint | 下記ESLint API、fixture3件・DB1件・HTTP2件・競合1件                                         | エラー/警告0                                   |
+| migration構文             | node --check migrations/20261105100000-preserve-item-trash-and-related-records.js           | 成功（適用結果ではない）                       |
+| 実DB                      | 下記DB/競合コマンド                                                                         | 適用後2ファイル・15件成功                      |
+| 最終一括実行              | 下記最終コマンド                                                                            | 10ファイル・100件成功、skip・失敗・未処理例外0 |
 
 ```bash
 npm run test:run -- src/usecases/itemTrash/test src/services/itemTrash/test src/services/video/test/createItemTrash.test.ts src/services/sale/test/createItemTrash.test.ts src/services/itemShippingProfile/test/createItemTrash.test.ts src/services/itemReport/test/createItemTrash.test.ts test/integration/usecases/itemTrash/createItemTrash/route.test.ts test/integration/usecases/itemTrash/createItemTrash/registration.test.ts
 npm run test:run -- test/integration/database/itemTrash/createItemTrash test/integration/usecases/itemTrash/createItemTrash/concurrency.test.ts
 ```
 
-追加lintはESLint APIのoverrideConfigへtest/**/*.tsを指定し、既存typescript-eslint.parser/pluginとconfigs.recommendedのrulesを使用。既存共有設定は変更しない。
+追加lintはESLint APIのoverrideConfigへtest/\*_/_.tsを指定し、既存typescript-eslint.parser/pluginとconfigs.recommendedのrulesを使用。既存共有設定は変更しない。
 実行コード（server/からnode --input-type=moduleへ渡す）:
 
 ```js
 import { ESLint } from "eslint";
 import tseslint from "typescript-eslint";
-const eslint = new ESLint({ overrideConfig: [{
-  files: ["test/**/*.ts"],
-  languageOptions: { parser: tseslint.parser },
-  plugins: { "@typescript-eslint": tseslint.plugin },
-  rules: tseslint.configs.recommended.reduce((out, c) => Object.assign(out, c.rules ?? {}), {}),
-}] });
+const eslint = new ESLint({
+    overrideConfig: [
+        {
+            files: ["test/**/*.ts"],
+            languageOptions: { parser: tseslint.parser },
+            plugins: { "@typescript-eslint": tseslint.plugin },
+            rules: tseslint.configs.recommended.reduce((out, c) => Object.assign(out, c.rules ?? {}), {}),
+        },
+    ],
+});
 const results = await eslint.lintFiles([
-  "test/fixtures/itemTrash/createItemTrash/**/*.ts",
-  "test/integration/database/itemTrash/createItemTrash/**/*.ts",
-  "test/integration/usecases/itemTrash/createItemTrash/**/*.ts",
+    "test/fixtures/itemTrash/createItemTrash/**/*.ts",
+    "test/integration/database/itemTrash/createItemTrash/**/*.ts",
+    "test/integration/usecases/itemTrash/createItemTrash/**/*.ts",
 ]);
 process.stdout.write(await (await eslint.loadFormatter("stylish")).format(results));
-process.exitCode = results.some(x => x.errorCount || x.warningCount) ? 1 : 0;
+process.exitCode = results.some((x) => x.errorCount || x.warningCount) ? 1 : 0;
 ```
 
 U01〜10、S01〜09、3対象のS-DELETE-01〜03、S-REPORT-01〜03、HTTP-01〜12が検証済み。
@@ -79,13 +83,13 @@ safe=falseのためcleanup DELETEなし。fixture INSERT/UPDATE/DELETEなし。a
 
 ## 初回障害・修正履歴
 
-| ID | 対象・原因 | 対応と再検証 |
-| --- | --- | --- |
-| ENV-HTTP | ローカル待受がsandboxでEPERM、初回28件失敗と28未処理例外 | 同じコマンドを権限手順で再実行して28件成功。後の統合85件でも未処理例外なし |
-| F1 / DB全体 | Vitestがexport const notification = vi.hoistedを変換できず、2suite no tests | ローカルconst宣言とexportを分離。再実行でガードまで進行 |
-| ENV-DB | 接続がsandboxでEPERM、2suite失敗・15件skip | 同じtest_dbガード付きコマンドを権限手順で再実行し接続成功 |
-| BLOCK-SCHEMA | purchase_session.item_idのnullable未反映 | 初回は停止。ユーザー許可後にmigrationを適用し、F3修正後に15件成功 |
-| F2 / S-DELETE | テスト用destroyモックをModelへ直接assertしたためTS2352 | Model.destroyから型を取り、Pickによる部分instance境界を明示。テスト型成功、変更12件再成功、lint成功 |
+| ID            | 対象・原因                                                                  | 対応と再検証                                                                                        |
+| ------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| ENV-HTTP      | ローカル待受がsandboxでEPERM、初回28件失敗と28未処理例外                    | 同じコマンドを権限手順で再実行して28件成功。後の統合85件でも未処理例外なし                          |
+| F1 / DB全体   | Vitestがexport const notification = vi.hoistedを変換できず、2suite no tests | ローカルconst宣言とexportを分離。再実行でガードまで進行                                             |
+| ENV-DB        | 接続がsandboxでEPERM、2suite失敗・15件skip                                  | 同じtest_dbガード付きコマンドを権限手順で再実行し接続成功                                           |
+| BLOCK-SCHEMA  | purchase_session.item_idのnullable未反映                                    | 初回は停止。ユーザー許可後にmigrationを適用し、F3修正後に15件成功                                   |
+| F2 / S-DELETE | テスト用destroyモックをModelへ直接assertしたためTS2352                      | Model.destroyから型を取り、Pickによる部分instance境界を明示。テスト型成功、変更12件再成功、lint成功 |
 
 テスト件数は最終の異なるケースのみを集計し、途中の再実行分は加算していない。
 

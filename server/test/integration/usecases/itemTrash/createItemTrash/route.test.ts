@@ -54,8 +54,16 @@ describe("P0 HTTP接続・検証済み入力・公開応答（認証結果とuse
         expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId });
     });
     it.each([
-        {}, { itemId: null }, { itemId: "123" }, { itemId: 0 }, { itemId: -1 },
-        { itemId: 1.5 }, { itemId: 2147483648 }, { itemId: [] }, { itemId: {} }, [],
+        {},
+        { itemId: null },
+        { itemId: "123" },
+        { itemId: 0 },
+        { itemId: -1 },
+        { itemId: 1.5 },
+        { itemId: 2147483648 },
+        { itemId: [] },
+        { itemId: {} },
+        [],
     ])("HTTP-02: body=%jは400・usecase未実行", async (body) => {
         const r = await post(body);
         expect(r.status).toBe(400);
@@ -67,7 +75,10 @@ describe("P0 HTTP接続・検証済み入力・公開応答（認証結果とuse
         expect(r.status).toBe(400);
         expect(r.body.code).toBe("INVALID_BODY");
         expect(mocks.create).not.toHaveBeenCalled();
-        expect((await request(app).post("/api/item-trash?itemId=999").set("X-Test-User", "7").send({ itemId: 123 })).status).toBe(201);
+        expect(
+            (await request(app).post("/api/item-trash?itemId=999").set("X-Test-User", "7").send({ itemId: 123 }))
+                .status,
+        ).toBe(201);
         expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 123 });
     });
     it("HTTP-04: 認証拒否はschemaより先・レート枠を消費しない", async () => {
@@ -83,21 +94,37 @@ describe("P0 HTTP接続・検証済み入力・公開応答（認証結果とuse
         for (let i = 0; i < 10; i++) expect((await post()).status).toBe(201);
     });
     it.each([404, 500])("HTTP-06: 業務例外%sの公開応答・内部情報非公開", async (status) => {
-        mocks.create.mockRejectedValue(status === 404 ? new AppError("ITEM_NOT_FOUND", 404) : new Error("private SQL marker"));
+        mocks.create.mockRejectedValue(
+            status === 404 ? new AppError("ITEM_NOT_FOUND", 404) : new Error("private SQL marker"),
+        );
         const r = await post();
         expect(r.status).toBe(status);
-        expect(r.body).toEqual(status === 404 ? { code: "ITEM_NOT_FOUND", message: "ITEM_NOT_FOUND" } : { error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" });
+        expect(r.body).toEqual(
+            status === 404
+                ? { code: "ITEM_NOT_FOUND", message: "ITEM_NOT_FOUND" }
+                : { error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" },
+        );
         expect(JSON.stringify(r.body)).not.toContain("private SQL marker");
         expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 123 });
     });
     it("HTTP-07: usecase完了まで成功応答を送信しない", async () => {
         let release!: () => void;
         let entered!: () => void;
-        const gate = new Promise<void>((resolve) => { release = resolve; });
-        const started = new Promise<void>((resolve) => { entered = resolve; });
-        mocks.create.mockImplementation(async () => { entered(); await gate; });
+        const gate = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        const started = new Promise<void>((resolve) => {
+            entered = resolve;
+        });
+        mocks.create.mockImplementation(async () => {
+            entered();
+            await gate;
+        });
         let finished = false;
-        const pending = post().then((result) => { finished = true; return result; });
+        const pending = post().then((result) => {
+            finished = true;
+            return result;
+        });
         try {
             await started;
             expect(finished).toBe(false);

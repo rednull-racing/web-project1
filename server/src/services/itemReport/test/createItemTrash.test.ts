@@ -15,7 +15,8 @@ describe("P0/P1 detachItemReportsの対象限定・保持・transaction", () => 
         mocks.update.mockResolvedValue([count]);
         expect(await detachItemReports({ itemId: 101, transaction })).toBeUndefined();
         expect(mocks.update).toHaveBeenCalledExactlyOnceWith(
-            { item_id: null }, { where: { item_id: 101 }, transaction },
+            { item_id: null },
+            { where: { item_id: 101 }, transaction },
         );
         expect(mocks.update.mock.calls[0][1].transaction).toBe(transaction);
         expect(mocks.destroy).not.toHaveBeenCalled();
@@ -32,11 +33,16 @@ describe("P0/P1 detachItemReportsの対象限定・保持・transaction", () => 
     it.each(["成功", "失敗"])("S-REPORT-03: 更新の%sまで待機する", async (mode) => {
         let release!: (value: number[]) => void;
         let reject!: (reason: Error) => void;
-        const gate = new Promise<number[]>((resolve, fail) => { release = resolve; reject = fail; });
+        const gate = new Promise<number[]>((resolve, fail) => {
+            release = resolve;
+            reject = fail;
+        });
         const error = new Error("delayed report update failure");
         mocks.update.mockReturnValue(gate);
         let completed = false;
-        const pending = detachItemReports({ itemId: 101, transaction }).finally(() => { completed = true; });
+        const pending = detachItemReports({ itemId: 101, transaction }).finally(() => {
+            completed = true;
+        });
         const settled = Promise.allSettled([pending]);
         try {
             expect(mocks.update).toHaveBeenCalledOnce();

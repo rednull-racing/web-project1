@@ -20,6 +20,12 @@ export const countItemReport = ({ itemId }: ItemIdParams) => {
     });
 };
 
-export const detachItemReports = async ({ itemId, transaction }: { itemId: number; transaction: Transaction }): Promise<void> => {
+export const detachItemReports = async ({
+    itemId,
+    transaction,
+}: {
+    itemId: number;
+    transaction: Transaction;
+}): Promise<void> => {
     await ItemReport.update({ item_id: null }, { where: { item_id: itemId }, transaction });
 };

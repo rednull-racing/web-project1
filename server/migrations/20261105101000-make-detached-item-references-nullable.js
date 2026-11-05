@@ -9,24 +9,21 @@ export default {
                 'ALTER TABLE "purchase_session" ALTER COLUMN "item_id" DROP NOT NULL',
                 { transaction },
             );
-            await queryInterface.sequelize.query(
-                'ALTER TABLE "item_report" ALTER COLUMN "item_id" DROP NOT NULL',
-                { transaction },
-            );
+            await queryInterface.sequelize.query('ALTER TABLE "item_report" ALTER COLUMN "item_id" DROP NOT NULL', {
+                transaction,
+            });
         });
     },
 
     async down(queryInterface) {
         await queryInterface.sequelize.transaction(async (transaction) => {
             // NULLが存在すれば補正せず失敗させる。
-            await queryInterface.sequelize.query(
-                'ALTER TABLE "item_report" ALTER COLUMN "item_id" SET NOT NULL',
-                { transaction },
-            );
-            await queryInterface.sequelize.query(
-                'ALTER TABLE "purchase_session" ALTER COLUMN "item_id" SET NOT NULL',
-                { transaction },
-            );
+            await queryInterface.sequelize.query('ALTER TABLE "item_report" ALTER COLUMN "item_id" SET NOT NULL', {
+                transaction,
+            });
+            await queryInterface.sequelize.query('ALTER TABLE "purchase_session" ALTER COLUMN "item_id" SET NOT NULL', {
+                transaction,
+            });
         });
     },
 };

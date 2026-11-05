@@ -3,8 +3,17 @@ import { QueryTypes } from "sequelize";
 import type { Transaction } from "sequelize";
 import { AppError } from "../../../../../src/errors.js";
 import {
-    Item, ItemTrash, sequelize, seed, run, snapshot, trashRows, protectedSnapshot,
-    sourceSnapshot, seedDependents, notification,
+    Item,
+    ItemTrash,
+    sequelize,
+    seed,
+    run,
+    snapshot,
+    trashRows,
+    protectedSnapshot,
+    sourceSnapshot,
+    seedDependents,
+    notification,
 } from "../../../../fixtures/itemTrash/createItemTrash/databaseFixtures.js";
 
 const expectNotFound = async (pending: Promise<unknown>) => {
@@ -22,37 +31,64 @@ describe("createItemTrash 実DBの退避・削除・保持", () => {
         expect(row).toBeDefined();
         const { id, createdAt, updatedAt, ...data } = row;
         expect(data).toEqual({
-            item_id: f.item.id, name: f.item.name, detail: f.item.detail,
-            image_url: f.item.image_url, first_image_url: f.item.first_image_url,
-            price: 10000, item_condition_id: f.condition.id, seller_id: f.owner.id,
-            gender_type: f.item.gender_type, age_type: f.item.age_type, recommend: f.item.recommend,
-            category_id: f.category.id, brand_id: f.brand.id, brand_aliases_id: f.alias.id,
+            item_id: f.item.id,
+            name: f.item.name,
+            detail: f.item.detail,
+            image_url: f.item.image_url,
+            first_image_url: f.item.first_image_url,
+            price: 10000,
+            item_condition_id: f.condition.id,
+            seller_id: f.owner.id,
+            gender_type: f.item.gender_type,
+            age_type: f.item.age_type,
+            recommend: f.item.recommend,
+            category_id: f.category.id,
+            brand_id: f.brand.id,
+            brand_aliases_id: f.alias.id,
             attributes: f.item.attributes,
-            title: f.video.title, summary: f.video.summary, thumbnail_url: f.video.thumbnail_url,
-            duration: f.video.duration, original_url: f.video.original_url,
-            converted_url: f.video.converted_url, video_status: f.video.status,
-            shipping_day_id: f.day.id, shipping_service_id: f.service.id,
-            shipping_place_id: f.place.id, shipping_service_free_text: "配送備考",
+            title: f.video.title,
+            summary: f.video.summary,
+            thumbnail_url: f.video.thumbnail_url,
+            duration: f.video.duration,
+            original_url: f.video.original_url,
+            converted_url: f.video.converted_url,
+            video_status: f.video.status,
+            shipping_day_id: f.day.id,
+            shipping_service_id: f.service.id,
+            shipping_place_id: f.place.id,
+            shipping_service_free_text: "配送備考",
         });
         expect(id).toEqual(expect.any(Number));
         expect(createdAt).toBeInstanceOf(Date);
         expect(updatedAt).toBeInstanceOf(Date);
         expect((createdAt as Date).getTime()).toBeGreaterThan(new Date("2020-01-01T00:00:00Z").getTime());
-        for (const [table, sourceId] of [["item", f.item.id], ["video", f.video.id], ["sale", f.sale.id], ["item_shipping_profile", f.shipping.id]] as const) {
+        for (const [table, sourceId] of [
+            ["item", f.item.id],
+            ["video", f.video.id],
+            ["sale", f.sale.id],
+            ["item_shipping_profile", f.shipping.id],
+        ] as const) {
             expect(await snapshot(table, sourceId)).toBeNull();
         }
         expect(await protectedSnapshot(f)).toEqual(protectedBefore);
         expect((await snapshot("item_editing", f.existing.id))?.item_id).toBeNull();
         expect(notification).toHaveBeenCalledTimes(1);
-        expect(notification).toHaveBeenCalledWith({ data: {
-            read_user_id: f.owner.id, url: `/item/deleted/${id}`,
-            message_image: f.item.first_image_url,
-            message: `商品「${f.item.name}」が削除されました。削除された商品の詳細はこちらのページからご確認ください。なお、復元される場合は削除日から30日以内に行ってください。`, type: "ITEM",
-        } });
+        expect(notification).toHaveBeenCalledWith({
+            data: {
+                read_user_id: f.owner.id,
+                url: `/item/deleted/${id}`,
+                message_image: f.item.first_image_url,
+                message: `商品「${f.item.name}」が削除されました。削除された商品の詳細はこちらのページからご確認ください。なお、復元される場合は削除日から30日以内に行ってください。`,
+                type: "ITEM",
+            },
+        });
     });
 
     it.each([
-        ["video_id", ["title", "summary", "thumbnail_url", "duration", "original_url", "converted_url", "video_status"]],
+        [
+            "video_id",
+            ["title", "summary", "thumbnail_url", "duration", "original_url", "converted_url", "video_status"],
+        ],
         ["sale_id", ["price"]],
         ["shipping_id", ["shipping_day_id", "shipping_service_id", "shipping_place_id", "shipping_service_free_text"]],
     ] as const)("DB-02 %sの関連欠落は対応する保存項目をNULLにする", async (column, fields) => {
@@ -101,7 +137,12 @@ describe("createItemTrash 実DBの退避・削除・保持", () => {
     it("DB-06 注文・購入セッション・編集・通報は商品参照のみNULLにして保持する", async () => {
         const f = await seed();
         const d = await seedDependents(f);
-        const sources = [["orders", d.order.id], ["purchase_session", d.session.id], ["item_editing", f.existing.id], ["item_report", d.report.id]] as const;
+        const sources = [
+            ["orders", d.order.id],
+            ["purchase_session", d.session.id],
+            ["item_editing", f.existing.id],
+            ["item_report", d.report.id],
+        ] as const;
         const before = await Promise.all(sources.map(([table, id]) => snapshot(table, id)));
         const otherReport = await snapshot("item_report", d.otherReport.id);
         await run(f);
@@ -123,19 +164,27 @@ describe("createItemTrash 実DBの退避・削除・保持", () => {
         const f = await seed();
         const d = await seedDependents(f);
         const before = await sourceSnapshot(f);
-        const dependentBefore = await Promise.all([snapshot("orders", d.order.id), snapshot("purchase_session", d.session.id), snapshot("item_report", d.report.id)]);
+        const dependentBefore = await Promise.all([
+            snapshot("orders", d.order.id),
+            snapshot("purchase_session", d.session.id),
+            snapshot("item_report", d.report.id),
+        ]);
         let reached = false;
-        Item.addHook("beforeDestroy", "trashSqlFailure", async (row: InstanceType<typeof Item>, options: { transaction?: Transaction | null }) => {
-            if (row.id !== f.item.id) return;
-            expect(options.transaction).toBeDefined();
-            const [count] = await sequelize.query<{ count: number }>(
-                "SELECT count(*)::int AS count FROM item_trash WHERE item_id=:id",
-                { replacements: { id: f.item.id }, transaction: options.transaction, type: QueryTypes.SELECT },
-            );
-            expect(count.count).toBe(1);
-            reached = true;
-            await sequelize.query("SELECT 1 / 0", { transaction: options.transaction });
-        });
+        Item.addHook(
+            "beforeDestroy",
+            "trashSqlFailure",
+            async (row: InstanceType<typeof Item>, options: { transaction?: Transaction | null }) => {
+                if (row.id !== f.item.id) return;
+                expect(options.transaction).toBeDefined();
+                const [count] = await sequelize.query<{ count: number }>(
+                    "SELECT count(*)::int AS count FROM item_trash WHERE item_id=:id",
+                    { replacements: { id: f.item.id }, transaction: options.transaction, type: QueryTypes.SELECT },
+                );
+                expect(count.count).toBe(1);
+                reached = true;
+                await sequelize.query("SELECT 1 / 0", { transaction: options.transaction });
+            },
+        );
         try {
             await expect(run(f)).rejects.toMatchObject({ original: { code: "22012" } });
         } finally {
@@ -143,7 +192,13 @@ describe("createItemTrash 実DBの退避・削除・保持", () => {
         }
         expect(reached).toBe(true);
         expect(await sourceSnapshot(f)).toEqual(before);
-        expect(await Promise.all([snapshot("orders", d.order.id), snapshot("purchase_session", d.session.id), snapshot("item_report", d.report.id)])).toEqual(dependentBefore);
+        expect(
+            await Promise.all([
+                snapshot("orders", d.order.id),
+                snapshot("purchase_session", d.session.id),
+                snapshot("item_report", d.report.id),
+            ]),
+        ).toEqual(dependentBefore);
         expect(await trashRows(f)).toEqual([]);
         expect(notification).not.toHaveBeenCalled();
         await run(f);

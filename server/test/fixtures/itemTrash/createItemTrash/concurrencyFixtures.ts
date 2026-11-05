@@ -8,7 +8,9 @@ import * as query from "../../../../src/services/itemTrash/query.js";
 
 export const deferred = <T>() => {
     let resolve!: (value: T | PromiseLike<T>) => void;
-    const promise = new Promise<T>((res) => { resolve = res; });
+    const promise = new Promise<T>((res) => {
+        resolve = res;
+    });
     return { promise, resolve };
 };
 export const waitForGate = async <T>(signal: Promise<T>, pending: Promise<unknown>): Promise<T> => {
@@ -16,15 +18,22 @@ export const waitForGate = async <T>(signal: Promise<T>, pending: Promise<unknow
     try {
         return await Promise.race([
             signal,
-            pending.then(() => { throw new Error("gate到達前に処理が完了しました"); }),
-            new Promise<never>((_resolve, reject) => { timer = setTimeout(() => reject(new Error("gate待機期限超過")), 5000); }),
+            pending.then(() => {
+                throw new Error("gate到達前に処理が完了しました");
+            }),
+            new Promise<never>((_resolve, reject) => {
+                timer = setTimeout(() => reject(new Error("gate待機期限超過")), 5000);
+            }),
         ]);
-    } finally { if (timer) clearTimeout(timer); }
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
 };
 export const gateReads = () => {
     const slots = Array.from({ length: 2 }, () => ({
         started: deferred<{ pid: number; transaction: Transaction }>(),
-        entered: deferred<void>(), release: deferred<void>(),
+        entered: deferred<void>(),
+        release: deferred<void>(),
     }));
     const real = query.getMyItemForTrash;
     let index = 0;
@@ -47,7 +56,14 @@ export const gateReads = () => {
 };
 export const waitBlocked = async (waiter: number, blocker: number, pending: Promise<unknown>) => {
     let finished = false;
-    void pending.then(() => { finished = true; }, () => { finished = true; });
+    void pending.then(
+        () => {
+            finished = true;
+        },
+        () => {
+            finished = true;
+        },
+    );
     const deadline = performance.now() + 3000;
     while (performance.now() < deadline) {
         if (finished) throw new Error("ロック待機確認前に処理が終了しました");

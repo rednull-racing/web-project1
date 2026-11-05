@@ -20,31 +20,27 @@ for (const mode of ["normal", "edit"] as const)
         await page.getByRole("button", { name: "出品する", exact: true }).click();
         const response = await pending;
         const validation = updateItemEditingConfirmBodySchema.safeParse(response.request().postDataJSON());
-        await test
-            .info()
-            .attach("body-contract-issues", {
-                body: JSON.stringify(
-                    validation.success
-                        ? []
-                        : validation.error.issues.map((issue) => ({
-                              path: issue.path,
-                              code: issue.code,
-                              message: issue.message,
-                          })),
-                ),
-                contentType: "application/json",
-            });
+        await test.info().attach("body-contract-issues", {
+            body: JSON.stringify(
+                validation.success
+                    ? []
+                    : validation.error.issues.map((issue) => ({
+                          path: issue.path,
+                          code: issue.code,
+                          message: issue.message,
+                      })),
+            ),
+            contentType: "application/json",
+        });
         const payload: unknown = await response.json().catch(() => null);
         const code =
             payload && typeof payload === "object" && "code" in payload && typeof payload.code === "string"
                 ? payload.code
                 : null;
-        await test
-            .info()
-            .attach("D01-response", {
-                body: JSON.stringify({ status: response.status(), code }),
-                contentType: "application/json",
-            });
+        await test.info().attach("D01-response", {
+            body: JSON.stringify({ status: response.status(), code }),
+            contentType: "application/json",
+        });
         expect(validation.success).toBe(true);
         expect(response.status()).toBe(200);
         await expect(page).toHaveURL(new RegExp(`/item/confirm/${mode === "edit" ? "edit/" : ""}${editing.id}$`));

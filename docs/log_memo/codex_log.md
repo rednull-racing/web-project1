@@ -1,6 +1,6 @@
 # Codexログ
 
-## 20261105_backend-migration_下書きゴミ箱の割引カラム削除
+## 20261105*backend-migration*下書きゴミ箱の割引カラム削除
 
 - item_draft/item_trashの割引4列をモデルから削除し、neondb/test_dbの両DBへ新規migrationを適用。
 - 下書き作成DTO・保存・取得列を更新。編集コピー時はbefore_price=下書きprice、割引率/額=0、sale_flag=falseへ変更。

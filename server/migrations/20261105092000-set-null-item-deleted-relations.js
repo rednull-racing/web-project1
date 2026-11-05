@@ -1,7 +1,13 @@
 "use strict";
 
 const relations = [
-    { table: "item_delete_logs", column: "item_deleted_id", target: "item_deleted", onUpdate: "CASCADE", wasNullable: true },
+    {
+        table: "item_delete_logs",
+        column: "item_deleted_id",
+        target: "item_deleted",
+        onUpdate: "CASCADE",
+        wasNullable: true,
+    },
     { table: "item_delete_logs", column: "delete_user_id", target: "user", onUpdate: "CASCADE", wasNullable: true },
     { table: "item_deleted", column: "seller_id", target: "user", onUpdate: "NO ACTION", wasNullable: false },
     { table: "item_deleted", column: "deleted_by", target: "user", onUpdate: "NO ACTION", wasNullable: false },
@@ -16,10 +22,15 @@ async function changeRelation(queryInterface, Sequelize, relation, reverting, tr
         }
     }
     // NULL制約変更と外部キー追加を分け、SequelizeによるNULL制約変更の省略を避ける。
-    await queryInterface.changeColumn(table, column, {
-        type: Sequelize.INTEGER,
-        allowNull: reverting ? wasNullable : true,
-    }, { transaction });
+    await queryInterface.changeColumn(
+        table,
+        column,
+        {
+            type: Sequelize.INTEGER,
+            allowNull: reverting ? wasNullable : true,
+        },
+        { transaction },
+    );
     await queryInterface.addConstraint(table, {
         fields: [column],
         type: "foreign key",

@@ -175,12 +175,12 @@ flowchart TD
 
 2026-11-05更新：item_draftには割引4カラムを持たせず、以下の値をitem_editingへ設定する。その他の入力データは従来どおりコピーする。
 
-| 作成先 | 設定値 |
-| --- | --- |
-| item_editing.before_price | item_draft.price（null・0もそのまま保持） |
-| item_editing.discount_rate | 0 |
-| item_editing.discount_amount | 0 |
-| item_editing.sale_flag | false |
+| 作成先                       | 設定値                                    |
+| ---------------------------- | ----------------------------------------- |
+| item_editing.before_price    | item_draft.price（null・0もそのまま保持） |
+| item_editing.discount_rate   | 0                                         |
+| item_editing.discount_amount | 0                                         |
+| item_editing.sale_flag       | false                                     |
 
 - seller_idは認証済みユーザーのIDを使用する
 - item_editing.idは新規採番する

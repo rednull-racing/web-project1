@@ -53,13 +53,11 @@ for (const target of ["video", "thumbnail", "item", "attributes"] as const) {
                 item: "商品画像をアップロード",
                 attributes: "画像をアップロード",
             }[target];
-            await page
-                .getByPlaceholder(placeholder, { exact: true })
-                .setInputFiles({
-                    name: target === "video" ? "failure.mp4" : `${target}.png`,
-                    mimeType: target === "video" ? "video/mp4" : "image/png",
-                    buffer: target === "video" ? Buffer.from("isolated-upload-failure") : png,
-                });
+            await page.getByPlaceholder(placeholder, { exact: true }).setInputFiles({
+                name: target === "video" ? "failure.mp4" : `${target}.png`,
+                mimeType: target === "video" ? "video/mp4" : "image/png",
+                buffer: target === "video" ? Buffer.from("isolated-upload-failure") : png,
+            });
             const pending = page.waitForResponse(
                 (response) =>
                     response.request().method() === "PUT" &&
@@ -67,12 +65,10 @@ for (const target of ["video", "thumbnail", "item", "attributes"] as const) {
             );
             await page.getByRole("button", { name: "出品する", exact: true }).click();
             const saved = await pending;
-            await test
-                .info()
-                .attach("D04-save-status", {
-                    body: JSON.stringify({ status: saved.status() }),
-                    contentType: "application/json",
-                });
+            await test.info().attach("D04-save-status", {
+                body: JSON.stringify({ status: saved.status() }),
+                contentType: "application/json",
+            });
             expect(saved.status(), "業務保存APIが成功した後で外部失敗を検証する").toBe(200);
             await expect.poll(() => external.length).toBeGreaterThan(0);
             await expect(page.getByText(/アップロードに失敗しました/)).toBeVisible();

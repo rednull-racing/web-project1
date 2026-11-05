@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ destroy: vi.fn<Params["video"]["destroy"]>(), staticDestroy: vi.fn(), findOne: vi.fn(), create: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+    destroy: vi.fn<Params["video"]["destroy"]>(),
+    staticDestroy: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+}));
 vi.mock("../../../models/index.js", () => ({
     Item: { destroy: mocks.staticDestroy, findOne: mocks.findOne, create: mocks.create },
     Video: { destroy: mocks.staticDestroy, findOne: mocks.findOne, create: mocks.create },
@@ -13,7 +18,10 @@ const row = () => {
     const partial: Pick<Params["video"], "destroy"> = { destroy: mocks.destroy };
     return partial as Params["video"];
 };
-beforeEach(() => { vi.resetAllMocks(); mocks.destroy.mockResolvedValue(undefined); });
+beforeEach(() => {
+    vi.resetAllMocks();
+    mocks.destroy.mockResolvedValue(undefined);
+});
 
 describe("P0/P1 deleteVideoの対象限定・transaction・待機契約", () => {
     it("S-DELETE-01: 渡されたインスタンスを同じtransactionで1回だけ削除", async () => {
@@ -35,11 +43,16 @@ describe("P0/P1 deleteVideoの対象限定・transaction・待機契約", () => 
     it.each(["成功", "失敗"])("S-DELETE-03: destroyの%sまでserviceを完了しない", async (mode) => {
         let release!: () => void;
         let reject!: (reason: Error) => void;
-        const gate = new Promise<void>((resolve, fail) => { release = resolve; reject = fail; });
+        const gate = new Promise<void>((resolve, fail) => {
+            release = resolve;
+            reject = fail;
+        });
         const error = new Error("delayed destroy failure");
         mocks.destroy.mockReturnValue(gate);
         let completed = false;
-        const pending = deleteVideo({ video: row(), transaction }).finally(() => { completed = true; });
+        const pending = deleteVideo({ video: row(), transaction }).finally(() => {
+            completed = true;
+        });
         const settled = Promise.allSettled([pending]);
         try {
             expect(mocks.destroy).toHaveBeenCalledOnce();

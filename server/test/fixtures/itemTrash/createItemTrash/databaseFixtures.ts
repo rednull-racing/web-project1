@@ -112,12 +112,20 @@ beforeAll(async () => {
     for (const model of cleanupModels) {
         const columns = await qi.describeTable(model.getTableName());
         for (const [key, definition] of Object.entries(model.getAttributes())) {
-            if (!columns[key] || columns[key].allowNull !== (definition.allowNull !== false && !definition.primaryKey)) {
+            if (
+                !columns[key] ||
+                columns[key].allowNull !== (definition.allowNull !== false && !definition.primaryKey)
+            ) {
                 throw new Error("DB_TEST_STOP: model columns/NULL differ: " + model.getTableName() + "." + key);
             }
         }
     }
-    for (const [table, action] of [["orders", "n"], ["purchase_session", "n"], ["item_editing", "n"], ["item_report", "a"]]) {
+    for (const [table, action] of [
+        ["orders", "n"],
+        ["purchase_session", "n"],
+        ["item_editing", "n"],
+        ["item_report", "a"],
+    ]) {
         const [row] = await sequelize.query<{ ok: boolean }>(
             `SELECT EXISTS (SELECT 1 FROM pg_constraint c JOIN pg_class t ON t.oid=c.conrelid
              JOIN pg_attribute a ON a.attrelid=t.oid AND a.attnum=ANY(c.conkey)
@@ -132,7 +140,8 @@ beforeAll(async () => {
          WHERE c.conrelid='item_trash'::regclass AND c.contype='f' AND a.attname='item_id'`,
         { type: QueryTypes.SELECT },
     );
-    if (trashFk.count !== 0 || !columns.item_id.allowNull) throw new Error("DB_TEST_STOP: item_trash must retain historical item_id without FK");
+    if (trashFk.count !== 0 || !columns.item_id.allowNull)
+        throw new Error("DB_TEST_STOP: item_trash must retain historical item_id without FK");
     const [isolation] = await sequelize.query<{ transaction_isolation: string }>("SHOW transaction_isolation", {
         type: QueryTypes.SELECT,
     });
@@ -284,39 +293,72 @@ export const seed = async () => {
 export type DbFixture = Awaited<ReturnType<typeof seed>>;
 export const run = (f: DbFixture, itemId = f.item.id, userId = f.owner.id) =>
     createItemTrashUseCase({ itemId, userId });
-const tables = ["item", "item_trash", "item_editing", "video", "sale", "item_shipping_profile", "item_report", "orders", "purchase_session"] as const;
+const tables = [
+    "item",
+    "item_trash",
+    "item_editing",
+    "video",
+    "sale",
+    "item_shipping_profile",
+    "item_report",
+    "orders",
+    "purchase_session",
+] as const;
 export type SnapshotTable = (typeof tables)[number];
 export const snapshot = async (table: SnapshotTable, id: number, transaction?: Transaction) => {
     if (!tables.includes(table)) throw new Error("Unsupported snapshot table");
     const [row] = await observer.query<Record<string, unknown>>('SELECT * FROM "' + table + '" WHERE id = :id', {
-        replacements: { id }, type: QueryTypes.SELECT, transaction,
+        replacements: { id },
+        type: QueryTypes.SELECT,
+        transaction,
     });
     return row ?? null;
 };
-export const trashRows = (f: DbFixture) => observer.query<Record<string, unknown>>(
-    'SELECT * FROM item_trash WHERE seller_id IN (:owners) ORDER BY id',
-    { replacements: { owners: [f.owner.id, f.other.id] }, type: QueryTypes.SELECT },
-);
-export const protectedSnapshot = (f: DbFixture) => Promise.all([
-    snapshot("item", f.otherItem.id), snapshot("video", f.otherVideo.id),
-    snapshot("sale", f.otherSale.id), snapshot("item_shipping_profile", f.otherShipping.id),
-    snapshot("item_editing", f.otherEditing.id),
-]);
-export const sourceSnapshot = (f: DbFixture) => Promise.all([
-    snapshot("item", f.item.id), snapshot("video", f.video.id), snapshot("sale", f.sale.id),
-    snapshot("item_shipping_profile", f.shipping.id), snapshot("item_editing", f.existing.id),
-]);
+export const trashRows = (f: DbFixture) =>
+    observer.query<Record<string, unknown>>("SELECT * FROM item_trash WHERE seller_id IN (:owners) ORDER BY id", {
+        replacements: { owners: [f.owner.id, f.other.id] },
+        type: QueryTypes.SELECT,
+    });
+export const protectedSnapshot = (f: DbFixture) =>
+    Promise.all([
+        snapshot("item", f.otherItem.id),
+        snapshot("video", f.otherVideo.id),
+        snapshot("sale", f.otherSale.id),
+        snapshot("item_shipping_profile", f.otherShipping.id),
+        snapshot("item_editing", f.otherEditing.id),
+    ]);
+export const sourceSnapshot = (f: DbFixture) =>
+    Promise.all([
+        snapshot("item", f.item.id),
+        snapshot("video", f.video.id),
+        snapshot("sale", f.sale.id),
+        snapshot("item_shipping_profile", f.shipping.id),
+        snapshot("item_editing", f.existing.id),
+    ]);
 export const seedDependents = async (f: DbFixture) => {
     assertEnvironment();
     const address = await Address.create({ shikutyouson: "テスト市" });
     const name = await Name.create({ sei: "テスト", mei: "購入者", shop_type: "contact" });
-    const order = await Orders.create({ item_id: f.item.id, seller_user_id: f.owner.id, buyer_user_id: f.other.id, unit_price: 1234 });
+    const order = await Orders.create({
+        item_id: f.item.id,
+        seller_user_id: f.owner.id,
+        buyer_user_id: f.other.id,
+        unit_price: 1234,
+    });
     const session = await PurchaseSession.create({
-        item_id: f.item.id, buyer_user_id: f.other.id, address_id: address.id, name_id: name.id,
-        selected_variant: { color: "赤" }, expires_at: new Date("2099-01-01T00:00:00Z"),
+        item_id: f.item.id,
+        buyer_user_id: f.other.id,
+        address_id: address.id,
+        name_id: name.id,
+        selected_variant: { color: "赤" },
+        expires_at: new Date("2099-01-01T00:00:00Z"),
     });
     const option = await ItemReportOption.create({ name: "テスト通報" });
     const report = await ItemReport.create({ item_id: f.item.id, report_user_id: f.other.id, option_id: option.id });
-    const otherReport = await ItemReport.create({ item_id: f.otherItem.id, report_user_id: f.owner.id, option_id: option.id });
+    const otherReport = await ItemReport.create({
+        item_id: f.otherItem.id,
+        report_user_id: f.owner.id,
+        option_id: option.id,
+    });
     return { order, session, report, otherReport };
 };

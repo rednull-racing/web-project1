@@ -19,7 +19,7 @@
 
 - フロント: /item/[id]
 - route: POST /item-trash
-- usecase: 
+- usecase:
     - transaction
         - item取得
         - item_trashテーブル作成

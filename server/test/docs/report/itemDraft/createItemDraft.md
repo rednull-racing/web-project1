@@ -6,13 +6,13 @@ item_draft/item_trashの割引4列を削除し、下書きの作成・取得・�
 
 今回の対象（パスはserver/基準）：
 
-| ファイル | 成功件数 | 結果 |
-| --- | ---: | --- |
-| `test/integration/database/itemDraft/createItemDraft/database.test.ts` | 148 | 成功 |
-| `test/integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts` | 12 | 成功 |
-| `test/integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts` | 20 | 成功 |
-| `test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts` | 0 | 収集失敗・本体未実行 |
-| `test/integration/usecases/itemDraft/createItemDraft/route.test.ts` | 19 | 成功 |
+| ファイル                                                                           | 成功件数 | 結果                 |
+| ---------------------------------------------------------------------------------- | -------: | -------------------- |
+| `test/integration/database/itemDraft/createItemDraft/database.test.ts`             |      148 | 成功                 |
+| `test/integration/usecases/itemDraft/createItemDraft/databaseConcurrency.test.ts`  |       12 | 成功                 |
+| `test/integration/usecases/itemDraft/createItemDraft/databaseTransactions.test.ts` |       20 | 成功                 |
+| `test/integration/usecases/itemDraft/createItemDraft/masterBrand.test.ts`          |        0 | 収集失敗・本体未実行 |
+| `test/integration/usecases/itemDraft/createItemDraft/route.test.ts`                |       19 | 成功                 |
 
 関連全体は単体13ファイル232件成功、結合22ファイル646件成功・別1ファイル収集失敗。失敗/skip/todoのケースは0件で、収集失敗はケース数へ含めない。件数の根拠は単体ランナー出力と一時JSON `/tmp/remove-draft-sale-integration.json`。カバレッジは未取得。
 
@@ -31,7 +31,6 @@ npm run lint
 npm run typecheck
 ./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
 ```
-
 
 ## 2026-10-22 元編集セッションの消費（今回の最新結果）
 

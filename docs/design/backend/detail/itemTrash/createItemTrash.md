@@ -25,22 +25,22 @@ active/soldoutのいずれも対象。注文・購入セッション・編集中
 
 ### 担当ファイル・関数（server/src基準）
 
-| 層 | ファイル | 関数・型 |
-| --- | --- | --- |
-| route | routes/itemTrash.ts（新規）、routes/index.ts（登録追加） | default Router、registerRoutes |
-| 認証 | middleware/authMiddleware.ts（既存） | authenticateToken |
-| 制限 | middleware/rateLimit/itemTrashRateLimit.ts（新規） | createItemTrashRateLimit |
-| validator | validators/body/itemTrash.ts（新規） | createItemTrashBodySchema、CreateItemTrashBody |
-| 検証middleware | middleware/validate/validateBody.ts（既存） | validateBody |
-| controller | controllers/itemTrash/itemTrash.ts（新規） | createItemTrashController |
-| usecase | usecases/itemTrash/createItemTrash.ts（新規） | createItemTrashUseCase |
-| 取得 | services/itemTrash/query.ts（新規） | getMyItemForTrash |
-| 退避 | services/itemTrash/command.ts（新規） | createItemTrash |
-| 型 | types/serviceType/itemTrash.ts（新規） | CreateItemTrashParams、GetMyItemForTrashParams、ItemForTrash |
-| 通報参照解除 | services/itemReport/itemReport.ts（追加） | detachItemReports |
-| 関連削除 | services/video/video.ts、services/sale/sale.ts、services/itemShippingProfile/itemShippingProfile.ts（追加） | deleteVideo、deleteSale、deleteShipping |
-| 元削除 | services/items/index.ts（既存） | deleteItem |
-| 通知 | services/notification/notification.ts（既存） | createNotification |
+| 層             | ファイル                                                                                                    | 関数・型                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| route          | routes/itemTrash.ts（新規）、routes/index.ts（登録追加）                                                    | default Router、registerRoutes                               |
+| 認証           | middleware/authMiddleware.ts（既存）                                                                        | authenticateToken                                            |
+| 制限           | middleware/rateLimit/itemTrashRateLimit.ts（新規）                                                          | createItemTrashRateLimit                                     |
+| validator      | validators/body/itemTrash.ts（新規）                                                                        | createItemTrashBodySchema、CreateItemTrashBody               |
+| 検証middleware | middleware/validate/validateBody.ts（既存）                                                                 | validateBody                                                 |
+| controller     | controllers/itemTrash/itemTrash.ts（新規）                                                                  | createItemTrashController                                    |
+| usecase        | usecases/itemTrash/createItemTrash.ts（新規）                                                               | createItemTrashUseCase                                       |
+| 取得           | services/itemTrash/query.ts（新規）                                                                         | getMyItemForTrash                                            |
+| 退避           | services/itemTrash/command.ts（新規）                                                                       | createItemTrash                                              |
+| 型             | types/serviceType/itemTrash.ts（新規）                                                                      | CreateItemTrashParams、GetMyItemForTrashParams、ItemForTrash |
+| 通報参照解除   | services/itemReport/itemReport.ts（追加）                                                                   | detachItemReports                                            |
+| 関連削除       | services/video/video.ts、services/sale/sale.ts、services/itemShippingProfile/itemShippingProfile.ts（追加） | deleteVideo、deleteSale、deleteShipping                      |
+| 元削除         | services/items/index.ts（既存）                                                                             | deleteItem                                                   |
+| 通知           | services/notification/notification.ts（既存）                                                               | createNotification                                           |
 
 関連削除引数はそれぞれVideoTransactionParams、SaleTransactionParams、ShippingTransactionParamsを対応serviceTypeへ定義する。
 既存getMyItemWithVideoSaleShippingの取得列は変更しない。削除対象関連をロックして取得する専用serviceで既存利用元への影響を避ける。
@@ -142,13 +142,13 @@ video・sale・shippingがなければ、その関連に対応する退避列は
 
 コミット後にcreateNotificationをtransactionなしで呼び出す。Promiseをawaitせずcatchでエラーを処理する。失敗を成功済み商品のロールバックや500応答へ変換しない。
 
-| 項目          | 値                                                                                                                                                    |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| read_user_id  | 認証済みuserId                                                                                                                                        |
-| url           | `/item/deleted/${item_trash.id}`                                                                                                                      |
-| message_image | item_trash.first_image_url                                                                                                                            |
+| 項目          | 値                                                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| read_user_id  | 認証済みuserId                                                                                                                                                   |
+| url           | `/item/deleted/${item_trash.id}`                                                                                                                                 |
+| message_image | item_trash.first_image_url                                                                                                                                       |
 | message       | `商品「${item_trash.name}」が削除されました。削除された商品の詳細はこちらのページからご確認ください。なお、復元される場合は削除日から30日以内に行ってください。` |
-| type          | `ITEM`                                                                                                                                                |
+| type          | `ITEM`                                                                                                                                                           |
 
 ## 6. トランザクション設計
 
@@ -168,15 +168,15 @@ downは旧制約へ戻すが、削除済みItemへの履歴参照やPurchaseSess
 
 ## 7. エラー設計
 
-| 条件 | HTTP・公開本文 | 停止位置 |
-| --- | --- | --- |
-| 不正JSON | 400 `{code:"INVALID_JSON",message:"JSONの形式を確認してください。"}` | parser、認証/制限前 |
-| トークンなし/無効 | 401 `{message:"トークンがありません。"}` / `{message:"トークンが無効です。"}` | 認証、制限前 |
-| 回数超過 | 429 ライブラリ既定本文、Retry-After | 制限、schema前 |
-| body不正 | 400 INVALID_BODY、既存validateBodyの公開メッセージ | transaction前 |
-| 所有Item不在 | AppError ITEM_NOT_FOUND・404・`{code:"ITEM_NOT_FOUND",message:"商品が見つかりません。"}` | transaction内、後続なし |
-| Model validation/DB制約/予期しない例外 | 500 `{error:"INTERNAL_SERVER_ERROR",message:"サーバーエラーが発生しました"}` | 元例外を共通errorHandlerへ伝播、内部値非公開 |
-| commit後通知失敗 | 成功201を維持 | catchし、確定済みDBへ影響させない |
+| 条件                                   | HTTP・公開本文                                                                           | 停止位置                                     |
+| -------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------- |
+| 不正JSON                               | 400 `{code:"INVALID_JSON",message:"JSONの形式を確認してください。"}`                     | parser、認証/制限前                          |
+| トークンなし/無効                      | 401 `{message:"トークンがありません。"}` / `{message:"トークンが無効です。"}`            | 認証、制限前                                 |
+| 回数超過                               | 429 ライブラリ既定本文、Retry-After                                                      | 制限、schema前                               |
+| body不正                               | 400 INVALID_BODY、既存validateBodyの公開メッセージ                                       | transaction前                                |
+| 所有Item不在                           | AppError ITEM_NOT_FOUND・404・`{code:"ITEM_NOT_FOUND",message:"商品が見つかりません。"}` | transaction内、後続なし                      |
+| Model validation/DB制約/予期しない例外 | 500 `{error:"INTERNAL_SERVER_ERROR",message:"サーバーエラーが発生しました"}`             | 元例外を共通errorHandlerへ伝播、内部値非公開 |
+| commit後通知失敗                       | 成功201を維持                                                                            | catchし、確定済みDBへ影響させない            |
 
 保存済みデータの独自再検証や値域制約を追加せず、退避時のModel validation/DB制約へ委ねる。通知の非待機・失敗許容はユーザー指定と本設計に基づく。
 

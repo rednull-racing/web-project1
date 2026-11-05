@@ -6,14 +6,14 @@ item_draft/item_trashの割引4列を削除し、下書きの作成・取得・�
 
 今回の対象（パスはserver/基準）：
 
-| ファイル | 成功件数 | 結果 |
-| --- | ---: | --- |
-| `test/integration/database/itemDraft/deleteItemDraft/database.test.ts` | 12 | 成功 |
-| `test/integration/usecases/itemDraft/deleteItemDraft/databaseConcurrency.test.ts` | 14 | 成功 |
-| `test/integration/usecases/itemDraft/deleteItemDraft/databaseTransactions.test.ts` | 10 | 成功 |
-| `test/integration/usecases/itemDraft/deleteItemDraft/route.test.ts` | 57 | 成功 |
-| `test/integration/usecases/itemDraft/deleteItemDraft/routeDatabase.test.ts` | 9 | 成功 |
-| `test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts` | 6 | 成功 |
+| ファイル                                                                           | 成功件数 | 結果 |
+| ---------------------------------------------------------------------------------- | -------: | ---- |
+| `test/integration/database/itemDraft/deleteItemDraft/database.test.ts`             |       12 | 成功 |
+| `test/integration/usecases/itemDraft/deleteItemDraft/databaseConcurrency.test.ts`  |       14 | 成功 |
+| `test/integration/usecases/itemDraft/deleteItemDraft/databaseTransactions.test.ts` |       10 | 成功 |
+| `test/integration/usecases/itemDraft/deleteItemDraft/route.test.ts`                |       57 | 成功 |
+| `test/integration/usecases/itemDraft/deleteItemDraft/routeDatabase.test.ts`        |        9 | 成功 |
+| `test/integration/usecases/itemDraft/deleteItemDraft/sharedIdRoutes.test.ts`       |        6 | 成功 |
 
 関連全体は単体13ファイル232件成功、結合22ファイル646件成功・別1ファイル収集失敗。失敗/skip/todoのケースは0件で、収集失敗はケース数へ含めない。件数の根拠は単体ランナー出力と一時JSON `/tmp/remove-draft-sale-integration.json`。カバレッジは未取得。
 
@@ -24,7 +24,6 @@ lint・本番typecheck・test用tsc、変更したtest配下7TSの追加lint、m
 一括実行には既存 `createItemDraft/masterBrand.test.ts` の旧モック先による収集失敗があり、コマンド全体の終了値は1。ケース本体は646件すべて成功。対象外の修正は行わず、[Todo](../../../../../docs/todo/P3-techdebt/create-item-draft-master-brand-stale-mock.md)へ記録。初回単体の2件失敗は旧draftColumnsの4列を除いて解消した。
 
 実行コマンドは[createItemDraftの同日レポート](../itemDraft/createItemDraft.md)を参照。
-
 
 ## 最新結果：sharedIdRoutesのcontrollerモック補完（2026-10-22）
 
