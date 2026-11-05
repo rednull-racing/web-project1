@@ -60,12 +60,8 @@ describe("P0/P1: 実DBの下書き削除・所有権・非対象行", () => {
         expect(await protectedRows(f)).toEqual(before);
         expectNoExternal();
     });
-    it.each(
-        [null, "pending", "failed"].flatMap((video_status) =>
-            [true, false].map((sale_flag) => ({ video_status, sale_flag })),
-        ),
-    )("D07: video_status=$video_status/sale_flag=$sale_flagを条件にしない", async (values) => {
-        await f.draft.update(values);
+    it.each([null, "pending", "failed"])("D07: video_status=%sを条件にしない", async (video_status) => {
+        await f.draft.update({ video_status });
         const before = await protectedRows(f);
         await run(f);
         expect(await snapshot("item_draft", f.draft.id)).toBeNull();

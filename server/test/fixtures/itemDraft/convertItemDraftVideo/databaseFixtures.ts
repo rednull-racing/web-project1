@@ -69,10 +69,6 @@ beforeAll(async () => {
             original_url: "TEXT",
             converted_url: "TEXT",
             video_status: "CHARACTER VARYING(255)",
-            before_price: "INTEGER",
-            discount_rate: "INTEGER",
-            discount_amount: "INTEGER",
-            sale_flag: "BOOLEAN",
             shipping_day_id: "INTEGER",
             shipping_service_id: "INTEGER",
             shipping_place_id: "INTEGER",
@@ -117,7 +113,7 @@ beforeAll(async () => {
         const [defaults] = await connection.query<{ valid: boolean }>(
             `SELECT bool_and(column_default IS NOT NULL) AS valid FROM information_schema.columns
              WHERE table_schema = 'public' AND table_name = 'item_draft'
-             AND column_name IN ('gender_type', 'age_type', 'recommend', 'attributes', 'sale_flag', 'createdAt', 'updatedAt')`,
+             AND column_name IN ('gender_type', 'age_type', 'recommend', 'attributes', 'createdAt', 'updatedAt')`,
             { type: QueryTypes.SELECT },
         );
         if (!defaults?.valid) throw new Error("DB_TEST_STOP: required item_draft defaults are missing");
@@ -190,10 +186,6 @@ export const seed = async () => {
             inventory: { initial: 9, current: 4, low_stock_ratio: 0.5 },
             materials: [{ name: "綿", ratio: 100 }],
         },
-        before_price: 4000,
-        discount_rate: 25,
-        discount_amount: 1000,
-        sale_flag: true,
         shipping_service_free_text: "配送の備考",
         createdAt: old,
         updatedAt: old,

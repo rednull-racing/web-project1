@@ -64,7 +64,6 @@ describe("P0: 実DBへの下書き作成", () => {
             name: "商品名",
             detail: "商品説明",
             price: 300,
-            before_price: 300,
             image_url: ["https://media.test/old-image0", "https://media.test/old-image1"],
             first_image_url: "https://media.test/old-image0",
             category_id: f.category.id,
@@ -81,9 +80,6 @@ describe("P0: 実DBへの下書き作成", () => {
             converted_url: null,
             duration: null,
             video_status: null,
-            sale_flag: false,
-            discount_rate: null,
-            discount_amount: null,
             shipping_day_id: f.day.id,
             shipping_service_id: f.service.id,
             shipping_place_id: f.place.id,
@@ -129,12 +125,13 @@ describe("P0: 実DBへの下書き作成", () => {
             video_status: "completed",
         });
         await run(f);
-        expect(await onlyDraft()).toMatchObject({
+        const draft = await onlyDraft();
+        for (const column of ["before_price", "discount_rate", "discount_amount", "sale_flag"]) {
+            expect(draft).not.toHaveProperty(column);
+        }
+        expect(draft).toMatchObject({
             seller_id: f.owner.id,
-            sale_flag: false,
             recommend: false,
-            discount_rate: null,
-            discount_amount: null,
             duration: null,
             converted_url: null,
             video_status: null,

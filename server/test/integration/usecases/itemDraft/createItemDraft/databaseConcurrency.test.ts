@@ -92,7 +92,6 @@ const assertSaved = (
     expect(row).toMatchObject({
         name: body.itemMeta.name,
         price: body.price,
-        before_price: body.price,
         seller_id: userId,
         attributes: {
             inventory: {

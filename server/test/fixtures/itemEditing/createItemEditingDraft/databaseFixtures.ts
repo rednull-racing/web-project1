@@ -17,8 +17,8 @@ import ShippingDayOption from "../../../../src/models/shipping_day_option.js";
 import ShippingServiceOption from "../../../../src/models/shipping_service_option.js";
 import TodouhukenOption from "../../../../src/models/todouhuken_option.js";
 import { createItemEditingDraftUseCase } from "../../../../src/usecases/itemEditing/createItemEditingDraft.js";
-import { copyColumns, makeData } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
-import type { CopyData } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import { copyColumns, makeDraft } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
+import type { DraftData } from "../../../../src/usecases/itemEditing/test/createItemEditingDraft.fixtures.js";
 
 export { sequelize, ItemDraft, ItemEditing, Item, User, Brands, BrandAliases };
 assertEnvironment();
@@ -209,7 +209,7 @@ export const seed = async () => {
         price: 900,
         uploaded_at: new Date("2020-01-01T00:00:00Z"),
     });
-    const values = makeData({
+    const { id: fixtureId, ...values } = makeDraft({
         seller_id: owner.id,
         category_id: category.id,
         item_condition_id: condition.id,
@@ -219,6 +219,7 @@ export const seed = async () => {
         shipping_service_id: service.id,
         shipping_place_id: place.id,
     });
+    void fixtureId;
     const draft = await ItemDraft.create({
         ...values,
         createdAt: new Date("2020-01-01T00:00:00Z"),
@@ -304,10 +305,14 @@ export const expectCopied = (
 ) => {
     expect(saved).not.toBeNull();
     for (const column of copyColumns) expect(saved![column], column).toEqual(original[column]);
+    expect(saved!.before_price).toEqual(original.price);
+    expect(saved!.discount_rate).toBe(0);
+    expect(saved!.discount_amount).toBe(0);
+    expect(saved!.sale_flag).toBe(false);
     expect(saved!.seller_id).toBe(owner);
     expect(saved!.item_id).toBeNull();
 };
-export const replaceDraft = async (f: DbFixture, values: Partial<CopyData>) => {
+export const replaceDraft = async (f: DbFixture, values: Partial<DraftData>) => {
     await f.draft.update(values);
 };
 export const expectUnchanged = async (
