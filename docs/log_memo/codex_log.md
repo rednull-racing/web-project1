@@ -1,5 +1,13 @@
 # Codexログ
 
+## 20261105_backend-migration_itemDeleteLogsスキーマ更新
+
+- 既存のモデル変更・商品削除API設計メモを先にコミットして保存。
+- item_idの関連を削除し、item_deleted_idの関連とdelete_user_idのnullable型をモデルへ反映。
+- 新規ESM migration 2件をneondb/test_dbの両方に適用し、カラム・外部キー・履歴を検証。
+- delete_user_idの外部キーをモデルのCASCADE/NO ACTIONへ統一。NULL制約変更はSequelizeの生成SQLの都合で分離。
+- lint・typecheck・構文検査成功。実DBのdownは実行していない。
+
 ## 20261022_backend-coding_convertItemEditingVideo完了とUser日時NOT_NULL適用
 
 - User日時2列をNOT NULLへ変更する新規ESM migrationをneondb/test_dbへ適用し、型/default保持・NULL0件・履歴各1件を確認。
