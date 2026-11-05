@@ -1,3 +1,4 @@
+import type { ShippingTransactionParams } from "../../types/serviceType/itemShippingProfile.js";
 import { ItemShippingProfile } from "../../models/index.js";
 import type { CreateShippingParams, UpdateShippingParams } from "../../types/serviceType/itemShippingProfile.js";
 
@@ -10,4 +11,8 @@ export const createShipping = async ({
 
 export const updateShipping = async ({ shipping, data, transaction }: UpdateShippingParams) => {
     await shipping.update(data, { transaction });
+};
+
+export const deleteShipping = async ({ shipping, transaction }: ShippingTransactionParams): Promise<void> => {
+    await shipping.destroy({ transaction });
 };

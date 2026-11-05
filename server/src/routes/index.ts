@@ -20,6 +20,7 @@ import InquiryRouter from "./inquiry.js";
 import ItemDraftRouter from "./itemDraft.js";
 import ItemEditingRouter from "./itemEditing.js";
 import ItemLikeRouter from "./itemLike.js";
+import ItemTrashRouter from "./itemTrash.js";
 import ItemReportRouter from "./itemReport.js";
 import ItemsRouter from "./items.js";
 import NameRouter from "./name.js";
@@ -69,6 +70,7 @@ export const registerRoutes = (app: Application) => {
     app.use("/api/purchase-session", PurchaseSessionRouter);
     app.use("/api/reference-code", ReferenceCodeRouter);
     app.use("/api/item-report", ItemReportRouter);
+    app.use("/api/item-trash", ItemTrashRouter);
     app.use("/api/sale", SaleRouter);
     app.use("/api/search", SearchRouter);
     app.use("/api/shop-info", ShopInfoRouter);

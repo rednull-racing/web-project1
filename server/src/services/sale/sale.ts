@@ -1,3 +1,4 @@
+import type { SaleTransactionParams } from "../../types/serviceType/sale.js";
 import { Sale } from "../../models/index.js";
 import type {
     CreateSaleParams,
@@ -20,4 +21,8 @@ export const updateSale = async ({ sale, data, transaction }: UpdateSaleParams) 
 
 export const updateSaleEdit = async ({ sale, data, transaction }: UpdateSaleEditParams) => {
     await sale.update(data, { transaction });
+};
+
+export const deleteSale = async ({ sale, transaction }: SaleTransactionParams): Promise<void> => {
+    await sale.destroy({ transaction });
 };

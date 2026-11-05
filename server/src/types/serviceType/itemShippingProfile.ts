@@ -19,3 +19,8 @@ export type UpdateShippingParams = {
     };
     transaction: Transaction;
 };
+
+export type ShippingTransactionParams = {
+    shipping: InstanceType<typeof ItemShippingProfile>;
+    transaction: Transaction;
+};

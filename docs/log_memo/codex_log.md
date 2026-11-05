@@ -1339,3 +1339,22 @@
 - 関連301件成功。単体・実Form結合・取得処理実DB・Chromiumページ/E2Eの結果を統合レポートへ記載。
 - ポーリング待機・DTO公開列・下書き200応答に対するテスト側の旧前提を修正し、該当ファイルのみ再実行。本番変更なし。
 - server検査・テスト型検査成功。client lint/本番型検査の診断と実変換・人間目視等の未確認範囲を報告。
+
+## 20261105_documents_createItemTrash詳細設計の事前確認
+
+- 基本設計・Model・既存取得処理・関連Todoを照合し、body指定と認可対象の誤記を訂正。
+- item_trash.item_idはユーザー回答により外部キー廃止・元商品ID保持を設計方針へ反映。
+- 状態条件・注文参照・関連欠落・価格等の未決定事項を設計へ記録。回答待ちで実装・テスト未着手。
+
+## 20261105_documents_createItemTrashの関連保持仕様を更新
+
+- 注文・購入セッション・編集中データはnullable・ON DELETE SET NULLで保持するユーザー回答を設計へ反映。
+- 通知文は現案を維持し、復元APIは後続開発とする旨を明記。通報記録の削除制約を追加確認。
+- 退避価格はsale.before_priceを使用する回答も反映。関連欠落・通報記録の仕様回答待ちで、本番変更・テストは未着手。
+
+## 20261105_backend-coding_createItemTrash実装と検証
+
+- 詳細設計を確定し、退避・通報参照解除・関連/商品削除・commit後通知のAPIを実装。
+- Modelの参照保持仕様と新規migrationのup/downを作成（未実行）、テスト設計・fixture・統合レポートを整備。
+- 単体/HTTP85件、lint・本番/テスト型検査・追加test lint成功。
+- 実DB15件はpurchase_session.item_idのNULL制約不一致で書込み前停止。DB反映待ちのためdevelop未統合。

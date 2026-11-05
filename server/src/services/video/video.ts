@@ -1,3 +1,4 @@
+import type { VideoTransactionParams } from "../../types/serviceType/video.js";
 import { Item, Video } from "../../models/index.js";
 import type {
     CreateVideoParams,
@@ -42,4 +43,8 @@ export const updateStatus = async ({ video, data }: UpdateStatusParams) => {
 
 export const updateVideo = async ({ video, data, transaction }: UpdateVideoParams) => {
     await video.update(data, { transaction });
+};
+
+export const deleteVideo = async ({ video, transaction }: VideoTransactionParams): Promise<void> => {
+    await video.destroy({ transaction });
 };

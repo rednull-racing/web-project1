@@ -1,3 +1,4 @@
+import type { Transaction } from "sequelize";
 import { ItemReport, ItemReportOption } from "../../models/index.js";
 import { CreateItemReportParams, ItemIdParams, OptionIdParams } from "../../types/serviceType/itemReport.js";
 
@@ -17,4 +18,8 @@ export const countItemReport = ({ itemId }: ItemIdParams) => {
     return ItemReport.count({
         where: { item_id: itemId },
     });
+};
+
+export const detachItemReports = async ({ itemId, transaction }: { itemId: number; transaction: Transaction }): Promise<void> => {
+    await ItemReport.update({ item_id: null }, { where: { item_id: itemId }, transaction });
 };

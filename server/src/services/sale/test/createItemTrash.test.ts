@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ destroy: vi.fn(), staticDestroy: vi.fn(), findOne: vi.fn(), create: vi.fn() }));
+const mocks = vi.hoisted(() => ({ destroy: vi.fn<Params["sale"]["destroy"]>(), staticDestroy: vi.fn(), findOne: vi.fn(), create: vi.fn() }));
 vi.mock("../../../models/index.js", () => ({
     Sale: { destroy: mocks.staticDestroy, findOne: mocks.findOne, create: mocks.create },
 }));
@@ -8,7 +8,10 @@ import { deleteSale } from "../sale.js";
 type Params = Parameters<typeof deleteSale>[0];
 const transaction = {} as Params["transaction"];
 // インスタンスメソッド呼出し境界の代用品であり、実Model validationは通さない。
-const row = () => ({ destroy: mocks.destroy }) as Params["sale"];
+const row = () => {
+    const partial: Pick<Params["sale"], "destroy"> = { destroy: mocks.destroy };
+    return partial as Params["sale"];
+};
 beforeEach(() => { vi.resetAllMocks(); mocks.destroy.mockResolvedValue(undefined); });
 
 describe("P0/P1 deleteSaleの対象限定・transaction・待機契約", () => {
@@ -16,7 +19,7 @@ describe("P0/P1 deleteSaleの対象限定・transaction・待機契約", () => {
         const sale = row();
         expect(await deleteSale({ sale, transaction })).toBeUndefined();
         expect(mocks.destroy).toHaveBeenCalledExactlyOnceWith({ transaction });
-        expect(mocks.destroy.mock.calls[0][0].transaction).toBe(transaction);
+        expect(mocks.destroy.mock.calls[0]?.[0]?.transaction).toBe(transaction);
         expect(mocks.staticDestroy).not.toHaveBeenCalled();
         expect(mocks.findOne).not.toHaveBeenCalled();
         expect(mocks.create).not.toHaveBeenCalled();

@@ -39,3 +39,8 @@ export type UpdateVideoParams = {
     data: Omit<CreateVideoParams["data"], "play_count">;
     transaction: Transaction;
 };
+
+export type VideoTransactionParams = {
+    video: InstanceType<typeof Video>;
+    transaction: Transaction;
+};

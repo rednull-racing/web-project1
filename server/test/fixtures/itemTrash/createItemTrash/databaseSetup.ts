@@ -41,5 +41,6 @@ vi.mock("dotenv", () => ({
         },
     },
 }));
-export const notification = vi.hoisted(() => vi.fn(async () => undefined));
+const notification = vi.hoisted(() => vi.fn(async () => undefined));
+export { notification };
 vi.mock("../../../../src/services/notification/notification.js", () => ({ createNotification: notification }));

@@ -27,3 +27,11 @@ item_trashを使う削除・復元・期限削除の業務仕様を確定して�
 ItemTrash.item_idのON DELETE CASCADEによる影響も確認し、商品削除でアーカイブを失わない構成にする。
 復元・期限削除までテストしてから停止中APIを再開し、新cronを登録する。
 期限条件のないItem全件取得や、旧deleted_atへの依存を再導入してはいけない。
+
+## 2026-11-05 createItemTrash対応（部分実施）
+
+- ユーザー指定に基づく新POST /api/item-trashを実装し、詳細設計・Model・新規migration・テストを作成。旧APIは再開していない。
+- 注文・購入セッション・編集はSET NULLで保持、通報はnullable・NO ACTIONのまま明示NULL更新、退避元IDはFKなしで保持。
+- 単体/HTTP85件成功。実DB15件はpurchase_session.item_idのnullable不一致で書込み前停止。migration未実行。
+- [統合レポート](../../../server/test/docs/report/itemTrash/createItemTrash.md)に検証結果と再開条件を記録。
+- 復元・期限削除・旧API再開は今回対象外であり、このTodoは未完了のまま保持する。
