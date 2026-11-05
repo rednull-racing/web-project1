@@ -116,10 +116,11 @@ describe("createItemTrashUseCase P0 保存・transaction・通知", () => {
         expect(m.notify).toHaveBeenCalledOnce();
     });
     it("U09 通知保留を待たず成功し、後からの失敗を捕捉する", async () => {
-        const gate = deferred();
-        m.notify.mockReturnValue(gate.promise);
-        try { await expect(createItemTrashUseCase(params)).resolves.toBeUndefined(); expect(m.notify).toHaveBeenCalledOnce(); }
-        finally { gate.reject(new Error("notification")); await gate.promise.catch(() => undefined); }
+        const gate = deferred(); const entered = deferred(); let done = false;
+        m.notify.mockImplementation(() => { entered.resolve(); return gate.promise; });
+        const running = createItemTrashUseCase(params).finally(() => { done = true; });
+        try { await entered.promise; await Promise.resolve(); expect(done).toBe(true); expect(m.notify).toHaveBeenCalledOnce(); }
+        finally { gate.reject(new Error("notification")); await gate.promise.catch(() => undefined); await running; }
         expect(consoleError).toHaveBeenCalledOnce();
     });
     it.each(stages.map((mock, index) => ({ mock, index })))("U10 段階$indexの保留中は後続へ進まない", async ({ mock, index }) => {
