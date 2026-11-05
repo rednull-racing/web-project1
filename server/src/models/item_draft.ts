@@ -36,11 +36,6 @@ export class ItemDraft extends Model {
     declare converted_url: string | null;
     declare video_status: string | null;
 
-    declare before_price: number | null;
-    declare discount_rate: number | null;
-    declare discount_amount: number | null;
-    declare sale_flag: boolean;
-
     declare shipping_day_id: number | null;
     declare shipping_service_id: number | null;
     declare shipping_place_id: number | null;
@@ -222,23 +217,6 @@ ItemDraft.init(
         video_status: {
             type: DataTypes.STRING(255),
             allowNull: true,
-        },
-        before_price: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        discount_rate: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        discount_amount: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        sale_flag: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: false,
         },
         shipping_day_id: {
             type: DataTypes.INTEGER,

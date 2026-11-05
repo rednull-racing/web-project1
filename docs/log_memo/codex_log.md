@@ -1,5 +1,13 @@
 # Codexログ
 
+## 20261105_backend-migration_下書きゴミ箱の割引カラム削除
+
+- item_draft/item_trashの割引4列をモデルから削除し、neondb/test_dbの両DBへ新規migrationを適用。
+- 下書き作成DTO・保存・取得列を更新。編集コピー時はbefore_price=下書きprice、割引率/額=0、sale_flag=falseへ変更。
+- 単体232件・結合の本体646件成功。既存masterBrandテスト1ファイルは旧モック先で収集失敗し、対象外Todoへ記録。
+- lint・本番/テスト型検査・追加TS lint・構文/差分検査成功。両DBの削除列・編集列維持・適用履歴を確認。
+- 結合fixture更新を専用worktreeで並列実施し統合。設計・レポート更新。downによる削除値の復元は不可。
+
 ## 20261105_backend-migration_itemDeleted関連をSET_NULLへ変更
 
 - item_delete_logs.item_deleted_id/delete_user_id、item_deleted.seller_id/deleted_byをnullable・ON DELETE SET NULLへ統一。

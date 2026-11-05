@@ -4,6 +4,7 @@ import type { CreateItemEditingDraftParams } from "../../../types/serviceType/it
 import type { CreateItemEditingDraftBody } from "../../../validators/body/itemEditing.js";
 
 export type CopyData = CreateItemEditingDraftParams["data"];
+export type DraftData = Omit<CopyData, "before_price" | "discount_rate" | "discount_amount" | "sale_flag">;
 export const copyColumns = [
     "name",
     "detail",
@@ -25,10 +26,6 @@ export const copyColumns = [
     "original_url",
     "converted_url",
     "video_status",
-    "before_price",
-    "discount_rate",
-    "discount_amount",
-    "sale_flag",
     "shipping_day_id",
     "shipping_service_id",
     "shipping_place_id",
@@ -36,7 +33,7 @@ export const copyColumns = [
 ] as const satisfies readonly (keyof CopyData)[];
 
 export const makeBody = (itemDraftId = 11): CreateItemEditingDraftBody => ({ itemDraftId });
-export const makeData = (overrides: Partial<CopyData> = {}): CopyData => ({
+const makeDraftData = (overrides: Partial<DraftData> = {}): DraftData => ({
     status: "normal",
     item_id: null,
     seller_id: 7,
@@ -83,10 +80,6 @@ export const makeData = (overrides: Partial<CopyData> = {}): CopyData => ({
     original_url: "https://media.test/original",
     converted_url: "https://media.test/converted",
     video_status: "converted",
-    before_price: 1200,
-    discount_rate: 25,
-    discount_amount: 400,
-    sale_flag: true,
     shipping_day_id: 41,
     shipping_service_id: 51,
     shipping_place_id: 13,
@@ -94,14 +87,19 @@ export const makeData = (overrides: Partial<CopyData> = {}): CopyData => ({
     ...overrides,
 });
 
-export const makeDraft = (overrides: Partial<CopyData> = {}) => ({
-    ...makeData(overrides),
+export const makeData = (overrides: Partial<DraftData> = {}): CopyData => {
+    const draft = makeDraftData(overrides);
+    return { ...draft, before_price: draft.price, discount_rate: 0, discount_amount: 0, sale_flag: false };
+};
+
+export const makeDraft = (overrides: Partial<DraftData> = {}) => ({
+    ...makeDraftData(overrides),
     id: 11,
     createdAt: new Date("2020-01-01T00:00:00Z"),
     updatedAt: new Date("2020-01-02T00:00:00Z"),
 });
 
-export const nullableData: Partial<CopyData> = {
+export const nullableData: Partial<DraftData> = {
     name: null,
     detail: null,
     image_url: null,
@@ -119,9 +117,6 @@ export const nullableData: Partial<CopyData> = {
     original_url: null,
     converted_url: null,
     video_status: null,
-    before_price: null,
-    discount_rate: null,
-    discount_amount: null,
     shipping_day_id: null,
     shipping_service_id: null,
     shipping_place_id: null,
@@ -136,7 +131,7 @@ export const textColumns = [
     "original_url",
     "converted_url",
 ] as const;
-export const copyVariants: { id: string; name: string; values: Partial<CopyData> }[] = [
+export const copyVariants: { id: string; name: string; values: Partial<DraftData> }[] = [
     { id: "N03", name: "nullable列と空JSON", values: { ...nullableData, attributes: {} } },
     {
         id: "N04",
@@ -161,12 +156,8 @@ export const copyVariants: { id: string; name: string; values: Partial<CopyData>
         name: "0とfalse",
         values: {
             price: 0,
-            before_price: 0,
-            discount_rate: 0,
-            discount_amount: 0,
             duration: 0,
             recommend: false,
-            sale_flag: false,
         },
     },
     { id: "N05", name: "recommendがnull", values: { recommend: null } },

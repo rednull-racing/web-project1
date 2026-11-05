@@ -1,5 +1,9 @@
 # convertItemDraftVideo テスト設計
 
+## 2026-11-05 割引カラム削除の契約
+
+item_draftからbefore_price・discount_rate・discount_amount・sale_flagを削除する。取得attributes・保存用fixture・スキーマ前提から4列を除く。動画状態の更新、他カラムの不変、ロック・失敗時rollbackの契約は維持する。 以下の旧カラムの記述より本契約を優先する。実行結果は対応する統合レポートに記録する。
+
 設計日: 2026-10-22。[詳細設計](../../../../../docs/design/backend/detail/itemDraft/convertItemDraftVideo.md)とユーザー回答を根拠とする。
 対象はPATCH /api/item-draft/:id/convert。以下のパスはserver/基準。実行結果は[レポート](../../../docs/report/itemDraft/convertItemDraftVideo.md)へ記載する。
 既存旧Video APIは契約を維持する。成功converted、失敗failed/URL null/duration保持、新要求で旧処理を中断し、公開HTTPすべて202。

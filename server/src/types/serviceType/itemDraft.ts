@@ -57,8 +57,6 @@ export type CreateItemDraftParams = {
         thumbnail_url: string;
         original_url: string | null;
 
-        before_price: number;
-
         shipping_day_id: number | null;
         shipping_service_id: number | null;
         shipping_place_id: number | null;

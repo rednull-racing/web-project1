@@ -127,8 +127,6 @@ export const createItemDraftUseCase = async ({ userId, body }: Params) => {
                 original_url: videoUrl,
                 thumbnail_url: thumbnailUrl,
 
-                before_price: body.price,
-
                 shipping_day_id: dayId,
                 shipping_service_id: serviceId,
                 shipping_place_id: placeId,

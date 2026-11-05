@@ -1,5 +1,9 @@
 # getItemDraftPage テスト設計
 
+## 2026-11-05 割引カラム削除の契約
+
+item_draftからbefore_price・discount_rate・discount_amount・sale_flagを削除する。取得attributes・返却値・DB fixtureに4列を含めない。既存の所有者条件・関連取得・nullable値の契約は維持する。 以下の旧カラムの記述より本契約を優先する。実行結果は対応する統合レポートに記録する。
+
 設計日: 2026-10-29。根拠は[詳細設計](../../../../../docs/design/backend/detail/itemDraft/getItemDraftPage.md)と同日のユーザー回答。パスはserver基準。数値ID、updatedAt、配列children、null関連が確定契約。結果は[レポート](../../report/itemDraft/getItemDraftPage.md)に記載する。
 
 ## 対象・境界・fixture

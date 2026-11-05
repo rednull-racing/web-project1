@@ -80,6 +80,21 @@ describe("P0: usecaseのコピー・所有権・同一transaction", () => {
 });
 
 describe("P1: コピー値の境界と任意項目", () => {
+    it.each([null, 0, 800])("AF-N01: 下書きprice=%sを割引前価格にし割引を初期化する", async (price) => {
+        draft = makeDraft({ price }) as unknown as typeof draft;
+        for (const column of ["before_price", "discount_rate", "discount_amount", "sale_flag"]) {
+            expect(draft).not.toHaveProperty(column);
+        }
+        mocks.get.mockResolvedValue(draft);
+        await run();
+        expect(mocks.create.mock.calls[0][0].data).toEqual({
+            ...makeData({ price }),
+            before_price: price,
+            discount_rate: 0,
+            discount_amount: 0,
+            sale_flag: false,
+        });
+    });
     it.each(copyVariants)("$id: $nameを加工せずコピーする", async ({ values }) => {
         draft = makeDraft(values) as unknown as typeof draft;
         mocks.get.mockResolvedValue(draft);

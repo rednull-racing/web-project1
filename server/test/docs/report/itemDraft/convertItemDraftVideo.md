@@ -1,5 +1,29 @@
 # convertItemDraftVideo テストレポート
 
+## 2026-11-05 割引カラム削除の再検証
+
+item_draft/item_trashの割引4列を削除し、下書きの作成・取得・動画更新・削除と編集コピーのfixture/期待値を更新した。コピー先はbefore_price=元price、discount_rate=0、discount_amount=0、sale_flag=false。以下の旧カラムに関する結果は当時の履歴として扱う。
+
+今回の対象（パスはserver/基準）：
+
+| ファイル | 成功件数 | 結果 |
+| --- | ---: | --- |
+| `test/integration/database/itemDraft/convertItemDraftVideo/database.test.ts` | 13 | 成功 |
+| `test/integration/usecases/itemDraft/convertItemDraftVideo/database.test.ts` | 23 | 成功 |
+| `test/integration/usecases/itemDraft/convertItemDraftVideo/http.test.ts` | 42 | 成功 |
+| `test/integration/usecases/itemDraft/convertItemDraftVideo/isolatedJobs.test.ts` | 1 | 成功 |
+
+関連全体は単体13ファイル232件成功、結合22ファイル646件成功・別1ファイル収集失敗。失敗/skip/todoのケースは0件で、収集失敗はケース数へ含めない。件数の根拠は単体ランナー出力と一時JSON `/tmp/remove-draft-sale-integration.json`。カバレッジは未取得。
+
+実DBテストは既存ガードにより `.env.test` / NODE_ENV=test / PostgreSQL test_dbを確認し、必要スキーマ検査後に自作行のみ作成・cleanupした。外部署名・動画変換・HTTP依存は各既存テストのモック境界を維持。実DBのコピー・元下書き削除・rollback・行ロック競合を再検証し、実S3処理やCOMMIT応答喪失は対象外。
+
+lint・本番typecheck・test用tsc、変更したtest配下7TSの追加lint、migration構文・差分検査が成功。両DB（neondb/test_db）で対象8列の不存在・item_editingの4列維持・適用履歴1件を確認。migrationのdownは実行していない（カラム定義のみ復元可能）。
+
+一括実行には既存 `createItemDraft/masterBrand.test.ts` の旧モック先による収集失敗があり、コマンド全体の終了値は1。ケース本体は646件すべて成功。対象外の修正は行わず、[Todo](../../../../../docs/todo/P3-techdebt/create-item-draft-master-brand-stale-mock.md)へ記録。初回単体の2件失敗は旧draftColumnsの4列を除いて解消した。
+
+実行コマンドは[createItemDraftの同日レポート](../itemDraft/createItemDraft.md)を参照。
+
+
 実行日: 2026-10-22。最新結果: 対象API・ID返却・フロント接続の実装と必要検証を完了。
 パスとコマンドは特記以外server/基準。
 

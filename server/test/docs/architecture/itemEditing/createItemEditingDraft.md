@@ -1,5 +1,9 @@
 # 下書きから商品編集セッション作成：テストコード設計書
 
+## 2026-11-05 割引カラム削除の契約
+
+item_draftはbefore_price・discount_rate・discount_amount・sale_flagを持たない。取得列・コピー元fixtureから除き、item_editingにはbefore_price=item_draft.price（null/0も保持）、discount_rate=0、discount_amount=0、sale_flag=falseを設定する。既存N01/N03/N05とDBコピー検証の期待値を更新し、単体AF-N01で価格null/0/800とコピー元に4列がないことを確認する。 以下の旧カラムの記述より本契約を優先する。実行結果は対応する統合レポートに記録する。
+
 ## 2026-10-23 item_id追加契約
 
 新規・下書き・商品コピーの作成dataへ`item_id: null`を明示する。service引数型はnullを必須とし、serviceはdataをそのままModelへ渡す。単体の完全一致と、DBの再SELECTで確認する。nullableなINTEGERとitem.idへのFK（ON UPDATE NO ACTION / ON DELETE CASCADE）は新規migrationで追加する。以下の過去のスキーマ記述より本契約を優先する。

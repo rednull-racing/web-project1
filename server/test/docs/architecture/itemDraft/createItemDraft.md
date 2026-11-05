@@ -1,5 +1,9 @@
 # 商品下書き作成：テストコード設計書
 
+## 2026-11-05 割引カラム削除の契約
+
+item_draftとitem_trashからbefore_price・discount_rate・discount_amount・sale_flagを削除する。下書き作成DTO・保存値に4列を含めず、DBの再SELECTでも存在しないことを確認する。既存の作成・元編集削除・rollback・再送・競合の契約は維持する。 以下の旧カラムの記述より本契約を優先する。実行結果は対応する統合レポートに記録する。
+
 ## 契約の更新（2026-10-22）
 
 [基本設計 createItemDraft](../../../../../docs/design/backend/itemUpload.md) と [元編集セッション残存の修正指示](../../../../../docs/todo/done/create-item-draft-retains-editing-session.md) に合わせ、下書き本体・画像の保存後、再認可・ロック取得した元 `item_editing` を同じ transaction で削除する。成功後の同一編集 ID 再送は `ITEM_EDITING_NOT_FOUND / 404` とし、下書きを追加しない。失敗時は作成先を rollback し、元行を保持する。
