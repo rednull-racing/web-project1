@@ -150,7 +150,7 @@ Orders.init(
                 key: "id",
             },
             onUpdate: "CASCADE",
-            onDelete: "NO ACTION",
+            onDelete: "SET NULL",
         },
         seller_user_id: {
             type: DataTypes.INTEGER,

@@ -18,7 +18,7 @@ type SelectedVariant = {
 export class PurchaseSession extends Model {
     declare id: number;
     declare buyer_user_id: number;
-    declare item_id: number;
+    declare item_id: number | null;
     declare address_id: number;
     declare name_id: number;
     declare coupon_user_id: number | null;
@@ -86,13 +86,13 @@ PurchaseSession.init(
         },
         item_id: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: "item",
                 key: "id",
             },
             onUpdate: "CASCADE",
-            onDelete: "CASCADE",
+            onDelete: "SET NULL",
         },
         address_id: {
             type: DataTypes.INTEGER,

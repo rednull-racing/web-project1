@@ -113,7 +113,7 @@ ItemEditing.init(
                 key: "id",
             },
             onUpdate: "NO ACTION",
-            onDelete: "CASCADE",
+            onDelete: "SET NULL",
         },
         status: {
             type: DataTypes.ENUM("normal", "edit"),

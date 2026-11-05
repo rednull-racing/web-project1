@@ -5,7 +5,6 @@ import type { ItemAttributes } from "../types/itemAttributes.js";
 import BrandAliases from "./brand_aliases.js";
 import Brands from "./brands.js";
 import Categories from "./categories.js";
-import Item from "./item.js";
 import ItemConditionOption from "./item_condition_option.js";
 import ShippingDayOption from "./shipping_day_option.js";
 import ShippingServiceOption from "./shipping_service_option.js";
@@ -47,9 +46,6 @@ export class ItemTrash extends Model {
     declare updatedAt: Date;
 
     static associate() {
-        ItemTrash.belongsTo(Item, {
-            foreignKey: "item_id",
-        });
         ItemTrash.belongsTo(User, {
             foreignKey: "seller_id",
         });
@@ -79,7 +75,6 @@ export class ItemTrash extends Model {
     }
 
     static associations: {
-        Item: Association<ItemTrash, Item>;
         User: Association<ItemTrash, User>;
         ItemConditionOption: Association<ItemTrash, ItemConditionOption>;
         Categories: Association<ItemTrash, Categories>;
@@ -99,15 +94,10 @@ ItemTrash.init(
             primaryKey: true,
             autoIncrement: true,
         },
+        // 削除済み商品のIDを履歴として保持し、Itemへの外部キーは持たない。
         item_id: {
             type: DataTypes.INTEGER,
             allowNull: true,
-            references: {
-                model: "item",
-                key: "id",
-            },
-            onUpdate: "NO ACTION",
-            onDelete: "CASCADE",
         },
         name: {
             type: DataTypes.STRING(255),

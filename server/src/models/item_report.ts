@@ -7,7 +7,7 @@ import ItemReportOption from "./item_report_option.js";
 
 export class ItemReport extends Model {
     declare id: number;
-    declare item_id: number;
+    declare item_id: number | null;
     declare report_user_id: number;
     declare option_id: number;
     declare createdAt: Date;
@@ -42,7 +42,7 @@ ItemReport.init(
         },
         item_id: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: "item",
                 key: "id",
