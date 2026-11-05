@@ -7,7 +7,7 @@ import User from "./user.js";
 export class ItemDeleted extends Model {
     declare id: number;
     declare item_id: number;
-    declare seller_id: number;
+    declare seller_id: number | null;
     declare item_name: string;
     declare explain: string | null;
     declare price: number;
@@ -17,7 +17,7 @@ export class ItemDeleted extends Model {
     declare video_title: string | null;
     declare video_summary: string | null;
     declare delete_reason: string;
-    declare deleted_by: number;
+    declare deleted_by: number | null;
     declare createdAt: Date;
     declare updatedAt: Date;
 
@@ -54,13 +54,13 @@ ItemDeleted.init(
         },
         seller_id: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: "user",
                 key: "id",
             },
             onUpdate: "NO ACTION",
-            onDelete: "NO ACTION",
+            onDelete: "SET NULL",
         },
         item_name: {
             type: DataTypes.STRING(255),
@@ -107,13 +107,13 @@ ItemDeleted.init(
         },
         deleted_by: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: "user",
                 key: "id",
             },
             onUpdate: "NO ACTION",
-            onDelete: "NO ACTION",
+            onDelete: "SET NULL",
         },
         createdAt: {
             type: DataTypes.DATE,

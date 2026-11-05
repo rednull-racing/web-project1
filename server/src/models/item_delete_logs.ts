@@ -45,7 +45,7 @@ ItemDeleteLogs.init(
                 key: "id",
             },
             onUpdate: "CASCADE",
-            onDelete: "NO ACTION",
+            onDelete: "SET NULL",
         },
         item_id: {
             type: DataTypes.INTEGER,
@@ -59,7 +59,7 @@ ItemDeleteLogs.init(
                 key: "id",
             },
             onUpdate: "CASCADE",
-            onDelete: "NO ACTION",
+            onDelete: "SET NULL",
         },
         delete_by_admin: {
             type: DataTypes.BOOLEAN,

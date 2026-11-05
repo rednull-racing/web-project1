@@ -1,5 +1,12 @@
 # Codexログ
 
+## 20261105_backend-migration_itemDeleted関連をSET_NULLへ変更
+
+- item_delete_logs.item_deleted_id/delete_user_id、item_deleted.seller_id/deleted_byをnullable・ON DELETE SET NULLへ統一。
+- ItemDeletedのnullable型を更新し、既存ON UPDATEを維持したトランザクション付きESM migrationを追加。
+- neondb/test_dbの両DBへ適用し、4カラムのNULL許可・外部キー削除/更新規則・適用履歴を検証。
+- lint・typecheck・migration構文検査成功。実データの削除やdownは実行していない。
+
 ## 20261105_backend-migration_itemDeleteLogsスキーマ更新
 
 - 既存のモデル変更・商品削除API設計メモを先にコミットして保存。
