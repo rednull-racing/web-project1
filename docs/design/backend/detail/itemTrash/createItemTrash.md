@@ -180,6 +180,41 @@ flowchart TD
     video.original_url → original_url,
     video.converted_url → converted_url,
     video.status → video_status,
-    sale.before_price → before_price,
+    item_shipping_profile.shipping_day_id → shipping_day_id,
+    item_shipping_profile.shipping_service_id → shipping_service_id,
+    item_shipping_profile.shipping_place_id → shipping_place_id,
+    item_shipping_profile.shipping_service_free_text → shipping_service_free_text,
+    createdAt（自動生成）,
+    updatedAt（自動生成）,
 }
 ```
+
+### 更新通知
+
+コミット後にcreateNotificationをtransactionなしで呼び出す。Promiseをawaitせずcatchでエラーを処理する。失敗を成功済み商品のロールバックや500応答へ変換しない。
+
+| 項目          | 値                                                                                                                                                    |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| read_user_id  | 認証済みuserId                                                                                                                                        |
+| url           | `/item/deleted/${item_trash.id}`                                                                                                                      |
+| message_image | item_trash.first_image_url                                                                                                                            |
+| message       | `商品「${name}」が削除されました。削除された商品の詳細はこちらのページからご確認ください。なお、復元される場合は削除日から30日以内に行ってください。` |
+| type          | `ITEM`                                                                                                                                                |
+
+## 6. トランザクション設計
+
+### 成功時・失敗時
+
+### 排他制御
+
+## 7. エラー設計
+
+## 8. テスト設計
+
+### 正常系
+
+### 入力・認証・境界値
+
+### 保存済みデータ・異常系
+
+### 並行処理・状態遷移
