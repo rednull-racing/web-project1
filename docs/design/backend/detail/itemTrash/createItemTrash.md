@@ -1,4 +1,4 @@
-# createItemDeleted 詳細設計
+# createItemTrash 詳細設計
 
 基本設計: [商品削除API設計](../../itemDelete.md)
 
@@ -198,7 +198,7 @@ flowchart TD
 | read_user_id  | 認証済みuserId                                                                                                                                        |
 | url           | `/item/deleted/${item_trash.id}`                                                                                                                      |
 | message_image | item_trash.first_image_url                                                                                                                            |
-| message       | `商品「${name}」が削除されました。削除された商品の詳細はこちらのページからご確認ください。なお、復元される場合は削除日から30日以内に行ってください。` |
+| message       | `商品「${item_trash.name}」が削除されました。削除された商品の詳細はこちらのページからご確認ください。なお、復元される場合は削除日から30日以内に行ってください。` |
 | type          | `ITEM`                                                                                                                                                |
 
 ## 6. トランザクション設計
