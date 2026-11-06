@@ -33,3 +33,9 @@
 - 失敗時:
     - DB変更をrollback
     - itemは保持
+
+### getItemTrashList（削除商品リスト取得）
+
+- フロント: /item-list/trash
+- route: GET /item-trash/list
+- usecase:
