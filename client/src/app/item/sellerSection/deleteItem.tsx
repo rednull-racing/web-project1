@@ -6,7 +6,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { ApiError } from "../../../lib/api/apiError";
 import { sleep } from "../../../lib/sleep";
-import { fetchDeleteLogicalItem } from "../api/deleteItem";
+import { fetchCreateItemTrash } from "../api/deleteItem";
 import styles from "./seller.module.css";
 
 type Props = {
@@ -19,7 +19,7 @@ export const DeleteItem = ({ id }: Props) => {
 
     const deleteItem = async () => {
         try {
-            await fetchDeleteLogicalItem(id);
+            await fetchCreateItemTrash(id);
 
             toast.success("商品を削除しました");
             setPopup(false);

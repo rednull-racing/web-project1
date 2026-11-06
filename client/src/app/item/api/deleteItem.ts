@@ -25,8 +25,9 @@ export const fetchDeleteDraftItem = async (itemId: string) => {
     });
 };
 
-export const fetchDeleteLogicalItem = async (itemId: string) => {
-    return apiFetch(`/items/${itemId}/logical`, {
-        method: "DELETE",
+export const fetchCreateItemTrash = async (itemId: string) => {
+    return apiFetch(`/item-trash`, {
+        method: "POST",
+        body: JSON.stringify({ itemId: Number(itemId) }),
     });
 };
