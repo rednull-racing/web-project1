@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { createItemTrashController } from "../controllers/itemTrash/itemTrash.js";
+import { createItemTrashController, getItemTrashListController } from "../controllers/itemTrash/itemTrash.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
-import { createItemTrashRateLimit } from "../middleware/rateLimit/itemTrashRateLimit.js";
+import { createItemTrashRateLimit, getItemTrashListRateLimit } from "../middleware/rateLimit/itemTrashRateLimit.js";
 import { validateBody } from "../middleware/validate/validateBody.js";
 import { createItemTrashBodySchema } from "../validators/body/itemTrash.js";
+
+import { validateQuery } from "../middleware/validate/validateQuery.js";
+import { getItemTrashListQuerySchema } from "../validators/query/itemTrash.js";
 
 const router = Router();
 
@@ -16,6 +19,17 @@ router.post(
     createItemTrashRateLimit,
     validateBody(createItemTrashBodySchema),
     createItemTrashController,
+);
+
+// GET /item-trash/list?page=number&keyword=""
+// summary: 削除した商品リスト取得
+// page: /item-list/trash
+router.get(
+    "/list",
+    authenticateToken,
+    getItemTrashListRateLimit,
+    validateQuery(getItemTrashListQuerySchema),
+    getItemTrashListController,
 );
 
 export default router;

@@ -1,4 +1,8 @@
-import { Item, Video, Sale, ItemShippingProfile } from "../../models/index.js";
+import { Op, QueryTypes } from "sequelize";
+import sequelize from "../../db.js";
+import type { Transaction } from "sequelize";
+import type { GetItemTrashListParams, CountItemTrashListParams, ItemTrashListRow } from "../../types/serviceType/itemTrash.js";
+import { Item, Video, Sale, ItemShippingProfile, ItemTrash } from "../../models/index.js";
 import type { GetMyItemForTrashParams, ItemForTrash } from "../../types/serviceType/itemTrash.js";
 
 export const getMyItemForTrash = async ({
@@ -69,4 +73,23 @@ export const getMyItemForTrash = async ({
                   ...options,
               });
     return { item, video, sale, shipping };
+};
+
+export const setItemTrashListReadOnly = async ({ transaction }: { transaction: Transaction }): Promise<void> => {
+    await sequelize.query("SET TRANSACTION READ ONLY", { transaction, type: QueryTypes.RAW });
+};
+
+export const getMyItemTrashList = ({ userId, where, limit, offset, transaction }: GetItemTrashListParams): Promise<ItemTrashListRow[]> => {
+    return ItemTrash.findAll({
+        attributes: ["id", "name", "price", "first_image_url", "title", "createdAt"],
+        where: { [Op.and]: [{ seller_id: userId }, where] },
+        limit,
+        offset,
+        order: [["createdAt", "DESC"], ["id", "DESC"]],
+        transaction,
+    });
+};
+
+export const countMyItemTrashList = ({ userId, where, transaction }: CountItemTrashListParams): Promise<number> => {
+    return ItemTrash.count({ where: { [Op.and]: [{ seller_id: userId }, where] }, transaction });
 };

@@ -1384,3 +1384,10 @@
 - server/migrations/AGENTS.mdの原則適用先をneondb・test_dbの両方と明記。
 - 特別な指示がある場合の例外は維持し、適用先の曖昧さを解消。
 - git diff --check成功。文書のみのためテスト・lint・型検査、DB接続・migration実行なし。
+
+## 20261106_backend-coding_getItemTrashList実装
+
+- ユーザー回答に基づき詳細設計を完成し、GET /api/item-trash/listを実装。
+- 本人限定の正規化検索・20件ページング・READ ONLY/REPEATABLE READによる一覧と件数の整合性を保証。
+- テスト設計・fixture・統合レポートを追加。対象と既存回帰125件、lint・本番/テスト型検査・追加lint成功。
+- 実DBの安全ガード・snapshot・自作ID限定cleanup・接続終了を確認。migration実行・フロント変更なし。

@@ -10,6 +10,7 @@ vi.mock("../../../models/index.js", () => ({
     ItemShippingProfile: { findByPk: m.shipping },
     ItemTrash: { create: m.create },
 }));
+vi.mock("../../../db.js", () => ({ default: { query: vi.fn() } }));
 import { getMyItemForTrash } from "../query.js";
 import { createItemTrash } from "../command.js";
 const tx = { LOCK: { UPDATE: "UPDATE" } } as Transaction;

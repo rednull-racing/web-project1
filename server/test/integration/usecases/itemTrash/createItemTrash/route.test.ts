@@ -8,6 +8,9 @@ const mocks = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("../../../../../src/usecases/itemTrash/createItemTrash.js", () => ({
     createItemTrashUseCase: mocks.create,
 }));
+vi.mock("../../../../../src/usecases/itemTrash/getItemTrashList.js", () => ({
+    getItemTrashListUseCase: vi.fn().mockResolvedValue({ itemTrashList: [], totalPages: 0 }),
+}));
 vi.mock("../../../../../src/middleware/authMiddleware.js", () => ({
     authenticateToken: (req: Request, res: Response, next: NextFunction) => {
         const id = Number(req.headers["x-test-user"]);

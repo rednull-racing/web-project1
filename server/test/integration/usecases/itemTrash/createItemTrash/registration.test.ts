@@ -5,6 +5,9 @@ import { afterEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("../../../../../src/usecases/itemTrash/createItemTrash.js", () => ({ createItemTrashUseCase: mocks.create }));
+vi.mock("../../../../../src/usecases/itemTrash/getItemTrashList.js", () => ({
+    getItemTrashListUseCase: vi.fn().mockResolvedValue({ itemTrashList: [], totalPages: 0 }),
+}));
 vi.mock("../../../../../src/middleware/authMiddleware.js", () => ({
     authenticateToken: (req: Request, _res: Response, next: NextFunction) => {
         req.user = { id: 7, email: "registration@example.invalid", admin: false };
@@ -66,4 +69,15 @@ it("HTTP-12: 実registerRoutesがPOST /api/item-trashを対象controllerへ接�
     expect(r.status).toBe(201);
     expect(r.body).toEqual({ message: "商品を削除しました" });
     expect(mocks.create).toHaveBeenCalledExactlyOnceWith({ userId: 7, itemId: 123 });
+});
+
+it("H03: 実registerRoutesがGET /api/item-trash/listを接続", async () => {
+    const { registerRoutes } = await import("../../../../../src/routes/index.js");
+    const { getItemTrashListUseCase } = await import("../../../../../src/usecases/itemTrash/getItemTrashList.js");
+    const app = express();
+    registerRoutes(app);
+    const response = await request(app).get("/api/item-trash/list?page=2");
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ itemTrashList: [], totalPages: 0 });
+    expect(getItemTrashListUseCase).toHaveBeenCalledExactlyOnceWith({ userId: 7, page: 2, keyword: null });
 });

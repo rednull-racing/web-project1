@@ -1,4 +1,4 @@
-import type { Transaction } from "sequelize";
+import type { Transaction, WhereOptions } from "sequelize";
 import type Item from "../../models/item.js";
 import type ItemTrash from "../../models/item_trash.js";
 import type Video from "../../models/video.js";
@@ -44,3 +44,11 @@ export type CreateItemTrashParams = {
     >;
     transaction: Transaction;
 };
+
+export type ItemTrashListRow = Pick<ItemTrash, "id" | "name" | "price" | "first_image_url" | "title" | "createdAt">;
+export type CountItemTrashListParams = {
+    userId: number;
+    where: WhereOptions<ItemTrash>;
+    transaction: Transaction;
+};
+export type GetItemTrashListParams = CountItemTrashListParams & { limit: number; offset: number };
