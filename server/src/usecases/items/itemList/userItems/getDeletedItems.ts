@@ -10,7 +10,7 @@ type Params = {
 
 // /users/me/items?type="deleted"(&page=number&status=""&keyword="search")
 // summary: 削除した商品リスト取得
-// page: /item-list/deleted
+// page: /item-list/trash
 export const getDeletedItemsUseCase = async ({ page, userId, keyword }: Params) => {
     const limit = 20;
     const offset = (page - 1) * limit;

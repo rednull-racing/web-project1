@@ -17,7 +17,7 @@ type Response = {
 
 type Props = {
     item: Item;
-    page: "cart" | "deleted" | "draft" | "like" | "stock" | "uploaded" | "watch-history";
+    page: "cart" | "trash" | "draft" | "like" | "stock" | "uploaded" | "watch-history";
     mutate: KeyedMutator<Response>;
 };
 

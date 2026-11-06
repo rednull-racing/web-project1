@@ -25,7 +25,7 @@ export const DeleteItem = ({ id }: Props) => {
             setPopup(false);
             await sleep(1500);
 
-            router.push("/item-list/deleted");
+            router.push("/item-list/trash");
         } catch (err) {
             if (err instanceof ApiError) {
                 toast.error("商品の削除に失敗しました");
