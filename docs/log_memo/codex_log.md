@@ -1371,3 +1371,10 @@
 - URLのページ番号直後の不要なスラッシュは省略。レスポンスは既存の itemList・totalPages を想定。
 - API未実装のため実通信は未確認。client の lint・typecheck を実行。
 - lint は変更外を含む23エラー・34警告、typecheck は .next の params 型や upload/ok の seller_id 等の変更外エラーで失敗。
+
+## 20261106_backend-migration_createItemTrashをneondbへ適用
+
+- 明示依頼によりneondbで未適用を確認し、20261105100000・20261105101000の2件だけを適用。
+- 履歴各1件、item_trash.item_idのFKなし、関連3テーブルのSET NULL、通報FKと対象列のNULL許可を検証。
+- 詳細設計の反映状況を更新。test_dbへの再適用・データ削除・既存migrationの変更なし。
+- DBスキーマ検証とgit diff --checkを実施。コード変更がないためテスト・lint・型検査は未実行。
