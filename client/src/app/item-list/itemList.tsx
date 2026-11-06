@@ -35,7 +35,7 @@ export const ItemList = ({ page, uploadedTab, relatedItemList }: Props) => {
     const getApiQuery = () => {
         if (page === "cart") return `?type=cart&page=${pageNumber}`;
         if (page === "draft") return `?type=draft&page=${pageNumber}`;
-        if (page === "deleted") return `?type=deleted&page=${pageNumber}`;
+        if (page === "deleted") return `?page=${pageNumber}`;
         if (page === "like") return `?type=like&page=${pageNumber}`;
         if (page === "watch-history") return `?type=watchHistory&page=${pageNumber}`;
         if (page === "stock") return `?type=stock&page=${pageNumber}`;
@@ -49,9 +49,10 @@ export const ItemList = ({ page, uploadedTab, relatedItemList }: Props) => {
     };
 
     const apiQuery = getApiQuery();
+    const apiPath = page === "deleted" ? "/item-trash/list" : "/users/me/items";
 
     const apiUrl = apiQuery
-        ? `${process.env.NEXT_PUBLIC_API_URL}/users/me/items${apiQuery}${
+        ? `${process.env.NEXT_PUBLIC_API_URL}${apiPath}${apiQuery}${
               searchKeyword.trim() ? `&keyword=${encodeURIComponent(searchKeyword.trim())}` : ""
           }`
         : null;

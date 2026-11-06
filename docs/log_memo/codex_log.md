@@ -1364,3 +1364,10 @@
 - ユーザー許可によりtest_dbへmigrationを適用し、NULL制約の反映漏れは追加migrationで修正（適用済みファイルは変更なし）。
 - 実DB・競合15件を含む全100件成功。スキーマガード・自作ID限定cleanup・全接続closeも確認。
 - 詳細設計・テストレポート・関連Todoを最新結果へ更新。復元・期限削除は後続開発として維持。
+
+## 20261106_frontend-apiFetch_削除済み商品一覧の取得先を分岐
+
+- deleted の取得先を /item-trash/list に変更し、ページ番号・検索キーワードを維持。
+- URLのページ番号直後の不要なスラッシュは省略。レスポンスは既存の itemList・totalPages を想定。
+- API未実装のため実通信は未確認。client の lint・typecheck を実行。
+- lint は変更外を含む23エラー・34警告、typecheck は .next の params 型や upload/ok の seller_id 等の変更外エラーで失敗。
