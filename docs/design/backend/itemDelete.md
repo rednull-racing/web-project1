@@ -38,4 +38,7 @@
 
 - フロント: /item-list/trash
 - route: GET /item-trash/list
-- usecase:
+- usecase: queryで指定の条件でitem_trashの一覧を取得
+
+- 認可:
+    - item_trash.seller_id === userId
