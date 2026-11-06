@@ -18,11 +18,23 @@ describe("P0 本人限定検索のSQL引数", () => {
         expect(await countMyItemTrashList({ userId: 7, where, transaction })).toBe(21);
         expect(mocks.findAll).toHaveBeenCalledExactlyOnceWith({
             attributes: ["id", "name", "price", "first_image_url", "title", "createdAt"],
-            where: { [Op.and]: [{ seller_id: 7 }, where] }, limit: 20, offset: 20,
-            order: [["createdAt", "DESC"], ["id", "DESC"]], transaction,
+            where: { [Op.and]: [{ seller_id: 7 }, where] },
+            limit: 20,
+            offset: 20,
+            order: [
+                ["createdAt", "DESC"],
+                ["id", "DESC"],
+            ],
+            transaction,
         });
-        expect(mocks.count).toHaveBeenCalledExactlyOnceWith({ where: { [Op.and]: [{ seller_id: 7 }, where] }, transaction });
+        expect(mocks.count).toHaveBeenCalledExactlyOnceWith({
+            where: { [Op.and]: [{ seller_id: 7 }, where] },
+            transaction,
+        });
         await setItemTrashListReadOnly({ transaction });
-        expect(mocks.query).toHaveBeenCalledExactlyOnceWith("SET TRANSACTION READ ONLY", { transaction, type: QueryTypes.RAW });
+        expect(mocks.query).toHaveBeenCalledExactlyOnceWith("SET TRANSACTION READ ONLY", {
+            transaction,
+            type: QueryTypes.RAW,
+        });
     });
 });

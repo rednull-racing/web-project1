@@ -1,7 +1,11 @@
 import { Op, QueryTypes } from "sequelize";
 import sequelize from "../../db.js";
 import type { Transaction } from "sequelize";
-import type { GetItemTrashListParams, CountItemTrashListParams, ItemTrashListRow } from "../../types/serviceType/itemTrash.js";
+import type {
+    GetItemTrashListParams,
+    CountItemTrashListParams,
+    ItemTrashListRow,
+} from "../../types/serviceType/itemTrash.js";
 import { Item, Video, Sale, ItemShippingProfile, ItemTrash } from "../../models/index.js";
 import type { GetMyItemForTrashParams, ItemForTrash } from "../../types/serviceType/itemTrash.js";
 
@@ -79,13 +83,22 @@ export const setItemTrashListReadOnly = async ({ transaction }: { transaction: T
     await sequelize.query("SET TRANSACTION READ ONLY", { transaction, type: QueryTypes.RAW });
 };
 
-export const getMyItemTrashList = ({ userId, where, limit, offset, transaction }: GetItemTrashListParams): Promise<ItemTrashListRow[]> => {
+export const getMyItemTrashList = ({
+    userId,
+    where,
+    limit,
+    offset,
+    transaction,
+}: GetItemTrashListParams): Promise<ItemTrashListRow[]> => {
     return ItemTrash.findAll({
         attributes: ["id", "name", "price", "first_image_url", "title", "createdAt"],
         where: { [Op.and]: [{ seller_id: userId }, where] },
         limit,
         offset,
-        order: [["createdAt", "DESC"], ["id", "DESC"]],
+        order: [
+            ["createdAt", "DESC"],
+            ["id", "DESC"],
+        ],
         transaction,
     });
 };

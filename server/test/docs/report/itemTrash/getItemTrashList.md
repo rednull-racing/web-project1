@@ -9,18 +9,18 @@ GET /api/item-trash/listを追加。本人限定のname/title OR検索、既存n
 REPEATABLE READ managed transaction内でSET TRANSACTION READ ONLY、一覧、同条件countを順に待機し、transaction完了後に応答する。
 新APIの58件（新規5テストファイル57件＋既存登録テストへ追加したH03の1件）と既存回帰67件を、下記一括実行の125件として集計。再実行分は加算しない。
 
-| ID | テストファイル | 最新結果・検証境界 |
-| --- | --- | --- |
-| V01/V02 | src/validators/query/test/getItemTrashList.test.ts | 成功。実schema、範囲・型・空値・未知キー・元入力不変 |
-| U01/U02/U03 | src/usecases/itemTrash/test/getItemTrashList.test.ts | 成功。DB/serviceモック、正規化・OR条件・同一transaction/where・各失敗停止・保留・外側完了失敗 |
-| S01 | src/services/itemTrash/test/getItemTrashList.test.ts | 成功。Model/DBモック、6列・AND所有者・順序・READ ONLY設定SQL |
-| H01/H02 | test/integration/usecases/itemTrash/getItemTrashList/route.test.ts | 成功。実parser/JWT認証/limiter/schema/controller/errorHandler、一覧usecaseと対象外create usecaseはモック |
-| H03 | test/integration/usecases/itemTrash/createItemTrash/registration.test.ts | 成功。実registerRoutesからGETへの到達。対象外Router・業務処理・認証結果はモック |
-| D01/D02 | test/integration/usecases/itemTrash/getItemTrashList/database.test.ts | 成功。実usecase/service/Model/PostgreSQL、本人・他人・所有者null、検索・順序・境界・snapshot |
-| 既存回帰 | src/services/itemTrash/test/createItemTrash.test.ts、src/usecases/itemTrash/test/createItemTrash.test.ts、test/integration/usecases/itemTrash/createItemTrash/{route,registration}.test.ts | 成功。共有ファイルの新importに対応する依存遮断のみを追加し、既存assertionは維持 |
+| ID          | テストファイル                                                                                                                                                                             | 最新結果・検証境界                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| V01/V02     | src/validators/query/test/getItemTrashList.test.ts                                                                                                                                         | 成功。実schema、範囲・型・空値・未知キー・元入力不変                                                     |
+| U01/U02/U03 | src/usecases/itemTrash/test/getItemTrashList.test.ts                                                                                                                                       | 成功。DB/serviceモック、正規化・OR条件・同一transaction/where・各失敗停止・保留・外側完了失敗            |
+| S01         | src/services/itemTrash/test/getItemTrashList.test.ts                                                                                                                                       | 成功。Model/DBモック、6列・AND所有者・順序・READ ONLY設定SQL                                             |
+| H01/H02     | test/integration/usecases/itemTrash/getItemTrashList/route.test.ts                                                                                                                         | 成功。実parser/JWT認証/limiter/schema/controller/errorHandler、一覧usecaseと対象外create usecaseはモック |
+| H03         | test/integration/usecases/itemTrash/createItemTrash/registration.test.ts                                                                                                                   | 成功。実registerRoutesからGETへの到達。対象外Router・業務処理・認証結果はモック                          |
+| D01/D02     | test/integration/usecases/itemTrash/getItemTrashList/database.test.ts                                                                                                                      | 成功。実usecase/service/Model/PostgreSQL、本人・他人・所有者null、検索・順序・境界・snapshot             |
+| 既存回帰    | src/services/itemTrash/test/createItemTrash.test.ts、src/usecases/itemTrash/test/createItemTrash.test.ts、test/integration/usecases/itemTrash/createItemTrash/{route,registration}.test.ts | 成功。共有ファイルの新importに対応する依存遮断のみを追加し、既存assertionは維持                          |
 
 単体・DB非接続HTTPは実DBの保証と区別する。H03はアプリ全体起動ではなく実registerRoutesの登録検証。
-D01は0・20・21件と範囲外、検索記号%/_/バックスラッシュの文字一致、他人/所有者null除外、本人件数不変・再送を確認。
+D01は0・20・21件と範囲外、検索記号%/\_/バックスラッシュの文字一致、他人/所有者null除外、本人件数不変・再送を確認。
 D02は実一覧SELECT後のgateで独立observer接続のDELETEをcommitし、当該応答が元の行・count=1を返すこと、次要求が0件になることを確認。
 transaction内の実設定repeatable read/onとobserverのread committedを確認。行ロックを使わないためロック待機は対象外。
 

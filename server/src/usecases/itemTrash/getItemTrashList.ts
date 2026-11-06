@@ -28,7 +28,10 @@ export const getItemTrashListUseCase = async ({ userId, page, keyword }: Params)
             await setItemTrashListReadOnly({ transaction });
             const rows = await getMyItemTrashList({ userId, where, limit, offset, transaction });
             const totalCount = await countMyItemTrashList({ userId, where, transaction });
-            return { itemTrashList: rows.map((itemTrash) => ({ itemTrash })), totalPages: Math.ceil(totalCount / limit) };
+            return {
+                itemTrashList: rows.map((itemTrash) => ({ itemTrash })),
+                totalPages: Math.ceil(totalCount / limit),
+            };
         },
     );
 };

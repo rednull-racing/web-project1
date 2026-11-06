@@ -1365,7 +1365,7 @@
 - 実DB・競合15件を含む全100件成功。スキーマガード・自作ID限定cleanup・全接続closeも確認。
 - 詳細設計・テストレポート・関連Todoを最新結果へ更新。復元・期限削除は後続開発として維持。
 
-## 20261106_frontend-apiFetch_削除済み商品一覧の取得先を分岐
+## 20261106*frontend-apiFetch*削除済み商品一覧の取得先を分岐
 
 - deleted の取得先を /item-trash/list に変更し、ページ番号・検索キーワードを維持。
 - URLのページ番号直後の不要なスラッシュは省略。レスポンスは既存の itemList・totalPages を想定。
@@ -1379,7 +1379,7 @@
 - 詳細設計の反映状況を更新。test_dbへの再適用・データ削除・既存migrationの変更なし。
 - DBスキーマ検証とgit diff --checkを実施。コード変更がないためテスト・lint・型検査は未実行。
 
-## 20261106_documents_マイグレーション実行先DB名を明記
+## 20261106*documents*マイグレーション実行先DB名を明記
 
 - server/migrations/AGENTS.mdの原則適用先をneondb・test_dbの両方と明記。
 - 特別な指示がある場合の例外は維持し、適用先の曖昧さを解消。

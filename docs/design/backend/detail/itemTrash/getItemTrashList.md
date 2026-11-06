@@ -25,30 +25,30 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 
 例: `GET /api/item-trash/list?page=7&keyword=シャツ`
 
-| query | 契約 |
-| --- | --- |
-| page | 省略時1。単一文字列をnumberへcoerce、整数1〜10000。空文字・小数・範囲外・配列・オブジェクトは400 |
+| query   | 契約                                                                                                        |
+| ------- | ----------------------------------------------------------------------------------------------------------- |
+| page    | 省略時1。単一文字列をnumberへcoerce、整数1〜10000。空文字・小数・範囲外・配列・オブジェクトは400            |
 | keyword | 任意の単一文字列、文字数制限なし。前後空白を除去。省略・null・空文字・空白のみ・URLの文字列`null`は検索なし |
 
-未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller_idの偽装は採用しない。
+未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller*idの偽装は採用しない。
 keywordはusecaseで既存の`normalizeJapanese()`を使用する（依頼中のnormalizeJapanizeに対応する現行関数名）。
 NFKC・小文字化・カタカナ→ひらがな・空白除去後、nameまたはtitleのILIKE部分一致。
 正規化するのは入力のみ。保存済みカラムの正規化・書換えは行わない。
-`%`・`_`・バックスラッシュはエスケープして文字として検索する。nullの検索対象列は一致しない。
+`%`・`*`・バックスラッシュはエスケープして文字として検索する。nullの検索対象列は一致しない。
 
 ### 担当ファイル（server/src基準）
 
-| ファイル | 関数・型 | 区分 |
-| --- | --- | --- |
-| routes/itemTrash.ts | GET /list | 追加 |
-| middleware/authMiddleware.ts | authenticateToken | 既存 |
-| middleware/rateLimit/itemTrashRateLimit.ts | getItemTrashListRateLimit | 追加 |
-| middleware/validate/validateQuery.ts | validateQuery | 既存 |
-| validators/query/itemTrash.ts | getItemTrashListQuerySchema / GetItemTrashListQuery | 新規 |
-| controllers/itemTrash/itemTrash.ts | getItemTrashListController | 追加 |
-| usecases/itemTrash/getItemTrashList.ts | getItemTrashListUseCase | 新規 |
-| services/itemTrash/query.ts | setItemTrashListReadOnly / getMyItemTrashList / countMyItemTrashList | 追加 |
-| types/serviceType/itemTrash.ts | ItemTrashListRow / GetItemTrashListParams / CountItemTrashListParams | 追加 |
+| ファイル                                   | 関数・型                                                             | 区分 |
+| ------------------------------------------ | -------------------------------------------------------------------- | ---- |
+| routes/itemTrash.ts                        | GET /list                                                            | 追加 |
+| middleware/authMiddleware.ts               | authenticateToken                                                    | 既存 |
+| middleware/rateLimit/itemTrashRateLimit.ts | getItemTrashListRateLimit                                            | 追加 |
+| middleware/validate/validateQuery.ts       | validateQuery                                                        | 既存 |
+| validators/query/itemTrash.ts              | getItemTrashListQuerySchema / GetItemTrashListQuery                  | 新規 |
+| controllers/itemTrash/itemTrash.ts         | getItemTrashListController                                           | 追加 |
+| usecases/itemTrash/getItemTrashList.ts     | getItemTrashListUseCase                                              | 新規 |
+| services/itemTrash/query.ts                | setItemTrashListReadOnly / getMyItemTrashList / countMyItemTrashList | 追加 |
+| types/serviceType/itemTrash.ts             | ItemTrashListRow / GetItemTrashListParams / CountItemTrashListParams | 追加 |
 
 service引数はuserId・where・transaction、一覧取得のみlimit・offsetも受ける。itemTrashIdは不要。
 
@@ -56,16 +56,25 @@ service引数はuserId・where・transaction、一覧取得のみlimit・offset�
 
 ```json
 {
-  "itemTrashList": [
-    { "itemTrash": { "id": 123, "name": "商品名", "price": 1000, "first_image_url": null, "title": null, "createdAt": "2026-11-06T00:00:00.000Z" } }
-  ],
-  "totalPages": 7
+    "itemTrashList": [
+        {
+            "itemTrash": {
+                "id": 123,
+                "name": "商品名",
+                "price": 1000,
+                "first_image_url": null,
+                "title": null,
+                "createdAt": "2026-11-06T00:00:00.000Z"
+            }
+        }
+    ],
+    "totalPages": 7
 }
 ```
 
 itemTrashの取得列は上記6項目のみ。name・price・first_image_url・titleはModelに従いnullを保持する。
 createdAtはDateをJSONのISO日時へ変換する。idはitem_trashの主キー。
-limit=20、offset=(page-1)*20、totalPages=Math.ceil(totalCount/20)。
+limit=20、offset=(page-1)\*20、totalPages=Math.ceil(totalCount/20)。
 該当なしは`{"itemTrashList":[],"totalPages":0}`。範囲外ページも200・空配列、totalPagesは全一致件数から算出する。
 トランザクション完了後にのみ成功応答する。
 
@@ -138,13 +147,13 @@ readOnlyオプションだけに依存せず、serviceからSET TRANSACTION READ
 
 ## 7. エラー設計
 
-| 条件 | HTTP・公開応答 |
-| --- | --- |
-| bodyの不正JSON | 400 `{code:"INVALID_JSON",message:"JSONの形式を確認してください。"}` |
-| トークンなし | 401 `{message:"トークンがありません。"}` |
-| 無効・期限切れトークン | 401 `{message:"トークンが無効です。"}` |
-| レート超過 | 429 ライブラリ既定本文・ヘッダー |
-| query不正 | AppError INVALID_QUERY/400、`{code:"INVALID_QUERY",message:"INVALID_QUERY"}` |
+| 条件                              | HTTP・公開応答                                                               |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| bodyの不正JSON                    | 400 `{code:"INVALID_JSON",message:"JSONの形式を確認してください。"}`         |
+| トークンなし                      | 401 `{message:"トークンがありません。"}`                                     |
+| 無効・期限切れトークン            | 401 `{message:"トークンが無効です。"}`                                       |
+| レート超過                        | 429 ライブラリ既定本文・ヘッダー                                             |
+| query不正                         | AppError INVALID_QUERY/400、`{code:"INVALID_QUERY",message:"INVALID_QUERY"}` |
 | DB・transaction等の予期しない例外 | 500 `{error:"INTERNAL_SERVER_ERROR",message:"サーバーエラーが発生しました"}` |
 
 内部DB情報を公開しない。検索0件はエラーではない。
