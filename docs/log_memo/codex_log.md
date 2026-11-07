@@ -1391,3 +1391,11 @@
 - 本人限定の正規化検索・20件ページング・READ ONLY/REPEATABLE READによる一覧と件数の整合性を保証。
 - テスト設計・fixture・統合レポートを追加。対象と既存回帰125件、lint・本番/テスト型検査・追加lint成功。
 - 実DBの安全ガード・snapshot・自作ID限定cleanup・接続終了を確認。migration実行・フロント変更なし。
+
+## 20261107_backend-coding_getItemDraftList実装
+
+- 詳細設計の転記ミスを修正し、ユーザー回答に基づき現行normalizeJapaneseと記号の文字検索を確定。
+- GET /api/item-draft/listを実装し、本人限定検索・20件ページング・READ ONLY/REPEATABLE READで一覧と件数を取得。
+- テスト設計・fixture・レポートを追加。対象API78件と影響回帰301件の計379件、lint・本番/テスト型検査・追加lint成功。
+- 実test_dbのガード・snapshot・書込み拒否・自作ID限定cleanup・接続終了を確認。migration・フロント変更なし。
+- 明示指示により未使用getDeletedItemsへのimport・返却型・分岐を削除。Node v20.20.2で検証、指定Node 26環境は未実行。

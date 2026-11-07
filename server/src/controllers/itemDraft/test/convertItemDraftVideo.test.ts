@@ -90,3 +90,5 @@ describe("P0/P1 非同期変換controller", () => {
         expect(mocks.convert).toHaveBeenCalledOnce();
     });
 });
+
+vi.mock("../../../usecases/itemDraft/getItemDraftList.js", () => ({ getItemDraftListUseCase: vi.fn() }));

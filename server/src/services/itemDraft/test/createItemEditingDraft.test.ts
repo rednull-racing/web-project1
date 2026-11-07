@@ -67,3 +67,5 @@ describe("P1: DB非接続の取得・作成・削除service契約", () => {
         expect(completed).toBe(true);
     });
 });
+
+vi.mock("../../../db.js", () => ({ default: { query: vi.fn() } }));

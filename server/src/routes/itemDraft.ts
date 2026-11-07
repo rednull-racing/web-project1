@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    getItemDraftListController,
     getItemDraftPageController,
     getItemDraftPageMetadataController,
     convertItemDraftVideoController,
@@ -8,6 +9,7 @@ import {
 } from "../controllers/itemDraft/itemDraft.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import {
+    getItemDraftListRateLimit,
     getItemDraftPageRateLimit,
     getItemDraftPageMetadataRateLimit,
     convertItemDraftVideoRateLimit,
@@ -18,6 +20,8 @@ import { validateBody } from "../middleware/validate/validateBody.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { createItemDraftBodySchema } from "../validators/body/itemDraft.js";
 import { idParamSchema } from "../validators/params/id.js";
+import { validateQuery } from "../middleware/validate/validateQuery.js";
+import { getItemDraftListQuerySchema } from "../validators/query/itemDraft.js";
 
 const router = Router();
 
@@ -74,6 +78,17 @@ router.get(
     getItemDraftPageMetadataRateLimit,
     validateParams(idParamSchema),
     getItemDraftPageMetadataController,
+);
+
+// GET /item-draft/list?page=number&keyword=""
+// summary: 下書き商品リスト取得
+// page: /item-list/draft
+router.get(
+    "/list",
+    authenticateToken,
+    getItemDraftListRateLimit,
+    validateQuery(getItemDraftListQuerySchema),
+    getItemDraftListController,
 );
 
 export default router;

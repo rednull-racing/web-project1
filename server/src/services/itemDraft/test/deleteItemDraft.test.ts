@@ -78,3 +78,5 @@ describe("P0/P1: deleteItemDraftの共有service", () => {
         },
     );
 });
+
+vi.mock("../../../db.js", () => ({ default: { query: vi.fn() } }));

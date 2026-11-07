@@ -1,4 +1,4 @@
-import type { Transaction } from "sequelize";
+import type { InferAttributes, Transaction, WhereOptions } from "sequelize";
 import type { ItemDraft } from "../../models/index.js";
 import type { BodyCategory, Layer, LifeStyleCategory } from "../itemAttributes.js";
 
@@ -92,3 +92,14 @@ export type UpdateItemDraftVideoParams = {
     data: UpdateItemDraftVideoData;
     transaction: Transaction;
 };
+
+export type ItemDraftListRow = Pick<
+    InstanceType<typeof ItemDraft>,
+    "id" | "name" | "price" | "first_image_url" | "title" | "createdAt"
+>;
+export type CountItemDraftListParams = {
+    userId: number;
+    where: WhereOptions<InferAttributes<InstanceType<typeof ItemDraft>>>;
+    transaction: Transaction;
+};
+export type GetItemDraftListParams = CountItemDraftListParams & { limit: number; offset: number };

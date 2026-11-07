@@ -26,3 +26,5 @@ describe("P0/P1 getMyItemDraftPageMetadata", () => {
         expect(mocks.findOne).toHaveBeenCalledOnce();
     });
 });
+
+vi.mock("../../../db.js", () => ({ default: { query: vi.fn() } }));

@@ -85,3 +85,5 @@ describe("P0/P1: getItemDraftPageMetadata controller", () => {
         expect(mocks.create).not.toHaveBeenCalled();
     });
 });
+
+vi.mock("../../../usecases/itemDraft/getItemDraftList.js", () => ({ getItemDraftListUseCase: vi.fn() }));

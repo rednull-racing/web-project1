@@ -105,3 +105,5 @@ describe("動画変換のservice契約（実DBなし）", () => {
         await expect(getMyItemDraft({ itemDraftId: 19, userId: 31, transaction })).rejects.toBe(error);
     });
 });
+
+vi.mock("../../../db.js", () => ({ default: { query: vi.fn() } }));

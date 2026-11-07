@@ -86,3 +86,5 @@ describe("P0/P1: deleteItemDraft controller", () => {
 vi.mock("../../../usecases/itemDraft/getItemDraftPageMetadata.js", () => ({
     getItemDraftPageMetadataUseCase: vi.fn(),
 }));
+
+vi.mock("../../../usecases/itemDraft/getItemDraftList.js", () => ({ getItemDraftListUseCase: vi.fn() }));

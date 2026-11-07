@@ -2,6 +2,8 @@
 
 基本設計: [商品リスト取得API設計](../../getItemList.md)
 
+確認日: 2026-11-07。基本設計・現行ItemDraft Model・処理フローに合わせ、出力例と主キーの参照先の転記ミスを修正。ユーザー回答により`_`を通常の文字として扱い、検索語の文字変換は現在の`normalizeJapanese()`に従う仕様を確定。
+
 ## 1. 概要
 
 `/item-list/draft`向けに、認証本人が所有するitem_draftの一覧を取得する。
@@ -31,7 +33,8 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 keywordはusecaseで既存の`normalizeJapanese()`を使用する（依頼中のnormalizeJapanizeに対応する現行関数名）。
 NFKC・小文字化・カタカナ→ひらがな・空白除去後、nameまたはtitleのILIKE部分一致。
 正規化するのは入力のみ。保存済みカラムの正規化・書換えは行わない。
-`%`・`*`・バックスラッシュはエスケープして文字として検索する。nullの検索対象列は一致しない。
+検索語の文字変換は現在の`normalizeJapanese()`の仕様に従い、追加の正規表現検索・文字制限は設けない。
+正規化後の`%`・`_`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
 
 ### 担当ファイル（server/src基準）
 
@@ -55,7 +58,7 @@ service引数はuserId・where・transaction、一覧取得のみlimit・offset�
 {
     "itemDraftList": [
         {
-            "itemTrash": {
+            "itemDraft": {
                 "id": 123,
                 "name": "商品名",
                 "price": 1000,
@@ -70,7 +73,7 @@ service引数はuserId・where・transaction、一覧取得のみlimit・offset�
 ```
 
 itemDraftの取得列は上記6項目のみ。name・price・first_image_url・titleはModelに従いnullを保持する。
-createdAtはDateをJSONのISO日時へ変換する。idはitem_trashの主キー。
+createdAtはDateをJSONのISO日時へ変換する。idはitem_draftの主キー。
 limit=20、offset=(page-1)\*20、totalPages=Math.ceil(totalCount/20)。
 該当なしは`{"itemDraftList":[],"totalPages":0}`。範囲外ページも200・空配列、totalPagesは全一致件数から算出する。
 トランザクション完了後にのみ成功応答する。

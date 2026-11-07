@@ -1,3 +1,5 @@
+import { getItemDraftListUseCase } from "../../usecases/itemDraft/getItemDraftList.js";
+import type { GetItemDraftListQuery } from "../../validators/query/itemDraft.js";
 import { getItemDraftPageMetadataUseCase } from "../../usecases/itemDraft/getItemDraftPageMetadata.js";
 import { getItemDraftPageUseCase } from "../../usecases/itemDraft/getItemDraftPage.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
@@ -100,5 +102,19 @@ export const getItemDraftPageMetadataController = async (
         res.status(200).json({ itemDraft });
     } catch (err) {
         next(err);
+    }
+};
+
+// GET /item-draft/list?page=number&keyword=""
+// summary: 下書き商品リスト取得
+// page: /item-list/draft
+export const getItemDraftListController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { page, keyword } = req.validatedQuery as GetItemDraftListQuery;
+        const result = await getItemDraftListUseCase({ userId, page, keyword });
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
     }
 };

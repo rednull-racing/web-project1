@@ -63,3 +63,14 @@ export const getItemDraftPageMetadataRateLimit = rateLimit({
         return `admin:${authReq.user.id}`;
     },
 });
+
+export const getItemDraftListRateLimit = rateLimit({
+    windowMs: 60000,
+    limit: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        const authReq = req as typeof req & { user: AuthUser };
+        return `admin:${authReq.user.id}`;
+    },
+});

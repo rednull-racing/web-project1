@@ -1,3 +1,11 @@
+import { Op, QueryTypes } from "sequelize";
+import sequelize from "../../db.js";
+import type { Transaction } from "sequelize";
+import type {
+    GetItemDraftListParams,
+    CountItemDraftListParams,
+    ItemDraftListRow,
+} from "../../types/serviceType/itemDraft.js";
 import {
     Brands,
     Categories,
@@ -106,4 +114,32 @@ export const getMyItemDraftPageMetadata = ({ itemDraftId, userId }: PageParams) 
         attributes: ["id", "name"],
         where: { id: itemDraftId, seller_id: userId },
     });
+};
+
+export const setItemDraftListReadOnly = async ({ transaction }: { transaction: Transaction }): Promise<void> => {
+    await sequelize.query("SET TRANSACTION READ ONLY", { transaction, type: QueryTypes.RAW });
+};
+
+export const getMyItemDraftList = ({
+    userId,
+    where,
+    limit,
+    offset,
+    transaction,
+}: GetItemDraftListParams): Promise<ItemDraftListRow[]> => {
+    return ItemDraft.findAll({
+        attributes: ["id", "name", "price", "first_image_url", "title", "createdAt"],
+        where: { [Op.and]: [{ seller_id: userId }, where] },
+        limit,
+        offset,
+        order: [
+            ["createdAt", "DESC"],
+            ["id", "DESC"],
+        ],
+        transaction,
+    });
+};
+
+export const countMyItemDraftList = ({ userId, where, transaction }: CountItemDraftListParams): Promise<number> => {
+    return ItemDraft.count({ where: { [Op.and]: [{ seller_id: userId }, where] }, transaction });
 };

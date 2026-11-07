@@ -262,3 +262,5 @@ describe("P0/P1/P2: 実MemoryStoreのユーザー別レート制限", () => {
 vi.mock("../../../../../src/usecases/itemDraft/getItemDraftPageMetadata.js", () => ({
     getItemDraftPageMetadataUseCase: vi.fn(),
 }));
+
+vi.mock("../../../../../src/usecases/itemDraft/getItemDraftList.js", () => ({ getItemDraftListUseCase: vi.fn() }));
