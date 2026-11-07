@@ -2,7 +2,6 @@ import { AppError } from "../../../errors.js";
 import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
 import type { UserItemsListQuery } from "../../../validators/query/userItems.js";
 import { getUserItemsCartsUseCase } from "./userItems/getCarts.js";
-import { getDraftItemsUseCase } from "./userItems/getDraftItems.js";
 import { getUserItemsLikesUseCase } from "./userItems/getLikes.js";
 import { getStockItemsUseCase } from "./userItems/getStock.js";
 import { getUploadedItemsUseCase } from "./userItems/getUploaded.js";
@@ -14,7 +13,6 @@ type Params = UserItemsListQuery & {
 
 type Result =
     | Awaited<ReturnType<typeof getUserItemsCartsUseCase>>
-    | Awaited<ReturnType<typeof getDraftItemsUseCase>>
     | Awaited<ReturnType<typeof getUserItemsLikesUseCase>>
     | Awaited<ReturnType<typeof getStockItemsUseCase>>
     | Awaited<ReturnType<typeof getUploadedItemsUseCase>>
@@ -36,8 +34,6 @@ export const getUserItemsUseCase = async ({
     switch (type) {
         case "cart":
             return await getUserItemsCartsUseCase(baseParams);
-        case "draft":
-            return await getDraftItemsUseCase(baseParams);
         case "like":
             return await getUserItemsLikesUseCase(baseParams);
         case "stock":
