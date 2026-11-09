@@ -28,7 +28,7 @@
 - 認可:
     - item_trash.seller_id === userId
 
-### getItemDraftList
+### getItemDraftList（下書き商品リスト取得）
 
 - フロント: /item-list/draft
 - route: GET /item-draft/list
@@ -36,3 +36,12 @@
 
 - 認可:
     - item_draft.seller_id === userId
+
+### getUploadedItemList（出品した商品リスト取得）
+
+- フロント: /item-list/uploaded
+- route: GET /items/list/uploaded
+- usecase: queryで指定の条件でitemの一覧を取得
+
+- 認可:
+    - item.seller_id === userId
