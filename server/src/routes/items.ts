@@ -1,6 +1,3 @@
-import { getUploadedItemListController } from "../controllers/items/items.js";
-import { getUploadedItemListRateLimit } from "../middleware/rateLimit/itemsRateLimit.js";
-import { getUploadedItemListQuerySchema } from "../validators/query/items.js";
 import { Router } from "express";
 import {
     addItemSortNumberController,
@@ -10,6 +7,7 @@ import {
     deleteItemPerfectController,
     getItemHighlightController,
     getItemListController,
+    getUploadedItemListController,
     getItemMetadataController,
     getItemPageController,
     getRecommendItemsController,
@@ -24,6 +22,7 @@ import {
     editSortItemRateLimit,
     getItemHighlightRateLimit,
     getItemListRateLimit,
+    getUploadedItemListRateLimit,
     getItemPageRateLimit,
     getItemRecommendRateLimit,
     getItemSearchRateLimit,
@@ -39,6 +38,7 @@ import { createItemBodySchema, updateItemBodySchema } from "../validators/body/i
 import { idParamSchema } from "../validators/params/id.js";
 import {
     getItemPageQuerySchema,
+    getUploadedItemListQuerySchema,
     itemListQuerySchema,
     itemSortNumberQuerySchema,
     recommendItemsQuerySchema,

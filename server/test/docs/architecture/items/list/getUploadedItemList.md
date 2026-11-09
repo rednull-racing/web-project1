@@ -29,11 +29,16 @@
 | U03 | READ ONLY/一覧/count/外側transactionを個別保留 | 依存をawaitし、後続処理・成功を待つ |
 | U04 | 余分な親・関連idや管理値を含む行、nullable列・関連null | JSON例の項目のみ、0/false/null保持、件数0/20/21の切上げ |
 | S01 | whereに他人seller_idを混入、同じtransactionで一覧/count | ownerをAND固定、公開8列とLEFT関連2つ、uploaded_at/id降順、countにページ/関連なし |
-| S02 | query/findAll/countの例外 | 同じ例外を伝播 |
-| H01〜H12 | HTTP入力・認証・JSON例・不正JSON・エラー・limiter・保留、実登録 | HTTP担当ケース表を統合時に下記へ対応付ける |
-| D01〜 | 2所有者と所有者null、2status、21件以上、同日時、search_text対照、関連なし | 本人・status・検索条件・順序・ページ・列/関連が契約どおり。全行不変 |
-| D snapshot | 一覧完了後に別接続で削除commit、count後解放し再送 | REPEATABLE READ/READ ONLY、当該応答件数は旧snapshot、次回は最新 |
-| D readOnly | READ ONLY設定後に書込みを試す（自作行限定） | DBが拒否、元データ不変 |
+| S02/S03/S04 | READ ONLY SQL、空/0、query/findAll/countの例外 | 同一transactionの固定SQL、空/0保持、同じ例外を伝播 |
+| H01/H02/H07 | HTTPの本人ID・query、page/keyword不正、status配列/objectを含む正規化 | 200/400、偽装無視、不正時usecase未実行 |
+| H03/H04 | 未認証・署名不正・期限切れ、業務例外 | 401がquery拒否より優先、500の内部情報非公開 |
+| H05/H06/H11/H12 | 50/51回、別本人・窓・不正JSON・400/500・token/IP変更 | 本人別枠、窓再開、401/parser非消費、400/500消費、同本人の枠共有 |
+| H08/H09/H10 | JSON例と関連null/ISO、実registerRoutes、成功・失敗deferred | 公開JSON・実URL到達、usecase確定前応答なし |
+| D01/D02 | 2所有者と所有者null、2status、21件以上、同日時、search_text対照、関連なし | 本人・status・検索条件・順序・ページ・列/関連が契約どおり。全行不変 |
+| D05 | 一覧完了後に別接続で削除commit、count後解放し再送 | REPEATABLE READ/READ ONLY、当該応答件数は旧snapshot、次回は最新 |
+| D06 | READ ONLY設定後に書込みを試す（自作行限定） | DBが拒否、元データ不変 |
+
+D03は12種類の記号を通常文字として検索する対照（aXb）を置く。D04はserviceへ他人seller_idを直接注入して一覧空・count0と不変を確認する。D05では独立接続PIDの差異と実分離レベル/readOnlyを確認し、削除commit後も保留中一覧・件数は旧snapshotで一致する。通常取得で行ロックは使わないため、ロック待機検出は対象外。
 
 HTTPレート制限: 本人単位60秒50回/51回、別本人の枠、同本人のtoken/IP変更は同枠、429ヘッダー、窓59999/60000/60001ms、400/500消費、401/parser拒否非消費を検証。
 状態遷移・書込みrollback・S3/通知は読取APIに存在しないため対象外。破損FKはDB制約の責務であり、関連nullは合法なnullable FKで準備する。ページ間snapshot共有・実通信断時rollbackは契約外。
@@ -43,3 +48,5 @@ HTTPレート制限: 本人単位60秒50回/51回、別本人の枠、同本人�
 server/で対象のsrc単体4ファイルとHTTP2ファイルを指定してnpm run test:run --を実行。DBはガード確認後にdatabase.test.tsのみ指定する。影響回帰はitems/createItem・updateItemのcontroller/route/registrationを対象とする。
 npm run lint、npm run typecheck、./node_modules/.bin/tsc --noEmit -p test/tsconfig.json、および通常lint対象外の追加TSを既存ESLint/TypeScript parserで検査する。
 必須ケース成功、未処理例外・skip・未解決仕様なし、DB cleanupとclose成功、設計・実装・結果が一致して完了とする。
+
+2026-11-09追記: ユーザー了承により、既存createItem/updateItem登録テストのitemTrash Routerモック不足も各1行補い、回帰対象に含めた。完了結果はレポート参照。

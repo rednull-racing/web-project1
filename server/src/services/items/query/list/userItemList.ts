@@ -26,7 +26,7 @@ export const getMyUploadedItemList = ({
             { model: Sale, attributes: ["before_price", "sale_flag", "discount_rate", "discount_amount"], required: false },
         ],
         transaction,
-    }) as Promise<UploadedItemListRow[]>;
+    }) as Promise<(InstanceType<typeof Item> & UploadedItemListRow)[]>;
 };
 
 export const countMyUploadedItemList = ({ userId, where, transaction }: CountUploadedItemListParams): Promise<number> => {

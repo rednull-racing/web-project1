@@ -1,5 +1,4 @@
 import { getUploadedItemListUseCase } from "../../usecases/items/list/getUploadedItemList.js";
-import type { GetUploadedItemListQuery } from "../../validators/query/items.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { createItemUseCase } from "../../usecases/items/create/createItem.js";
 import { deleteItemLogicallyUseCase } from "../../usecases/items/delete/logicalDelete.js";
@@ -20,6 +19,7 @@ import { updateItemUseCase } from "../../usecases/items/update/updateItem.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
 import type { CreateItemBody, UpdateItemBody } from "../../validators/body/items.js";
 import type {
+    GetUploadedItemListQuery,
     ItemListQuery,
     ItemPageQuery,
     ItemSortNumberQuery,

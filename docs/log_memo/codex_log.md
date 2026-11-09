@@ -1399,3 +1399,11 @@
 - テスト設計・fixture・レポートを追加。対象API78件と影響回帰301件の計379件、lint・本番/テスト型検査・追加lint成功。
 - 実test_dbのガード・snapshot・書込み拒否・自作ID限定cleanup・接続終了を確認。migration・フロント変更なし。
 - 明示指示により未使用getDeletedItemsへのimport・返却型・分岐を削除。Node v20.20.2で検証、指定Node 26環境は未実行。
+
+## 20261109_backend-coding_getUploadedItemList実装と検証
+
+- 検索・並び順・関連null・statusの仕様をユーザー回答で確定し、詳細設計を統一。
+- GET /api/items/list/uploadedを本人限定・READ ONLY/REPEATABLE READで実装。
+- テスト設計・単体/HTTP/実DBテスト・レポートを作成し、了承済みの既存登録テスト2件も補修。
+- 対象120件＋既存回帰82件の計202件成功。lint・本番/テスト型検査・追加ESLint成功。
+- test_dbの全接続ガード・schema・自作ID cleanup・closeを確認。migration未実行。

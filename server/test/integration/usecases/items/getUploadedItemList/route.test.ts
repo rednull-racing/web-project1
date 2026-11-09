@@ -7,6 +7,12 @@ const mocks = vi.hoisted(() => ({ list: vi.fn() }));
 import "../../../../fixtures/items/getUploadedItemList/httpMocks.js";
 vi.mock("../../../../../src/usecases/items/list/getUploadedItemList.js", () => ({ getUploadedItemListUseCase: mocks.list }));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
+const deferred = <T>() => {
+    let resolve!: (value: T) => void;
+    let reject!: (reason: Error) => void;
+    const promise = new Promise<T>((ok, fail) => { resolve = ok; reject = fail; });
+    return { promise, resolve, reject };
+};
 let app: express.Express;
 let secret: string;
 const token = (id = 7) => jwt.sign({ id, email: "test@example.invalid", admin: false }, secret, { expiresIn: 3600 });
@@ -142,10 +148,10 @@ describe("P0 query・公開JSON・完了待機", () => {
         });
     });
     it.each(["success", "failure"])("H10: usecase保留中は応答せず%s確定後に返す", async (mode) => {
-        const started = Promise.withResolvers<void>();
-        const gate = Promise.withResolvers<{ itemList: never[]; totalPages: number }>();
+        const started = deferred<void>();
+        const gate = deferred<{ itemList: never[]; totalPages: number }>();
         mocks.list.mockImplementation(() => {
-            started.resolve();
+            started.resolve(undefined);
             return gate.promise;
         });
         let completed = false;

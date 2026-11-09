@@ -25,6 +25,7 @@ vi.mock("../../../../../src/routes/follow.js", () => ({ default: express.Router(
 vi.mock("../../../../../src/routes/idCard.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/inquiry.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/itemDraft.js", () => ({ default: express.Router() }));
+vi.mock("../../../../../src/routes/itemTrash.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/itemEditing.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/itemLike.js", () => ({ default: express.Router() }));
 vi.mock("../../../../../src/routes/itemReport.js", () => ({ default: express.Router() }));
