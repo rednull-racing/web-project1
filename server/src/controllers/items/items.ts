@@ -1,3 +1,5 @@
+import { getUploadedItemListUseCase } from "../../usecases/items/list/getUploadedItemList.js";
+import type { GetUploadedItemListQuery } from "../../validators/query/items.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { createItemUseCase } from "../../usecases/items/create/createItem.js";
 import { deleteItemLogicallyUseCase } from "../../usecases/items/delete/logicalDelete.js";
@@ -272,6 +274,20 @@ export const getItemHighlightController = async (req: Request, res: Response, ne
         const item = await getItemHighlightUseCase({ itemId });
 
         res.status(200).json({ item });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /items/list/uploaded?page=number&status=""&keyword=""
+// summary: 出品した商品リスト取得
+// page: /item-list/uploaded
+export const getUploadedItemListController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { page, status, keyword } = req.validatedQuery as GetUploadedItemListQuery;
+        const { itemList, totalPages } = await getUploadedItemListUseCase({ userId, page, status, keyword });
+        res.status(200).json({ itemList, totalPages });
     } catch (err) {
         next(err);
     }

@@ -124,3 +124,14 @@ export const getItemHighlightRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+export const getUploadedItemListRateLimit = rateLimit({
+    windowMs: 60000,
+    limit: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        const authReq = req as unknown as { user: AuthUser };
+        return `admin:${authReq.user.id}`;
+    },
+});

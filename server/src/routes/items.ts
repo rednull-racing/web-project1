@@ -1,3 +1,6 @@
+import { getUploadedItemListController } from "../controllers/items/items.js";
+import { getUploadedItemListRateLimit } from "../middleware/rateLimit/itemsRateLimit.js";
+import { getUploadedItemListQuerySchema } from "../validators/query/items.js";
 import { Router } from "express";
 import {
     addItemSortNumberController,
@@ -43,6 +46,17 @@ import {
 } from "../validators/query/items.js";
 
 const router = Router();
+
+// GET /items/list/uploaded?page=number&status=""&keyword=""
+// summary: 出品した商品リスト取得
+// page: /item-list/uploaded
+router.get(
+    "/list/uploaded",
+    authenticateToken,
+    getUploadedItemListRateLimit,
+    validateQuery(getUploadedItemListQuerySchema),
+    getUploadedItemListController,
+);
 
 // POST /items
 // summary: 販売中商品作成

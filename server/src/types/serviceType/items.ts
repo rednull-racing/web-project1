@@ -211,3 +211,22 @@ export type UpdateItemParams = {
     >;
     transaction: Transaction;
 };
+
+export type UploadedItemListRow = Pick<
+    ItemModel,
+    "id" | "name" | "price" | "status" | "first_image_url" | "gender_type" | "age_type" | "uploaded_at"
+> & {
+    Video: Pick<Video, "title"> | null;
+    Sale: Pick<Sale, "before_price" | "sale_flag" | "discount_rate" | "discount_amount"> | null;
+};
+
+export type CountUploadedItemListParams = {
+    userId: number;
+    where: ItemWhere;
+    transaction: Transaction;
+};
+
+export type GetUploadedItemListParams = CountUploadedItemListParams & {
+    limit: number;
+    offset: number;
+};

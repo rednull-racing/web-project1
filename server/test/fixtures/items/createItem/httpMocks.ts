@@ -16,3 +16,5 @@ vi.mock("../../../../src/usecases/items/sortNumber/sortNumber.js", () => ({
     patchSortNumberDecreaseUseCase: vi.fn(),
 }));
 vi.mock("../../../../src/middleware/isAdmin.js", () => ({ isAdmin: vi.fn() }));
+
+vi.mock("../../../../src/usecases/items/list/getUploadedItemList.js", () => ({ getUploadedItemListUseCase: vi.fn() }));

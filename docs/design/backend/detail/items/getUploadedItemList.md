@@ -2,15 +2,17 @@
 
 基本設計: [商品リスト取得API設計](../../getItemList.md)
 
+更新: 2026-11-09。ユーザー回答によりsearch_text検索、uploaded_at DESC/id DESC、JSON例の項目、関連欠落null、全不正statusのundefined化を確定。本文・DB仕様・テスト観点を統一した。
+
 ## 1. 概要
 
-`/item-list/upload`向けに、認証本人が所有するitemの一覧を取得する。
+`/item-list/uploaded`向けに、認証本人が所有するitemの一覧を取得する。
 DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は行わない。
 正常・失敗ともDBデータは変更しない。
 
 ## 2. API仕様
 
-- GET `/api/item/list/uploaded`。routes/index.tsの`/api/item`登録とRouterの`/list/uploaded`を使用。
+- GET `/api/items/list/uploaded`。routes/index.tsの`/api/items`登録とRouterの`/list/uploaded`を使用。
 - body不要。成功レスポンスはapplication/json、200。
 - authenticateToken → getUploadedItemListRateLimit → validateQuery(getUploadedItemListQuerySchema) → getUploadedItemListController。
 - params検証・下書きIDによる認可はない。
@@ -20,7 +22,7 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 
 ### 入力
 
-例: `GET /api/item-draft/list?page=7&status=active&keyword=シャツ`
+例: `GET /api/items/list/uploaded?page=7&status=active&keyword=シャツ`
 
 | query   | 契約                                                                                                        |
 | ------- | ----------------------------------------------------------------------------------------------------------- |
@@ -29,9 +31,9 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 | keyword | 任意の単一文字列、文字数制限なし。前後空白を除去。省略・null・空文字・空白のみ・URLの文字列`null`は検索なし |
 
 未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller*idの偽装は採用しない。
-statusは `active` `soldout` 以外の文字列やクエリ無しが来たら、すべてundefined扱いにする。undefinedを許可する。
+statusは `active` `soldout` 以外の入力（配列・オブジェクト・nullを含む）やクエリ無しが来たら、すべてundefined扱いにする。undefinedを許可する。
 keywordはusecaseで既存の`normalizeJapanese()`を使用する（依頼中のnormalizeJapanizeに対応する現行関数名）。
-NFKC・小文字化・カタカナ→ひらがな・空白除去後、nameまたはtitleのILIKE部分一致。
+NFKC・小文字化・カタカナ→ひらがな・空白除去後、item.search_textのILIKE部分一致。
 正規化するのは入力のみ。保存済みカラムの正規化・書換えは行わない。
 検索語の文字変換は現在の`normalizeJapanese()`の仕様に従い、追加の正規表現検索・文字制限は設けない。
 正規化後の`%`・`_`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
@@ -44,7 +46,7 @@ NFKC・小文字化・カタカナ→ひらがな・空白除去後、nameまた
 | middleware/authMiddleware.ts               | authenticateToken                                                             | 既存 |
 | middleware/rateLimit/itemsRateLimit.ts     | getUploadedItemListRateLimit                                                  | 追加 |
 | middleware/validate/validateQuery.ts       | validateQuery                                                                 | 既存 |
-| validators/query/items.ts                  | getUploadedItemListQuerySchema / GetUploadedItemListQuery                     | 新規 |
+| validators/query/items.ts                  | getUploadedItemListQuerySchema / GetUploadedItemListQuery                     | 追加 |
 | controllers/items/items.ts                 | getUploadedItemListController                                                 | 追加 |
 | usecases/items/list/getUploadedItemList.ts | getUploadedItemListUseCase                                                    | 新規 |
 | services/items/query/list/userItemList.ts  | setUploadedItemListReadOnly / getMyUploadedItemList / countMyUploadedItemList | 追加 |
@@ -84,6 +86,8 @@ service引数はuserId・where・transaction、一覧取得のみlimit・offset�
 ```
 
 uploaded_atはDateをJSONのISO日時へ変換する。idはitemの主キー。
+Video/SaleはLEFT JOINし、欠落時はnullを返す。存在する関連のnullable列はnullを保持する。
+usecaseはJSON例の項目のみ明示的に選択し、seller_id・search_text・関連のid等は返さない。
 limit=20、offset=(page-1)\*20、totalPages=Math.ceil(totalCount/20)。
 該当なしは`{"itemList":[],"totalPages":0}`。範囲外ページも200・空配列、totalPagesは全一致件数から算出する。
 トランザクション完了後にのみ成功応答する。
@@ -166,9 +170,11 @@ flowchart TD
 
 ## 5. DB操作仕様
 
-item・video・saleのみを参照。attributes=id,name,price,first_image_url,title,createdAt。
-whereは所有者AND（検索時はname/titleのOR）。countは同じ条件、limit/offsetなし。
-orderはcreatedAt DESC,id DESC。関連include・行ロック・更新・削除なし。
+item・video・saleのみを参照。itemのattributesはid,name,price,status,first_image_url,gender_type,age_type,uploaded_at。
+Videoはtitle、Saleはbefore_price,sale_flag,discount_rate,discount_amountをrequired:falseでincludeする。
+whereはAND(seller_id=userId, usecase指定where)。usecaseはstatusの指定値、未指定時はactive/soldoutのIN、検索時はエスケープ済みsearch_textのILIKEを指定する。
+countはitemのみを参照し、一覧と同じwhere、limit/offset/includeなし。belongsTo関連により親の重複はない。
+orderはuploaded_at DESC,id DESC。行ロック・更新・削除なし。
 Model/既存migrationを参考とするが、DB反映状態は実DBテストのガード・スキーマ検査で確認する。migrationやsyncは行わない。
 
 ## 6. トランザクション設計
@@ -195,9 +201,9 @@ readOnlyオプションだけに依存せず、serviceからSET TRANSACTION READ
 
 ## 8. テスト設計
 
-[テスト設計](../../../../../server/test/docs/architecture/items/list/getUploadItemList.md)と[結果](../../../../../server/test/docs/report/items/list/getUploadedItemList.md)を参照。
+[テスト設計](../../../../../server/test/docs/architecture/items/list/getUploadedItemList.md)と[結果](../../../../../server/test/docs/report/items/list/getUploadedItemList.md)を参照。
 
-- 正常: 入力正規化、OR検索、6列、順序、ページング、null列保持、空結果・範囲外。
+- 正常: 入力正規化、search_text検索、公開項目・関連、順序、ページング、null列保持、空結果・範囲外。
 - 認証・認可: 401・偽装キー除去、一覧とcount両方の本人限定、他人・所有者null除外。
 - 入力境界: pageの上下限前後・小数・型違い、keyword省略・空白・null・配列、未知キー。
 - 制限・優先順位: 50/51回、本人別枠、窓再開、未認証・不正JSON非計上、400/500計上。
