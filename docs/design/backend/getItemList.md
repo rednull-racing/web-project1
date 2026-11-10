@@ -55,7 +55,7 @@
 - 認可:
     - item.seller_id === userId
 
-### getItemLikeList（高評価した商品リスト取得）
+### getItemLikeList（いいねした商品リスト取得）
 
 - フロント: /item-list/like
 - route: GET /item-like/item-list
