@@ -9,7 +9,7 @@ lint・本番/テスト型検査・追加ESLint成功。必須ケースの未実
 ## 実装と仕様
 
 認証本人の商品のみを検索し、在庫を含むattributesと公開項目を返す専用APIを追加した。
-既存normalizeJapaneseを維持し、正規化後の%・_・バックスラッシュをILIKE用にエスケープする。*等も通常文字として検索する。
+既存normalizeJapaneseを維持し、正規化後の%・\_・バックスラッシュをILIKE用にエスケープする。\*等も通常文字として検索する。
 ユーザー回答に従って詳細設計の本文と参考例を整合させた。既存出品一覧との共通化・置換は行わない。
 専用schema・limiter・controller・usecase・service・型を追加し、既存userItemList.tsへStock用serviceを個別追加した。
 一覧とcountは同一REPEATABLE READ/READ ONLY transactionで順に実行し、transaction完了後に応答する。
@@ -19,29 +19,29 @@ lint・本番/テスト型検査・追加ESLint成功。必須ケースの未実
 
 集計元: Vitest JSON `/tmp/stock-final-results.json`（一時成果物）。各assertionResultsの展開後件数。途中実行は加算していない。
 
-| ファイル | 成功件数 |
-| --- | ---: |
-| `src/controllers/items/test/createItem.test.ts` | 4 |
-| `src/controllers/items/test/getStockItemList.test.ts` | 7 |
-| `src/controllers/items/test/getUploadedItemList.test.ts` | 7 |
-| `src/controllers/items/test/updateItem.test.ts` | 6 |
-| `src/validators/query/test/getStockItemList.test.ts` | 38 |
-| `src/validators/query/test/getUploadedItemList.test.ts` | 38 |
-| `src/usecases/items/list/test/getStockItemList.test.ts` | 21 |
-| `src/usecases/items/list/test/getUploadedItemList.test.ts` | 21 |
-| `test/integration/usecases/items/createItem/registration.test.ts` | 1 |
-| `test/integration/usecases/items/createItem/route.test.ts` | 33 |
-| `test/integration/usecases/items/getStockItemList/database.test.ts` | 18 |
-| `test/integration/usecases/items/getStockItemList/registration.test.ts` | 1 |
-| `test/integration/usecases/items/getStockItemList/route.test.ts` | 31 |
-| `test/integration/usecases/items/getUploadedItemList/database.test.ts` | 17 |
-| `test/integration/usecases/items/getUploadedItemList/registration.test.ts` | 1 |
-| `test/integration/usecases/items/getUploadedItemList/route.test.ts` | 30 |
-| `test/integration/usecases/items/updateItem/registration.test.ts` | 1 |
-| `test/integration/usecases/items/updateItem/route.test.ts` | 37 |
-| `src/services/items/query/list/test/getStockItemList.test.ts` | 6 |
-| `src/services/items/query/list/test/getUploadedItemList.test.ts` | 6 |
-| 合計 | 324 |
+| ファイル                                                                   | 成功件数 |
+| -------------------------------------------------------------------------- | -------: |
+| `src/controllers/items/test/createItem.test.ts`                            |        4 |
+| `src/controllers/items/test/getStockItemList.test.ts`                      |        7 |
+| `src/controllers/items/test/getUploadedItemList.test.ts`                   |        7 |
+| `src/controllers/items/test/updateItem.test.ts`                            |        6 |
+| `src/validators/query/test/getStockItemList.test.ts`                       |       38 |
+| `src/validators/query/test/getUploadedItemList.test.ts`                    |       38 |
+| `src/usecases/items/list/test/getStockItemList.test.ts`                    |       21 |
+| `src/usecases/items/list/test/getUploadedItemList.test.ts`                 |       21 |
+| `test/integration/usecases/items/createItem/registration.test.ts`          |        1 |
+| `test/integration/usecases/items/createItem/route.test.ts`                 |       33 |
+| `test/integration/usecases/items/getStockItemList/database.test.ts`        |       18 |
+| `test/integration/usecases/items/getStockItemList/registration.test.ts`    |        1 |
+| `test/integration/usecases/items/getStockItemList/route.test.ts`           |       31 |
+| `test/integration/usecases/items/getUploadedItemList/database.test.ts`     |       17 |
+| `test/integration/usecases/items/getUploadedItemList/registration.test.ts` |        1 |
+| `test/integration/usecases/items/getUploadedItemList/route.test.ts`        |       30 |
+| `test/integration/usecases/items/updateItem/registration.test.ts`          |        1 |
+| `test/integration/usecases/items/updateItem/route.test.ts`                 |       37 |
+| `src/services/items/query/list/test/getStockItemList.test.ts`              |        6 |
+| `src/services/items/query/list/test/getUploadedItemList.test.ts`           |        6 |
+| 合計                                                                       |      324 |
 
 対象APIは単体72件（V01〜V03/C01〜C03/U01〜U04/S01〜S04）、DBなしHTTP32件（H01〜H13）、実DB18件（D01〜D07）。
 既存回帰はgetUploadedItemList120件とcreateItem/updateItemのcontroller・route・registration82件。
@@ -49,7 +49,7 @@ lint・本番/テスト型検査・追加ESLint成功。必須ケースの未実
 - V/C/U/S: page上下限前後・型違い、keyword欠落/null/空/配列、status正規化、未知キー除去、認証ID採用、公開項目限定、関連欠落・nullable・0/false、正規化/エスケープ、同一where/transaction、依存失敗・保留・後続停止、transaction完了待機・失敗伝播が成功。
 - H: 実parser/認証/schema/limiter/controller/errorHandlerを最小Expressへ接続し、401/400/429/500/200と公開内容を確認。実registerRoutesのURL到達も成功。本人単位50/51回、token/IP変更、別本人枠、59999/60000/60001ms、400/500消費・401/parser非消費、既存出品一覧との専用枠分離を確認した。
 - D01/D02/D07: 本人・他人・所有者null、2status、検索列の対照、uploaded_at優先と同日時id降順、20/21件境界、空/範囲外、関連欠落・ISO日時・公開項目、商品/色/サイズの在庫JSONB・配列順・再送・非対象不変を確認。
-- D03/D04: %・_・バックスラッシュ等12記号の文字検索でaXbの対照行を除外。service直接呼出しの他人seller_idでもAND本人条件を上書きできず一覧空/count0。
+- D03/D04: %・\_・バックスラッシュ等12記号の文字検索でaXbの対照行を除外。service直接呼出しの他人seller_idでもAND本人条件を上書きできず一覧空/count0。
 - D05: 実一覧SELECT後にgateを置き、repeatable read/read_only=onとobserverとのPID差を確認。別接続が自作行を削除commitしてから解放し、当該一覧/countは旧snapshot、次要求は最新状態となることを確認。
 - D06: 自作行への実UPDATEを注入しSQLSTATE25006で拒否。count未実行、rollback後の新規SELECTで全自作行不変、再試行成功を確認。
 

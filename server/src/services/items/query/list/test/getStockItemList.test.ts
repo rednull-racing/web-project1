@@ -30,7 +30,17 @@ describe("P0 在庫一覧serviceの取得条件と例外伝播", () => {
         expect(await getMyStockItemList({ userId: 7, where, limit: 20, offset: 20, transaction })).toBe(rows);
         expect(await countMyStockItemList({ userId: 7, where, transaction })).toBe(21);
         expect(mocks.findAll).toHaveBeenCalledExactlyOnceWith({
-            attributes: ["id", "name", "price", "status", "first_image_url", "gender_type", "age_type", "attributes", "uploaded_at"],
+            attributes: [
+                "id",
+                "name",
+                "price",
+                "status",
+                "first_image_url",
+                "gender_type",
+                "age_type",
+                "attributes",
+                "uploaded_at",
+            ],
             where: { [Op.and]: [{ seller_id: 7 }, where] },
             limit: 20,
             offset: 20,

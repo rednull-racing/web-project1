@@ -59,8 +59,7 @@ afterEach(() => {
 });
 it("H09: 実registerRoutesがGET /api/items/list/stockを接続", async () => {
     const { registerRoutes } = await import("../../../../../src/routes/index.js");
-    const { getStockItemListUseCase } =
-        await import("../../../../../src/usecases/items/list/getStockItemList.js");
+    const { getStockItemListUseCase } = await import("../../../../../src/usecases/items/list/getStockItemList.js");
     const app = express();
     registerRoutes(app);
     const response = await request(app).get("/api/items/list/stock?page=2");

@@ -222,11 +222,14 @@ describe("P0 query・公開JSON・完了待機", () => {
     });
 });
 
-
 it("H13: 出品一覧と在庫一覧は同一本人でも専用のレート枠を使う", async () => {
-    const { getUploadedItemListUseCase } = await import("../../../../../src/usecases/items/list/getUploadedItemList.js");
+    const { getUploadedItemListUseCase } =
+        await import("../../../../../src/usecases/items/list/getUploadedItemList.js");
     vi.mocked(getUploadedItemListUseCase).mockResolvedValue({ itemList: [], totalPages: 0 });
-    const uploaded = () => request(app).get("/api/items/list/uploaded").set("Authorization", "Bearer " + token());
+    const uploaded = () =>
+        request(app)
+            .get("/api/items/list/uploaded")
+            .set("Authorization", "Bearer " + token());
     for (let i = 0; i < 50; i++) expect((await uploaded()).status).toBe(200);
     expect((await uploaded()).status).toBe(429);
     expect((await get()).status).toBe(200);

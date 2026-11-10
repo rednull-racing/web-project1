@@ -137,10 +137,15 @@ describe("P0 実DBの在庫一覧・認可・snapshot", () => {
         const attributes = {
             inventory: { initial: 20, current: 0, low_stock_ratio: 0.3 },
             colorVariants: [
-                { uiId: "blue", color: "青", inventory: { initial: 10, current: 2, low_stock_ratio: 0.2 }, sizes: [
-                    { size: "M", inventory: { initial: 4, current: 0, low_stock_ratio: 0.1 } },
-                    { size: "L", inventory: { initial: 6, current: 2, low_stock_ratio: 0.4 } },
-                ] },
+                {
+                    uiId: "blue",
+                    color: "青",
+                    inventory: { initial: 10, current: 2, low_stock_ratio: 0.2 },
+                    sizes: [
+                        { size: "M", inventory: { initial: 4, current: 0, low_stock_ratio: 0.1 } },
+                        { size: "L", inventory: { initial: 6, current: 2, low_stock_ratio: 0.4 } },
+                    ],
+                },
                 { uiId: "red", color: "赤", inventory: { initial: 10, current: 3, low_stock_ratio: 0.5 } },
             ],
             materials: [{ name: "綿", ratio: 100 }],

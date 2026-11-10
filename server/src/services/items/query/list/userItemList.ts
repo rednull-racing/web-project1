@@ -93,10 +93,6 @@ export const getMyStockItemList = ({
     }) as Promise<(InstanceType<typeof Item> & StockItemListRow)[]>;
 };
 
-export const countMyStockItemList = ({
-    userId,
-    where,
-    transaction,
-}: CountStockItemListParams): Promise<number> => {
+export const countMyStockItemList = ({ userId, where, transaction }: CountStockItemListParams): Promise<number> => {
     return Item.count({ where: { [Op.and]: [{ seller_id: userId }, where] }, transaction });
 };

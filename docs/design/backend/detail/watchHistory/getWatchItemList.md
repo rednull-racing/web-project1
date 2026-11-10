@@ -38,15 +38,15 @@ NFKC・小文字化・カタカナ→ひらがな・空白除去後、item.searc
 
 ### 担当ファイル（server/src基準）
 
-| ファイル                                  | 関数・型                                                          | 区分     |
-| ----------------------------------------- | ----------------------------------------------------------------- | -------- |
-| routes/watchHistory.ts                        | GET /item-list                                                    | 追加 |
-| middleware/authMiddleware.ts              | authenticateToken                                                 | 既存     |
-| middleware/rateLimit/watchHistoryRateLimit.ts | getWatchItemListRateLimit                                          | 追加 |
-| middleware/validate/validateQuery.ts      | validateQuery                                                     | 既存     |
-| validators/query/watchHistory.ts              | getWatchItemListQuerySchema / GetWatchItemListQuery                 | 新規 |
-| controllers/watchHistory/watchHistory.ts          | getWatchItemListController                                         | 追加 |
-| usecases/watchHistory/getWatchItemList.ts      | getWatchItemListUseCase                                            | 新規 |
+| ファイル                                      | 関数・型                                                             | 区分 |
+| --------------------------------------------- | -------------------------------------------------------------------- | ---- |
+| routes/watchHistory.ts                        | GET /item-list                                                       | 追加 |
+| middleware/authMiddleware.ts                  | authenticateToken                                                    | 既存 |
+| middleware/rateLimit/watchHistoryRateLimit.ts | getWatchItemListRateLimit                                            | 追加 |
+| middleware/validate/validateQuery.ts          | validateQuery                                                        | 既存 |
+| validators/query/watchHistory.ts              | getWatchItemListQuerySchema / GetWatchItemListQuery                  | 新規 |
+| controllers/watchHistory/watchHistory.ts      | getWatchItemListController                                           | 追加 |
+| usecases/watchHistory/getWatchItemList.ts     | getWatchItemListUseCase                                              | 新規 |
 | services/watchHistory/query.ts                | setWatchItemListReadOnly / getMyWatchItemList / countMyWatchItemList | 新規 |
 | types/serviceType/watchHistory.ts             | WatchItemListRow / GetWatchItemListParams / CountWatchItemListParams | 追加 |
 
