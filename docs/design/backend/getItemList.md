@@ -45,3 +45,12 @@
 
 - 認可:
     - item.seller_id === userId
+
+### getUploadedItemList（在庫付き出品した商品リスト取得）
+
+- フロント: /item-list/stock
+- route: GET /items/list/stock
+- usecase: queryで指定の条件でitemの一覧を取得
+
+- 認可:
+    - item.seller_id === userId
