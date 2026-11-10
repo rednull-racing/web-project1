@@ -130,11 +130,27 @@ describe("P0 公開項目・status", () => {
         expect(mocks.list.mock.calls[0][0].where).toEqual({ status });
     });
     it("U04: 複数いいねから商品を抽出し取得順を保持、いいねIDを返さない", async () => {
-        const first = { id: 45, name: "先頭", price: 1, status: "active", first_image_url: null, gender_type: null, age_type: null, Video: null, Sale: null };
+        const first = {
+            id: 45,
+            name: "先頭",
+            price: 1,
+            status: "active",
+            first_image_url: null,
+            gender_type: null,
+            age_type: null,
+            Video: null,
+            Sale: null,
+        };
         const second = { ...first, id: 12, name: "後方" };
-        mocks.list.mockResolvedValue([{ id: 500, item_id: 45, Item: first }, { id: 499, item_id: 12, Item: second }]);
+        mocks.list.mockResolvedValue([
+            { id: 500, item_id: 45, Item: first },
+            { id: 499, item_id: 12, Item: second },
+        ]);
         mocks.count.mockResolvedValue(2);
-        expect(await run({ userId: 7, page: 1, keyword: null })).toEqual({ itemList: [{ item: first }, { item: second }], totalPages: 1 });
+        expect(await run({ userId: 7, page: 1, keyword: null })).toEqual({
+            itemList: [{ item: first }, { item: second }],
+            totalPages: 1,
+        });
     });
     it.each([0, 20, 21])("U04: 件数%iの切上げと公開項目の選択", async (count) => {
         const row = {

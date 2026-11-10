@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    getItemLikeListController,
     itemLikePostByIdController,
     itemLikeDeleteByIdController,
     itemLikeGetByIdStatusController,
@@ -8,6 +9,7 @@ import {
 } from "../controllers/itemLike/itemLike.js";
 import { authenticateToken } from "../middleware/index.js";
 import {
+    getItemLikeListRateLimit,
     addItemLikeRateLimit,
     deleteItemLikeRateLimit,
     itemLikeCountRateLimit,
@@ -19,7 +21,20 @@ import { validateQuery } from "../middleware/validate/validateQuery.js";
 import { idParamSchema } from "../validators/params/id.js";
 import { keywordOptionalQuerySchema } from "../validators/query/keyword.js";
 
+import { getItemLikeListQuerySchema } from "../validators/query/itemLike.js";
+
 const router = Router();
+
+// GET /item-like/item-list?page=number&status=""&keyword=""
+// summary: いいねした商品リスト取得
+// page: /item-list/like
+router.get(
+    "/item-list",
+    authenticateToken,
+    getItemLikeListRateLimit,
+    validateQuery(getItemLikeListQuerySchema),
+    getItemLikeListController,
+);
 
 // POST /item-like/:id
 // summary: いいね作成

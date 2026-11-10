@@ -36,17 +36,26 @@ describe("P0 いいね商品一覧serviceの取得条件と例外伝播", () => 
             where: { user_id: 7 },
             limit: 20,
             offset: 20,
-            order: [["createdAt", "DESC"], ["id", "DESC"]],
-            include: [{
-                model: mocks.Item,
-                attributes: ["id", "name", "price", "status", "first_image_url", "gender_type", "age_type"],
-                where,
-                required: true,
-                include: [
-                    { model: mocks.Video, attributes: ["title"], required: false },
-                    { model: mocks.Sale, attributes: ["before_price", "sale_flag", "discount_rate", "discount_amount"], required: false },
-                ],
-            }],
+            order: [
+                ["createdAt", "DESC"],
+                ["id", "DESC"],
+            ],
+            include: [
+                {
+                    model: mocks.Item,
+                    attributes: ["id", "name", "price", "status", "first_image_url", "gender_type", "age_type"],
+                    where,
+                    required: true,
+                    include: [
+                        { model: mocks.Video, attributes: ["title"], required: false },
+                        {
+                            model: mocks.Sale,
+                            attributes: ["before_price", "sale_flag", "discount_rate", "discount_amount"],
+                            required: false,
+                        },
+                    ],
+                },
+            ],
             transaction,
         });
         expect(mocks.count).toHaveBeenCalledExactlyOnceWith({

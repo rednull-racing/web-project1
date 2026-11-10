@@ -1421,3 +1421,11 @@
 - 別worktreeで専用テスト・fixture・テスト設計を作成して統合し、結果レポートを追加。
 - 対象122件＋既存回帰202件の計324件、lint・本番/テスト型検査・追加ESLint成功。
 - test_db全接続ガード・schema・snapshot・書込み拒否・自作ID cleanup・close成功。normalizeJapanese変更・migration実行なし。
+
+## 20261110_backend-coding_getItemLikeList実装
+
+- 仕様確認の回答5点を詳細設計へ反映し、本人のいいね商品一覧APIを実装。
+- 出品者無制限、いいね日時/ID降順、検索・ページング、同一snapshotの件数取得を保証。
+- 単体74件・HTTP/登録31件・実DB18件、計123件成功。lint・本番/テスト型検査・追加test lint成功。
+- test_dbの接続/スキーマガード、自作ID cleanup・全接続closeを確認。migration実行なし。
+- 詳細はserver/test/docs/report/itemLike/getItemLikeList.mdを参照。

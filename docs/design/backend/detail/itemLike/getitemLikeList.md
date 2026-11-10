@@ -2,6 +2,8 @@
 
 基本設計: [商品リスト取得API設計](../../getItemList.md)
 
+確認・更新日: 2026-11-10。ユーザー回答に基づき、出品者を限定しない本人のいいね取得、ItemLike起点の件数集計、`{ item }`形式、いいね日時・ID降順、uploaded_at非返却を確定。担当ファイルは実装済み。
+
 ## 1. 概要
 
 `/item-list/like`向けに、認証本人が所有するitem_likeから参照されているitemの一覧を取得する。
@@ -12,7 +14,7 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 
 - GET `/api/item-like/item-list`。routes/index.tsの`/api/item-like`登録とRouterの`/item-list`を使用。
 - body不要。成功レスポンスはapplication/json、200。
-- authenticateToken → getLikeItemListRateLimit → validateQuery(getLikeItemListQuerySchema) → getLikeItemListController。
+- authenticateToken → getItemLikeListRateLimit → validateQuery(getItemLikeListQuerySchema) → getItemLikeListController。
 - params検証・ItemLikeIDによる認可はない。
 - 認証本人単位（`admin:${userId}`）で60000msに50回。専用インスタンス、standardHeaders=true、legacyHeaders=false。
 - 認証後の400・500も計上。未認証は非計上。不正JSONは共通parserで先に拒否され非計上。
@@ -28,27 +30,27 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 | status  | "active"・"soldout"のみ採用、その他の入力はundefined                                                        |
 | keyword | 任意の単一文字列、文字数制限なし。前後空白を除去。省略・null・空文字・空白のみ・URLの文字列`null`は検索なし |
 
-未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller_idの偽装は採用しない。
+未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller*idの偽装は採用しない。
 statusは `active` `soldout` 以外の入力（配列・オブジェクト・nullを含む）やクエリ無しが来たら、すべてundefined扱いにする。undefinedを許可する。
 keywordはusecaseで既存の`normalizeJapanese()`を使用する（現行関数名）。
 NFKC・小文字化・カタカナ→ひらがな・空白除去後、item.search_textのILIKE部分一致。
 正規化するのは入力のみ。保存済みカラムの正規化・書換えは行わない。
 検索語の文字変換は現在の`normalizeJapanese()`の仕様に従い、追加の正規表現検索・文字制限は設けない。
-正規化後の`%`・`_`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`*`も通常の文字として検索する。`\*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
+正規化後の`%`・`*`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`\*`も通常の文字として検索する。`\*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
 
 ### 担当ファイル（server/src基準）
 
-| ファイル                                   | 関数・型                                                                      | 区分 |
-| ------------------------------------------ | ----------------------------------------------------------------------------- | ---- |
-| routes/itemLike.ts                            | GET /item-list                                                          | 追加 |
-| middleware/authMiddleware.ts               | authenticateToken                                                             | 既存 |
-| middleware/rateLimit/itemLikeRateLimit.ts     | getItemLikeListRateLimit                                                  | 追加 |
-| middleware/validate/validateQuery.ts       | validateQuery                                                                 | 既存 |
-| validators/query/itemLike.ts                  | getItemLikeListQuerySchema / GetItemLikeListQuery                     | 新規 |
-| controllers/itemLike/itemLike.ts                 | getItemLikeListController                                                 | 追加 |
-| usecases/itemLike/getItemLikeList.ts | getItemLikeListUseCase                                                    | 新規 |
-| services/itemLike/query.ts  | setItemLikeListReadOnly / getMyItemLikeList / countMyItemLikeList | 新規 |
-| types/serviceType/itemLike.ts                 | ItemLikeListRow / GetItemLikeListParams / CountItemLikeListParams | 追加 |
+| ファイル                                  | 関数・型                                                          | 区分     |
+| ----------------------------------------- | ----------------------------------------------------------------- | -------- |
+| routes/itemLike.ts                        | GET /item-list                                                    | 実装済み |
+| middleware/authMiddleware.ts              | authenticateToken                                                 | 既存     |
+| middleware/rateLimit/itemLikeRateLimit.ts | getItemLikeListRateLimit                                          | 実装済み |
+| middleware/validate/validateQuery.ts      | validateQuery                                                     | 既存     |
+| validators/query/itemLike.ts              | getItemLikeListQuerySchema / GetItemLikeListQuery                 | 実装済み |
+| controllers/itemLike/itemLike.ts          | getItemLikeListController                                         | 実装済み |
+| usecases/itemLike/getItemLikeList.ts      | getItemLikeListUseCase                                            | 実装済み |
+| services/itemLike/query.ts                | setItemLikeListReadOnly / getMyItemLikeList / countMyItemLikeList | 実装済み |
+| types/serviceType/itemLike.ts             | ItemLikeListRow / GetItemLikeListParams / CountItemLikeListParams | 実装済み |
 
 service引数はuserId・where・transaction、一覧取得のみlimit・offsetも受ける。itemIdは不要。
 
@@ -82,7 +84,7 @@ service引数はuserId・where・transaction、一覧取得のみlimit・offset�
 }
 ```
 
-uploaded_atはDateをJSONのISO日時へ変換する。idはitemの主キー。
+uploaded_atは取得・返却しない。idはitemの主キーで、いいねIDではない。
 Video/SaleはLEFT JOINし、欠落時はnullを返す。存在する関連のnullable列はnullを保持する。
 usecaseはJSON例の項目のみ明示的に選択し、seller_id・search_text・関連のid等は返さない。
 limit=20、offset=(page-1)\*20、totalPages=Math.ceil(totalCount/20)。
@@ -91,9 +93,8 @@ limit=20、offset=(page-1)\*20、totalPages=Math.ceil(totalCount/20)。
 
 ### item_likeからitem抽出
 
-```ts
-const itemList = itemLikeList.map((like: InstanceType<typeof ItemLike>) => like.Item);
-```
+各いいね行のItemからJSON例の公開項目を明示的に選択し、`{ item: 公開項目 }`へ変換する。
+Itemのモデルインスタンスをそのまま返さない。
 
 ### limit・offset・where参考例
 
@@ -101,9 +102,7 @@ const itemList = itemLikeList.map((like: InstanceType<typeof ItemLike>) => like.
 const limit = 20;
 const offset = (page - 1) * limit;
 
-const where: ItemWhere = {
-    seller_id: userId,
-};
+const where: ItemWhere = {};
 
 // status分岐
 if (status === "active" || status === "soldout") {
@@ -135,8 +134,8 @@ if (normalizedKeyword) {
 
 ## 3. 認証・認可
 
-req.user!.idを採用する。各serviceで`AND(user_id=userId, where)`を構築し、一覧・件数双方を本人に限定する。
-呼出し側のwhereでuser_idを上書きできない。他人・所有者nullの行は除外する。
+req.user!.idを採用する。各serviceでItemLikeの`where: { user_id: userId }`を固定し、一覧・件数双方を本人に限定する。usecaseのwhereは関連Itemの絞り込みにのみ使用する。
+呼出し側のwhereでuser_idを上書きできない。他人のいいねは除外する。ItemLike.user_idはNOT NULLのため所有者nullの行は正常スキーマでは存在しない。商品のseller_idは他人・nullを含め限定しない。
 一覧なので不存在・他人の行を理由に404にはしない。
 
 ## 4. 処理フロー
@@ -146,9 +145,9 @@ req.user!.idを採用する。各serviceで`AND(user_id=userId, where)`を構築
 3. usecaseで検索語、where、limit、offsetを作る。
 4. REPEATABLE READ・readOnly指定のmanaged transactionを開始する。
 5. serviceでSET TRANSACTION READ ONLYを実行する。
-6. getMyItemLikeList完了後、同一transaction・whereでcountMyLikeItemListを実行する。
-7. 行を`{ itemLike }`で包みtotalPagesを計算する。
-8. getMyItemLikeListで取得したitem_likeから、includeのitemを抽出してitemの配列を作成する。
+6. getMyItemLikeList完了後、同一transaction・whereでcountMyItemLikeListを実行する。
+7. getMyItemLikeListで取得した各行のItemから公開項目のみを選択し、`{ item }`で包んでitemListを作成する。
+8. totalPagesを全一致件数から計算する。
 9. 外側transaction Promiseが完了した後、controllerが200を返す。
 10. 例外はnext(error)から共通errorHandlerへ渡す。途中失敗なら後続処理・成功応答を行わない。
 
@@ -182,10 +181,10 @@ flowchart TD
 item_like・item・video・saleのみを参照。item_likeのattributesはid,item_idのみ。
 itemのattributesはid,name,price,status,first_image_url,gender_type,age_type。
 Videoはtitle、Saleはbefore_price,sale_flag,discount_rate,discount_amountをrequired:falseでincludeする。
-whereはAND(seller_id=userId, usecase指定where)。usecaseはstatusの指定値、未指定時はactive/soldoutのIN、検索時はエスケープ済みsearch_textのILIKEを指定する。
-countはitemのみを参照し、一覧と同じwhere、limit/offset/includeなし。belongsTo関連により親の重複はない。
-orderはuploaded_at DESC,id DESC。行ロック・更新・削除なし。
-Model/既存migrationを参考とするが、DB反映状態は実DBテストのガード・スキーマ検査で確認する。migrationやsyncは行わない。
+ItemLikeのwhereは`{ user_id: userId }`。関連Itemはrequired:trueでINNER JOINし、usecase指定whereのみを適用する。seller_id条件は設けない。usecaseはstatusの指定値、未指定時はactive/soldoutのIN、検索時はエスケープ済みsearch_textのILIKEを指定する。
+countはItemLikeを起点に、Itemをattributes:[]・required:trueでINNER JOINする。本人のuser_idと関連Itemのwhereは一覧と同じ。limit/offset/orderとVideo/Saleのincludeは付けない。belongsTo関連により親の重複はない。
+orderはItemLike.createdAt DESC, ItemLike.id DESC。行ロック・更新・削除なし。
+Model/既存migrationを参考とするが、2026-11-10にtest_dbの対象列・型・NULL・FK等を実DBテストのガード・スキーマ検査で確認済み。本番DBの反映状態は未確認。migrationやsyncは行わない。
 
 ## 6. トランザクション設計
 
@@ -214,7 +213,7 @@ readOnlyオプションだけに依存せず、serviceからSET TRANSACTION READ
 [テスト設計](../../../../../server/test/docs/architecture/itemLike/getItemLikeList.md)と[結果](../../../../../server/test/docs/report/itemLike/getItemLikeList.md)を参照。
 
 - 正常: 入力正規化、search_text検索、公開項目・関連、順序、ページング、null列保持、空結果・範囲外。
-- 認証・認可: 401・偽装キー除去、一覧とcount両方の本人限定、他人・所有者null除外。
+- 認証・認可: 401・偽装キー除去、一覧とcount両方の本人限定、他人のいいね除外・他人/null出品者の商品は対象。
 - 入力境界: pageの上下限前後・小数・型違い、keyword省略・空白・null・配列、未知キー。
 - 制限・優先順位: 50/51回、本人別枠、窓再開、未認証・不正JSON非計上、400/500計上。
 - 失敗・待機: 各service失敗・保留、後続未実行、transaction完了待機と失敗伝播。

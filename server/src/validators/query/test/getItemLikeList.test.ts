@@ -19,6 +19,10 @@ describe("P0 一覧query", () => {
         expect(schema.parse(input)).toEqual({ page: 1, keyword: "シャツ" });
         expect(input).toEqual({ keyword: " シャツ ", seller_id: 99 });
     });
+    it("V02: 長い検索語にも独自の文字数制限を追加しない", () => {
+        const keyword = "シャツ".repeat(10000);
+        expect(schema.parse({ keyword })).toEqual({ page: 1, keyword });
+    });
     it.each([["a", "b"], {}, 1, false])("V02: keyword=%jを拒否", (keyword) => {
         expect(schema.safeParse({ keyword }).success).toBe(false);
     });
