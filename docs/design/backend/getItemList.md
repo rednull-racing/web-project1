@@ -59,7 +59,7 @@
 
 - フロント: /item-list/like
 - route: GET /item-like/item-list
-- usecase: queryで指定の条件でitem_likeの一覧を取得（itemをinclude）
+- usecase: queryで指定の条件でitem_likeの一覧を取得し、itemを抽出して返却
 
 - 認可:
     - item_like.user_id === userId
