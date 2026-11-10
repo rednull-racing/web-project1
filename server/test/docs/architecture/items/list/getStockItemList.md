@@ -1,7 +1,7 @@
 # getStockItemList テスト設計
 
 設計日: 2026-11-10。パスはserver/基準。
-根拠: [詳細設計](../../../../../../docs/design/backend/detail/items/getStockItemList.md) とユーザー回答（search_text検索、uploaded_at/id降順、JSON例、関連null、不正statusはundefined、_も通常文字として検索・normalizeJapaneseは変更しない）。
+根拠: [詳細設計](../../../../../../docs/design/backend/detail/items/getStockItemList.md) とユーザー回答（_も通常文字として検索・normalizeJapaneseは変更しない）。
 対象: GET /api/items/list/stock。既存一覧API・client・DBスキーマは変更しない。
 結果は[レポート](../../../report/items/list/getStockItemList.md)へ記録する。
 
@@ -35,7 +35,7 @@
 | H05/H06/H11/H12/H13 | 50/51回、別本人・窓・不正JSON・400/500・token/IP変更                      | 本人別枠、窓再開、401/parser非消費、400/500消費、同本人の枠共有・既存出品一覧とは専用枠                                |
 | H08/H09/H10     | JSON例と関連null/ISO、実registerRoutes、成功・失敗deferred                | 公開JSON・実URL到達、usecase確定前応答なし                                                     |
 | D01/D02         | 2所有者と所有者null、2status、21件以上、同日時、search_text対照、関連なし | 本人・status・検索条件・順序・ページ・列/関連が契約どおり。全行不変                            |
-| D05             | 一覧完了後に別接続で削除commit、count後解放し再送                         | REPEATABLE READ/READ ONLY、当該応答件数は旧snapshot、次回は最新                                |
+| D05             | 一覧完了後に保留、別接続で削除commit、解放してcount・再送                         | REPEATABLE READ/READ ONLY、当該応答件数は旧snapshot、次回は最新                                |
 | D06             | READ ONLY設定後に書込みを試す（自作行限定）                               | DBが拒否、元データ不変                                                                         |
 
 D07は商品・色・サイズ在庫を持つJSONBの完全一致・配列順・再送・非対象不変を検証する。D03は12種類の記号を通常文字として検索する対照（aXb）を置く。D04はserviceへ他人seller_idを直接注入して一覧空・count0と不変を確認する。D05では独立接続PIDの差異と実分離レベル/readOnlyを確認し、削除commit後も保留中一覧・件数は旧snapshotで一致する。通常取得で行ロックは使わないため、ロック待機検出は対象外。
