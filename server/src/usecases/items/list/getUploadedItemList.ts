@@ -1,6 +1,10 @@
 import { Op, Transaction } from "sequelize";
 import sequelize from "../../../db.js";
-import { setUploadedItemListReadOnly, getMyUploadedItemList, countMyUploadedItemList } from "../../../services/items/query/list/userItemList.js";
+import {
+    setUploadedItemListReadOnly,
+    getMyUploadedItemList,
+    countMyUploadedItemList,
+} from "../../../services/items/query/list/userItemList.js";
 import type { ItemWhere, UploadedItemListRow } from "../../../types/serviceType/items.js";
 import type { GetUploadedItemListQuery } from "../../../validators/query/items.js";
 import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
@@ -38,12 +42,14 @@ export const getUploadedItemListUseCase = async ({ userId, page, status, keyword
                         age_type: row.age_type,
                         uploaded_at: row.uploaded_at,
                         Video: row.Video ? { title: row.Video.title } : null,
-                        Sale: row.Sale ? {
-                            before_price: row.Sale.before_price,
-                            sale_flag: row.Sale.sale_flag,
-                            discount_rate: row.Sale.discount_rate,
-                            discount_amount: row.Sale.discount_amount,
-                        } : null,
+                        Sale: row.Sale
+                            ? {
+                                  before_price: row.Sale.before_price,
+                                  sale_flag: row.Sale.sale_flag,
+                                  discount_rate: row.Sale.discount_rate,
+                                  discount_amount: row.Sale.discount_amount,
+                              }
+                            : null,
                     },
                 })),
                 totalPages: Math.ceil(totalCount / limit),

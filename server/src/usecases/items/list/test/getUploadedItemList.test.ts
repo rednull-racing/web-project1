@@ -31,11 +31,23 @@ describe("P0 一覧業務処理", () => {
     ])("U01: $keywordを現在のnormalizeJapaneseで正規化し文字検索する", async ({ keyword, pattern }) => {
         await run({ userId: 7, page: 1, keyword });
         expect(mocks.list.mock.calls[0][0].where).toEqual({
-            status: { [Op.in]: ["active", "soldout"] }, search_text: { [Op.iLike]: pattern },
+            status: { [Op.in]: ["active", "soldout"] },
+            search_text: { [Op.iLike]: pattern },
         });
     });
     it("U01: 正規化と文字エスケープ・search_text検索・page offset・切上げ", async () => {
-        const row = { id: 123, name: null, price: null, status: "active", first_image_url: null, gender_type: "unisex", age_type: "both", uploaded_at: new Date(0), Video: null, Sale: null };
+        const row = {
+            id: 123,
+            name: null,
+            price: null,
+            status: "active",
+            first_image_url: null,
+            gender_type: "unisex",
+            age_type: "both",
+            uploaded_at: new Date(0),
+            Video: null,
+            Sale: null,
+        };
         mocks.list.mockResolvedValue([row]);
         mocks.count.mockResolvedValue(21);
         expect(await run({ userId: 7, page: 2, keyword: " Ａ カタ_%\\ " })).toEqual({
@@ -117,21 +129,38 @@ describe("P0 公開項目・status", () => {
     });
     it.each([0, 20, 21])("U04: 件数%iの切上げと公開項目の選択", async (count) => {
         const row = {
-            id: 123, name: "商品", price: 0, status: "soldout", first_image_url: null,
-            gender_type: "unisex", age_type: "both", uploaded_at: new Date(0),
+            id: 123,
+            name: "商品",
+            price: 0,
+            status: "soldout",
+            first_image_url: null,
+            gender_type: "unisex",
+            age_type: "both",
+            uploaded_at: new Date(0),
             Video: { title: null, id: 77, original_url: "private" },
             Sale: { before_price: null, sale_flag: false, discount_rate: 0, discount_amount: null, id: 88 },
-            seller_id: 7, search_text: "private",
+            seller_id: 7,
+            search_text: "private",
         };
         mocks.list.mockResolvedValue([row]);
         mocks.count.mockResolvedValue(count);
         expect(await run({ userId: 7, page: 1, keyword: null })).toEqual({
-            itemList: [{ item: {
-                id: 123, name: "商品", price: 0, status: "soldout", first_image_url: null,
-                gender_type: "unisex", age_type: "both", uploaded_at: new Date(0),
-                Video: { title: null },
-                Sale: { before_price: null, sale_flag: false, discount_rate: 0, discount_amount: null },
-            } }],
+            itemList: [
+                {
+                    item: {
+                        id: 123,
+                        name: "商品",
+                        price: 0,
+                        status: "soldout",
+                        first_image_url: null,
+                        gender_type: "unisex",
+                        age_type: "both",
+                        uploaded_at: new Date(0),
+                        Video: { title: null },
+                        Sale: { before_price: null, sale_flag: false, discount_rate: 0, discount_amount: null },
+                    },
+                },
+            ],
             totalPages: count === 0 ? 0 : count === 20 ? 1 : 2,
         });
         expect(row.Video.id).toBe(77);

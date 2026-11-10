@@ -29,7 +29,8 @@ describe("P0 statusの正規化", () => {
         expect(schema.parse({ status }).status).toBe(status);
     });
     it.each([undefined, null, "", "ACTIVE", "draft", " active ", ["active"], { value: "active" }, 1, false])(
-        "V03: %jはundefined", (status) => {
+        "V03: %jはundefined",
+        (status) => {
             expect(schema.parse({ status }).status).toBeUndefined();
         },
     );

@@ -17,22 +17,22 @@ URL・例示・DB取得列・関連include・テスト観点の矛盾を詳細�
 
 集計元はVitest JSON `/tmp/get-uploaded-item-list-results.json`（一時成果物）。assertionResultsによる実ファイル・展開後件数を集計し、再実行分は加算していない。
 
-| ファイル | ケースID・境界 | 成功件数 |
-| --- | --- | ---: |
-| src/validators/query/test/getUploadedItemList.test.ts | V01〜V03、実schema | 38 |
-| src/controllers/items/test/getUploadedItemList.test.ts | C01〜C03、実controller/usecaseモック | 7 |
-| src/usecases/items/list/test/getUploadedItemList.test.ts | U01〜U04、実usecase/normalizeJapanese、DB service/transactionモック | 21 |
-| src/services/items/query/list/test/getUploadedItemList.test.ts | S01〜S04、実service/Model・queryモック | 6 |
-| test/integration/usecases/items/getUploadedItemList/route.test.ts | H01〜H08/H10〜H12、実HTTP接続/usecaseモック | 30 |
-| test/integration/usecases/items/getUploadedItemList/registration.test.ts | H09、実registerRoutes/対象外Routerモック | 1 |
-| test/integration/usecases/items/getUploadedItemList/database.test.ts | D01〜D06、実usecase/service/Model/DB | 17 |
-| src/controllers/items/test/createItem.test.ts | 既存controller回帰 | 4 |
-| src/controllers/items/test/updateItem.test.ts | 既存controller回帰 | 6 |
-| test/integration/usecases/items/createItem/route.test.ts | 既存HTTP回帰 | 33 |
-| test/integration/usecases/items/createItem/registration.test.ts | 既存登録回帰 | 1 |
-| test/integration/usecases/items/updateItem/route.test.ts | 既存HTTP回帰 | 37 |
-| test/integration/usecases/items/updateItem/registration.test.ts | 既存登録回帰 | 1 |
-| 合計 | 13ファイル | 202 |
+| ファイル                                                                 | ケースID・境界                                                      | 成功件数 |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------- | -------: |
+| src/validators/query/test/getUploadedItemList.test.ts                    | V01〜V03、実schema                                                  |       38 |
+| src/controllers/items/test/getUploadedItemList.test.ts                   | C01〜C03、実controller/usecaseモック                                |        7 |
+| src/usecases/items/list/test/getUploadedItemList.test.ts                 | U01〜U04、実usecase/normalizeJapanese、DB service/transactionモック |       21 |
+| src/services/items/query/list/test/getUploadedItemList.test.ts           | S01〜S04、実service/Model・queryモック                              |        6 |
+| test/integration/usecases/items/getUploadedItemList/route.test.ts        | H01〜H08/H10〜H12、実HTTP接続/usecaseモック                         |       30 |
+| test/integration/usecases/items/getUploadedItemList/registration.test.ts | H09、実registerRoutes/対象外Routerモック                            |        1 |
+| test/integration/usecases/items/getUploadedItemList/database.test.ts     | D01〜D06、実usecase/service/Model/DB                                |       17 |
+| src/controllers/items/test/createItem.test.ts                            | 既存controller回帰                                                  |        4 |
+| src/controllers/items/test/updateItem.test.ts                            | 既存controller回帰                                                  |        6 |
+| test/integration/usecases/items/createItem/route.test.ts                 | 既存HTTP回帰                                                        |       33 |
+| test/integration/usecases/items/createItem/registration.test.ts          | 既存登録回帰                                                        |        1 |
+| test/integration/usecases/items/updateItem/route.test.ts                 | 既存HTTP回帰                                                        |       37 |
+| test/integration/usecases/items/updateItem/registration.test.ts          | 既存登録回帰                                                        |        1 |
+| 合計                                                                     | 13ファイル                                                          |      202 |
 
 単体72件、対象APIのDBなしHTTP31件、実DB17件、既存回帰82件。全件成功。
 実HTTPでは401/400/500/429、認証IDとvalidatedQueryの採用、raw偽装の無視、JSON公開値、成功/失敗待機を確認。50/51回・別本人・同本人のtoken/IP変更・窓59999/60000/60001ms・400/500消費・401/parser拒否非消費も成功。
@@ -69,19 +69,22 @@ npm run typecheck
 ```js
 import eslint from "/home/conta/project/server/node_modules/@eslint/js/src/index.js";
 import tseslint from "/home/conta/project/server/node_modules/typescript-eslint/dist/index.js";
-export default tseslint.config({ files: ["**/*.ts"], extends: [eslint.configs.recommended, ...tseslint.configs.recommended] });
+export default tseslint.config({
+    files: ["**/*.ts"],
+    extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
+});
 ```
 
 本番tsconfigはtestを除外し、test/tsconfig.jsonで単体・結合の型も検査した。git diff --check・変更文書のリンク確認も成功。
 
 ## 初回失敗・修正履歴（同日、最終実行ですべて解消）
 
-| ID | 元ケース/対象 | 観測・原因・修正と検証 |
-| --- | --- | --- |
-| F1 | C01〜C03/H01等、httpMocks.ts | 新usecaseを既存createItem fixtureでもmockしたため、再利用した対象APIの個別mockを上書き。対象用fixtureは対象外依存だけを明示mockし、対象mockを個別テストに維持。最終38件（controller7＋HTTP31）成功 |
-| F2 | service型検査 | Model registryのItemではSale関連が推論されない。広いunknown/anyへ逃げず、取得結果の具体型をInstanceType<typeof Item>とのintersectionへ限定してcast。本番/テスト型検査成功 |
-| F3 | H10 | 実行環境Node20にPromise.withResolversなし。既存形式の型付きdeferredへ置換し、resolve/reject双方の待機契約を維持。H10成功 |
-| F4 | 既存createItem/updateItem登録テスト | 修正前baselineの別worktreeでも2件同じdb.ts TypeErrorを再現。対象外itemTrash Routerのモック不足。ユーザーが修正追加を了承し、各ファイル1行追加。既存回帰82件成功 |
+| ID  | 元ケース/対象                       | 観測・原因・修正と検証                                                                                                                                                                             |
+| --- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1  | C01〜C03/H01等、httpMocks.ts        | 新usecaseを既存createItem fixtureでもmockしたため、再利用した対象APIの個別mockを上書き。対象用fixtureは対象外依存だけを明示mockし、対象mockを個別テストに維持。最終38件（controller7＋HTTP31）成功 |
+| F2  | service型検査                       | Model registryのItemではSale関連が推論されない。広いunknown/anyへ逃げず、取得結果の具体型をInstanceType<typeof Item>とのintersectionへ限定してcast。本番/テスト型検査成功                          |
+| F3  | H10                                 | 実行環境Node20にPromise.withResolversなし。既存形式の型付きdeferredへ置換し、resolve/reject双方の待機契約を維持。H10成功                                                                           |
+| F4  | 既存createItem/updateItem登録テスト | 修正前baselineの別worktreeでも2件同じdb.ts TypeErrorを再現。対象外itemTrash Routerのモック不足。ユーザーが修正追加を了承し、各ファイル1行追加。既存回帰82件成功                                    |
 
 初回sandbox内HTTPはlisten EPERM、DBはconnect EPERMで停止（DB本体17件未実行）。承認手順で同じガード付きコマンドを制限外で実行し成功した。通信許可に伴う接続先変更はない。
 単体初回59件成功→追加controller/service込み72件成功、HTTP修正後31件成功、DB17件成功、回帰修正後82件成功を経て、最後に全13ファイル202件を一括再検証した。

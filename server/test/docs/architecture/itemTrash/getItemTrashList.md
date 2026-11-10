@@ -23,6 +23,6 @@ UserとItemTrashを作成しIDを追跡。失敗時もgate解放・全Promise回
 DB分離レベルは実transaction内SHOWで確認する。ロックを要求しないAPIのためロック待機テストは対象外。
 本APIは書込み・JSONB変換・外部通信がないため、それらの制約・状態遷移・通知送信の検証は対象外。
 
-実行はserver/で対象各ファイルを指定してnpm run test:run -- <対象>。静的検査はnpm run lint、npm run typecheck、./node*modules/.bin/tsc --noEmit -p test/tsconfig.json。
-通常lint対象外test/\**/\_.tsも既存typescript-eslintで追加検査する。完了には全必須ケースと影響回帰・静的検査の成功が必要。
+実行はserver/で対象各ファイルを指定してnpm run test:run -- <対象>。静的検査はnpm run lint、npm run typecheck、./node\*modules/.bin/tsc --noEmit -p test/tsconfig.json。
+通常lint対象外test/\*\*/\_.tsも既存typescript-eslintで追加検査する。完了には全必須ケースと影響回帰・静的検査の成功が必要。
 結果・修正履歴は[レポート](../../report/itemTrash/getItemTrashList.md)へ記録する。

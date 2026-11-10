@@ -59,11 +59,17 @@ afterEach(() => {
 });
 it("H09: 実registerRoutesがGET /api/items/list/uploadedを接続", async () => {
     const { registerRoutes } = await import("../../../../../src/routes/index.js");
-    const { getUploadedItemListUseCase } = await import("../../../../../src/usecases/items/list/getUploadedItemList.js");
+    const { getUploadedItemListUseCase } =
+        await import("../../../../../src/usecases/items/list/getUploadedItemList.js");
     const app = express();
     registerRoutes(app);
     const response = await request(app).get("/api/items/list/uploaded?page=2");
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ itemList: [], totalPages: 0 });
-    expect(getUploadedItemListUseCase).toHaveBeenCalledExactlyOnceWith({ userId: 7, page: 2, status: undefined, keyword: null });
+    expect(getUploadedItemListUseCase).toHaveBeenCalledExactlyOnceWith({
+        userId: 7,
+        page: 2,
+        status: undefined,
+        keyword: null,
+    });
 });

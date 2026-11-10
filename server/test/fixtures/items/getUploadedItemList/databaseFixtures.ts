@@ -32,13 +32,20 @@ beforeAll(async () => {
         for (const { model } of tracked) {
             const columns = await connection.getQueryInterface().describeTable(model.getTableName());
             for (const [name, attribute] of Object.entries(model.getAttributes())) {
-                if (!columns[name] || columns[name].allowNull !== (attribute.allowNull !== false && !attribute.primaryKey))
+                if (
+                    !columns[name] ||
+                    columns[name].allowNull !== (attribute.allowNull !== false && !attribute.primaryKey)
+                )
                     throw new Error("DB_TEST_STOP: required schema differs: " + model.getTableName() + "." + name);
             }
         }
         const columns = await connection.getQueryInterface().describeTable("item");
-        if (!columns.id.type.includes("INTEGER") || !columns.price.type.includes("INTEGER") ||
-            !columns.uploaded_at.type.includes("TIMESTAMP") || !columns.search_text.type.includes("TEXT"))
+        if (
+            !columns.id.type.includes("INTEGER") ||
+            !columns.price.type.includes("INTEGER") ||
+            !columns.uploaded_at.type.includes("TIMESTAMP") ||
+            !columns.search_text.type.includes("TEXT")
+        )
             throw new Error("DB_TEST_STOP: uploaded list column types differ");
         const foreignKeys = await connection.query<{ columnName: string; referencedTableName: string }>(
             `SELECT a.attname AS "columnName", target.relname AS "referencedTableName"
@@ -49,8 +56,16 @@ beforeAll(async () => {
              WHERE c.contype='f' AND c.conrelid='public.item'::regclass`,
             { type: QueryTypes.SELECT },
         );
-        for (const [columnName, referencedTableName] of [["seller_id", "user"], ["video_id", "video"], ["sale_id", "sale"]]) {
-            if (!foreignKeys.some((key) => key.columnName === columnName && key.referencedTableName === referencedTableName))
+        for (const [columnName, referencedTableName] of [
+            ["seller_id", "user"],
+            ["video_id", "video"],
+            ["sale_id", "sale"],
+        ]) {
+            if (
+                !foreignKeys.some(
+                    (key) => key.columnName === columnName && key.referencedTableName === referencedTableName,
+                )
+            )
                 throw new Error("DB_TEST_STOP: uploaded list foreign keys differ");
         }
     }
@@ -90,17 +105,26 @@ export const seed = async () => {
     const other = await User.create({ email: prefix + "-other@example.test", password: "unused" });
     return { owner, other };
 };
-export const createItem = (data: Parameters<typeof Item.create>[0]) => Item.create({
-    uploaded_at: new Date("2026-11-06T00:00:00Z"),
-    ...data,
-});
+export const createItem = (data: Parameters<typeof Item.create>[0]) =>
+    Item.create({
+        uploaded_at: new Date("2026-11-06T00:00:00Z"),
+        ...data,
+    });
 export const snapshotCreated = async () => {
-    return await Promise.all(tracked.map(({ model, ids }) => model.findAll({
-        where: { id: { [Op.in]: ids } }, order: [["id", "ASC"]], raw: true,
-    })));
+    return await Promise.all(
+        tracked.map(({ model, ids }) =>
+            model.findAll({
+                where: { id: { [Op.in]: ids } },
+                order: [["id", "ASC"]],
+                raw: true,
+            }),
+        ),
+    );
 };
 export const deferred = <T>() => {
     let resolve!: (value: T) => void;
-    const promise = new Promise<T>((r) => { resolve = r; });
+    const promise = new Promise<T>((r) => {
+        resolve = r;
+    });
     return { promise, resolve };
 };

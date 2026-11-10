@@ -40,7 +40,12 @@ describe("P0/P1 一覧controller", () => {
             mocks.list.mockResolvedValue({ ...result, privateMarker: "非公開" });
             const http = makeHttp();
             await http.run();
-            expect(mocks.list).toHaveBeenCalledExactlyOnceWith({ userId: 7, page: 2, status: "soldout", keyword: "シャツ" });
+            expect(mocks.list).toHaveBeenCalledExactlyOnceWith({
+                userId: 7,
+                page: 2,
+                status: "soldout",
+                keyword: "シャツ",
+            });
             expect(http.status).toHaveBeenCalledExactlyOnceWith(200);
             expect(http.json).toHaveBeenCalledExactlyOnceWith(result);
             expect(http.next).not.toHaveBeenCalled();
@@ -73,8 +78,7 @@ describe("P0/P1 一覧controller", () => {
             else gate.reject(error);
             await pending;
         }
-        if (outcome === "resolve")
-            expect(http.json).toHaveBeenCalledExactlyOnceWith({ itemList: [], totalPages: 0 });
+        if (outcome === "resolve") expect(http.json).toHaveBeenCalledExactlyOnceWith({ itemList: [], totalPages: 0 });
         else {
             expect(http.next).toHaveBeenCalledExactlyOnceWith(error);
             expect(http.status).not.toHaveBeenCalled();

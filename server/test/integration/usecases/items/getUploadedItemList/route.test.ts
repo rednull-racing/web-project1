@@ -5,12 +5,17 @@ import { randomBytes } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ list: vi.fn() }));
 import "../../../../fixtures/items/getUploadedItemList/httpMocks.js";
-vi.mock("../../../../../src/usecases/items/list/getUploadedItemList.js", () => ({ getUploadedItemListUseCase: mocks.list }));
+vi.mock("../../../../../src/usecases/items/list/getUploadedItemList.js", () => ({
+    getUploadedItemListUseCase: mocks.list,
+}));
 vi.mock("dotenv", () => ({ default: { config: vi.fn() } }));
 const deferred = <T>() => {
     let resolve!: (value: T) => void;
     let reject!: (reason: Error) => void;
-    const promise = new Promise<T>((ok, fail) => { resolve = ok; reject = fail; });
+    const promise = new Promise<T>((ok, fail) => {
+        resolve = ok;
+        reject = fail;
+    });
     return { promise, resolve, reject };
 };
 let app: express.Express;
@@ -49,7 +54,12 @@ describe("P0 HTTP契約・実認証/制限/検証/controller", () => {
         const response = await get("?page=2&keyword=%20シャツ%20&seller_id=99&userId=99");
         expect(response.status).toBe(200);
         expect(response.body).toEqual({ itemList: [], totalPages: 0 });
-        expect(mocks.list).toHaveBeenCalledExactlyOnceWith({ userId: 7, page: 2, status: undefined, keyword: "シャツ" });
+        expect(mocks.list).toHaveBeenCalledExactlyOnceWith({
+            userId: 7,
+            page: 2,
+            status: undefined,
+            keyword: "シャツ",
+        });
     });
     it.each(["?page=0", "?page=10001", "?keyword=a&keyword=b", "?page=1&page=2"])(
         "H02: %sは400、業務処理未実行",
@@ -133,18 +143,29 @@ describe("P0 query・公開JSON・完了待機", () => {
     );
     it("H08: JSON例の全項目・DateのISO化・欠落関連nullを返す", async () => {
         const row = {
-            id: 123, name: "商品名", price: 1000, status: "active", first_image_url: null,
-            gender_type: "unisex", age_type: "both", uploaded_at: new Date("2026-11-06T00:00:00Z"),
-            Video: { title: null }, Sale: { before_price: 2000, sale_flag: true, discount_rate: 0, discount_amount: 1000 },
+            id: 123,
+            name: "商品名",
+            price: 1000,
+            status: "active",
+            first_image_url: null,
+            gender_type: "unisex",
+            age_type: "both",
+            uploaded_at: new Date("2026-11-06T00:00:00Z"),
+            Video: { title: null },
+            Sale: { before_price: 2000, sale_flag: true, discount_rate: 0, discount_amount: 1000 },
         };
-        mocks.list.mockResolvedValue({ itemList: [{ item: row }, { item: { ...row, id: 124, Video: null, Sale: null } }], totalPages: 7 });
+        mocks.list.mockResolvedValue({
+            itemList: [{ item: row }, { item: { ...row, id: 124, Video: null, Sale: null } }],
+            totalPages: 7,
+        });
         const response = await get();
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
             itemList: [
                 { item: { ...row, uploaded_at: "2026-11-06T00:00:00.000Z" } },
                 { item: { ...row, id: 124, uploaded_at: "2026-11-06T00:00:00.000Z", Video: null, Sale: null } },
-            ], totalPages: 7,
+            ],
+            totalPages: 7,
         });
     });
     it.each(["success", "failure"])("H10: usecase保留中は応答せず%s確定後に返す", async (mode) => {
@@ -162,16 +183,20 @@ describe("P0 query・公開JSON・完了待機", () => {
         try {
             await Promise.race([
                 started.promise,
-                pending.then(() => { throw new Error("usecase到達前にHTTPが終了"); }),
+                pending.then(() => {
+                    throw new Error("usecase到達前にHTTPが終了");
+                }),
             ]);
             expect(completed).toBe(false);
             if (mode === "failure") gate.reject(new Error("private failure marker"));
             else gate.resolve({ itemList: [], totalPages: 0 });
             const response = await pending;
             expect(response.status).toBe(mode === "failure" ? 500 : 200);
-            expect(response.body).toEqual(mode === "failure"
-                ? { error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" }
-                : { itemList: [], totalPages: 0 });
+            expect(response.body).toEqual(
+                mode === "failure"
+                    ? { error: "INTERNAL_SERVER_ERROR", message: "サーバーエラーが発生しました" }
+                    : { itemList: [], totalPages: 0 },
+            );
             expect(mocks.list).toHaveBeenCalledTimes(1);
         } finally {
             gate.resolve({ itemList: [], totalPages: 0 });
@@ -185,7 +210,8 @@ describe("P0 query・公開JSON・完了待機", () => {
     });
     it("H12: 同一本人はトークン・IP・偽装queryを変えても枠を共有", async () => {
         for (let i = 0; i < 50; i++) expect((await get()).status).toBe(200);
-        const response = await request(app).get("/api/items/list/uploaded?userId=8&seller_id=8")
+        const response = await request(app)
+            .get("/api/items/list/uploaded?userId=8&seller_id=8")
             .set("Authorization", "Bearer " + jwt.sign({ id: 7, jti: "another-token" }, secret))
             .set("X-Forwarded-For", "192.0.2.10");
         expect(response.status).toBe(429);
