@@ -1,3 +1,4 @@
+import { getStockItemListUseCase } from "../../usecases/items/list/getStockItemList.js";
 import { getUploadedItemListUseCase } from "../../usecases/items/list/getUploadedItemList.js";
 import type { NextFunction, Request, Response } from "express-serve-static-core";
 import { createItemUseCase } from "../../usecases/items/create/createItem.js";
@@ -19,6 +20,7 @@ import { updateItemUseCase } from "../../usecases/items/update/updateItem.js";
 import { runDetachedTask } from "../../utils/runDetachedTask.js";
 import type { CreateItemBody, UpdateItemBody } from "../../validators/body/items.js";
 import type {
+    GetStockItemListQuery,
     GetUploadedItemListQuery,
     ItemListQuery,
     ItemPageQuery,
@@ -287,6 +289,20 @@ export const getUploadedItemListController = async (req: Request, res: Response,
         const userId = req.user!.id;
         const { page, status, keyword } = req.validatedQuery as GetUploadedItemListQuery;
         const { itemList, totalPages } = await getUploadedItemListUseCase({ userId, page, status, keyword });
+        res.status(200).json({ itemList, totalPages });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// GET /items/list/stock?page=number&status=""&keyword=""
+// summary: 在庫付き出品した商品リスト取得
+// page: /item-list/stock
+export const getStockItemListController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { page, status, keyword } = req.validatedQuery as GetStockItemListQuery;
+        const { itemList, totalPages } = await getStockItemListUseCase({ userId, page, status, keyword });
         res.status(200).json({ itemList, totalPages });
     } catch (err) {
         next(err);

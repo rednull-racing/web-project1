@@ -3,6 +3,9 @@ import type { Transaction } from "sequelize";
 import sequelize from "../../../../db.js";
 import { Item, Video, Sale } from "../../../../models/index.js";
 import type {
+    StockItemListRow,
+    GetStockItemListParams,
+    CountStockItemListParams,
     UploadedItemListRow,
     GetUploadedItemListParams,
     CountUploadedItemListParams,
@@ -45,5 +48,55 @@ export const countMyUploadedItemList = ({
     where,
     transaction,
 }: CountUploadedItemListParams): Promise<number> => {
+    return Item.count({ where: { [Op.and]: [{ seller_id: userId }, where] }, transaction });
+};
+
+export const setStockItemListReadOnly = async ({ transaction }: { transaction: Transaction }): Promise<void> => {
+    await sequelize.query("SET TRANSACTION READ ONLY", { transaction, type: QueryTypes.RAW });
+};
+
+export const getMyStockItemList = ({
+    userId,
+    where,
+    limit,
+    offset,
+    transaction,
+}: GetStockItemListParams): Promise<StockItemListRow[]> => {
+    return Item.findAll({
+        attributes: [
+            "id",
+            "name",
+            "price",
+            "status",
+            "first_image_url",
+            "gender_type",
+            "age_type",
+            "attributes",
+            "uploaded_at",
+        ],
+        where: { [Op.and]: [{ seller_id: userId }, where] },
+        limit,
+        offset,
+        order: [
+            ["uploaded_at", "DESC"],
+            ["id", "DESC"],
+        ],
+        include: [
+            { model: Video, attributes: ["title"], required: false },
+            {
+                model: Sale,
+                attributes: ["before_price", "sale_flag", "discount_rate", "discount_amount"],
+                required: false,
+            },
+        ],
+        transaction,
+    }) as Promise<(InstanceType<typeof Item> & StockItemListRow)[]>;
+};
+
+export const countMyStockItemList = ({
+    userId,
+    where,
+    transaction,
+}: CountStockItemListParams): Promise<number> => {
     return Item.count({ where: { [Op.and]: [{ seller_id: userId }, where] }, transaction });
 };

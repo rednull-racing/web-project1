@@ -230,3 +230,22 @@ export type GetUploadedItemListParams = CountUploadedItemListParams & {
     limit: number;
     offset: number;
 };
+
+export type StockItemListRow = Pick<
+    ItemModel,
+    "id" | "name" | "price" | "status" | "first_image_url" | "gender_type" | "age_type" | "attributes" | "uploaded_at"
+> & {
+    Video: Pick<Video, "title"> | null;
+    Sale: Pick<Sale, "before_price" | "sale_flag" | "discount_rate" | "discount_amount"> | null;
+};
+
+export type CountStockItemListParams = {
+    userId: number;
+    where: ItemWhere;
+    transaction: Transaction;
+};
+
+export type GetStockItemListParams = CountStockItemListParams & {
+    limit: number;
+    offset: number;
+};

@@ -7,6 +7,7 @@ import {
     deleteItemPerfectController,
     getItemHighlightController,
     getItemListController,
+    getStockItemListController,
     getUploadedItemListController,
     getItemMetadataController,
     getItemPageController,
@@ -22,6 +23,7 @@ import {
     editSortItemRateLimit,
     getItemHighlightRateLimit,
     getItemListRateLimit,
+    getStockItemListRateLimit,
     getUploadedItemListRateLimit,
     getItemPageRateLimit,
     getItemRecommendRateLimit,
@@ -38,6 +40,7 @@ import { createItemBodySchema, updateItemBodySchema } from "../validators/body/i
 import { idParamSchema } from "../validators/params/id.js";
 import {
     getItemPageQuerySchema,
+    getStockItemListQuerySchema,
     getUploadedItemListQuerySchema,
     itemListQuerySchema,
     itemSortNumberQuerySchema,
@@ -56,6 +59,17 @@ router.get(
     getUploadedItemListRateLimit,
     validateQuery(getUploadedItemListQuerySchema),
     getUploadedItemListController,
+);
+
+// GET /items/list/stock?page=number&status=""&keyword=""
+// summary: 在庫付き出品した商品リスト取得
+// page: /item-list/stock
+router.get(
+    "/list/stock",
+    authenticateToken,
+    getStockItemListRateLimit,
+    validateQuery(getStockItemListQuerySchema),
+    getStockItemListController,
 );
 
 // POST /items

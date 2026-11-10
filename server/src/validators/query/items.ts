@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const stockItemStatuses = ["active", "soldout"] as const;
+
 const uploadedItemStatuses = ["active", "soldout"] as const;
 
 const itemPageModes = ["normal", "draft", "confirm", "deleted"] as const;
@@ -63,3 +65,18 @@ export const getUploadedItemListQuerySchema = z.object({
 });
 
 export type GetUploadedItemListQuery = z.infer<typeof getUploadedItemListQuerySchema>;
+
+export const getStockItemListQuerySchema = z.object({
+    page: z.string().pipe(z.coerce.number<string>().int().min(1).max(10000)).optional().default(1),
+    status: z.preprocess(
+        (value) => (value === "active" || value === "soldout" ? value : undefined),
+        z.enum(stockItemStatuses).optional(),
+    ),
+    keyword: z
+        .string()
+        .trim()
+        .nullish()
+        .transform((value) => (!value || value === "null" ? null : value)),
+});
+
+export type GetStockItemListQuery = z.infer<typeof getStockItemListQuerySchema>;

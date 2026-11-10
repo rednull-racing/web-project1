@@ -19,3 +19,5 @@ vi.mock("../../../../src/middleware/isAdmin.js", () => ({ isAdmin: vi.fn() }));
 vi.mock("../../../../src/usecases/items/create/createItem.js", () => ({ createItemUseCase: vi.fn() }));
 
 vi.mock("../../../../src/usecases/items/list/getUploadedItemList.js", () => ({ getUploadedItemListUseCase: vi.fn() }));
+
+vi.mock("../../../../src/usecases/items/list/getStockItemList.js", () => ({ getStockItemListUseCase: vi.fn() }));
