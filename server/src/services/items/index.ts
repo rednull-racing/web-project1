@@ -40,6 +40,4 @@ export {
     getProfileItemsWithCount,
     getProfileVideosWithCount,
     getSearchItems,
-    getUserItemsStatusList,
-    getUserItemsStockList,
 } from "./query/index.js";

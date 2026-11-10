@@ -3,7 +3,6 @@ import { normalizeJapanese } from "../../../utils/normalizeJapanese.js";
 import type { UserItemsListQuery } from "../../../validators/query/userItems.js";
 import { getUserItemsCartsUseCase } from "./userItems/getCarts.js";
 import { getUserItemsLikesUseCase } from "./userItems/getLikes.js";
-import { getStockItemsUseCase } from "./userItems/getStock.js";
 import { getUserItemsWatchUseCase } from "./userItems/getWatchHistory.js";
 
 type Params = UserItemsListQuery & {
@@ -13,7 +12,6 @@ type Params = UserItemsListQuery & {
 type Result =
     | Awaited<ReturnType<typeof getUserItemsCartsUseCase>>
     | Awaited<ReturnType<typeof getUserItemsLikesUseCase>>
-    | Awaited<ReturnType<typeof getStockItemsUseCase>>
     | Awaited<ReturnType<typeof getUserItemsWatchUseCase>>;
 
 // /users/me/items?type="typename"(&page=number&status=""&keyword="search")
@@ -33,8 +31,6 @@ export const getUserItemsUseCase = async ({
             return await getUserItemsCartsUseCase(baseParams);
         case "like":
             return await getUserItemsLikesUseCase(baseParams);
-        case "stock":
-            return await getStockItemsUseCase(baseParams);
         case "watchHistory":
             return await getUserItemsWatchUseCase(baseParams);
         default:
