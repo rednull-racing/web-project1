@@ -46,7 +46,7 @@
 - 認可:
     - item.seller_id === userId
 
-### getUploadedItemList（在庫付き出品した商品リスト取得）
+### getStockItemList（在庫付き出品した商品リスト取得）
 
 - フロント: /item-list/stock
 - route: GET /items/list/stock
@@ -54,3 +54,12 @@
 
 - 認可:
     - item.seller_id === userId
+
+### getItemLikeList（高評価した商品リスト取得）
+
+- フロント: /item-list/like
+- route: GET /item-like/item-list
+- usecase: queryで指定の条件でitem_likeの一覧を取得（itemをinclude）
+
+- 認可:
+    - item_like.user_id === userId
