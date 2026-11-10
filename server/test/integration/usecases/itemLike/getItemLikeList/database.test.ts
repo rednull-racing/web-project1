@@ -240,8 +240,8 @@ describe("P0 実DBのいいね一覧・本人限定・snapshot", () => {
 
     it("D07: 商品の日時・商品IDではなくいいねcreatedAt DESC・いいねID DESCで並ぶ", async () => {
         const { owner, other } = await seed();
-        const first = await createItem({ seller_id: other.id, uploaded_at: new Date("2026-11-30T00:00:00Z") });
-        const second = await createItem({ seller_id: other.id, uploaded_at: new Date("2026-11-29T00:00:00Z") });
+        const first = await createItem({ seller_id: other.id, uploaded_at: new Date("2026-11-28T00:00:00Z") });
+        const second = await createItem({ seller_id: other.id, uploaded_at: new Date("2026-11-30T00:00:00Z") });
         const third = await createItem({ seller_id: other.id, uploaded_at: new Date("2026-11-28T00:00:00Z") });
         await createLike({ user_id: owner.id, item_id: first.id, createdAt: new Date("2026-11-11T00:00:00Z") });
         await createLike({ user_id: owner.id, item_id: third.id });
