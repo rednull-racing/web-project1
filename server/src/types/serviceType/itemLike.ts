@@ -16,13 +16,6 @@ export type ListParams = {
     keyword?: string;
 };
 
-export type UserItemsLikesParams = {
-    userId: number;
-    itemWhere: ItemWhere;
-    limit: number;
-    offset: number;
-};
-
 export type DestroyParams = {
     data: InstanceType<typeof ItemLike>;
 };

@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Item, ItemLike, Sale, ShopInfo, User, Video } from "../../models/index.js";
+import { ItemLike, ShopInfo, User } from "../../models/index.js";
 import {
     DeleteItemLikeUserIdTransactionParams,
     DestroyParams,
@@ -8,7 +8,6 @@ import {
     ItemLikeWithUser,
     ItemUserParams,
     ListParams,
-    UserItemsLikesParams,
 } from "../../types/serviceType/itemLike.js";
 
 export const getItemLikeOne = async ({ itemId, userId }: ItemUserParams) => {
@@ -49,59 +48,6 @@ export const getItemLikeList = async ({ itemId, keyword }: ListParams) => {
             },
         ],
     }) as unknown as ItemLikeWithUser[];
-};
-
-export const getUserItemsLikesList = async ({ itemWhere, limit, offset, userId }: UserItemsLikesParams) => {
-    const likeList = await ItemLike.findAll({
-        attributes: ["id"],
-        where: { user_id: userId },
-        order: [["createdAt", "DESC"]],
-        limit,
-        offset,
-        include: [
-            {
-                model: Item,
-                where: itemWhere,
-                attributes: [
-                    "id",
-                    "name",
-                    "price",
-                    "status",
-                    "seller_id",
-                    "first_image_url",
-                    "gender_type",
-                    "age_type",
-                ],
-                required: true,
-                include: [
-                    {
-                        model: Sale,
-                        attributes: ["discount_rate", "discount_amount", "sale_flag", "before_price"],
-                        required: false,
-                    },
-                    {
-                        model: Video,
-                        attributes: ["title"],
-                    },
-                ],
-            },
-        ],
-    });
-
-    const itemList = likeList.map((like: InstanceType<typeof ItemLike>) => like.Item);
-
-    const totalCount = await ItemLike.count({
-        where: { user_id: userId },
-        include: [
-            {
-                model: Item,
-                where: itemWhere,
-                required: true,
-            },
-        ],
-    });
-
-    return { itemList, totalCount };
 };
 
 export const createItemLike = async ({ itemId, userId }: ItemUserParams) => {
