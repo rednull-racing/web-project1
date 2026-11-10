@@ -44,27 +44,3 @@ export const getUserItemsStockList = async ({ where, limit, offset }: ItemListPa
 
     return { itemList, totalCount };
 };
-
-export const getUserItemsUploadedList = async ({ where, limit, offset }: ItemListParams) => {
-    const itemList = await Item.findAll({
-        attributes: ["id", "name", "price", "status", "seller_id", "first_image_url", "gender_type", "age_type"],
-        where,
-        limit,
-        offset,
-        order: [["uploaded_at", "DESC"]],
-        include: [
-            {
-                model: Video,
-                attributes: ["title"],
-            },
-            {
-                model: Sale,
-                attributes: ["discount_rate", "discount_amount", "sale_flag", "before_price"],
-            },
-        ],
-    });
-
-    const totalCount = await Item.count({ where });
-
-    return { itemList, totalCount };
-};

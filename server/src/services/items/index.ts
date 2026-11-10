@@ -42,5 +42,4 @@ export {
     getSearchItems,
     getUserItemsStatusList,
     getUserItemsStockList,
-    getUserItemsUploadedList,
 } from "./query/index.js";
