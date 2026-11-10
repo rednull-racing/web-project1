@@ -63,3 +63,12 @@
 
 - 認可:
     - item_like.user_id === userId
+
+### getWatchItemList（閲覧した商品リスト取得）
+
+- フロント: /item-list/watch-history
+- route: GET /watch-history/item-list
+- usecase: queryで指定の条件でwatch_historyの一覧を取得し、itemを抽出して返却
+
+- 認可:
+    - watch_history.user_id === userId
