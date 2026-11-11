@@ -1,5 +1,5 @@
 import rateLimit from "express-rate-limit";
-import { AuthUser } from "../authMiddleware.js";
+import type { AuthUser } from "../authMiddleware.js";
 
 export const deleteWatchHistoryRateLimit = rateLimit({
     windowMs: 1000 * 60 * 10,
@@ -12,6 +12,17 @@ export const deleteWatchHistoryRateLimit = rateLimit({
             user: AuthUser;
         };
 
+        return `admin:${authReq.user.id}`;
+    },
+});
+
+export const getWatchItemListRateLimit = rateLimit({
+    windowMs: 60000,
+    limit: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        const authReq = req as unknown as { user: AuthUser };
         return `admin:${authReq.user.id}`;
     },
 });

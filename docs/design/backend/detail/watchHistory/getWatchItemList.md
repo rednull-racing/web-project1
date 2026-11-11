@@ -2,6 +2,8 @@
 
 基本設計: [商品リスト取得API設計](../../getItemList.md)
 
+2026-11-11のユーザー確認を反映し、現行の正規化関数を使用することと、部分一致検索のエスケープ対象を明記した。
+
 ## 1. 概要
 
 `/item-list/watch-history`向けに、認証本人が所有するwatch_historyから参照されているitemの一覧を取得する。
@@ -30,11 +32,11 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 
 未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller*idの偽装は採用しない。
 statusは `active` `soldout` 以外の入力（配列・オブジェクト・nullを含む）やクエリ無しが来たら、すべてundefined扱いにする。undefinedを許可する。
-keywordはusecaseで既存の`normalizeJapanese()`を使用する（現行関数名）。
-NFKC・小文字化・カタカナ→ひらがな・空白除去後、item.search_textのILIKE部分一致。
+keywordはusecaseで既存の[`normalizeJapanese()`](../../../../../server/src/utils/normalizeJapanese.ts)を使用する。
+NFKC・小文字化・カタカナ→ひらがな・空白除去後、item.search*textのILIKE部分一致。
 正規化するのは入力のみ。保存済みカラムの正規化・書換えは行わない。
 検索語の文字変換は現在の`normalizeJapanese()`の仕様に従い、追加の正規表現検索・文字制限は設けない。
-正規化後の`%`・`*`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`\*`も通常の文字として検索する。`\*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
+正規化後の `%`・`*`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`*`などの正規表現記号は通常の文字として検索する。`\*`はバックスラッシュとアスタリスクの連続として検索する。nullの検索対象列は一致しない。
 
 ### 担当ファイル（server/src基準）
 
@@ -182,7 +184,7 @@ Videoはtitle、Saleはbefore_price,sale_flag,discount_rate,discount_amountをre
 WatchHistoryのwhereは`{ user_id: userId }`。関連Itemはrequired:trueでINNER JOINし、usecase指定whereのみを適用する。seller_id条件は設けない。usecaseはstatusの指定値、未指定時はactive/soldoutのIN、検索時はエスケープ済みsearch_textのILIKEを指定する。
 countはWatchHistoryを起点に、Itemをattributes:[]・required:trueでINNER JOINする。本人のuser_idと関連Itemのwhereは一覧と同じ。limit/offset/orderとVideo/Saleのincludeは付けない。belongsTo関連により親の重複はない。
 orderはWatchHistory.createdAt DESC, WatchHistory.id DESC。行ロック・更新・削除なし。
-Model/既存migrationを参考とするが、2026-11-10にtest_dbの対象列・型・NULL・FK等を実DBテストのガード・スキーマ検査で確認済み。本番DBの反映状態は未確認。migrationやsyncは行わない。
+Model/既存migrationを参照する。2026-11-11の実DBテストではtest_dbの対象列・型・NULL・FKをseed前に検査した。本番DBの反映状態は未確認。migrationやsyncは行わない。
 
 ## 6. トランザクション設計
 

@@ -1430,3 +1430,10 @@
 - 単体74件・HTTP/登録31件・実DB18件、計123件成功。lint・本番/テスト型検査・追加test lint成功。
 - test_dbの接続/スキーマガード、自作ID cleanup・全接続closeを確認。migration実行なし。
 - 詳細はserver/test/docs/report/itemLike/getItemLikeList.mdを参照。
+
+## 20261111_backend-coding_getWatchItemList実装と検証
+
+- GET /api/watch-history/item-listを追加。認証本人の履歴を検索し、同一の読取り専用snapshotで一覧と総ページ数を取得。
+- 現行のnormalizeJapaneseを使用し、ILIKEでは%・\_・バックスラッシュを通常文字として扱うことを詳細設計に明記。
+- 対象128件と既存回帰31件が成功。lint、本番・テストの型検査、追加のテストlintも成功。
+- test_dbの接続とスキーマ、自作データの削除、全接続の終了を確認。詳細はserver/test/docs/report/watchHistory/getWatchItemList.mdを参照。
