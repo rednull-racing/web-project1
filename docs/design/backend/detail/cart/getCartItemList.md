@@ -30,25 +30,25 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 | status  | "active"・"soldout"のみ採用、その他の入力はundefined                                                        |
 | keyword | 任意の単一文字列、文字数制限なし。前後空白を除去。省略・null・空文字・空白のみ・URLの文字列`null`は検索なし |
 
-未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller_idの偽装は採用しない。
+未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller*idの偽装は採用しない。
 statusは `active` `soldout` 以外の入力（配列・オブジェクト・nullを含む）やクエリ無しが来たら、すべてundefined扱いにする。undefinedを許可する。
 keywordはusecaseで既存の`normalizeJapanese()`を使用する（現行関数名）。
 NFKC・小文字化・カタカナ→ひらがな・空白除去後、item.search_textのILIKE部分一致。
 正規化するのは入力のみ。保存済みカラムの正規化・書換えは行わない。
 検索語の文字変換は現在の`normalizeJapanese()`の仕様に従い、追加の正規表現検索・文字制限は設けない。
-正規化後の`%`・`_`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`*`・`\*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
+正規化後の`%`・`*`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`\*`・`\*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
 
 ### 担当ファイル（server/src基準）
 
-| ファイル                                      | 関数・型                                                             | 区分 |
-| --------------------------------------------- | -------------------------------------------------------------------- | ---- |
-| routes/cart.ts                        | GET /item-list                                                       | 追加 |
-| middleware/authMiddleware.ts                  | authenticateToken                                                    | 既存 |
-| middleware/rateLimit/cartRateLimit.ts | getCartItemListRateLimit                                            | 追加 |
-| middleware/validate/validateQuery.ts          | validateQuery                                                        | 既存 |
-| validators/query/cart.ts              | getCartItemListQuerySchema / GetCartItemListQuery                  | 新規 |
-| controllers/cart/cart.ts      | getCartItemListController                                           | 追加 |
-| usecases/cart/getCartItemList.ts     | getCartItemListUseCase                                              | 新規 |
+| ファイル                              | 関数・型                                                          | 区分 |
+| ------------------------------------- | ----------------------------------------------------------------- | ---- |
+| routes/cart.ts                        | GET /item-list                                                    | 追加 |
+| middleware/authMiddleware.ts          | authenticateToken                                                 | 既存 |
+| middleware/rateLimit/cartRateLimit.ts | getCartItemListRateLimit                                          | 追加 |
+| middleware/validate/validateQuery.ts  | validateQuery                                                     | 既存 |
+| validators/query/cart.ts              | getCartItemListQuerySchema / GetCartItemListQuery                 | 新規 |
+| controllers/cart/cart.ts              | getCartItemListController                                         | 追加 |
+| usecases/cart/getCartItemList.ts      | getCartItemListUseCase                                            | 新規 |
 | services/cart/query.ts                | setCartItemListReadOnly / getMyCartItemList / countMyCartItemList | 新規 |
 | types/serviceType/cart.ts             | CartItemListRow / GetCartItemListParams / CountCartItemListParams | 追加 |
 
@@ -87,7 +87,7 @@ service引数はuserId・where・transaction、一覧取得のみlimit・offset�
 uploaded_atは取得・返却しない。idはitemの主キーで、カートIDではない。
 Video/SaleはLEFT JOINし、欠落時はnullを返す。存在する関連のnullable列はnullを保持する。
 usecaseはJSON例の項目のみ明示的に選択し、seller_id・search_text・関連のid等は返さない。
-limit=20、offset=(page-1)*20、totalPages=Math.ceil(totalCount/20)。
+limit=20、offset=(page-1)\*20、totalPages=Math.ceil(totalCount/20)。
 該当なしは`{"itemList":[],"totalPages":0}`。範囲外ページも200・空配列、totalPagesは全一致件数から算出する。
 トランザクション完了後にのみ成功応答する。
 

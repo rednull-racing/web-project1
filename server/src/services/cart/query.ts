@@ -2,11 +2,7 @@ import { QueryTypes } from "sequelize";
 import type { Transaction } from "sequelize";
 import sequelize from "../../db.js";
 import { Item, Cart, Video, Sale } from "../../models/index.js";
-import type {
-    CartItemListRow,
-    GetCartItemListParams,
-    CountCartItemListParams,
-} from "../../types/serviceType/cart.js";
+import type { CartItemListRow, GetCartItemListParams, CountCartItemListParams } from "../../types/serviceType/cart.js";
 
 export const setCartItemListReadOnly = async ({ transaction }: { transaction: Transaction }): Promise<void> => {
     await sequelize.query("SET TRANSACTION READ ONLY", { transaction, type: QueryTypes.RAW });

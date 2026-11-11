@@ -1,10 +1,6 @@
 import { Op, Transaction } from "sequelize";
 import sequelize from "../../db.js";
-import {
-    setCartItemListReadOnly,
-    getMyCartItemList,
-    countMyCartItemList,
-} from "../../services/cart/query.js";
+import { setCartItemListReadOnly, getMyCartItemList, countMyCartItemList } from "../../services/cart/query.js";
 import type { ItemWhere } from "../../types/serviceType/items.js";
 import type { CartItemListRow } from "../../types/serviceType/cart.js";
 import type { GetCartItemListQuery } from "../../validators/query/cart.js";
