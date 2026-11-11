@@ -20,9 +20,26 @@ export type Item = {
     status: "active" | "soldout";
     gender_type: "men" | "women" | "unisex";
     age_type: "adult" | "kids" | "both";
-    save_at: Date;
     first_image_url: string;
     attributes: ItemAttributes;
     Video: Video | null;
     Sale: Sale | null;
+};
+
+export type ItemDraft = {
+    id: string;
+    name: string;
+    price: number;
+    first_image_url: string;
+    title: string;
+    createdAt: Date;
+};
+
+export type ItemTrash = {
+    id: string;
+    name: string;
+    price: number;
+    first_image_url: string;
+    title: string;
+    createdAt: Date;
 };
