@@ -1,14 +1,14 @@
 import { Op, Transaction } from "sequelize";
 import sequelize from "../../db.js";
 import {
-    setWatchItemListReadOnly,
-    getMyWatchItemList,
     countMyWatchItemList,
+    getMyWatchItemList,
+    setWatchItemListReadOnly,
 } from "../../services/watchHistory/query.js";
 import type { ItemWhere } from "../../types/serviceType/items.js";
 import type { WatchItemListRow } from "../../types/serviceType/watchHistory.js";
-import type { GetWatchItemListQuery } from "../../validators/query/watchHistory.js";
 import { normalizeJapanese } from "../../utils/normalizeJapanese.js";
+import type { GetWatchItemListQuery } from "../../validators/query/watchHistory.js";
 
 type Params = GetWatchItemListQuery & { userId: number };
 type Result = { itemList: { item: WatchItemListRow }[]; totalPages: number };
