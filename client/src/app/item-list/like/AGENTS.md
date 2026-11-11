@@ -90,7 +90,7 @@ flowchart TD
 - [../types.ts](../types.ts) の `Item` を使用する。ID・商品名・価格・status・画像URL・性別区分・年齢区分・attributesと、nullableな `Video`・`Sale` を持つ。
 - 表示で利用する関連項目は `Video.title` と `Sale` のセールフラグ・変更前価格・割引率・割引額。`attributes` はこの一覧では描画しない。
 - フロントは `itemList: Item[]` を期待する一方、現行バックエンドの一覧usecase・controllerは `itemList: { item: ... }[]` を返す。共通 `fetcher` に平坦化処理はなく、両者の形は一致していない。
-- 返却形式の不一致は [対応Todo](../../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md) を参照する。この文書は既存の型や返却形を修正しない。変更作業時はAPIの実レスポンスと型の対応を確認すること。実APIと接続した表示・削除の動作は本作業では未検証。
+- 返却形式の不一致は [対応Todo](../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md) を参照する。この文書は既存の型や返却形を修正しない。変更作業時はAPIの実レスポンスと型の対応を確認すること。実APIと接続した表示・削除の動作は本作業では未検証。
 
 ## デザイン・CSS
 
