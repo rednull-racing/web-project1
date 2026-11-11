@@ -11,13 +11,6 @@ export type ItemIdParams = {
     itemId: number;
 };
 
-export type CartListParams = {
-    userId: number;
-    itemWhere: ItemWhere;
-    limit: number;
-    offset: number;
-};
-
 export type DestroyParams = {
     cart: InstanceType<typeof Cart>;
 };

@@ -37,13 +37,11 @@ import SuggestWordsRouter from "./suggestWords.js";
 import TransferRouter from "./transfer.js";
 import UriagekinHistoryRouter from "./uriagekinHistory.js";
 import usersRouter from "./users.js";
-import UsersMeItemsRouter from "./users/me/items.js";
 import VideoRouter from "./video.js";
 import WatchHistoryRouter from "./watchHistory.js";
 
 export const registerRoutes = (app: Application) => {
     app.use("/api/user", usersRouter);
-    app.use("/api/users/me/items", UsersMeItemsRouter);
     app.use("/api/auth", authRouter);
     app.use("/api/items", ItemsRouter);
     app.use("/api/address", AddressRouter);
