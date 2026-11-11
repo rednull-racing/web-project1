@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { ComponentProps, useState } from "react";
 import useSWR from "swr";
 import { Pagination } from "../_components/pagination";
 import { SearchField } from "../_components/searchField";
-import { Item } from "../types";
 import { fetcher, getListUrl } from "./api/client";
 import { TrashItem } from "./trashItem";
 import styles from "./trashItemList.module.css";
 
+type TrashItemData = ComponentProps<typeof TrashItem>["itemTrash"];
+
 type Response = {
-    itemList: Item[];
+    itemTrashList: TrashItemData[];
     totalPages: number;
 };
 
@@ -21,7 +22,7 @@ export const TrashItemList = () => {
 
     const apiUrl = getListUrl(pageNumber, searchKeyword);
     const { data, mutate } = useSWR<Response>(apiUrl, fetcher);
-    const itemList = data?.itemList;
+    const itemTrashList = data?.itemTrashList;
     const totalPages = data?.totalPages ?? 1;
 
     // 検索
@@ -45,17 +46,17 @@ export const TrashItemList = () => {
                 }}
             />
 
-            {itemList && itemList.length > 0 && (
+            {itemTrashList && itemTrashList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemList.map((item) => (
-                        <TrashItem key={item.id} item={item} mutate={mutate} />
+                    {itemTrashList.map((itemTrash) => (
+                        <TrashItem key={itemTrash.id} itemTrash={itemTrash} mutate={mutate} />
                     ))}
 
                     <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={setPageNumber} />
                 </main>
             )}
 
-            {itemList?.length === 0 && <p className={styles.noItem}>商品が見つかりません</p>}
+            {itemTrashList?.length === 0 && <p className={styles.noItem}>商品が見つかりません</p>}
         </>
     );
 };
