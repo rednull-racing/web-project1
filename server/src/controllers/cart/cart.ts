@@ -2,6 +2,8 @@ import type { NextFunction, Request, Response } from "express-serve-static-core"
 import { addCartUseCase } from "../../usecases/cart/add.js";
 import { deleteCartUseCase } from "../../usecases/cart/delete.js";
 import { cartStatusUseCase } from "../../usecases/cart/status.js";
+import { getCartItemListUseCase } from "../../usecases/cart/getCartItemList.js";
+import type { GetCartItemListQuery } from "../../validators/query/cart.js";
 
 // POST /cart/:id
 // summary: カート追加
@@ -51,5 +53,19 @@ export const cartGetByIdStatusController = async (req: Request, res: Response, n
         res.status(200).json({ status });
     } catch (err) {
         next(err);
+    }
+};
+
+// GET /cart/item-list?page=number&status=""&keyword=""
+// summary: カート商品リスト取得
+// page: /item-list/cart
+export const getCartItemListController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const { page, status, keyword } = req.validatedQuery as GetCartItemListQuery;
+        const { itemList, totalPages } = await getCartItemListUseCase({ userId, page, status, keyword });
+        res.status(200).json({ itemList, totalPages });
+    } catch (error) {
+        next(error);
     }
 };

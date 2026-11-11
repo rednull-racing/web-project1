@@ -3,11 +3,20 @@ import {
     cartPostByIdController,
     cartDeleteByIdController,
     cartGetByIdStatusController,
+    getCartItemListController,
 } from "../controllers/cart/cart.js";
 import { authenticateToken } from "../middleware/index.js";
-import { cartAddRateLimit, cartDeleteRateLimit, cartStatusRateLimit } from "../middleware/rateLimit/cartRateLimit.js";
+import {
+    cartAddRateLimit,
+    cartDeleteRateLimit,
+    cartStatusRateLimit,
+    getCartItemListRateLimit,
+} from "../middleware/rateLimit/cartRateLimit.js";
 import { validateParams } from "../middleware/validate/validateParams.js";
 import { idParamSchema } from "../validators/params/id.js";
+
+import { validateQuery } from "../middleware/validate/validateQuery.js";
+import { getCartItemListQuerySchema } from "../validators/query/cart.js";
 
 const router = Router();
 
@@ -30,6 +39,18 @@ router.get(
     validateParams(idParamSchema),
     authenticateToken,
     cartGetByIdStatusController,
+    getCartItemListController,
+);
+
+// GET /cart/item-list?page=number&status=""&keyword=""
+// summary: カート商品リスト取得
+// page: /item-list/cart
+router.get(
+    "/item-list",
+    authenticateToken,
+    getCartItemListRateLimit,
+    validateQuery(getCartItemListQuerySchema),
+    getCartItemListController,
 );
 
 export default router;

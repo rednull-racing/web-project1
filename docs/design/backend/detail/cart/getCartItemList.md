@@ -2,6 +2,8 @@
 
 基本設計: [商品リスト取得API設計](../../getItemList.md)
 
+確認・更新日: 2026-11-11。検索語はユーザー確認により現行の`server/src/utils/normalizeJapanese.ts`に従って正規化し、ILIKEの文字検索は本文とコード例を一致させた。Cart名等の表記と、未実施のDB検査を実施済みとしていた記述を修正。
+
 ## 1. 概要
 
 `/item-list/cart`向けに、認証本人が所有するcartから参照されているitemの一覧を取得する。
@@ -28,13 +30,13 @@ DB変更・通知・S3操作・既存一覧APIの置換・フロント変更は�
 | status  | "active"・"soldout"のみ採用、その他の入力はundefined                                                        |
 | keyword | 任意の単一文字列、文字数制限なし。前後空白を除去。省略・null・空文字・空白のみ・URLの文字列`null`は検索なし |
 
-未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller*idの偽装は採用しない。
+未知キーは除去し、`req.validatedQuery`のみをcontrollerで採用する。userId/seller_idの偽装は採用しない。
 statusは `active` `soldout` 以外の入力（配列・オブジェクト・nullを含む）やクエリ無しが来たら、すべてundefined扱いにする。undefinedを許可する。
 keywordはusecaseで既存の`normalizeJapanese()`を使用する（現行関数名）。
 NFKC・小文字化・カタカナ→ひらがな・空白除去後、item.search_textのILIKE部分一致。
 正規化するのは入力のみ。保存済みカラムの正規化・書換えは行わない。
 検索語の文字変換は現在の`normalizeJapanese()`の仕様に従い、追加の正規表現検索・文字制限は設けない。
-正規化後の`%`・`*`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`\*`も通常の文字として検索する。`\*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
+正規化後の`%`・`_`・バックスラッシュをILIKE用にエスケープし、通常の文字として検索する。`*`・`\*`等の正規表現記号も通常の文字として検索する。nullの検索対象列は一致しない。
 
 ### 担当ファイル（server/src基準）
 
@@ -85,7 +87,7 @@ service引数はuserId・where・transaction、一覧取得のみlimit・offset�
 uploaded_atは取得・返却しない。idはitemの主キーで、カートIDではない。
 Video/SaleはLEFT JOINし、欠落時はnullを返す。存在する関連のnullable列はnullを保持する。
 usecaseはJSON例の項目のみ明示的に選択し、seller_id・search_text・関連のid等は返さない。
-limit=20、offset=(page-1)\*20、totalPages=Math.ceil(totalCount/20)。
+limit=20、offset=(page-1)*20、totalPages=Math.ceil(totalCount/20)。
 該当なしは`{"itemList":[],"totalPages":0}`。範囲外ページも200・空配列、totalPagesは全一致件数から算出する。
 トランザクション完了後にのみ成功応答する。
 
@@ -120,7 +122,7 @@ if (normalizedKeyword) {
 ```
 
 - このwhereはincludeのItemに使用する。
-- limit・offsetはWatchHistoryに使用する。
+- limit・offsetはCartに使用する。
 
 ### 三行コメント
 
@@ -182,7 +184,7 @@ Videoはtitle、Saleはbefore_price,sale_flag,discount_rate,discount_amountをre
 Cartのwhereは`{ user_id: userId }`。関連Itemはrequired:trueでINNER JOINし、usecase指定whereのみを適用する。seller_id条件は設けない。usecaseはstatusの指定値、未指定時はactive/soldoutのIN、検索時はエスケープ済みsearch_textのILIKEを指定する。
 countはCartを起点に、Itemをattributes:[]・required:trueでINNER JOINする。本人のuser_idと関連Itemのwhereは一覧と同じ。limit/offset/orderとVideo/Saleのincludeは付けない。belongsTo関連により親の重複はない。
 orderはCart.createdAt DESC, Cart.id DESC。行ロック・更新・削除なし。
-Model/既存migrationを参照する。2026-11-11の実DBテストではtest_dbの対象列・型・NULL・FKをseed前に検査した。本番DBの反映状態は未確認。migrationやsyncは行わない。
+Model/既存migrationを参照する。test_dbの対象列・型・NULL・FKは実DBテストのseed前に検査する。本番DBの反映状態は未確認。migrationやsyncは行わない。
 
 ## 6. トランザクション設計
 
