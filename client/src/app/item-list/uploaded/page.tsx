@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ItemList } from "../itemList";
+import { UploadedItemList } from "./uploadedItemList";
 import ItemListHeaderUI from "../itemListHeaderUI";
 import { TabHeader } from "../tabHeader";
 
@@ -28,7 +28,7 @@ export default async function Page({ searchParams }: Props) {
             <TabHeader tab={tab} />
 
             <ItemListHeaderUI>
-                <ItemList page="uploaded" uploadedTab={tab} />
+                <UploadedItemList uploadedTab={tab} />
             </ItemListHeaderUI>
         </>
     );

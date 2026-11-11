@@ -1,0 +1,148 @@
+.line1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+}
+
+.itemListSection {
+    width: 100%;
+    max-width: 900px;
+    margin: 1rem auto 5rem;
+}
+
+.itemSection {
+    width: 100%;
+}
+
+.itemFlex {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    border-radius: 12px;
+    padding: 14px 10px;
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+.itemFlex:hover {
+    background: var(--bg-subtle);
+    box-shadow: var(--shadow-mini);
+}
+
+.itemFlex::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 15%;
+    width: 3px;
+    height: 70%;
+    border-radius: 4px;
+    background: transparent;
+    transition: background 0.2s ease;
+}
+
+.itemFlex:hover::before {
+    background: var(--theme-soft);
+}
+
+.itemLinkArea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    padding-right: 24px;
+    cursor: pointer;
+}
+
+.itemImageText {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+.itemSection:hover .image {
+    transform: scale(1.02);
+}
+
+.itemTextArea {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+
+.itemName {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.dateDiv {
+    display: flex;
+    gap: 6px;
+    padding-left: 0.5em;
+}
+
+.dateText {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+
+.videoTitleDiv {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.titleLabel {
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.videoTitle {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--theme-str);
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+}
+
+.noItem {
+    display: block;
+    width: 100%;
+    max-width: 768px;
+    margin: 1rem auto;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+@media (min-width: 768px) {
+    .itemImageText {
+        gap: 12px;
+    }
+
+    .itemTextArea {
+        gap: 8px;
+    }
+
+    .itemName {
+        font-size: 14px;
+    }
+
+    .videoTitle {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 359px) {
+    .itemLinkArea {
+        padding-right: 0;
+    }
+}

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ItemList } from "../itemList";
+import { LikedItemList } from "./likedItemList";
 import ItemListUI from "../itemListUI";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
     return (
         <ItemListUI title="いいねした商品">
-            <ItemList page="like" />
+            <LikedItemList />
         </ItemListUI>
     );
 }

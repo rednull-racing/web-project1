@@ -1445,3 +1445,10 @@
 - 単体79件・HTTP/登録35件・実DB22件、計136件成功。既存cart3経路の回帰、lint・本番/テスト型検査・追加test lintも成功。
 - test_db全3接続のガード/スキーマ・並行削除後のsnapshot・書込み拒否、自作ID cleanup・全接続closeを確認。migration実行なし。
 - 型検査とレビューで見つけた対象実装の2点を修正・再検証。詳細はserver/test/docs/report/cart/getCartItemList.mdを参照。
+
+## 20261111_frontend-architecture_商品一覧をページ単位に分離
+
+- item-listの7画面を専用の一覧・商品行・API・CSSに分離。指定された共通ファイルは維持。
+- 画像・価格・検索欄・ページネーションを共通化し、ページ判定をtrash・likeに統一。DB・API・URL・既存CSSの値は変更なし。
+- 対象ESLint・取得URL10ケース・差分検査を確認。全体lint・型検査は既存エラーあり、型エラー追加なし。
+- ブラウザーでの表示・実APIとの操作確認は未実施。

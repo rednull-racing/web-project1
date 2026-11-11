@@ -1,5 +1,5 @@
-import { apiFetchServer } from "../../../lib/api/server";
-import { Items } from "../../../types/itemListTypes";
+import { apiFetchServer } from "@/lib/api/server";
+import { Items } from "@/types/itemListTypes";
 
 type ItemListResponse = {
     items: Items[];

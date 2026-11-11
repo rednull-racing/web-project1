@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ItemList } from "../itemList";
+import { TrashItemList } from "./trashItemList";
 import ItemListUI from "../itemListUI";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
     return (
         <ItemListUI title="削除した商品">
-            <ItemList page="deleted" />
+            <TrashItemList />
         </ItemListUI>
     );
 }

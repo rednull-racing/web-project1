@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { fetchRecommend } from "../api/server";
-import { ItemList } from "../itemList";
+import { fetchRecommend } from "./api/server";
+import { CartList } from "./cartList";
 import ItemListUI from "../itemListUI";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,7 +19,7 @@ export default async function Page() {
 
     return (
         <ItemListUI title="カート">
-            <ItemList page="cart" relatedItemList={data.items} />
+            <CartList relatedItemList={data.items} />
         </ItemListUI>
     );
 }
