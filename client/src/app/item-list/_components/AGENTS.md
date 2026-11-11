@@ -15,3 +15,15 @@
 ## SearchField
 
 `searchField.tsx`。検索インプット・検索ボタン。
+
+---
+
+## デザイン・CSS
+
+`listParts.module.css`。4コンポーネントすべて共通でこのファイルにcssを書き込む。
+
+インポート例:
+
+```ts
+import styles from "./listParts.module.css";
+```
