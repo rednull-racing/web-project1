@@ -72,3 +72,12 @@
 
 - 認可:
     - watch_history.user_id === userId
+
+### getCartItemList（カート商品リスト取得）
+
+- フロント: /item-list/cart
+- route: GET /cart/item-list
+- usecase: queryで指定の条件でcartの一覧を取得し、itemを抽出して返却
+
+- 認可:
+    - cart.user_id === userId
