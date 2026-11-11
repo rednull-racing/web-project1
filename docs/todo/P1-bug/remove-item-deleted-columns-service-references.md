@@ -35,3 +35,8 @@ ItemTrash.item_idのON DELETE CASCADEによる影響も確認し、商品削除�
 - ユーザー許可後にtest_dbへmigration 2件を適用。NULL制約の反映漏れを追加migrationで解消し、単体・HTTP・実DB・競合の全100件成功。
 - [統合レポート](../../../server/test/docs/report/itemTrash/createItemTrash.md)に検証結果と再開条件を記録。
 - 復元・期限削除・旧API再開は今回対象外であり、このTodoは未完了のまま保持する。
+
+## 2026-11-11 削除済み一覧の期間案内を確認
+
+- `client/src/app/item-list/trash/page.tsx` のmetadataは「最近1か月以内に削除した商品」と案内するが、`server/src/usecases/itemTrash/getItemTrashList.ts` と `server/src/services/itemTrash/query.ts` の一覧・件数条件に期間制限はない。画面側にも期間filterはない。
+- 期限削除の業務仕様を確定する際に、一覧の表示期間とmetadataの案内も整合させる。文言を直すか取得期間を設けるかは、確定仕様に従う。静的確認のみで、今回の文書作成では実装を変更していない。
