@@ -1,24 +1,29 @@
 "use client";
-import { WatchHistoryItem } from "./watchHistoryItem";
-import { Pagination } from "../_components/pagination";
-import { SearchField } from "../_components/searchField";
-import { fetcher, getListUrl } from "./api/client";
+
 import { useState } from "react";
 import useSWR from "swr";
-import styles from "./watchHistoryList.module.css";
+import { Pagination } from "../_components/pagination";
+import { SearchField } from "../_components/searchField";
 import { Item } from "../types";
+import { fetcher, getListUrl } from "./api/client";
+import { WatchHistoryItem } from "./watchHistoryItem";
+import styles from "./watchHistoryList.module.css";
+
 type Response = {
     itemList: Item[];
     totalPages: number;
 };
+
 export const WatchHistoryList = () => {
     const [searchValue, setSearchValue] = useState("");
     const [searchKeyword, setSearchKeyword] = useState("");
     const [pageNumber, setPageNumber] = useState(1);
+
     const apiUrl = getListUrl(pageNumber, searchKeyword);
     const { data, mutate } = useSWR<Response>(apiUrl, fetcher);
     const itemList = data?.itemList;
     const totalPages = data?.totalPages ?? 1;
+
     // 検索
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -28,16 +33,29 @@ export const WatchHistoryList = () => {
             setSearchKeyword("");
         }
     };
-    return (<>
-        <SearchField searchValue={searchValue} onChange={onChange} onSubmit={() => { setPageNumber(1); setSearchKeyword(searchValue); }} />
 
-        {itemList && itemList.length > 0 && (<main className={styles.itemListSection}>
-            {itemList.map((item) => <WatchHistoryItem key={item.id} item={item} mutate={mutate} />)}
+    return (
+        <>
+            <SearchField
+                searchValue={searchValue}
+                onChange={onChange}
+                onSubmit={() => {
+                    setPageNumber(1);
+                    setSearchKeyword(searchValue);
+                }}
+            />
 
-            <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={setPageNumber} />
+            {itemList && itemList.length > 0 && (
+                <main className={styles.itemListSection}>
+                    {itemList.map((item) => (
+                        <WatchHistoryItem key={item.id} item={item} mutate={mutate} />
+                    ))}
 
-        </main>)}
+                    <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={setPageNumber} />
+                </main>
+            )}
 
-        {itemList?.length === 0 && <p className={styles.noItem}>商品が見つかりません</p>}
-    </>);
+            {itemList?.length === 0 && <p className={styles.noItem}>商品が見つかりません</p>}
+        </>
+    );
 };

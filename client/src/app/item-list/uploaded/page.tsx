@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import { UploadedItemList } from "./uploadedItemList";
 import ItemListHeaderUI from "../itemListHeaderUI";
 import { TabHeader } from "../tabHeader";
+import { UploadedItemList } from "./uploadedItemList";
 
 type Props = {
     searchParams: {

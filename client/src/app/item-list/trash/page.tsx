@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { TrashItemList } from "./trashItemList";
 import ItemListUI from "../itemListUI";
+import { TrashItemList } from "./trashItemList";
 
 export async function generateMetadata(): Promise<Metadata> {
     return {

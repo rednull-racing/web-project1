@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { WatchHistoryList } from "./watchHistoryList";
 import ItemListUI from "../itemListUI";
+import { WatchHistoryList } from "./watchHistoryList";
 
 export async function generateMetadata(): Promise<Metadata> {
     return {

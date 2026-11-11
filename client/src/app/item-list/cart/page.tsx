@@ -1,7 +1,7 @@
 import { Metadata } from "next";
+import ItemListUI from "../itemListUI";
 import { fetchRecommend } from "./api/server";
 import { CartList } from "./cartList";
-import ItemListUI from "../itemListUI";
 
 export async function generateMetadata(): Promise<Metadata> {
     return {

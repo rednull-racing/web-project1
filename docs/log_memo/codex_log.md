@@ -1446,7 +1446,7 @@
 - test_db全3接続のガード/スキーマ・並行削除後のsnapshot・書込み拒否、自作ID cleanup・全接続closeを確認。migration実行なし。
 - 型検査とレビューで見つけた対象実装の2点を修正・再検証。詳細はserver/test/docs/report/cart/getCartItemList.mdを参照。
 
-## 20261111_frontend-architecture_商品一覧をページ単位に分離
+## 20261111*frontend-architecture*商品一覧をページ単位に分離
 
 - item-listの7画面を専用の一覧・商品行・API・CSSに分離。指定された共通ファイルは維持。
 - 画像・価格・検索欄・ページネーションを共通化し、ページ判定をtrash・likeに統一。DB・API・URL・既存CSSの値は変更なし。
