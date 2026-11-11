@@ -11,13 +11,6 @@ export type WatchHistoryParams = {
     history: InstanceType<typeof WatchHistory>;
 };
 
-export type UserWatchListParams = {
-    userId: number;
-    itemWhere: ItemWhere;
-    limit: number;
-    offset: number;
-};
-
 export type DeleteWatchHistoryUserIdTransactionParams = {
     userId: number;
     transaction?: Transaction;
