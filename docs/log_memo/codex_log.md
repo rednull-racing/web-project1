@@ -1437,3 +1437,11 @@
 - 現行のnormalizeJapaneseを使用し、ILIKEでは%・\_・バックスラッシュを通常文字として扱うことを詳細設計に明記。
 - 対象128件と既存回帰31件が成功。lint、本番・テストの型検査、追加のテストlintも成功。
 - test_dbの接続とスキーマ、自作データの削除、全接続の終了を確認。詳細はserver/test/docs/report/watchHistory/getWatchItemList.mdを参照。
+
+## 20261111_backend-coding_getCartItemList実装と検証
+
+- GET /api/cart/item-listを詳細設計どおり専用実装。本人カートの検索・ページング・公開項目選択・同一read only snapshotでの件数取得を追加。
+- ユーザー回答に従い現行normalizeJapaneseを使用し、検索記号・Cart名・未検証DB記述等の詳細設計表記を修正。既存コードの共通化なし。
+- 単体79件・HTTP/登録35件・実DB22件、計136件成功。既存cart3経路の回帰、lint・本番/テスト型検査・追加test lintも成功。
+- test_db全3接続のガード/スキーマ・並行削除後のsnapshot・書込み拒否、自作ID cleanup・全接続closeを確認。migration実行なし。
+- 型検査とレビューで見つけた対象実装の2点を修正・再検証。詳細はserver/test/docs/report/cart/getCartItemList.mdを参照。

@@ -39,7 +39,6 @@ router.get(
     validateParams(idParamSchema),
     authenticateToken,
     cartGetByIdStatusController,
-    getCartItemListController,
 );
 
 // GET /cart/item-list?page=number&status=""&keyword=""
