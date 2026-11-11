@@ -4,13 +4,13 @@ import { useState } from "react";
 import useSWR from "swr";
 import { Pagination } from "../_components/pagination";
 import { SearchField } from "../_components/searchField";
-import { Item } from "../types";
+import { ItemDraft } from "../types";
 import { fetcher, getListUrl } from "./api/client";
 import { DraftItem } from "./draftItem";
 import styles from "./draftItemList.module.css";
 
 type Response = {
-    itemList: Item[];
+    itemDraftList: ItemDraft[];
     totalPages: number;
 };
 
@@ -21,7 +21,7 @@ export const DraftItemList = () => {
 
     const apiUrl = getListUrl(pageNumber, searchKeyword);
     const { data, mutate } = useSWR<Response>(apiUrl, fetcher);
-    const itemList = data?.itemList;
+    const itemDraftList = data?.itemDraftList;
     const totalPages = data?.totalPages ?? 1;
 
     // 検索
@@ -45,17 +45,17 @@ export const DraftItemList = () => {
                 }}
             />
 
-            {itemList && itemList.length > 0 && (
+            {itemDraftList && itemDraftList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemList.map((item) => (
-                        <DraftItem key={item.id} item={item} mutate={mutate} />
+                    {itemDraftList.map((itemDraft) => (
+                        <DraftItem key={itemDraft.id} itemDraft={itemDraft} mutate={mutate} />
                     ))}
 
                     <Pagination currentPage={pageNumber} totalPages={totalPages} onPageChange={setPageNumber} />
                 </main>
             )}
 
-            {itemList?.length === 0 && <p className={styles.noItem}>商品が見つかりません</p>}
+            {itemDraftList?.length === 0 && <p className={styles.noItem}>商品が見つかりません</p>}
         </>
     );
 };

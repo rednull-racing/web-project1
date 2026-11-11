@@ -6,7 +6,7 @@ export { fetcher };
 export const getListUrl = (pageNumber: number, searchKeyword: string) => {
     const query = `?type=draft&page=${pageNumber}`;
     return query
-        ? `${process.env.NEXT_PUBLIC_API_URL}/users/me/items${query}${searchKeyword.trim() ? `&keyword=${encodeURIComponent(searchKeyword.trim())}` : ""}`
+        ? `${process.env.NEXT_PUBLIC_API_URL}/item-draft/list${query}${searchKeyword.trim() ? `&keyword=${encodeURIComponent(searchKeyword.trim())}` : ""}`
         : null;
 };
 

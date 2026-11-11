@@ -3,32 +3,38 @@ import Link from "next/link";
 import type { KeyedMutator } from "swr";
 import { ItemImage } from "../_components/itemImage";
 import { ItemPrice } from "../_components/itemPrice";
-import type { Item } from "../types";
+import type { ItemDraft } from "../types";
 import styles from "./draftItemList.module.css";
 import { RemoveFloat } from "./removeFloat";
 
 export const DraftItem = ({
-    item,
+    itemDraft,
     mutate,
 }: {
-    item: Item;
+    itemDraft: ItemDraft;
     mutate: KeyedMutator<{
-        itemList: Item[];
+        itemDraftList: ItemDraft[];
         totalPages: number;
     }>;
 }) => {
-    const itemPageLink = `/item/draft/${item.id}`;
+    const itemPageLink = `/item/draft/${itemDraft.id}`;
     const previewDateLabel = "保存日時";
-    const previewDate = formatRelativeTime(item.save_at);
+    const previewDate = formatRelativeTime(itemDraft.createdAt);
 
     return (
-        <section key={item.id} className={styles.itemSection}>
+        <section key={itemDraft.id} className={styles.itemSection}>
             <div className={styles.itemFlex}>
                 <Link href={itemPageLink} className={styles.itemLinkArea}>
                     <div className={styles.itemImageText}>
-                        <ItemImage item={item} showSold={false} />
+                        <ItemImage
+                            data={{
+                                first_image_url: itemDraft.first_image_url,
+                                status: null,
+                            }}
+                            showSold={false}
+                        />
                         <div className={styles.itemTextArea}>
-                            <h2 className={`${styles.itemName} ${styles.line1}`}>{item.name ?? ""}</h2>
+                            <h2 className={`${styles.itemName} ${styles.line1}`}>{itemDraft.name ?? ""}</h2>
 
                             {
                                 <div className={styles.dateDiv}>
@@ -39,15 +45,29 @@ export const DraftItem = ({
 
                             <div className={styles.videoTitleDiv}>
                                 <p className={styles.titleLabel}>動画：</p>
-                                <h4 className={`${styles.videoTitle} ${styles.line1}`}>{item.Video?.title ?? ""}</h4>
+                                <h4 className={`${styles.videoTitle} ${styles.line1}`}>{itemDraft.title ?? ""}</h4>
                             </div>
                         </div>
                     </div>
 
-                    <ItemPrice item={item} showSale={false} />
+                    <ItemPrice
+                        data={{
+                            price: itemDraft.price,
+                            sale_flag: false,
+                            before_price: 0,
+                            discount_rate: 0,
+                            discount_amount: 0,
+                        }}
+                        showSale={false}
+                    />
                 </Link>
 
-                {<RemoveFloat item={item} mutate={mutate} />}
+                {
+                    <RemoveFloat
+                        itemDraftId={itemDraft.id}
+                        mutate={mutate as unknown as Parameters<typeof RemoveFloat>[0]["mutate"]}
+                    />
+                }
             </div>
         </section>
     );

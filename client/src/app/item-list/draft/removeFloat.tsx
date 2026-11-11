@@ -6,21 +6,21 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { KeyedMutator } from "swr";
-import { Item } from "../types";
+import { ItemDraft } from "../types";
 import { fetchRemoveItem } from "./api/client";
 import styles from "./removeFloat.module.css";
 
 type Response = {
-    itemList: Item[];
+    itemDraftList: ItemDraft[];
     totalPages: number;
 };
 
 type Props = {
-    item: Item;
+    itemDraftId: string;
     mutate: KeyedMutator<Response>;
 };
 
-export const RemoveFloat = ({ item, mutate }: Props) => {
+export const RemoveFloat = ({ itemDraftId, mutate }: Props) => {
     const [floatVisible, setFloatVisible] = useState(false);
 
     const remove = async (itemId: string) => {
@@ -30,7 +30,7 @@ export const RemoveFloat = ({ item, mutate }: Props) => {
             if (!currentData) return currentData;
             return {
                 ...currentData,
-                itemList: currentData.itemList.filter((item) => item.id !== itemId),
+                itemDraftList: currentData.itemDraftList.filter((item) => item.id !== itemId),
             };
         }, false);
 
@@ -64,7 +64,7 @@ export const RemoveFloat = ({ item, mutate }: Props) => {
                     <div className={styles.overlay} onClick={() => setFloatVisible(false)} />
 
                     <div className={styles.float}>
-                        <div className={styles.removeFlex} onClick={() => remove(item.id)}>
+                        <div className={styles.removeFlex} onClick={() => remove(itemDraftId)}>
                             <FontAwesomeIcon icon={faTrash} className={styles.trashIcon} />
 
                             <p className={styles.floatText}>{removeText}</p>
