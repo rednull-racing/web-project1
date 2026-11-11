@@ -21,7 +21,13 @@ export const StockItem = ({
             <div className={styles.itemFlex}>
                 <Link href={itemPageLink} className={styles.itemLinkArea}>
                     <div className={styles.itemImageText}>
-                        <ItemImage item={item} showSold={false} />
+                        <ItemImage
+                            data={{
+                                first_image_url: item.first_image_url,
+                                status: item.status,
+                            }}
+                            showSold={false}
+                        />
                         <div className={styles.itemTextArea}>
                             <h2 className={`${styles.itemName} ${styles.line1}`}>{item.name ?? ""}</h2>
 
@@ -41,7 +47,16 @@ export const StockItem = ({
                         </div>
                     </div>
 
-                    <ItemPrice item={item} showSale={true} />
+                    <ItemPrice
+                        data={{
+                            price: item.price,
+                            sale_flag: item.Sale?.sale_flag ?? false,
+                            before_price: item.Sale?.before_price ?? 0,
+                            discount_rate: item.Sale?.discount_rate ?? 0,
+                            discount_amount: item.Sale?.discount_amount ?? 0,
+                        }}
+                        showSale={true}
+                    />
                 </Link>
             </div>
         </section>
