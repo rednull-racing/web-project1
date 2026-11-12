@@ -4,15 +4,10 @@ import { useState } from "react";
 import useSWR from "swr";
 import { Pagination } from "../_components/pagination";
 import { SearchField } from "../_components/searchField";
-import { ItemDraft } from "../types";
+import type { DraftListResponse } from "./types";
 import { fetcher, getListUrl } from "./api/client";
 import { DraftItem } from "./draftItem";
 import styles from "./draftItemList.module.css";
-
-type Response = {
-    itemDraftList: ItemDraft[];
-    totalPages: number;
-};
 
 export const DraftItemList = () => {
     const [searchValue, setSearchValue] = useState("");
@@ -20,7 +15,7 @@ export const DraftItemList = () => {
     const [pageNumber, setPageNumber] = useState(1);
 
     const apiUrl = getListUrl(pageNumber, searchKeyword);
-    const { data, mutate } = useSWR<Response>(apiUrl, fetcher);
+    const { data, mutate } = useSWR<DraftListResponse>(apiUrl, fetcher);
     const itemDraftList = data?.itemDraftList;
     const totalPages = data?.totalPages ?? 1;
 
@@ -47,7 +42,7 @@ export const DraftItemList = () => {
 
             {itemDraftList && itemDraftList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemDraftList.map((itemDraft) => (
+                    {itemDraftList.map(({ itemDraft }) => (
                         <DraftItem key={itemDraft.id} itemDraft={itemDraft} mutate={mutate} />
                     ))}
 

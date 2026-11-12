@@ -13,7 +13,7 @@ const setup = () => {
     const user = userEvent.setup();
     const mutate = vi.fn<ComponentProps<typeof RemoveFloat>["mutate"]>().mockResolvedValue(undefined);
     const s = render(
-        <RemoveFloat itemDraftId="101" mutate={mutate as unknown as ComponentProps<typeof RemoveFloat>["mutate"]} />,
+        <RemoveFloat itemDraftId={101} mutate={mutate as unknown as ComponentProps<typeof RemoveFloat>["mutate"]} />,
     );
     const icon = s.container.querySelector("svg");
     if (!icon) throw Error("icon");
@@ -57,15 +57,15 @@ describe("削除", () => {
         await s.user.click(screen.getByText("下書きから削除"));
         expect(fetchRemoveItem).toHaveBeenCalledExactlyOnceWith("101");
         expect(s.mutate.mock.calls[0][1]).toBe(false);
-        const row = (id: string) => ({
+        const row = (id: number) => ({
             id,
             name: "x",
             title: "v",
             price: 1,
             first_image_url: "",
-            createdAt: new Date(),
+            createdAt: "2026-11-11T23:00:00Z",
         });
-        const current = { itemDraftList: [row("101"), row("102")], totalPages: 3 };
+        const current = { itemDraftList: [{ itemDraft: row(101) }, { itemDraft: row(102) }], totalPages: 3 };
         const result = await updater(s)(current);
         expect(result).toEqual({ ...current, itemDraftList: [current.itemDraftList[1]] });
         expect(current.itemDraftList).toHaveLength(2);
@@ -88,14 +88,14 @@ describe("削除", () => {
                           kind === "empty"
                               ? []
                               : [
-                                    {
-                                        id: "102",
+                                    { itemDraft: {
+                                        id: 102,
                                         name: "x",
                                         title: "v",
                                         price: 1,
                                         first_image_url: "",
-                                        createdAt: new Date(),
-                                    },
+                                        createdAt: "2026-11-11T23:00:00Z",
+                                    } },
                                 ],
                       totalPages: 3,
                   };
@@ -118,7 +118,7 @@ describe("削除", () => {
             expect(toast.error).not.toHaveBeenCalled();
         }
     });
-    it("U-X01 数値ID不一致と重複操作を観測", async () => {
+    it("U-X01 数値IDを除去し重複操作は現状通り通知する", async () => {
         let resolve!: () => void;
         const p = new Promise<void>((r) => {
             resolve = r;
@@ -128,8 +128,8 @@ describe("削除", () => {
         await s.open();
         await s.user.click(screen.getByText("下書きから削除"));
         await s.user.click(screen.getByText("下書きから削除"));
-        const current = { itemDraftList: [{ id: 101 }], totalPages: 1 };
-        expect(await updater(s)(current as unknown as Parameters<ReturnType<typeof updater>>[0])).toEqual(current);
+        const current = { itemDraftList: [{itemDraft:{id:101}}], totalPages: 1 };
+        expect(await updater(s)(current as unknown as Parameters<ReturnType<typeof updater>>[0])).toEqual({ itemDraftList: [], totalPages: 1 });
         expect(fetchRemoveItem).toHaveBeenCalledTimes(2);
         await act(async () => resolve());
         expect(toast.success).toHaveBeenCalledTimes(2);

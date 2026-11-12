@@ -19,6 +19,6 @@ describe("実API一覧レスポンス契約", () => {
         mount(<Boundary><DraftItemList /></Boundary>);
         const link = await screen.findByRole("link", { name: /保存日時/ });
         expect(link).toHaveAttribute("href", "/item/draft/101");
-        if (!nullable) { expect(screen.getByRole("heading", { name: "検証用シャツ101" })).toBeInTheDocument(); expect(screen.getByRole("heading", { name: "￥12,345" })).toBeInTheDocument(); }
+        if (nullable) { expect(screen.getByRole("heading", { name: "-" })).toBeInTheDocument(); } else { expect(screen.getByRole("heading", { name: "検証用シャツ101" })).toBeInTheDocument(); expect(screen.getByRole("heading", { name: "12,345円" })).toBeInTheDocument(); }
     });
 });

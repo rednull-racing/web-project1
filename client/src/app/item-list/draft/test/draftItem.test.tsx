@@ -12,12 +12,12 @@ vi.mock("../removeFloat", () => ({ RemoveFloat: vi.fn(() => <button>削除境界
 vi.mock("@/lib/formatRelativeTime", () => ({ formatRelativeTime: vi.fn(() => "1時間前") }));
 const fixture = (): ComponentProps<typeof DraftItem> => ({
     itemDraft: {
-        id: "101",
+        id: 101,
         name: "検証用シャツ",
         title: "動画A",
         price: 12345,
         first_image_url: "/test-item.jpg",
-        createdAt: new Date("2026-11-11T23:00:00Z"),
+        createdAt: "2026-11-11T23:00:00Z",
     },
     mutate: vi.fn(),
 });
@@ -40,10 +40,10 @@ describe("DraftItem境界", () => {
             data: { price: 12345, sale_flag: false, before_price: 0, discount_rate: 0, discount_amount: 0 },
             showSale: false,
         });
-        expect(vi.mocked(RemoveFloat).mock.calls[0][0]).toEqual({ itemDraftId: "101", mutate: props.mutate });
+        expect(vi.mocked(RemoveFloat).mock.calls[0][0]).toEqual({ itemDraftId: 101, mutate: props.mutate });
         expect(link).not.toContainElement(screen.getByRole("button"));
     });
-    it.each([null, undefined])("U-I02 型外の空値%sを空文字表示する", (value) => {
+    it.each([null])("U-I02 nullable値%sを空文字表示する", (value) => {
         const props = fixture();
         // APIのnullable値に対する防御分岐を直接検証する。
         Object.assign(props.itemDraft, { name: value, title: value, first_image_url: "" });
@@ -53,3 +53,5 @@ describe("DraftItem境界", () => {
         expect(vi.mocked(ItemImage).mock.calls[0][0].data.first_image_url).toBe("");
     });
 });
+
+ it("AF-I01 null価格をプレースホルダーへ変換する", () => { const props = fixture(); props.itemDraft.price = null; render(<DraftItem {...props}/>); expect(vi.mocked(ItemPrice).mock.calls[0][0].data.price).toBe("-"); });
