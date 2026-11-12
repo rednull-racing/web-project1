@@ -30,9 +30,9 @@ describe("ItemImageの画像と売切れ表示", () => {
         expectImage("/test-item.jpg");
     });
 
-    it("U-I02 空URLは代替画像を同じ寸法で表示する", () => {
+    it.each(["", null])("U-I02 URL=%sは代替画像を同じ寸法で表示する", (url) => {
         const props = fixture();
-        props.data.first_image_url = "";
+        props.data.first_image_url = url;
         render(<ItemImage {...props} />);
         expectImage("/no-image(1x1).png");
     });

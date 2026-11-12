@@ -4,7 +4,7 @@
 
 - `itemImage.tsx`。`data`（`first_image_url`・`status`）と `showSold` を受け取り、商品画像を1枚表示する。
 - `next/image` を使用し、幅・高さにそれぞれ `80`、代替テキストに「商品画像」を指定する。
-- `first_image_url` が空文字等の falsy 値なら、`/no-image(1x1).png` を表示する。
+- `first_image_url` は `string | null`。空文字やnullなら、`/no-image(1x1).png` を表示する。
 - `status` の型は `"active" | "soldout" | null`。`showSold` が真かつ `status === "soldout"` の場合だけ、画像左上に `SOLD` を重ねる。
 - ラッパー・画像・売切れ表示には、それぞれ `imageDiv`・`image`・`sold` / `soldP` のスタイルを適用する。
 - 状態管理やAPI通信は行わず、親から渡された値に従って描画する。
@@ -12,12 +12,12 @@
 ## ItemPrice
 
 - `itemPrice.tsx`。`data`（価格・セール情報）と `showSale` を受け取り、商品価格を表示する。
-- 現在価格 `price` は常に表示し、`toLocaleString()` で整形して先頭に `￥` を付ける。
+- 現在価格 `price` は `number | string` を受け取る。数値と数値文字列はja-JPの桁区切りで整形し「円」を付ける（例：`1,200円`）。表示用文字列「-」等はそのまま表示する。nullは受け付けず、draftの呼出し側だけがnullを「-」へ変換する。
 - `showSale` と `data.sale_flag` がともに真の場合だけ、変更前価格と割引情報の表示領域を追加する。
-- 変更前価格 `before_price` も `toLocaleString()` で整形し、`￥` を付けて `beforePrice` スタイルで表示する。
+- 変更前価格 `before_price` も数値・数値文字列を同じ通貨形式に整形して `beforePrice` スタイルで表示する。
 - `discount_rate > 0` の場合は、整形した割引率に `% OFF` を付けて表示する。
 - `discount_amount > 0` の場合は、整形した割引額に「円引き」を付けて表示する。割引率と割引額の両条件が成立すれば両方表示する。
-- 価格や割引は計算せず、親から渡された数値を使用する。レイアウトには `priceColumn`、現在価格には `price`、割引には `sale` を適用する。
+- 価格や割引の再計算は行わず、親から渡された値を表示用に数値化・整形する。割引率と割引額も数値文字列を許容する。レイアウトには `priceColumn`、現在価格には `price`、割引には `sale` を適用する。
 
 ## Pagination
 

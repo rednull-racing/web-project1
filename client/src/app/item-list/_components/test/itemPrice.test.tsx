@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { ItemPrice } from "../itemPrice";
 
 const fixture = (): ComponentProps<typeof ItemPrice> => ({
@@ -8,8 +8,8 @@ const fixture = (): ComponentProps<typeof ItemPrice> => ({
     showSale: true,
 });
 const expectPrices = () => {
-    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent("￥12,345");
-    expect(screen.getByText("￥20,000")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent("12,345円");
+    expect(screen.getByText("20,000円")).toBeInTheDocument();
 };
 
 describe("ItemPriceの整形とセール表示", () => {
@@ -22,11 +22,11 @@ describe("ItemPriceの整形とセール表示", () => {
 
     it.each([true, false].flatMap((showSale) =>
         [true, false].map((sale_flag) => ({ showSale, sale_flag })),
-    ))("U-R02 showSale=$showSale sale_flag=$sale_flagの表示条件を満たす場合だけセールを表示する", ({ showSale, sale_flag }) => {
+    ))("U-R02 入力%jの表示条件を満たす場合だけセールを表示する", ({ showSale, sale_flag }) => {
         const props = fixture();
         render(<ItemPrice {...props} showSale={showSale} data={{ ...props.data, sale_flag }} />);
-        expect(screen.getByRole("heading")).toHaveTextContent("￥12,345");
-        for (const text of ["￥20,000", "20% OFF", "1,000円引き"]) {
+        expect(screen.getByRole("heading")).toHaveTextContent("12,345円");
+        for (const text of ["20,000円", "20% OFF", "1,000円引き"]) {
             expect(screen.queryAllByText(text)).toHaveLength(showSale && sale_flag ? 1 : 0);
         }
     });
@@ -56,11 +56,11 @@ describe("ItemPriceの整形とセール表示", () => {
         expect(screen.queryByText(/% OFF|円引き/)).not.toBeInTheDocument();
     });
 
-    it.each([[0, "￥0"], [999, "￥999"], [1000, "￥1,000"]] as const)("U-R06 現在価格%sと変更前価格0を表示する", (price, expected) => {
+    it.each([[0, "0円"], [999, "999円"], [1000, "1,000円"]] as const)("U-R06 現在価格%sと変更前価格0を表示する", (price, expected) => {
         const props = fixture();
         const { container } = render(<ItemPrice {...props} data={{ ...props.data, price, before_price: 0 }} />);
         expect(screen.getByRole("heading").textContent).toBe(expected);
-        expect(container.querySelector("p")?.textContent).toBe("￥0");
+        expect(container.querySelector("p")?.textContent).toBe("0円");
     });
 
     it("U-R08 再描画で現在価格を更新し古いセール表示を除去する", () => {
@@ -68,9 +68,32 @@ describe("ItemPriceの整形とセール表示", () => {
         const { rerender } = render(<ItemPrice {...props} />);
         expectPrices();
         rerender(<ItemPrice {...props} showSale={false} data={{ ...props.data, price: 500 }} />);
-        expect(screen.getByRole("heading").textContent).toBe("￥500");
-        expect(screen.queryByText("￥12,345")).not.toBeInTheDocument();
-        expect(screen.queryByText("￥20,000")).not.toBeInTheDocument();
+        expect(screen.getByRole("heading").textContent).toBe("500円");
+        expect(screen.queryByText("12,345円")).not.toBeInTheDocument();
+        expect(screen.queryByText("20,000円")).not.toBeInTheDocument();
         expect(screen.queryByText(/% OFF|円引き/)).not.toBeInTheDocument();
+    });
+});
+
+describe("ItemPriceの文字列価格契約", () => {
+    it.each([1200, "1200", "1200.00"])("AF-R01 価格%sは1,200円を表示する", (price) => {
+        const props = fixture();
+        render(<ItemPrice {...props} data={{ ...props.data, price }} />);
+        expect(screen.getByRole("heading").textContent).toBe("1,200円");
+    });
+
+    it("AF-R02 表示用文字列は通貨記号や単位を付けず表示する", () => {
+        expectTypeOf<ComponentProps<typeof ItemPrice>["data"]["price"]>().toEqualTypeOf<number | string>();
+        const props = fixture();
+        render(<ItemPrice {...props} data={{ ...props.data, price: "-" }} />);
+        expect(screen.getByRole("heading").textContent).toBe("-");
+    });
+
+    it("AF-R03 文字列の変更前価格と割引数値を整形する", () => {
+        const props = fixture();
+        render(<ItemPrice {...props} data={{ ...props.data, before_price: "20000.00", discount_rate: "20", discount_amount: "1000" }} />);
+        expect(screen.getByText("20,000円")).toBeInTheDocument();
+        expect(screen.getByText("20% OFF")).toBeInTheDocument();
+        expect(screen.getByText("1,000円引き")).toBeInTheDocument();
     });
 });

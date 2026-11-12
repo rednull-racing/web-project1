@@ -6,7 +6,7 @@ export const ItemImage = ({
     showSold,
 }: {
     data: {
-        first_image_url: string;
+        first_image_url: string | null;
         status: "active" | "soldout" | null;
     };
     showSold: boolean;

@@ -1,5 +1,23 @@
 # item-list 共通コンポーネント 単体テストレポート
 
+## 最新結果：2026-11-12 文字列価格・円表記への対応
+
+ユーザー指定に従い、ItemPriceのprice/before_priceをnumber|stringへ変更。数値文字列もja-JPで桁区切りし `1,200円` 形式で表示する。表示用の「-」はそのまま。ItemPriceの型でnullは許容せず、draftの呼出し側だけがnullを「-」へ変換する。割引率・割引額も数値文字列を整形し、画像URLのnullは代替画像へフォールバックする。
+
+Node.js26.12.1、共通4ファイル **79件成功・失敗0**。pending/todo・未処理例外0。itemPriceは既存16件＋AF-R01の3条件＋AF-R02/03各1件、itemImageはU-I02へnullを追加し10件。他部品は今回も再実行した。価格の既存期待値は￥先頭から円末尾へ変更し、設計IDと他の条件は維持した。
+
+client/で以下を実行：
+
+```bash
+npm run test:unit -- src/app/item-list/_components/test/ --reporter=json --outputFile=/tmp/list-price-results.json
+./node_modules/.bin/eslint src/app/item-list/_components
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+対象eslint・テスト用型検査成功。集計根拠は `/tmp/list-price-results.json`、静的診断ログは `/tmp/list-price-{lint,types}.log`（一時成果物）。null非許容はAF-R02の型assertも型検査で確認。API・本番の他一覧・draftの連携保証は統合レポートで確認する。全体lint・本番型検査はこの分担で未再実行。O01～O03は人間確認待ち、カバレッジ未取得。
+
+以下は過去の実行履歴であり、旧価格表記・古い残件の記述は当時の結果。現在は本節を優先する。
+
 ## 最新結果：2026-11-12 F1修正後の再検証
 
 F1の修正案を適用し、共通4部品・73テストを再実行して**73成功・失敗0**。F1は修正・再検証済み。U-P03の2条件とU-P13の1条件はいずれも成功し、U-P13の通知なしassertも完了した。設計34 IDの自動ケースは全実装・実行済み。未実装・未実行・中断・pending/skip/todo・未処理例外は今回の自動単体実行で各0。
