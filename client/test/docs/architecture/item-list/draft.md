@@ -22,10 +22,10 @@
 | --- | --- | --- |
 | 一覧JSON | UIは `ItemDraft[]`、実APIは `{itemDraft: row}[]`。fetcherは変換しない | 単体UIはフロント型fixtureを明記。結合C-A01・E2E E-N01は実JSONを用い、本人の商品情報・有効なリンクが表示されることを期待して不整合を検出 |
 | ID・null・日時 | UI型はid:string、price:number、文字項目:string、createdAt:Date。実APIはid:number、価格や文字項目はnullable、createdAtはISO文字列 | 型アサーションで整合したことにしない。実JSONは別fixtureとして保持。日付関数は文字列対応だがprice nullの表示契約は未確定として別途記録 |
-| 削除接続 | UIは `items/{id}/draft` を渡す。共通apiFetchはbaseとそのまま連結。実ルートは `DELETE /api/item-draft/:id` | 単体では現在渡す引数を確認。C-A02・E-D01では正しいルートで削除できることを期待し、URLを補正するproxyや成功handlerを設けない |
-| base URLの末尾 | 一覧はbaseに `/item-draft/list`、削除はbaseに `items/...` を連結 | 基準baseは `http://127.0.0.1:4100/api`（例、認証情報なし）。末尾スラッシュ有無をU-A02で観測し、実環境では採用baseを明記。両方が成功すると仮定しない |
+| 削除接続（パス修正済み） | RemoveFloatは下書きIDをfetchRemoveItemへ渡し、apiFetchが `/item-draft/{id}` をbaseへ連結する。実ルート `DELETE /api/item-draft/:id` と一致 | U-A03/U-D02でIDの受渡し、C-A02・E-D01で正規DELETEの接続を確認する。パスの静的整合と疎通確認済みを区別する |
+| base URLの末尾 | 一覧はbaseに `/item-draft/list`、削除はbaseに `/item-draft/{id}` を連結 | 基準baseは `http://127.0.0.1:4100/api`（例、認証情報なし）。末尾スラッシュ有無をU-A02で観測し、実環境では採用baseを明記。両方が成功すると仮定しない |
 
-一覧の不一致は[既存Todo](../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md)に記録済み。本設計では修正しない。削除パスの不一致も本書の未解決事項として残す。仕様調整・修正後は関係するケースの根拠と期待値を更新し、無関係なassertを弱めない。
+一覧の不一致は[既存Todo](../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md)に記録済み。本設計では修正しない。削除パスは現行コードで修正済みとして設計へ反映する（実行確認は未実施）。仕様調整・修正後は関係するケースの根拠と期待値を更新し、無関係なassertを弱めない。
 
 ## 2. 責務・処理順序・配置
 
@@ -71,7 +71,7 @@ IDのU/C/P/Eは上記の階層、Nは正常、AはAPI契約、Lは一覧状態�
 | U-M01 P1 | Pageの返すReact要素とgenerateMetadataをawaitして検査（async Componentを直接RTL renderしない） | ItemListUIのtitleは「下書き商品」、子はDraftItemList。metadataは「下書き商品一覧」、所定説明、robots.index/follow=false。Page自身の一覧通信なし |
 | U-A01 P0 | page=1/2、検索語なし・空・半角/全角空白・前後空白付き日本語・予約文字 | base＋`/item-draft/list?page=N`。trim後非空だけkeywordを1回encode。入力を書き換えない。fetcherは共通実体の再export |
 | U-A02 P1 | base末尾スラッシュ有/無、page=0/-1/1.5、検索語null文字列 | 現行の連結・ページ非検証・文字列nullの送信を観測。通常のページ操作で生成しない不正値をAPI入力検証済みとはしない |
-| U-A03 P0 | fetchRemoveItemへ `items/101/draft`、依存resolve/reject | apiFetchに同じパスとDELETEだけを渡しbodyなし。戻り値・同じ例外を伝播、勝手な再試行なし |
+| U-A03 P0 | fetchRemoveItemへID `101`、依存resolve/reject | apiFetchに `/item-draft/101` とDELETEだけを渡しbodyなし。戻り値・同じ例外を伝播、勝手な再試行なし |
 | U-L01 P0 | SWR data未取得／1件以上／空配列、totalPages=0/1/3 | 未取得は検索欄のみで専用Loading/空案内なし。有データは順序を変えず全行とPaginationへ現在1・総数・同一mutateを渡す。空配列は「商品が見つかりません」、行・Paginationなし |
 | U-L02 P0 | 3ページへ移動後、非空文字を入力 | 入力値更新・page=1。確定検索語は変更せず、その既存keywordとpage1でSWRキーを生成 |
 | U-L03 P0 | 非空入力後Enter／アイコン経由のonSubmit | 確定語を入力値へ、page=1。trimとencodeはgetListUrl。入力だけでは新keywordを要求しない |
@@ -80,7 +80,7 @@ IDのU/C/P/Eは上記の階層、Nは正常、AはAPI契約、Lは一覧状態�
 | U-I01 P0 | 標準商品行、子部品と日時関数をspy | Linkは `/item/draft/101`、name/title、保存日時を表示。createdAtを日時関数へ渡す。画像はstatus:null/showSold:false、価格はsale_flag:false/showSale:falseと割引0。RemoveFloatへIDと同一mutate、削除はLinkの外 |
 | U-I02 P1 | name/title nullまたは省略相当、画像空文字 | name/titleは空文字。画像へ空URLを渡す。価格nullの成功表示はこの型外ケースから発明しない |
 | U-D01 P0 | メニュー初期・三点クリック2回・表示後overlayクリック | 初期削除文言なし。開閉が反映、overlayで閉じる。メニュー操作だけではDELETE・mutate・成功通知なし |
-| U-D02 P0 | 削除API保留→成功。mutateのupdaterへ対象含む2件を与える | 最初のmutateはupdaterとfalse。対象だけ除去、totalPages・他行・元配列不変。APIへ現在のpathを1回渡す。保留中に成功通知なし。成功後mutate()と「下書き商品を削除しました」toast、error/alertなし |
+| U-D02 P0 | 削除API保留→成功。mutateのupdaterへ対象含む2件を与える | 最初のmutateはupdaterとfalse。対象だけ除去、totalPages・他行・元配列不変。fetchRemoveItemへ下書きIDを1回渡す。保留中に成功通知なし。成功後mutate()と「下書き商品を削除しました」toast、error/alertなし |
 | U-D03 P1 | updaterへundefined／空配列／対象不存在のdata | undefined維持、配列は空／元の他行を保持。totalPages維持。数値idと文字列IDの直接比較はU-X01へ |
 | U-D04 P0 | APIがApiError／通常Errorをreject | 両方mutate()で再取得要求。前者は「下書き商品の削除に失敗しました」、後者は既存システムエラーalert。成功通知なし。画面の復元完了をmutateモックだけで保証しない |
 | U-X01 P2 | 文字列IDで削除、cache行のidが数値。API保留中に同一削除を2回 | strict比較では数値ID行が除去されない、二重操作の抑止なしという現状を観測。通常の型内成功と区別。新たな拒否仕様は作らない |
@@ -99,11 +99,11 @@ mutateの最初の呼出しはtryの外、再取得mutateはawaitされていな
 | C-E03 P1 | 古い検索AのGETを保留→新しいBのGET成功→A解放 | 現在の検索入力・キーはB、Aの遅い応答でB表示を上書きしない。別キーのSWR cacheは独立 |
 | C-X01 P2 | 2ページ目の最後1件を削除、再GETが空・totalPages=1 | 空案内、pageNumberは2のまま、Paginationは表示されない現行挙動を観測。前ページへ自動移動する新仕様は設けない |
 | C-A01 P0 | 実API同形のwrapped配列・数値ID・ISO日時、さらにnullable項目のwire fixture | 契約ケースの主期待は本人の非null商品名・価格・正しいIDのLinkが描画されること。現行の参照不一致は失敗として記録し、例外発生を成功条件にしない。nullable価格の補完は仕様未確定として別記 |
-| C-A02 P0 | 正規DELETE `/api/item-draft/101` だけhandler登録。actual request URLを記録して削除 | 対象正規URLへbodyなしDELETE、成功後再GETを期待。現行誤パスは未一致として検出し、`items/101/draft`を200にする救済handlerは置かない |
+| C-A02 P0 | 正規DELETE `/api/item-draft/101` だけhandler登録。actual request URLを記録して削除 | 対象正規URLへbodyなしDELETE、成功後再GETを期待。異なるパスは未一致として検出し、URL補正や救済handlerは置かない |
 | P-N01 P1 | 実ItemListUI＋実一覧、平坦fixture | 「下書き商品」のタイトルと検索・一覧・ページングが同じ構成で接続。共通Backはrouter.back要求まで。全デザイン・実遷移・認証middlewareは保証外 |
 | P-N02 P1 | 同構成でGET空配列・totalPages=0／遅延GET | 空だけで空案内。遅延中は空案内を先走って出さない。UIにないLoading文言を必須にしない |
 
-平坦fixtureのC-N03/C-E01は削除通知とキャッシュ連携を分離するために、現行が送るURLを明記してHTTPを制御する限定テスト。成功しても正規DELETEが疎通したとは扱わない。C-A01/C-A02は同じ前提を採用せず、実接続の欠陥を別判定する。
+平坦fixtureのC-N03/C-E01でも正規DELETE `/api/item-draft/:id` をHTTP境界として制御する。平坦fixtureの成功は実一覧JSON互換や実サーバーへの疎通を保証しない。C-A01で実JSONとの整合、C-A02で削除要求の正規URLを別判定する。
 
 ## 6. E2E：実認証・実API・DBの契約
 
@@ -113,7 +113,7 @@ mutateの最初の呼出しはtryの外、再取得mutateはawaitされていな
 | --- | --- | --- |
 | E-N01 P0 | Aで一覧を開く。21件とB/所有者nullの下書きをseed | GET200、wire構造は実API仕様通り、件数20・totalPages=2、DBと同順序、本人分だけ。画面も本人の名前・価格・IDを利用できる。現状wire不一致をここで検出し、画面後続不能なら失敗として止める |
 | E-N02 P0 | E-N01疎通後、ページ2と検索（name一致/title一致/0件、`%`/`_`文字） | page2は残り1件、検索条件と取得JSON・totalPagesがDBと一致。空検索結果totalPages=0。GET前後で下書き・保護データ不変。入力正規化の全組合せはserver既存テストへ委譲 |
-| E-D01 P0 | 正常表示したAの対象行から削除。削除前snapshotを保持 | 正規DELETE200、対象item_draftだけ物理削除、再取得一覧から消える。同一所有者の別下書き、B、item、item_editing、マスター不変。現在の誤ルートなら失敗・DB不変を記録。正規ルートへ直接DELETEして画面成功の代用にしない |
+| E-D01 P0 | 正常表示したAの対象行から削除。削除前snapshotを保持 | 正規DELETE200、対象item_draftだけ物理削除、再取得一覧から消える。同一所有者の別下書き、B、item、item_editing、マスター不変。正規ルートへ直接DELETEして画面成功の代用にしない |
 | E-S01 P0 | sessionなしで一覧要求、次にログイン済みでaccess-tokenを消して一覧を再取得 | 前者はmiddlewareで/loginへredirect、保護一覧情報なし。後者はGETが認証なしで実401となり保護データが返らない。画面エラー文言や自動logoutは仕様にないため必須にしない |
 | E-S02 P0 | 正常表示後tokenを除去し削除を操作 | 共通apiFetchがUNAUTHORIZEDで拒否しDELETEなし、後続GETは401となり得る。DB不変、成功toastなし。初期tokenで他人の下書きを取得できると仮定しない |
 | E-S03 P0 | E-D01が正規接続した後、Aの削除要求のIDだけをB／不存在へ改変して実APIへ送る | 両方404・ITEM_DRAFT_NOT_FOUND、DB不変、成功通知なし。URL改変を認可回避と取り違えない。正規ルートへの接続が未成立なら保留、serverの既存認可テスト成功をこのE2E結果に転記しない |
