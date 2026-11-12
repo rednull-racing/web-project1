@@ -12,7 +12,12 @@ vi.mock("@/providers/toastBoundary", () => ({
 }));
 describe("ItemListLayoutのProvider境界", () => {
     it("U-L01 同じ子をBoundaryへ渡し包含と順序を保持する", () => {
-        const children = <><p>先頭</p><button>末尾</button></>;
+        const children = (
+            <>
+                <p>先頭</p>
+                <button>末尾</button>
+            </>
+        );
         render(<ItemListLayout>{children}</ItemListLayout>);
         expect(boundary.mock.calls[0][0].children).toBe(children);
         expect(screen.getByTestId("boundary").textContent).toBe("先頭末尾");

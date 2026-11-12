@@ -43,36 +43,36 @@ npm run typecheck
 
 JSONと `/tmp/trash-final-{unit,integration}.log` は一時成果物。下記は実ファイルのassertionResultsから集計、describe数や再実行を重複加算しない。
 
-| ファイル（client基準） | 実行 | 成功 | 失敗 |
-| --- | --- | --- | --- |
-| `src/app/item-list/trash/test/page.test.tsx` | 1 | 1 | 0 |
-| `src/app/item-list/trash/test/trashItem.test.tsx` | 4 | 4 | 0 |
-| `src/app/item-list/trash/test/trashItemList.test.tsx` | 13 | 13 | 0 |
-| `src/app/item-list/trash/api/test/client.test.ts` | 16 | 16 | 0 |
-| `test/integration/pages/item-list/trash/page.test.tsx` | 3 | 3 | 0 |
-| `test/integration/components/item-list/trash/trashItemList/integration.test.tsx` | 12 | 12 | 0 |
+| ファイル（client基準）                                                           | 実行 | 成功 | 失敗 |
+| -------------------------------------------------------------------------------- | ---- | ---- | ---- |
+| `src/app/item-list/trash/test/page.test.tsx`                                     | 1    | 1    | 0    |
+| `src/app/item-list/trash/test/trashItem.test.tsx`                                | 4    | 4    | 0    |
+| `src/app/item-list/trash/test/trashItemList.test.tsx`                            | 13   | 13   | 0    |
+| `src/app/item-list/trash/api/test/client.test.ts`                                | 16   | 16   | 0    |
+| `test/integration/pages/item-list/trash/page.test.tsx`                           | 3    | 3    | 0    |
+| `test/integration/components/item-list/trash/trashItemList/integration.test.tsx` | 12   | 12   | 0    |
 
 | 設計ID | 展開件数 | 結果 |
-| --- | --- | --- |
-| C-E01 | 1 | 成功 |
-| C-E02 | 4 | 成功 |
-| C-E03 | 1 | 成功 |
-| C-N01 | 4 | 成功 |
-| C-N02 | 1 | 成功 |
-| C-N03 | 1 | 成功 |
-| P-N01 | 1 | 成功 |
-| P-N02 | 2 | 成功 |
-| U-A01 | 10 | 成功 |
-| U-A02 | 6 | 成功 |
-| U-I01 | 1 | 成功 |
-| U-I02 | 1 | 成功 |
-| U-I03 | 2 | 成功 |
-| U-L01 | 5 | 成功 |
-| U-L02 | 1 | 成功 |
-| U-L03 | 2 | 成功 |
-| U-L04 | 3 | 成功 |
-| U-L05 | 2 | 成功 |
-| U-M01 | 1 | 成功 |
+| ------ | -------- | ---- |
+| C-E01  | 1        | 成功 |
+| C-E02  | 4        | 成功 |
+| C-E03  | 1        | 成功 |
+| C-N01  | 4        | 成功 |
+| C-N02  | 1        | 成功 |
+| C-N03  | 1        | 成功 |
+| P-N01  | 1        | 成功 |
+| P-N02  | 2        | 成功 |
+| U-A01  | 10       | 成功 |
+| U-A02  | 6        | 成功 |
+| U-I01  | 1        | 成功 |
+| U-I02  | 1        | 成功 |
+| U-I03  | 2        | 成功 |
+| U-L01  | 5        | 成功 |
+| U-L02  | 1        | 成功 |
+| U-L03  | 2        | 成功 |
+| U-L04  | 3        | 成功 |
+| U-L05  | 2        | 成功 |
+| U-M01  | 1        | 成功 |
 
 U-L04はclearで先に検索解除せず選択置換し、空白条件自体を検証。U-I03のnull価格非許容はexpectTypeOfで型契約を確認。C-N01の4条件はnumber/stringの12345と0、後2条件でnullable文字列・画像を確認。正規GET/Bearer/数値ID href/ISO日時を維持し、変更系HTTPは使っていない。C-E02は4障害注入後に新cacheでremountし回復を確認し、既存画面に再試行UIがあるとは扱わない。C-E03はfinallyで保留を解放。P-N01は実枠と一覧を接続し、BackのSVGは属性で限定取得してrouter.back要求を確認。
 
@@ -84,13 +84,13 @@ U-L04はclearで先に検索解除せず選択置換し、空白条件自体を�
 
 Node26.12.1、production Next16.2.2（Webpack）、実NextAuth、実Express auth/item-trashルーター、PostgreSQL test_db、Chromiumで実行。業務APIモック・JSON変換・ルート補正なし。trash/user専用ガードが実DB名とモデル列を検査してseed前に停止可能とし、無関係なdraft/editing schemaを要求しない。
 
-| 設計ID | 実装・実行結果 | 根拠 |
-| --- | --- | --- |
-| E-N01 | 1件成功 | A21/B1/owner null1を準備、本人20件とtotalPages2、DBのcreatedAt/id降順、全20行の名前・価格・hrefを照合 |
-| E-N02 | 1件成功 | page2残1件、name/title/0件/%文字検索のJSON・DB照合、DB不変 |
-| E-S01 | 1件成功 | sessionなしlogin、実認証後token除去のGET401・保護情報なし、DB不変 |
-| E-S02 | 1件成功 | seller_id=Bを指定してもA本人だけ、他人/owner null除外、件数とDB不変 |
-| E-X01 | 1件観測成功 | 45日前の本人行も取得（cron実装前の履歴）。F1の確定方針を参照 |
+| 設計ID | 実装・実行結果 | 根拠                                                                                                  |
+| ------ | -------------- | ----------------------------------------------------------------------------------------------------- |
+| E-N01  | 1件成功        | A21/B1/owner null1を準備、本人20件とtotalPages2、DBのcreatedAt/id降順、全20行の名前・価格・hrefを照合 |
+| E-N02  | 1件成功        | page2残1件、name/title/0件/%文字検索のJSON・DB照合、DB不変                                            |
+| E-S01  | 1件成功        | sessionなしlogin、実認証後token除去のGET401・保護情報なし、DB不変                                     |
+| E-S02  | 1件成功        | seller_id=Bを指定してもA本人だけ、他人/owner null除外、件数とDB不変                                   |
+| E-X01  | 1件観測成功    | 45日前の本人行も取得（cron実装前の履歴）。F1の確定方針を参照                                          |
 
 全自動ケースは実装・実行済み。未実装・未実行・中断・skip0（最終結果）。O01の人間観測は別の未実行事項。E2Eは2 specの実結果から5件を集計し、先行試行と加算しない。Firefox/WebKitは目視O01担当で今回自動実行していない。
 

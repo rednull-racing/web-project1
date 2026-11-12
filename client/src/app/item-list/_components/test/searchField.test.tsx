@@ -72,16 +72,13 @@ describe("SearchFieldの表示と制御値", () => {
         expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
-    it.each(["", "   ", "　", " シャツ "])(
-        "U-S08 値%jの装飾はtrim結果で決まり入力値は加工しない",
-        (searchValue) => {
-            const { container } = render(<SearchField {...createProps(searchValue)} />);
-            const icon = getSearchIcon(container);
-            if (searchValue === " シャツ ") expect(icon).toHaveClass(styles.activeIcon);
-            else expect(icon).not.toHaveClass(styles.activeIcon);
-            expect(screen.getByRole("textbox")).toHaveValue(searchValue);
-        },
-    );
+    it.each(["", "   ", "　", " シャツ "])("U-S08 値%jの装飾はtrim結果で決まり入力値は加工しない", (searchValue) => {
+        const { container } = render(<SearchField {...createProps(searchValue)} />);
+        const icon = getSearchIcon(container);
+        if (searchValue === " シャツ ") expect(icon).toHaveClass(styles.activeIcon);
+        else expect(icon).not.toHaveClass(styles.activeIcon);
+        expect(screen.getByRole("textbox")).toHaveValue(searchValue);
+    });
 });
 
 describe("SearchFieldの送信通知", () => {
@@ -103,18 +100,15 @@ describe("SearchFieldの送信通知", () => {
         expect(props.onChange).not.toHaveBeenCalled();
     });
 
-    it.each(["{Escape}", "{ArrowRight}", "{Tab}"])(
-        "U-S07 %sでは送信を通知しない",
-        async (key) => {
-            const props = createProps();
-            render(<SearchField {...props} />);
-            const user = userEvent.setup();
-            await user.click(screen.getByRole("textbox"));
-            await user.keyboard(key);
-            expect(props.onSubmit).not.toHaveBeenCalled();
-            expect(props.onChange).not.toHaveBeenCalled();
-        },
-    );
+    it.each(["{Escape}", "{ArrowRight}", "{Tab}"])("U-S07 %sでは送信を通知しない", async (key) => {
+        const props = createProps();
+        render(<SearchField {...props} />);
+        const user = userEvent.setup();
+        await user.click(screen.getByRole("textbox"));
+        await user.keyboard(key);
+        expect(props.onSubmit).not.toHaveBeenCalled();
+        expect(props.onChange).not.toHaveBeenCalled();
+    });
 
     it.each(["click", "Enter"])("U-S09 %sを二回操作すると二回通知する", async (action) => {
         const props = createProps();

@@ -82,47 +82,47 @@ ITEM_DRAFT_E2E_EXPRESS_URL=http://127.0.0.1:4311/api ITEM_DRAFT_E2E_PROXY_URL=ht
 
 以下は統合時JSONのassertionResultsから集計。describe数や再実行を加算しない。JSONと/tmpログは一時成果物であり、重要な結果は本書に記録する。
 
-| ファイル（client基準） | 実行 | 成功 | 失敗 |
-| --- | --- | --- | --- |
-| `src/app/item-list/draft/test/draftItem.test.tsx` | 3 | 3 | 0 |
-| `src/app/item-list/draft/test/draftItemList.test.tsx` | 13 | 13 | 0 |
-| `src/app/item-list/draft/test/page.test.tsx` | 1 | 1 | 0 |
-| `src/app/item-list/draft/test/removeFloat.test.tsx` | 8 | 8 | 0 |
-| `src/app/item-list/draft/api/test/client.test.ts` | 18 | 18 | 0 |
-| `test/integration/pages/item-list/draft/page.test.tsx` | 2 | 2 | 0 |
-| `test/integration/components/item-list/draft/draftItemList/contract.test.tsx` | 2 | 0 | 2 |
-| `test/integration/components/item-list/draft/draftItemList/integration.test.tsx` | 4 | 4 | 0 |
-| `test/integration/components/item-list/draft/removeFloat/integration.test.tsx` | 7 | 7 | 0 |
+| ファイル（client基準）                                                           | 実行 | 成功 | 失敗 |
+| -------------------------------------------------------------------------------- | ---- | ---- | ---- |
+| `src/app/item-list/draft/test/draftItem.test.tsx`                                | 3    | 3    | 0    |
+| `src/app/item-list/draft/test/draftItemList.test.tsx`                            | 13   | 13   | 0    |
+| `src/app/item-list/draft/test/page.test.tsx`                                     | 1    | 1    | 0    |
+| `src/app/item-list/draft/test/removeFloat.test.tsx`                              | 8    | 8    | 0    |
+| `src/app/item-list/draft/api/test/client.test.ts`                                | 18   | 18   | 0    |
+| `test/integration/pages/item-list/draft/page.test.tsx`                           | 2    | 2    | 0    |
+| `test/integration/components/item-list/draft/draftItemList/contract.test.tsx`    | 2    | 0    | 2    |
+| `test/integration/components/item-list/draft/draftItemList/integration.test.tsx` | 4    | 4    | 0    |
+| `test/integration/components/item-list/draft/removeFloat/integration.test.tsx`   | 7    | 7    | 0    |
 
-| 設計ID | 実装テスト数 | 判定 |
-| --- | --- | --- |
-| C-A01 | 2 | 成功0・失敗2 |
-| C-A02 | 1 | 成功1・失敗0 |
-| C-E01 | 3 | 成功3・失敗0 |
-| C-E02 | 3 | 成功3・失敗0 |
-| C-E03 | 1 | 成功1・失敗0 |
-| C-N01 | 1 | 成功1・失敗0 |
-| C-N02 | 1 | 成功1・失敗0 |
-| C-N03 | 1 | 成功1・失敗0 |
-| C-X01 | 1 | 成功1・失敗0 |
-| P-N01 | 1 | 成功1・失敗0 |
-| P-N02 | 1 | 成功1・失敗0 |
-| U-A01 | 10 | 成功10・失敗0 |
-| U-A02 | 6 | 成功6・失敗0 |
-| U-A03 | 2 | 成功2・失敗0 |
-| U-D01 | 1 | 成功1・失敗0 |
-| U-D02 | 1 | 成功1・失敗0 |
-| U-D03 | 3 | 成功3・失敗0 |
-| U-D04 | 2 | 成功2・失敗0 |
-| U-I01 | 1 | 成功1・失敗0 |
-| U-I02 | 2 | 成功2・失敗0 |
-| U-L01 | 5 | 成功5・失敗0 |
-| U-L02 | 1 | 成功1・失敗0 |
-| U-L03 | 2 | 成功2・失敗0 |
-| U-L04 | 3 | 成功3・失敗0 |
-| U-L05 | 2 | 成功2・失敗0 |
-| U-M01 | 1 | 成功1・失敗0 |
-| U-X01 | 1 | 成功1・失敗0 |
+| 設計ID | 実装テスト数 | 判定          |
+| ------ | ------------ | ------------- |
+| C-A01  | 2            | 成功0・失敗2  |
+| C-A02  | 1            | 成功1・失敗0  |
+| C-E01  | 3            | 成功3・失敗0  |
+| C-E02  | 3            | 成功3・失敗0  |
+| C-E03  | 1            | 成功1・失敗0  |
+| C-N01  | 1            | 成功1・失敗0  |
+| C-N02  | 1            | 成功1・失敗0  |
+| C-N03  | 1            | 成功1・失敗0  |
+| C-X01  | 1            | 成功1・失敗0  |
+| P-N01  | 1            | 成功1・失敗0  |
+| P-N02  | 1            | 成功1・失敗0  |
+| U-A01  | 10           | 成功10・失敗0 |
+| U-A02  | 6            | 成功6・失敗0  |
+| U-A03  | 2            | 成功2・失敗0  |
+| U-D01  | 1            | 成功1・失敗0  |
+| U-D02  | 1            | 成功1・失敗0  |
+| U-D03  | 3            | 成功3・失敗0  |
+| U-D04  | 2            | 成功2・失敗0  |
+| U-I01  | 1            | 成功1・失敗0  |
+| U-I02  | 2            | 成功2・失敗0  |
+| U-L01  | 5            | 成功5・失敗0  |
+| U-L02  | 1            | 成功1・失敗0  |
+| U-L03  | 2            | 成功2・失敗0  |
+| U-L04  | 3            | 成功3・失敗0  |
+| U-L05  | 2            | 成功2・失敗0  |
+| U-M01  | 1            | 成功1・失敗0  |
+| U-X01  | 1            | 成功1・失敗0  |
 
 E-N01は実装済み・fixture中断、本体未実行。E-N02/E-D01/E-D02/E-S01/E-S02/E-S03は実装済み・未実行保留（E-S03は他人/不存在の2テスト）。O01～03は人間確認待ち。これらをVitestのskip件数へ混ぜない。
 

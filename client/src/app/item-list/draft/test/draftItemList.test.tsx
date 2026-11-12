@@ -52,7 +52,7 @@ const change = (value: string) => fireEvent.change(screen.getByPlaceholderText("
 const key = () => vi.mocked(useSWR).mock.calls.at(-1)?.[0];
 beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "http://localhost/api");
-    state.data = { itemDraftList: [{ itemDraft: {id: 101} }, { itemDraft: {id: 102} }], totalPages: 3 };
+    state.data = { itemDraftList: [{ itemDraft: { id: 101 } }, { itemDraft: { id: 102 } }], totalPages: 3 };
     state.error = undefined;
 });
 describe("一覧状態", () => {

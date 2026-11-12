@@ -9,8 +9,10 @@ export const row = (id = 101) => ({
 });
 // 実API同形。レスポンスのwrapperと日時文字列を変換しない。
 export const response = () => ({ itemTrashList: [{ itemTrash: row() }], totalPages: 3 });
-export const deferred = <T,>() => {
+export const deferred = <T>() => {
     let resolve!: (value: T) => void;
-    const promise = new Promise<T>((done) => { resolve = done; });
+    const promise = new Promise<T>((done) => {
+        resolve = done;
+    });
     return { promise, resolve };
 };

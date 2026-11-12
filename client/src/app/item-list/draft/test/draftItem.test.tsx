@@ -54,4 +54,9 @@ describe("DraftItem境界", () => {
     });
 });
 
- it("AF-I01 null価格をプレースホルダーへ変換する", () => { const props = fixture(); props.itemDraft.price = null; render(<DraftItem {...props}/>); expect(vi.mocked(ItemPrice).mock.calls[0][0].data.price).toBe("-"); });
+it("AF-I01 null価格をプレースホルダーへ変換する", () => {
+    const props = fixture();
+    props.itemDraft.price = null;
+    render(<DraftItem {...props} />);
+    expect(vi.mocked(ItemPrice).mock.calls[0][0].data.price).toBe("-");
+});

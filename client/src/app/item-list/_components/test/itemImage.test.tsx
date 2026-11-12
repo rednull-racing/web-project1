@@ -37,9 +37,11 @@ describe("ItemImageの画像と売切れ表示", () => {
         expectImage("/no-image(1x1).png");
     });
 
-    it.each([true, false].flatMap((showSold) =>
-        (["active", "soldout", null] as const).map((status) => ({ showSold, status })),
-    ))("U-I03 入力%jの売切れ条件を満たす場合だけ表示する", ({ showSold, status }) => {
+    it.each(
+        [true, false].flatMap((showSold) =>
+            (["active", "soldout", null] as const).map((status) => ({ showSold, status })),
+        ),
+    )("U-I03 入力%jの売切れ条件を満たす場合だけ表示する", ({ showSold, status }) => {
         const props = fixture();
         render(<ItemImage {...props} showSold={showSold} data={{ ...props.data, status }} />);
         expectImage("/test-item.jpg");

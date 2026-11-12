@@ -18,7 +18,12 @@ vi.mock("@/components", () => ({
         return <button>戻る</button>;
     },
 }));
-const content = <><p>先頭</p><button>末尾</button></>;
+const content = (
+    <>
+        <p>先頭</p>
+        <button>末尾</button>
+    </>
+);
 describe("ItemListHeaderUIの包含契約", () => {
     it("U-H01 戻るを子より先に置き指定外のPropsを追加しない", () => {
         render(<ItemListHeaderUI>{content}</ItemListHeaderUI>);

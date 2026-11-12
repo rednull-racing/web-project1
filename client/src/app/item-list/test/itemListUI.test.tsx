@@ -18,16 +18,27 @@ vi.mock("@/components", () => ({
         return <button>戻る</button>;
     },
 }));
-const content = <><p>先頭</p><button>末尾</button></>;
+const content = (
+    <>
+        <p>先頭</p>
+        <button>末尾</button>
+    </>
+);
 describe("ItemListUIの包含契約", () => {
-    it.each(["下書き商品", "", "<img src=x onerror=alert(1)>"])("U-I01 title=%sをそのまま渡し本文より先に表示する", (title) => {
-        render(<ItemListUI title={title}>{content}</ItemListUI>);
-        expect(mocks.heading).toHaveBeenCalledWith({ title });
-        expect(screen.getByRole("heading").textContent).toBe(title);
-        expect(screen.queryByRole("img")).not.toBeInTheDocument();
-        expect(screen.getByTestId("container")).toContainElement(screen.getByRole("heading"));
-        expect(screen.getByRole("heading").compareDocumentPosition(screen.getByText("先頭")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    });
+    it.each(["下書き商品", "", "<img src=x onerror=alert(1)>"])(
+        "U-I01 title=%sをそのまま渡し本文より先に表示する",
+        (title) => {
+            render(<ItemListUI title={title}>{content}</ItemListUI>);
+            expect(mocks.heading).toHaveBeenCalledWith({ title });
+            expect(screen.getByRole("heading").textContent).toBe(title);
+            expect(screen.queryByRole("img")).not.toBeInTheDocument();
+            expect(screen.getByTestId("container")).toContainElement(screen.getByRole("heading"));
+            expect(
+                screen.getByRole("heading").compareDocumentPosition(screen.getByText("先頭")) &
+                    Node.DOCUMENT_POSITION_FOLLOWING,
+            ).toBeTruthy();
+        },
+    );
     it.each([false, true])("U-I02 空の子=%sでも枠の契約を維持する", (empty) => {
         const children = empty ? null : content;
         render(<ItemListUI title="一覧">{children}</ItemListUI>);

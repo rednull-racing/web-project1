@@ -88,14 +88,16 @@ describe("削除", () => {
                           kind === "empty"
                               ? []
                               : [
-                                    { itemDraft: {
-                                        id: 102,
-                                        name: "x",
-                                        title: "v",
-                                        price: 1,
-                                        first_image_url: "",
-                                        createdAt: "2026-11-11T23:00:00Z",
-                                    } },
+                                    {
+                                        itemDraft: {
+                                            id: 102,
+                                            name: "x",
+                                            title: "v",
+                                            price: 1,
+                                            first_image_url: "",
+                                            createdAt: "2026-11-11T23:00:00Z",
+                                        },
+                                    },
                                 ],
                       totalPages: 3,
                   };
@@ -128,8 +130,11 @@ describe("削除", () => {
         await s.open();
         await s.user.click(screen.getByText("下書きから削除"));
         await s.user.click(screen.getByText("下書きから削除"));
-        const current = { itemDraftList: [{itemDraft:{id:101}}], totalPages: 1 };
-        expect(await updater(s)(current as unknown as Parameters<ReturnType<typeof updater>>[0])).toEqual({ itemDraftList: [], totalPages: 1 });
+        const current = { itemDraftList: [{ itemDraft: { id: 101 } }], totalPages: 1 };
+        expect(await updater(s)(current as unknown as Parameters<ReturnType<typeof updater>>[0])).toEqual({
+            itemDraftList: [],
+            totalPages: 1,
+        });
         expect(fetchRemoveItem).toHaveBeenCalledTimes(2);
         await act(async () => resolve());
         expect(toast.success).toHaveBeenCalledTimes(2);

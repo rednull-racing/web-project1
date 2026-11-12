@@ -17,9 +17,17 @@ beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-11-12T00:00:00.000Z"));
 });
-export const mount = (children: ReactNode = <TrashItemList />) => render(
-    <SWRConfig value={{
-        provider: () => new Map(), revalidateOnFocus: false, revalidateOnReconnect: false,
-        shouldRetryOnError: false, dedupingInterval: 0,
-    }}>{children}</SWRConfig>,
-);
+export const mount = (children: ReactNode = <TrashItemList />) =>
+    render(
+        <SWRConfig
+            value={{
+                provider: () => new Map(),
+                revalidateOnFocus: false,
+                revalidateOnReconnect: false,
+                shouldRetryOnError: false,
+                dedupingInterval: 0,
+            }}
+        >
+            {children}
+        </SWRConfig>,
+    );

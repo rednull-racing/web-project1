@@ -119,7 +119,8 @@ class ItemDraftVideoConversionJob {
             }
         }
         if (cleanupFailure) {
-            if (failure) throw new AggregateError([failure.error, cleanupFailure.error], "Conversion and cleanup failed");
+            if (failure)
+                throw new AggregateError([failure.error, cleanupFailure.error], "Conversion and cleanup failed");
             throw cleanupFailure.error;
         }
         if (failure) throw failure.error;

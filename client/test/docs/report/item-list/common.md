@@ -13,30 +13,30 @@ ItemListUI/ItemListHeaderUIは実処理、barrelのContainer・TitleAndBack・Ba
 既存setupのDOM cleanup・mock clear/restoreを使用、操作はawaitしたuser-event。class生成名を固定せずimportしたstyles.activeを照合。結合・E2E・既存全単体回帰は今回対象外として未実行。
 
 | テストファイル（`src/app/item-list/test/` 配下） | 実行 | 成功 | 失敗 |
-| --- | --- | --- | --- |
-| `itemListHeaderUI.test.tsx` | 3 | 3 | 0 |
-| `itemListUI.test.tsx` | 6 | 6 | 0 |
-| `layout.test.tsx` | 3 | 3 | 0 |
-| `tabHeader.test.tsx` | 17 | 17 | 0 |
-| 合計 | 29 | 29 | 0 |
+| ------------------------------------------------ | ---- | ---- | ---- |
+| `itemListHeaderUI.test.tsx`                      | 3    | 3    | 0    |
+| `itemListUI.test.tsx`                            | 6    | 6    | 0    |
+| `layout.test.tsx`                                | 3    | 3    | 0    |
+| `tabHeader.test.tsx`                             | 17   | 17   | 0    |
+| 合計                                             | 29   | 29   | 0    |
 
 | 設計ID | 展開件数 | 判定 |
-| --- | --- | --- |
-| U-H01 | 1 | 成功 |
-| U-H02 | 1 | 成功 |
-| U-H03 | 1 | 成功 |
-| U-I01 | 3 | 成功 |
-| U-I02 | 2 | 成功 |
-| U-I03 | 1 | 成功 |
-| U-L01 | 1 | 成功 |
-| U-L02 | 1 | 成功 |
-| U-L03 | 1 | 成功 |
-| U-T01 | 1 | 成功 |
-| U-T02 | 3 | 成功 |
-| U-T03 | 9 | 成功 |
-| U-T04 | 1 | 成功 |
-| U-T05 | 2 | 成功 |
-| U-T06 | 1 | 成功 |
+| ------ | -------- | ---- |
+| U-H01  | 1        | 成功 |
+| U-H02  | 1        | 成功 |
+| U-H03  | 1        | 成功 |
+| U-I01  | 3        | 成功 |
+| U-I02  | 2        | 成功 |
+| U-I03  | 1        | 成功 |
+| U-L01  | 1        | 成功 |
+| U-L02  | 1        | 成功 |
+| U-L03  | 1        | 成功 |
+| U-T01  | 1        | 成功 |
+| U-T02  | 3        | 成功 |
+| U-T03  | 9        | 成功 |
+| U-T04  | 1        | 成功 |
+| U-T05  | 2        | 成功 |
+| U-T06  | 1        | 成功 |
 
 枠は通常・空・複数children、通常・空・HTML風title、rerenderを確認。タブは3入力×3操作の全9通知、現在tab再クリック、Enter/Space、連続クリックと親再描画を確認し、ルーティングの状態変更を勝手に仮定していない。
 
@@ -52,13 +52,13 @@ npm run lint
 npm run typecheck
 ```
 
-| 検査 | 結果 | 根拠（一時成果物） |
-| --- | --- | --- |
-| 対象Vitest | 成功、4ファイル29件 | `/tmp/common-unit.json`、`/tmp/common-unit.log` |
-| 対象eslint | 成功、診断0 | `/tmp/common-target-lint.log` |
-| テスト型検査 | 成功、診断0 | `/tmp/common-test-types.log` |
-| 全体lint | 失敗、23 errors・34 warnings（対象外） | `/tmp/common-lint.log` |
-| 本番型検査 | 失敗、既存の生成型とページの不整合等（対象外） | `/tmp/common-types.log` |
+| 検査         | 結果                                           | 根拠（一時成果物）                              |
+| ------------ | ---------------------------------------------- | ----------------------------------------------- |
+| 対象Vitest   | 成功、4ファイル29件                            | `/tmp/common-unit.json`、`/tmp/common-unit.log` |
+| 対象eslint   | 成功、診断0                                    | `/tmp/common-target-lint.log`                   |
+| テスト型検査 | 成功、診断0                                    | `/tmp/common-test-types.log`                    |
+| 全体lint     | 失敗、23 errors・34 warnings（対象外）         | `/tmp/common-lint.log`                          |
+| 本番型検査   | 失敗、既存の生成型とページの不整合等（対象外） | `/tmp/common-types.log`                         |
 
 実ファイルごとのassertionResultsで集計し、describeや担当実行との重複加算はない。枠3ファイルの先行12件成功→タブ担当17件成功→統合29件成功を確認。初回失敗なし。新変更や未解決の対象診断がないため反復検証は終了した。
 

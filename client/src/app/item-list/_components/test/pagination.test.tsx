@@ -46,7 +46,10 @@ describe("Pagination 表示条件とページ列", () => {
     });
 
     it.each([
-        [767, 1], [767, 2], [768, 1], [768, 2],
+        [767, 1],
+        [767, 2],
+        [768, 1],
+        [768, 2],
     ])("U-P02 幅%s・現在%sで2ページを省略せず端の操作だけ無効化する", (width, currentPage) => {
         setWidth(width);
         const { container } = render(<Pagination {...createProps({ currentPage, totalPages: 2 })} />);
@@ -106,7 +109,8 @@ describe("Pagination 操作通知と再描画", () => {
     });
 
     it.each([
-        ["前へ", 4], ["次へ", 6],
+        ["前へ", 4],
+        ["次へ", 6],
     ] as const)("U-P09 %sをクリックすると%sを通知し現在ページを維持する", async (title, page) => {
         const props = createProps();
         render(<Pagination {...props} />);
@@ -116,20 +120,35 @@ describe("Pagination 操作通知と再描画", () => {
     });
 
     it.each([
-        { currentPage: 1, disabledTitle: "前へ", enabledTitle: "次へ", nextPage: 2, pages: ["1", "2", "3", "...", "10"] },
-        { currentPage: 10, disabledTitle: "次へ", enabledTitle: "前へ", nextPage: 9, pages: ["1", "...", "8", "9", "10"] },
-    ])("U-P10 入力%jで無効な端点操作を通知せず反対側を通知する", async ({ currentPage, disabledTitle, enabledTitle, nextPage, pages }) => {
-        const props = createProps({ currentPage });
-        const { container } = render(<Pagination {...props} />);
-        const user = userEvent.setup();
-        expectPages(container, pages);
-        expect(screen.getByTitle(disabledTitle)).toBeDisabled();
-        await user.click(screen.getByTitle(disabledTitle));
-        expect(props.onPageChange).not.toHaveBeenCalled();
-        expect(screen.getByTitle(enabledTitle)).toBeEnabled();
-        await user.click(screen.getByTitle(enabledTitle));
-        expect(props.onPageChange).toHaveBeenCalledExactlyOnceWith(nextPage);
-    });
+        {
+            currentPage: 1,
+            disabledTitle: "前へ",
+            enabledTitle: "次へ",
+            nextPage: 2,
+            pages: ["1", "2", "3", "...", "10"],
+        },
+        {
+            currentPage: 10,
+            disabledTitle: "次へ",
+            enabledTitle: "前へ",
+            nextPage: 9,
+            pages: ["1", "...", "8", "9", "10"],
+        },
+    ])(
+        "U-P10 入力%jで無効な端点操作を通知せず反対側を通知する",
+        async ({ currentPage, disabledTitle, enabledTitle, nextPage, pages }) => {
+            const props = createProps({ currentPage });
+            const { container } = render(<Pagination {...props} />);
+            const user = userEvent.setup();
+            expectPages(container, pages);
+            expect(screen.getByTitle(disabledTitle)).toBeDisabled();
+            await user.click(screen.getByTitle(disabledTitle));
+            expect(props.onPageChange).not.toHaveBeenCalled();
+            expect(screen.getByTitle(enabledTitle)).toBeEnabled();
+            await user.click(screen.getByTitle(enabledTitle));
+            expect(props.onPageChange).toHaveBeenCalledExactlyOnceWith(nextPage);
+        },
+    );
 
     it("U-P11 省略表示はボタンではなくクリックしても通知しない", async () => {
         const props = createProps();
@@ -150,7 +169,9 @@ describe("Pagination 操作通知と再描画", () => {
         expectPages(container, ["1", "...", "4", "5", "6", "7", "8", "...", "10"]);
         expect(screen.getByRole("button", { name: "5" })).not.toHaveClass(styles.active);
         expect(screen.getByRole("button", { name: "6" })).toHaveClass(styles.active);
-        expect(screen.getAllByRole("button").filter((button) => button.classList.contains(styles.active))).toHaveLength(1);
+        expect(screen.getAllByRole("button").filter((button) => button.classList.contains(styles.active))).toHaveLength(
+            1,
+        );
         expect(props.onPageChange).not.toHaveBeenCalled();
     });
 

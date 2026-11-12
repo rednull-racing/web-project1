@@ -10,12 +10,12 @@ API根拠はリポジトリルート `server/src/{routes,controllers,usecases,se
 
 ## 責務・実行境界・予定配置
 
-| 対象 | 責務 | 単体予定配置 |
-| --- | --- | --- |
+| 対象                               | 責務                                                                                                 | 単体予定配置                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------- |
 | `src/app/item-list/trash/page.tsx` | async Pageはタイトル「削除した商品」とTrashItemListをItemListUIへ。metadataを返す。自身でfetchしない | `src/app/item-list/trash/test/page.test.tsx` |
-| 同 `trashItemList.tsx` | 入力中/確定語/ページを管理しURL→SWR→行とPaginationまたは空表示 | 同 `test/trashItemList.test.tsx` |
-| 同 `trashItem.tsx` | wrapped要素から渡された商品を描画、削除日時、詳細Link、画像・価格Props。mutateは未使用 | 同 `test/trashItem.test.tsx` |
-| 同 `api/client.ts` | base＋page、trim/encode keyword、共通fetcher再export | 同 `api/test/client.test.ts` |
+| 同 `trashItemList.tsx`             | 入力中/確定語/ページを管理しURL→SWR→行とPaginationまたは空表示                                       | 同 `test/trashItemList.test.tsx`             |
+| 同 `trashItem.tsx`                 | wrapped要素から渡された商品を描画、削除日時、詳細Link、画像・価格Props。mutateは未使用               | 同 `test/trashItem.test.tsx`                 |
+| 同 `api/client.ts`                 | base＋page、trim/encode keyword、共通fetcher再export                                                 | 同 `api/test/client.test.ts`                 |
 
 単体はVitest/RTL/jsdom、SWR・子部品・日時関数を対象に応じて境界モック。PageはawaitしてReact要素とmetadataを検査し、async Pageを直接RTL renderするために本番境界を変えない。子の全分岐は既存[共通部品](./_components.md)・[共通枠](./common.md)へ委譲する。
 
@@ -35,42 +35,42 @@ U/C/P/Eは単体/コンポーネント結合/ページ結合/E2E、Oは人間観
 
 ## 単体ケース
 
-| ID・優先度 | 条件・操作 | 期待結果 |
-| --- | --- | --- |
-| U-M01 P1 | Page/metadataをawait | ItemListUIのtitle・子、metadata title「削除した商品一覧」、所定説明、robots.index/follow=false。Page通信なし |
-| U-A01 P0 | page1/2、検索なし・空・半全角空白・日本語前後空白・予約文字 | 正規URL、非空だけtrim後1回encode、入力不変 |
-| U-A02 P1 | base末尾slash有/無、page0/-1/1.5、文字列null、fetcher実体 | 現行連結と未検証pageを観測、同一fetcher再export。通常入力契約や実API成功と混同しない |
-| U-L01 P0 | dataなし/空/複数、totalPages0/1/3 | 未取得は検索欄のみ、空だけ空案内、複数はwireをunwrapし順序・mutateを保持、Paginationへ現在1と総数 |
-| U-L02 P0 | page3から非空文字を入力 | page1へ、入力更新、確定済みの旧keywordを維持 |
-| U-L03 P0 | 入力後Enter/アイコン送信 | 確定keyword更新・page1。非空入力だけでは新keyword取得なし |
-| U-L04 P0 | 確定検索中に空/半全角空白 | keyword解除・page1、入力そのものの空白は維持 |
-| U-L05 P1 | error＋dataなし/前回dataあり | 専用エラーなし、あるdataを表示。独自のlogin遷移等なし |
-| U-I01 P0 | 標準行と子spy | `/item/deleted/101`、削除日時にcreatedAt、image status:null/showSold:false、priceはsaleなしと割引0。未使用mutate呼出なし |
-| U-I02 P1 | name/title/image nullまたは空文字 | 名/title空補完、imageへnullable URL渡し代替表示は子責務 |
-| U-I03 P0 | number/string価格、price型 | 数値と数値文字列を表示側で扱い、null価格は型で許容しない。0も欠損として消さない |
+| ID・優先度 | 条件・操作                                                  | 期待結果                                                                                                                 |
+| ---------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| U-M01 P1   | Page/metadataをawait                                        | ItemListUIのtitle・子、metadata title「削除した商品一覧」、所定説明、robots.index/follow=false。Page通信なし             |
+| U-A01 P0   | page1/2、検索なし・空・半全角空白・日本語前後空白・予約文字 | 正規URL、非空だけtrim後1回encode、入力不変                                                                               |
+| U-A02 P1   | base末尾slash有/無、page0/-1/1.5、文字列null、fetcher実体   | 現行連結と未検証pageを観測、同一fetcher再export。通常入力契約や実API成功と混同しない                                     |
+| U-L01 P0   | dataなし/空/複数、totalPages0/1/3                           | 未取得は検索欄のみ、空だけ空案内、複数はwireをunwrapし順序・mutateを保持、Paginationへ現在1と総数                        |
+| U-L02 P0   | page3から非空文字を入力                                     | page1へ、入力更新、確定済みの旧keywordを維持                                                                             |
+| U-L03 P0   | 入力後Enter/アイコン送信                                    | 確定keyword更新・page1。非空入力だけでは新keyword取得なし                                                                |
+| U-L04 P0   | 確定検索中に空/半全角空白                                   | keyword解除・page1、入力そのものの空白は維持                                                                             |
+| U-L05 P1   | error＋dataなし/前回dataあり                                | 専用エラーなし、あるdataを表示。独自のlogin遷移等なし                                                                    |
+| U-I01 P0   | 標準行と子spy                                               | `/item/deleted/101`、削除日時にcreatedAt、image status:null/showSold:false、priceはsaleなしと割引0。未使用mutate呼出なし |
+| U-I02 P1   | name/title/image nullまたは空文字                           | 名/title空補完、imageへnullable URL渡し代替表示は子責務                                                                  |
+| U-I03 P0   | number/string価格、price型                                  | 数値と数値文字列を表示側で扱い、null価格は型で許容しない。0も欠損として消さない                                          |
 
 ## 結合ケース
 
-| ID・優先度 | 操作・注入 | 期待結果 |
-| --- | --- | --- |
-| C-N01 P0 | 正規GETとwire、価格number/string、nullable文字 | Bearer GET、数値ID href、ISO日付、商品名・価格と代替画像。復元/完全削除操作や更新HTTPなし |
-| C-N02 P0 | 入力→送信→page2 | 確定前に新keywordを送らず、trim/encode検索page1、次にpage2 |
-| C-N03 P0 | 検索page2で入力、次に空白 | 旧検索page1へ戻り、空白でkeywordなしpage1 |
-| C-E01 P1 | 遅延GET→空配列 | 待機中空案内なし、応答後だけ空案内、page UIなし |
-| C-E02 P0 | JSON401/500・非JSON429・network error、その後正常再取得 | 専用エラー表示や成功行の捏造なし、正常な再取得で回復。実認証切れの検証とは分ける |
-| C-E03 P1 | Aを遅延→B成功→A解放 | 現在のB入力・キー・表示をAが上書きしない |
-| P-N01 P1 | 実ItemListUI＋一覧 | タイトルと一覧接続、Backはrouter.back要求まで |
-| P-N02 P1 | 実枠で空/遅延 | 空と未取得を区別。SSR/実トースト/実レイアウトの保証なし |
+| ID・優先度 | 操作・注入                                              | 期待結果                                                                                  |
+| ---------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| C-N01 P0   | 正規GETとwire、価格number/string、nullable文字          | Bearer GET、数値ID href、ISO日付、商品名・価格と代替画像。復元/完全削除操作や更新HTTPなし |
+| C-N02 P0   | 入力→送信→page2                                         | 確定前に新keywordを送らず、trim/encode検索page1、次にpage2                                |
+| C-N03 P0   | 検索page2で入力、次に空白                               | 旧検索page1へ戻り、空白でkeywordなしpage1                                                 |
+| C-E01 P1   | 遅延GET→空配列                                          | 待機中空案内なし、応答後だけ空案内、page UIなし                                           |
+| C-E02 P0   | JSON401/500・非JSON429・network error、その後正常再取得 | 専用エラー表示や成功行の捏造なし、正常な再取得で回復。実認証切れの検証とは分ける          |
+| C-E03 P1   | Aを遅延→B成功→A解放                                     | 現在のB入力・キー・表示をAが上書きしない                                                  |
+| P-N01 P1   | 実ItemListUI＋一覧                                      | タイトルと一覧接続、Backはrouter.back要求まで                                             |
+| P-N02 P1   | 実枠で空/遅延                                           | 空と未取得を区別。SSR/実トースト/実レイアウトの保証なし                                   |
 
 ## E2Eケース
 
-| ID・優先度 | 操作・前提 | 期待結果・停止位置 |
-| --- | --- | --- |
-| E-N01 P0 | Aでログインし21件一覧 | GET200、20件・totalPages2、createdAt DESC/id DESC、本人のみ、画面の正しいIDリンクと価格。DB不変。最初に実行し前提失敗時は後続保留 |
-| E-N02 P0 | page2、name/title/0件/%検索 | JSONとDB条件が一致、page2残1件、空totalPages0、状態不変 |
-| E-S01 P0 | sessionなし要求、認証後access-token除去で再取得 | 前者login redirect・保護情報なし、後者実401・保護データなし。UI独自logoutは要求しない |
-| E-S02 P0 | seller_id等のqueryでBを指定 | 認証Aの一覧/件数だけ、Bやowner nullを返さない、DB不変 |
-| E-X01 P1 | 1か月超の本人データ | 現APIは期間条件がないので取得される現状を観測。説明文との矛盾は修正案へ。自動でフィルター追加しない |
+| ID・優先度 | 操作・前提                                      | 期待結果・停止位置                                                                                                                |
+| ---------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| E-N01 P0   | Aでログインし21件一覧                           | GET200、20件・totalPages2、createdAt DESC/id DESC、本人のみ、画面の正しいIDリンクと価格。DB不変。最初に実行し前提失敗時は後続保留 |
+| E-N02 P0   | page2、name/title/0件/%検索                     | JSONとDB条件が一致、page2残1件、空totalPages0、状態不変                                                                           |
+| E-S01 P0   | sessionなし要求、認証後access-token除去で再取得 | 前者login redirect・保護情報なし、後者実401・保護データなし。UI独自logoutは要求しない                                             |
+| E-S02 P0   | seller_id等のqueryでBを指定                     | 認証Aの一覧/件数だけ、Bやowner nullを返さない、DB不変                                                                             |
+| E-X01 P1   | 1か月超の本人データ                             | 現APIは期間条件がないので取得される現状を観測。説明文との矛盾は修正案へ。自動でフィルター追加しない                               |
 
 APIの全query境界・レート50/51回・transaction snapshotの網羅は既存serverテスト担当。本E2Eは接続・代表認可・DB不変の追加保証に絞る。詳細先への実遷移は目視で、一覧のhref契約を検証済みと区別する。
 

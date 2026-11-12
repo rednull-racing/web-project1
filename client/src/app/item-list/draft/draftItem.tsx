@@ -7,13 +7,7 @@ import type { ItemDraft, DraftListResponse } from "./types";
 import styles from "./draftItemList.module.css";
 import { RemoveFloat } from "./removeFloat";
 
-export const DraftItem = ({
-    itemDraft,
-    mutate,
-}: {
-    itemDraft: ItemDraft;
-    mutate: KeyedMutator<DraftListResponse>;
-}) => {
+export const DraftItem = ({ itemDraft, mutate }: { itemDraft: ItemDraft; mutate: KeyedMutator<DraftListResponse> }) => {
     const itemPageLink = `/item/draft/${itemDraft.id}`;
     const previewDateLabel = "保存日時";
     const previewDate = formatRelativeTime(itemDraft.createdAt);
@@ -59,12 +53,7 @@ export const DraftItem = ({
                     />
                 </Link>
 
-                {
-                    <RemoveFloat
-                        itemDraftId={itemDraft.id}
-                        mutate={mutate}
-                    />
-                }
+                {<RemoveFloat itemDraftId={itemDraft.id} mutate={mutate} />}
             </div>
         </section>
     );

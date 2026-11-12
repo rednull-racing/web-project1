@@ -23,23 +23,23 @@ TabHeaderは実処理とCSS Modules、router.pushをvi.fnで置換。生成class
 
 Uは単体、I/H/L/Tは対象、Oは人間観測。P0は基本契約、P1は補完。列挙条件は独立テストへ展開し、ID数と実行件数を混同しない。
 
-| ID・優先度 | 条件・手順 | 期待結果 |
-| --- | --- | --- |
-| U-I01 P0 | titleを通常/空/HTML風文字列にして描画 | titleをそのままTitleAndBackへ。Containerの中で見出しが子より先。HTML風入力はテキストで保持 |
-| U-I02 P1 | childrenをnull／複数要素にする | タイトルを維持、余分な要素を追加せず子の順序・包含を保持。Containerへheader指定なし |
-| U-I03 P1 | titleとchildrenをrerenderで更新 | 最新値だけを渡し、旧内容を残さない |
-| U-H01 P0 | 複数childrenで描画 | Container内でBackが先、子の順序維持。Backへurl指定なし、Containerへheader指定なし |
-| U-H02 P1 | null children | Backは1個維持、子の代替表示を追加しない |
-| U-H03 P1 | children変更でrerender | 新しい内容へ置換、Backは重複しない |
-| U-L01 P0 | 複数children | ToastBoundaryが同じchildrenを受け取り包含・順序を保持 |
-| U-L02 P1 | null children | Boundaryを維持し余分な代替表示なし |
-| U-L03 P1 | children変更でrerender | Boundary内は最新内容だけ。Provider自体のトースト設定は対象外 |
-| U-T01 P0 | 初期描画 | nav内に全商品・販売中のみ・売り切れの3ボタン、この順序。type=button、name=all-tab/selling-tab/sold |
-| U-T02 P0 | all/selling/sold | 指定tabだけactive、他は非active。全ボタン操作可能 |
-| U-T03 P0 | 3種のtabそれぞれから3ボタンを個別クリック | 正確なURLへpush1回（現在tabの再クリックも通知）。親再描画までactiveは入力tabのまま |
-| U-T04 P1 | all→soldにrerender | activeが移り旧active除去、pushは呼ばない |
-| U-T05 P1 | ボタンにfocusしEnter/Space | 遷移要求1回。見た目や実遷移は確認しない |
-| U-T06 P1 | 同じボタンを2回クリック | 2回push。操作を間引く新仕様を要求しない |
+| ID・優先度 | 条件・手順                                | 期待結果                                                                                           |
+| ---------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| U-I01 P0   | titleを通常/空/HTML風文字列にして描画     | titleをそのままTitleAndBackへ。Containerの中で見出しが子より先。HTML風入力はテキストで保持         |
+| U-I02 P1   | childrenをnull／複数要素にする            | タイトルを維持、余分な要素を追加せず子の順序・包含を保持。Containerへheader指定なし                |
+| U-I03 P1   | titleとchildrenをrerenderで更新           | 最新値だけを渡し、旧内容を残さない                                                                 |
+| U-H01 P0   | 複数childrenで描画                        | Container内でBackが先、子の順序維持。Backへurl指定なし、Containerへheader指定なし                  |
+| U-H02 P1   | null children                             | Backは1個維持、子の代替表示を追加しない                                                            |
+| U-H03 P1   | children変更でrerender                    | 新しい内容へ置換、Backは重複しない                                                                 |
+| U-L01 P0   | 複数children                              | ToastBoundaryが同じchildrenを受け取り包含・順序を保持                                              |
+| U-L02 P1   | null children                             | Boundaryを維持し余分な代替表示なし                                                                 |
+| U-L03 P1   | children変更でrerender                    | Boundary内は最新内容だけ。Provider自体のトースト設定は対象外                                       |
+| U-T01 P0   | 初期描画                                  | nav内に全商品・販売中のみ・売り切れの3ボタン、この順序。type=button、name=all-tab/selling-tab/sold |
+| U-T02 P0   | all/selling/sold                          | 指定tabだけactive、他は非active。全ボタン操作可能                                                  |
+| U-T03 P0   | 3種のtabそれぞれから3ボタンを個別クリック | 正確なURLへpush1回（現在tabの再クリックも通知）。親再描画までactiveは入力tabのまま                 |
+| U-T04 P1   | all→soldにrerender                        | activeが移り旧active除去、pushは呼ばない                                                           |
+| U-T05 P1   | ボタンにfocusしEnter/Space                | 遷移要求1回。見た目や実遷移は確認しない                                                            |
+| U-T06 P1   | 同じボタンを2回クリック                   | 2回push。操作を間引く新仕様を要求しない                                                            |
 
 ## 人間観測
 

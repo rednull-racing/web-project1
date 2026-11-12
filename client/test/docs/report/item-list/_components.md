@@ -43,21 +43,21 @@ npm run typecheck
 ```
 
 | ファイル（`src/app/item-list/_components/test/` 配下） | 実行 | 成功 | 失敗 |
-| --- | --- | --- | --- |
-| `itemImage.test.tsx` | 9 | 9 | 0 |
-| `itemPrice.test.tsx` | 16 | 16 | 0 |
-| `pagination.test.tsx` | 27 | 27 | 0 |
-| `searchField.test.tsx` | 21 | 21 | 0 |
-| 合計 | 73 | 73 | 0 |
+| ------------------------------------------------------ | ---- | ---- | ---- |
+| `itemImage.test.tsx`                                   | 9    | 9    | 0    |
+| `itemPrice.test.tsx`                                   | 16   | 16   | 0    |
+| `pagination.test.tsx`                                  | 27   | 27   | 0    |
+| `searchField.test.tsx`                                 | 21   | 21   | 0    |
+| 合計                                                   | 73   | 73   | 0    |
 
 集計元は `/tmp/item-list-f1-results.json` の実ファイル4件のassertionResults、標準出力は `/tmp/item-list-f1-unit.log`（いずれも一時成果物）。初回実行と重複加算していない。ケース対応は初回表と同一で、U-P03を「2件成功」、U-P13を「1件成功」へ更新したものが現在の判定となる。他32 IDも今回の再実行ですべて成功。カバレッジは未取得。
 
-| 静的検査 | 今回結果 | 根拠（一時ログ） |
-| --- | --- | --- |
-| 対象eslint | 成功、診断0 | `/tmp/item-list-f1-eslint.log` |
-| テスト用型検査 | 成功、診断0 | `/tmp/item-list-f1-test-types.log` |
-| 全体lint | 失敗、23 errors・34 warnings、対象テスト診断0 | `/tmp/item-list-f1-lint.log` |
-| 本番型検査 | 失敗、50診断。前回と診断出力一致 | `/tmp/item-list-f1-types.log` |
+| 静的検査       | 今回結果                                      | 根拠（一時ログ）                   |
+| -------------- | --------------------------------------------- | ---------------------------------- |
+| 対象eslint     | 成功、診断0                                   | `/tmp/item-list-f1-eslint.log`     |
+| テスト用型検査 | 成功、診断0                                   | `/tmp/item-list-f1-test-types.log` |
+| 全体lint       | 失敗、23 errors・34 warnings、対象テスト診断0 | `/tmp/item-list-f1-lint.log`       |
+| 本番型検査     | 失敗、50診断。前回と診断出力一致              | `/tmp/item-list-f1-types.log`      |
 
 全体lintと本番型検査はF2で記載した既存の対象外診断。今回も修正していない。モック・実処理・保証範囲は初回と同じで、next/imageのみ置換、Font Awesomeと対象本体は実物、通信・DBなし。目視観測O01～O03は今回も未実行・人間確認待ちで、自動成功件数に含めない。Node.js指定バージョン、SSR/Hydration、実レイアウト・実検索・実遷移は未確認。
 
@@ -90,53 +90,53 @@ npm run typecheck
 集計根拠は最終Vitest JSON `/tmp/item-list-components-results.json` と出力 `/tmp/item-list-unit-final.log`（一時成果物）。実ファイル4件、展開されたassertionResults 73件から集計し、describeのsuite数や再実行を加算していない。カバレッジ未取得。
 
 | テストファイル（すべて `src/app/item-list/_components/test/` 配下） | 実行 | 成功 | 失敗 |
-| --- | --- | --- | --- |
-| `itemImage.test.tsx` | 9 | 9 | 0 |
-| `itemPrice.test.tsx` | 16 | 16 | 0 |
-| `pagination.test.tsx` | 27 | 25 | 2 |
-| `searchField.test.tsx` | 21 | 21 | 0 |
-| 合計 | 73 | 71 | 2 |
+| ------------------------------------------------------------------- | ---- | ---- | ---- |
+| `itemImage.test.tsx`                                                | 9    | 9    | 0    |
+| `itemPrice.test.tsx`                                                | 16   | 16   | 0    |
+| `pagination.test.tsx`                                               | 27   | 25   | 2    |
+| `searchField.test.tsx`                                              | 21   | 21   | 0    |
+| 合計                                                                | 73   | 71   | 2    |
 
 ## 設計IDとの対応
 
 下表の件数は各IDを含むテスト数。U-R01とU-R07は同じ1テストで4値の独立表示を確認するため重複加算しない。
 
-| 設計ID | 展開件数 | 判定 |
-| --- | --- | --- |
-| U-I01 | 1 | 成功 |
-| U-I02 | 1 | 成功 |
-| U-I03 | 6 | 成功 |
-| U-I04 | 1 | 成功 |
-| U-P01 | 3 | 成功 |
-| U-P02 | 4 | 成功 |
-| U-P03 | 2 | 成功1・失敗1 |
-| U-P04 | 2 | 成功 |
-| U-P05 | 2 | 成功 |
-| U-P06 | 2 | 成功 |
-| U-P07 | 1 | 成功 |
-| U-P08 | 4 | 成功 |
-| U-P09 | 2 | 成功 |
-| U-P10 | 2 | 成功 |
-| U-P11 | 1 | 成功 |
-| U-P12 | 1 | 成功 |
-| U-P13 | 1 | 成功0・失敗1 |
-| U-R01 | 1 | 成功 |
-| U-R02 | 4 | 成功 |
-| U-R03 | 3 | 成功 |
-| U-R04 | 3 | 成功 |
-| U-R05 | 1 | 成功 |
-| U-R06 | 3 | 成功 |
-| U-R07 | 1 | 成功 |
-| U-R08 | 1 | 成功 |
-| U-S01 | 1 | 成功 |
-| U-S02 | 1 | 成功 |
-| U-S03 | 1 | 成功 |
-| U-S04 | 1 | 成功 |
-| U-S05 | 4 | 成功 |
-| U-S06 | 4 | 成功 |
-| U-S07 | 3 | 成功 |
-| U-S08 | 4 | 成功 |
-| U-S09 | 2 | 成功 |
+| 設計ID | 展開件数 | 判定         |
+| ------ | -------- | ------------ |
+| U-I01  | 1        | 成功         |
+| U-I02  | 1        | 成功         |
+| U-I03  | 6        | 成功         |
+| U-I04  | 1        | 成功         |
+| U-P01  | 3        | 成功         |
+| U-P02  | 4        | 成功         |
+| U-P03  | 2        | 成功1・失敗1 |
+| U-P04  | 2        | 成功         |
+| U-P05  | 2        | 成功         |
+| U-P06  | 2        | 成功         |
+| U-P07  | 1        | 成功         |
+| U-P08  | 4        | 成功         |
+| U-P09  | 2        | 成功         |
+| U-P10  | 2        | 成功         |
+| U-P11  | 1        | 成功         |
+| U-P12  | 1        | 成功         |
+| U-P13  | 1        | 成功0・失敗1 |
+| U-R01  | 1        | 成功         |
+| U-R02  | 4        | 成功         |
+| U-R03  | 3        | 成功         |
+| U-R04  | 3        | 成功         |
+| U-R05  | 1        | 成功         |
+| U-R06  | 3        | 成功         |
+| U-R07  | 1        | 成功         |
+| U-R08  | 1        | 成功         |
+| U-S01  | 1        | 成功         |
+| U-S02  | 1        | 成功         |
+| U-S03  | 1        | 成功         |
+| U-S04  | 1        | 成功         |
+| U-S05  | 4        | 成功         |
+| U-S06  | 4        | 成功         |
+| U-S07  | 3        | 成功         |
+| U-S08  | 4        | 成功         |
+| U-S09  | 2        | 成功         |
 
 画像は指定属性、空URL、6通りのSOLD条件、再描画を検証。価格は表示ゲート4通り、割引値-1/0/1、価格0/999/1000と再描画を検証。検索は制御値の変更候補を同期時点で記録し、空白を含む4条件のEnter／クリック、非送信キー、装飾、連続通知を検証。ページ番号は表示範囲、端点のdisabled、通知引数・回数、現在ページ維持、非操作の省略span、active更新を検証した。U-P13は幅変更後の列のassertで失敗し、その後の通知なしassertには未到達。
 
@@ -336,13 +336,13 @@ test/integration/pages/item/itemDraftPage/page.spec.ts
 
 ## 静的検査・境界・未確認
 
-| コマンド | 最終結果 | 根拠（一時ログ） |
-| --- | --- | --- |
-| 対象Vitest | 失敗（71成功・2失敗） | `/tmp/item-list-unit-final.log`、上記JSON |
-| `npm run lint` | 失敗（23 errors・34 warnings、すべて対象外） | `/tmp/item-list-lint-final.log` |
-| `npm run typecheck` | 失敗（既存ページと生成型） | `/tmp/item-list-typecheck-final.log` |
-| `tsc --noEmit -p test/tsconfig.json` | 成功 | `/tmp/item-list-test-typecheck-final.log`（診断なし） |
-| 対象ディレクトリのeslint | 成功（診断なし） | `/tmp/item-list-target-lint-final.log` |
+| コマンド                             | 最終結果                                     | 根拠（一時ログ）                                      |
+| ------------------------------------ | -------------------------------------------- | ----------------------------------------------------- |
+| 対象Vitest                           | 失敗（71成功・2失敗）                        | `/tmp/item-list-unit-final.log`、上記JSON             |
+| `npm run lint`                       | 失敗（23 errors・34 warnings、すべて対象外） | `/tmp/item-list-lint-final.log`                       |
+| `npm run typecheck`                  | 失敗（既存ページと生成型）                   | `/tmp/item-list-typecheck-final.log`                  |
+| `tsc --noEmit -p test/tsconfig.json` | 成功                                         | `/tmp/item-list-test-typecheck-final.log`（診断なし） |
+| 対象ディレクトリのeslint             | 成功（診断なし）                             | `/tmp/item-list-target-lint-final.log`                |
 
 本番tsconfigは実ファイル上 `src/**/test` を除外していない。テスト用tsconfigは単体・結合とテスト設定類を明示的に含む。通常lintも対象TSXを含み、対象外TSへの追加検査は不要だった。
 

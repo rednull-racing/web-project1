@@ -20,16 +20,17 @@ describe("ItemPriceの整形とセール表示", () => {
         expect(screen.getAllByText("1,000円引き")).toHaveLength(1);
     });
 
-    it.each([true, false].flatMap((showSale) =>
-        [true, false].map((sale_flag) => ({ showSale, sale_flag })),
-    ))("U-R02 入力%jの表示条件を満たす場合だけセールを表示する", ({ showSale, sale_flag }) => {
-        const props = fixture();
-        render(<ItemPrice {...props} showSale={showSale} data={{ ...props.data, sale_flag }} />);
-        expect(screen.getByRole("heading")).toHaveTextContent("12,345円");
-        for (const text of ["20,000円", "20% OFF", "1,000円引き"]) {
-            expect(screen.queryAllByText(text)).toHaveLength(showSale && sale_flag ? 1 : 0);
-        }
-    });
+    it.each([true, false].flatMap((showSale) => [true, false].map((sale_flag) => ({ showSale, sale_flag }))))(
+        "U-R02 入力%jの表示条件を満たす場合だけセールを表示する",
+        ({ showSale, sale_flag }) => {
+            const props = fixture();
+            render(<ItemPrice {...props} showSale={showSale} data={{ ...props.data, sale_flag }} />);
+            expect(screen.getByRole("heading")).toHaveTextContent("12,345円");
+            for (const text of ["20,000円", "20% OFF", "1,000円引き"]) {
+                expect(screen.queryAllByText(text)).toHaveLength(showSale && sale_flag ? 1 : 0);
+            }
+        },
+    );
 
     it.each([-1, 0, 1])("U-R03 割引率%sは正の場合だけ表示する", (discount_rate) => {
         const props = fixture();
@@ -56,7 +57,11 @@ describe("ItemPriceの整形とセール表示", () => {
         expect(screen.queryByText(/% OFF|円引き/)).not.toBeInTheDocument();
     });
 
-    it.each([[0, "0円"], [999, "999円"], [1000, "1,000円"]] as const)("U-R06 現在価格%sと変更前価格0を表示する", (price, expected) => {
+    it.each([
+        [0, "0円"],
+        [999, "999円"],
+        [1000, "1,000円"],
+    ] as const)("U-R06 現在価格%sと変更前価格0を表示する", (price, expected) => {
         const props = fixture();
         const { container } = render(<ItemPrice {...props} data={{ ...props.data, price, before_price: 0 }} />);
         expect(screen.getByRole("heading").textContent).toBe(expected);
@@ -91,7 +96,12 @@ describe("ItemPriceの文字列価格契約", () => {
 
     it("AF-R03 文字列の変更前価格と割引数値を整形する", () => {
         const props = fixture();
-        render(<ItemPrice {...props} data={{ ...props.data, before_price: "20000.00", discount_rate: "20", discount_amount: "1000" }} />);
+        render(
+            <ItemPrice
+                {...props}
+                data={{ ...props.data, before_price: "20000.00", discount_rate: "20", discount_amount: "1000" }}
+            />,
+        );
         expect(screen.getByText("20,000円")).toBeInTheDocument();
         expect(screen.getByText("20% OFF")).toBeInTheDocument();
         expect(screen.getByText("1,000円引き")).toBeInTheDocument();

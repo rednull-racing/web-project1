@@ -73,10 +73,7 @@ describe("TabHeaderの遷移要求", () => {
         const button = screen.getByRole("button", { name: "売り切れ" });
         await user.click(button);
         await user.click(button);
-        expect(push.mock.calls).toEqual([
-            ["/item-list/uploaded?tab=sold"],
-            ["/item-list/uploaded?tab=sold"],
-        ]);
+        expect(push.mock.calls).toEqual([["/item-list/uploaded?tab=sold"], ["/item-list/uploaded?tab=sold"]]);
         expectActive("売り切れ");
     });
 });
