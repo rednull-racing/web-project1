@@ -5,12 +5,18 @@ import { fetcher, fetchRemoveItem, getListUrl } from "../client";
 vi.mock("@/lib/api/client", () => ({ apiFetch: vi.fn() }));
 beforeEach(() => vi.stubEnv("NEXT_PUBLIC_API_URL", "http://localhost/api"));
 describe("一覧API境界", () => {
-    it.each([1, 2].flatMap(page => ["", " ", "　", " シャツ ", " & + # ? / % _ "].map(keyword => ({ page, keyword }))))("U-A01 入力%jをtrimして一度encodeする", ({ page, keyword }) => {
+    it.each(
+        [1, 2].flatMap((page) => ["", " ", "　", " シャツ ", " & + # ? / % _ "].map((keyword) => ({ page, keyword }))),
+    )("U-A01 入力%jをtrimして一度encodeする", ({ page, keyword }) => {
         const suffix = keyword.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : "";
         expect(getListUrl(page, keyword)).toBe(`http://localhost/api/item-draft/list?page=${page}${suffix}`);
         expect(fetcher).toBe(sharedFetcher);
     });
-    it.each(["http://localhost/api", "http://localhost/api/"].flatMap(base => [0, -1, 1.5].map(page => ({ base, page }))))("U-A02 型内の不正ページとbase末尾%jを補正しない", ({ base, page }) => {
+    it.each(
+        ["http://localhost/api", "http://localhost/api/"].flatMap((base) =>
+            [0, -1, 1.5].map((page) => ({ base, page })),
+        ),
+    )("U-A02 型内の不正ページとbase末尾%jを補正しない", ({ base, page }) => {
         vi.stubEnv("NEXT_PUBLIC_API_URL", base);
         expect(getListUrl(page, "null")).toBe(`${base}/item-draft/list?page=${page}&keyword=null`);
     });

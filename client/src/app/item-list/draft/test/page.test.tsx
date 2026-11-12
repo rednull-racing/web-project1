@@ -11,7 +11,11 @@ describe("Pageとmetadata", () => {
         expect(page.type).toBe(ItemListUI);
         expect(page.props.title).toBe("下書き商品");
         expect(page.props.children.type).toBe(DraftItemList);
-        expect(await generateMetadata()).toEqual({ title: "下書き商品一覧", description: "下書き保存した商品をご覧いただけます。", robots: { index: false, follow: false } });
+        expect(await generateMetadata()).toEqual({
+            title: "下書き商品一覧",
+            description: "下書き保存した商品をご覧いただけます。",
+            robots: { index: false, follow: false },
+        });
         expect(fetchSpy).not.toHaveBeenCalled();
     });
 });
