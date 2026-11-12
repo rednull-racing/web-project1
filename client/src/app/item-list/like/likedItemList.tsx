@@ -9,7 +9,7 @@ import styles from "./likedItemList.module.css";
 import { LikeItem } from "./likeItem";
 
 type Response = {
-    itemList: Item[];
+    itemList: { item: Item }[];
     totalPages: number;
 };
 
@@ -46,7 +46,7 @@ export const LikedItemList = () => {
 
             {itemList && itemList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemList.map((item) => (
+                    {itemList.map(({ item }) => (
                         <LikeItem key={item.id} item={item} mutate={mutate} />
                     ))}
 

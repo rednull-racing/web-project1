@@ -14,7 +14,7 @@ type Props = {
 };
 
 type Response = {
-    itemList: Item[];
+    itemList: { item: Item }[];
     totalPages: number;
 };
 
@@ -51,7 +51,7 @@ export const UploadedItemList = ({ uploadedTab }: Props) => {
 
             {itemList && itemList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemList.map((item) => (
+                    {itemList.map(({ item }) => (
                         <UploadedItem key={item.id} item={item} mutate={mutate} />
                     ))}
 

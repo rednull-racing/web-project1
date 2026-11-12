@@ -11,7 +11,7 @@ export const TrashItem = ({
 }: {
     itemTrash: ItemTrash;
     mutate: KeyedMutator<{
-        itemTrashList: ItemTrash[];
+        itemTrashList: { itemTrash: ItemTrash }[];
         totalPages: number;
     }>;
 }) => {

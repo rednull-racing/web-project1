@@ -12,7 +12,7 @@ export const WatchHistoryItem = ({
 }: {
     item: Item;
     mutate: KeyedMutator<{
-        itemList: Item[];
+        itemList: { item: Item }[];
         totalPages: number;
     }>;
 }) => {

@@ -3,7 +3,7 @@
 ## 概要
 
 認証本人のいいねした商品を検索・ページングして表示し、商品詳細への遷移と一覧からの削除に対応する。バックエンドはいいね登録の作成日時の降順（同日時は登録IDの降順）で20件ずつ取得し、商品statusは既定で `active`・`soldout` を対象とする。
-この文書は現在の実装概要であり、変更時はルートおよび `client` 配下の上位 `AGENTS.md` にも従う。レスポンス形の差異は「表示データの型」を参照する。
+この文書は現在の実装概要であり、変更時はルートおよび `client` 配下の上位 `AGENTS.md` にも従う。レスポンス形は「表示データの型とAPI接続」を参照する。
 
 ## 各コンポーネントの役割
 
@@ -85,12 +85,13 @@ flowchart TD
 - 共通 `apiFetch` がトークン必須の判定、Bearerヘッダーの付与、レスポンスJSONの読取り、`ApiError` の送出を担う。
 - キャッシュ更新・成功通知・エラー表示は `RemoveFloat` が担当する。
 
-### 表示データの型
+### 表示データの型とAPI接続
 
-- [../types.ts](../types.ts) の `Item` を使用する。ID・商品名・価格・status・画像URL・性別区分・年齢区分・attributesと、nullableな `Video`・`Sale` を持つ。
-- 表示で利用する関連項目は `Video.title` と `Sale` のセールフラグ・変更前価格・割引率・割引額。`attributes` はこの一覧では描画しない。
-- フロントは `itemList: Item[]` を期待する一方、現行バックエンドの一覧usecase・controllerは `itemList: { item: ... }[]` を返す。共通 `fetcher` に平坦化処理はなく、両者の形は一致していない。
-- 返却形式の不一致は [対応Todo](../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md) を参照する。この文書は既存の型や返却形を修正しない。変更作業時はAPIの実レスポンスと型の対応を確認すること。実APIと接続した表示・削除の動作は本作業では未検証。
+- `../types.ts` の `Item` を使用する。レスポンスは `{ itemList: { item: Item }[]; totalPages: number }` とし、描画時に要素の `item` を取り出す。
+- IDは数値、商品名・画像URLはnullable。Videoはnullableなtitleのみ、Saleはnullableな割引率・割引額・変更前価格とsale_flagを持ち、関連IDは返却されない。
+- 価格は `number | string` とし、このページでnull価格は許容しない。共通ItemPriceが数値文字列を含む価格を桁区切りと「円」で表示する。
+- 楽観的削除はキャッシュのラッパー構造を維持し、`item.id` を数値IDで比較する。HTTPパスの文字列化は通信境界で行う。
+- 共通fetcherはレスポンスをそのまま返す。APIは変更せず、フロントの型・描画・キャッシュ操作を返却構造に合わせる。
 
 ## デザイン・CSS
 

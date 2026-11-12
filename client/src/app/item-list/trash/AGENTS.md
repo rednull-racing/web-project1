@@ -62,12 +62,11 @@ flowchart TD
 - バックエンドで本人の `seller_id` に限定し、検索語は正規化したうえで商品名・動画タイトルの部分一致に使用する。取得と件数計算はバックエンドが担う。
 - メタデータには「最近1か月以内」とあるが、現行一覧取得のwhere条件には期間制限がない。画面側も期間による絞込みを行わないため、取得条件と説明文は区別して確認する。
 
-### 表示データの型と接続時の確認点
+### 表示データの型とAPI接続
 
-- [../types.ts](../types.ts) の `ItemTrash` は `id`・`name`・`price`・`first_image_url`・`title`・`createdAt` を持つ。
-- 文字項目は `string`、価格は `number`、`createdAt` は `Date` と定義されているが、JSON取得後に日付を `Date` へ変換する処理はない。
-- 一覧の `TrashItemData` は `ComponentProps<typeof TrashItem>["itemTrash"]` から導出する。フロントが想定するレスポンスは `{ itemTrashList: ItemTrash[]; totalPages: number }`。
-- 現行バックエンドの `getItemTrashListUseCase` は `itemTrashList: { itemTrash: 商品情報 }[]` を返す一方、フロントは平坦な配列を直接描画する。共通fetcherには展開変換がないため、接続時は両者のレスポンス形状を確認する。
+- `../types.ts` の `ItemTrash` を使用する。レスポンスは `{ itemTrashList: { itemTrash: ItemTrash }[]; totalPages: number }` とし、描画時に要素の `itemTrash` を取り出す。
+- IDは数値、createdAtはJSONのISO文字列、商品名・画像URL・動画タイトルはnullable。価格は `number | string` とし、このページでnull価格は許容しない。日時はDateへ変換せずformatRelativeTimeへ渡す。
+- 共通fetcherはレスポンスをそのまま返す。APIは変更せず、フロントの型・描画・キャッシュ操作を返却構造に合わせる。
 
 ## デザイン・CSS
 

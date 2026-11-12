@@ -12,7 +12,7 @@ export const LikeItem = ({
 }: {
     item: Item;
     mutate: KeyedMutator<{
-        itemList: Item[];
+        itemList: { item: Item }[];
         totalPages: number;
     }>;
 }) => {

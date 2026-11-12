@@ -11,7 +11,7 @@ import styles from "./trashItemList.module.css";
 type TrashItemData = ComponentProps<typeof TrashItem>["itemTrash"];
 
 type Response = {
-    itemTrashList: TrashItemData[];
+    itemTrashList: { itemTrash: TrashItemData }[];
     totalPages: number;
 };
 
@@ -48,7 +48,7 @@ export const TrashItemList = () => {
 
             {itemTrashList && itemTrashList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemTrashList.map((itemTrash) => (
+                    {itemTrashList.map(({ itemTrash }) => (
                         <TrashItem key={itemTrash.id} itemTrash={itemTrash} mutate={mutate} />
                     ))}
 
