@@ -14,8 +14,11 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
     render() { return this.state.failed ? <p>描画エラー</p> : this.props.children; }
 }
 describe("実API一覧レスポンス契約", () => {
-    it.each([false, true])("C-A01 wrapped配列nullable=%sで正しいIDと情報を利用できる", async (nullable) => {
-        server.use(http.get(`${base}/item-draft/list`, () => HttpResponse.json(wireResponse(nullable))));
+    it.each([false, true, "string"] as const)("C-A01 wrapped配列price=%sで正しいIDと情報を利用できる", async (priceKind) => {
+        const nullable = priceKind === true;
+        const body = wireResponse(nullable);
+        const payload = priceKind === "string" ? { ...body, itemDraftList: [{ itemDraft: { ...body.itemDraftList[0].itemDraft, price: "12345" } }] } : body;
+        server.use(http.get(`${base}/item-draft/list`, () => HttpResponse.json(payload)));
         mount(<Boundary><DraftItemList /></Boundary>);
         const link = await screen.findByRole("link", { name: /保存日時/ });
         expect(link).toHaveAttribute("href", "/item/draft/101");

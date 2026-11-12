@@ -1,5 +1,34 @@
 # 下書き商品一覧 テストレポート
 
+## 最新結果：2026-11-12 F1修正後
+
+APIを維持し、/item-listの7一覧すべてでwrapped配列・数値ID・nullable列・ISO日時にフロント型と参照を整合した。draftは専用型 `draft/types.ts` を使用し、キャッシュ更新も `entry.itemDraft.id` で比較する。draft以外は価格を `number | string`（null不可）、draftだけ `number | string | null` とし、表示時にnullを「-」へ変換する。数値価格・数値文字列は「1,200円」形式。共通部品自体はnullを受け付けない。
+
+F1はフロント修正・単体/結合再検証済み。draft単体43件、共通部品79件、draft結合16件すべて成功。C-A01は数値・null・文字列価格の3条件で正しいIDと表示を検証。削除キャッシュのwrapped構造・数値ID条件も成功。追加AF-I01でnull→「-」を確認。以前のU-I02型外undefined観測は実APIのnullable型に合わせnull条件へ集約し、IDを維持した他のケースと区別する。
+
+Node26.12.1、client/で前回と同じ対象コマンドを実行。単体はdraftと共通部品のtestディレクトリ、結合はdraftのcomponents/pagesを指定しJSON出力。集計元 `/tmp/list-fix-unit.json`（122成功）、`/tmp/list-fix-integration.json`（16成功）。失敗・skip/pending/todo・未処理例外0。カバレッジ未取得。draft以外の6ページのテスト追加・実行はユーザー指示により対象外で、本番修正・型検査・対象lintを確認した。
+
+対象eslint（`src/app/item-list` とdraft fixture/integration）・テスト用型検査は成功。全体lintは既存23 errors/34 warnings、本番型検査は既存ページの診断で失敗。根拠は `/tmp/list-fix-{target-lint,test-types,lint,types}.log`（一時成果物）。全体成功とはしない。
+
+E2EはNode26でE-N01を再試行し、権限を変えてもテストDBのschemaガードで停止、本体未実行・seedなし。`/tmp/list-fix-e2e.log`、`/tmp/list-fix-e2e-escalated.log`。F3は未解消、後続7テストは前提未成立で保留。migrationは未実行。O01～O03は人間確認待ち。F2の対象外静的診断も継続。
+
+再現コマンド（client/、Node26のPATH）：
+
+```bash
+npm run test:unit -- src/app/item-list/draft/test/ src/app/item-list/draft/api/test/ src/app/item-list/_components/test/ --reporter=json --outputFile=/tmp/list-fix-unit.json
+npm run test:integration -- test/integration/components/item-list/draft/ test/integration/pages/item-list/draft/ --reporter=json --outputFile=/tmp/list-fix-integration.json
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+./node_modules/.bin/eslint src/app/item-list test/fixtures/item-list/draft test/integration/components/item-list/draft test/integration/pages/item-list/draft
+npm run lint
+npm run typecheck
+```
+
+---
+
+## 初回実装の履歴（F1修正前）
+
+以下末尾までの「最新」「今回」「提案のみ」「失敗」は初回時点の記録。現在は上記が優先する。旧平坦fixtureは今回wire形式へ移行済み。
+
 実行日：2026-11-12。対象は `/item-list/draft`。[設計書](../../architecture/item-list/draft.md)に基づく単体・結合・E2Eを実装する。本文のパスは原則client基準、E2Eはリポジトリルートのtest基準。
 
 ## 最新結果
