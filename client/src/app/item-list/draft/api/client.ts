@@ -10,8 +10,8 @@ export const getListUrl = (pageNumber: number, searchKeyword: string) => {
         : null;
 };
 
-export const fetchRemoveItem = (path: string) => {
-    return apiFetch(path, {
+export const fetchRemoveItem = (itemDraftId: string) => {
+    return apiFetch(`/item-draft/${itemDraftId}`, {
         method: "DELETE",
     });
 };

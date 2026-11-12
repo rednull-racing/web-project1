@@ -23,20 +23,19 @@ type Props = {
 export const RemoveFloat = ({ itemDraftId, mutate }: Props) => {
     const [floatVisible, setFloatVisible] = useState(false);
 
-    const remove = async (itemId: string) => {
-        const removeBasePath = `items/${itemId}/draft`;
+    const remove = async () => {
         // 楽観的更新
         mutate((currentData) => {
             if (!currentData) return currentData;
             return {
                 ...currentData,
-                itemDraftList: currentData.itemDraftList.filter((item) => item.id !== itemId),
+                itemDraftList: currentData.itemDraftList.filter((itemDraft) => itemDraft.id !== itemDraftId),
             };
         }, false);
 
         const toastBaseText = "下書き商品";
         try {
-            await fetchRemoveItem(removeBasePath);
+            await fetchRemoveItem(itemDraftId);
             mutate();
             toast.success(`${toastBaseText}を削除しました`);
         } catch (err) {
@@ -64,7 +63,7 @@ export const RemoveFloat = ({ itemDraftId, mutate }: Props) => {
                     <div className={styles.overlay} onClick={() => setFloatVisible(false)} />
 
                     <div className={styles.float}>
-                        <div className={styles.removeFlex} onClick={() => remove(itemDraftId)}>
+                        <div className={styles.removeFlex} onClick={() => remove()}>
                             <FontAwesomeIcon icon={faTrash} className={styles.trashIcon} />
 
                             <p className={styles.floatText}>{removeText}</p>
