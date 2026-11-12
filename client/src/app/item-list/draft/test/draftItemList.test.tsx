@@ -10,9 +10,7 @@ const state = vi.hoisted(() => ({
     data: undefined as
         | undefined
         | {
-              itemDraftList: {
-                  id: string;
-              }[];
+              itemDraftList: { itemDraft: { id: number } }[];
               totalPages: number;
           },
     error: undefined as Error | undefined,
@@ -25,7 +23,7 @@ vi.mock("../draftItem", () => ({
             itemDraft,
         }: {
             itemDraft: {
-                id: string;
+                id: number;
             };
         }) => <p>{itemDraft.id}</p>,
     ),
@@ -54,7 +52,7 @@ const change = (value: string) => fireEvent.change(screen.getByPlaceholderText("
 const key = () => vi.mocked(useSWR).mock.calls.at(-1)?.[0];
 beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "http://localhost/api");
-    state.data = { itemDraftList: [{ id: "101" }, { id: "102" }], totalPages: 3 };
+    state.data = { itemDraftList: [{ itemDraft: {id: 101} }, { itemDraft: {id: 102} }], totalPages: 3 };
     state.error = undefined;
 });
 describe("一覧状態", () => {

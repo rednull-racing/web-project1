@@ -14,18 +14,18 @@
 - [テスト配置・分担](../../../AGENTS.md)、[設計書規則](../AGENTS.md)、[レポート規則](../../report/AGENTS.md)、[E2E環境](../../../../../test/README.md)。
 - リポジトリルート基準 `docs/design/backend/detail/itemDraft/{getItemDraftList,deleteItemDraft}.md`、対応する `server/src/{routes,controllers,usecases,services}/itemDraft/` の実装、`server/src/routes/index.ts`、`server/src/models/item_draft.ts`。
 
-### 期待値の優先関係と既知の接続不整合
+### 期待値の優先関係と返却形式の整合
 
 部品単体は明示された現行の責務を検証し、UIにないローディング・二重送信抑止・ページ補正等を新仕様として発明しない。一方、実APIの接続はバックエンドの確定した契約を正とし、現行の不整合を成功モックで隠さない。
 
 | 論点 | 現行の差 | 検証方針 |
 | --- | --- | --- |
-| 一覧JSON | UIは `ItemDraft[]`、実APIは `{itemDraft: row}[]`。fetcherは変換しない | 単体UIはフロント型fixtureを明記。結合C-A01・E2E E-N01は実JSONを用い、本人の商品情報・有効なリンクが表示されることを期待して不整合を検出 |
-| ID・null・日時 | UI型はid:string、price:number、文字項目:string、createdAt:Date。実APIはid:number、価格や文字項目はnullable、createdAtはISO文字列 | 型アサーションで整合したことにしない。実JSONは別fixtureとして保持。日付関数は文字列対応だがprice nullの表示契約は未確定として別途記録 |
+| 一覧JSON | APIを維持し、UIも `{itemDraft: row}[]` を受け取る | 全fixtureをwire形式とし、C-A01・E-N01で本人の商品情報・有効なリンクを検証する |
+| ID・null・日時 | draft専用型はid:number、価格:number/string/null、文字項目nullable、createdAt:ISO文字列 | null価格は `-`、数値・数値文字列価格は `1,200円` と表示。他ページではnull価格を許容しない |
 | 削除接続（パス修正済み） | RemoveFloatは下書きIDをfetchRemoveItemへ渡し、apiFetchが `/item-draft/{id}` をbaseへ連結する。実ルート `DELETE /api/item-draft/:id` と一致 | U-A03/U-D02でIDの受渡し、C-A02・E-D01で正規DELETEの接続を確認する。パスの静的整合と疎通確認済みを区別する |
 | base URLの末尾 | 一覧はbaseに `/item-draft/list`、削除はbaseに `/item-draft/{id}` を連結 | 基準baseは `http://127.0.0.1:4100/api`（例、認証情報なし）。末尾スラッシュ有無をU-A02で観測し、実環境では採用baseを明記。両方が成功すると仮定しない |
 
-一覧の不一致は[既存Todo](../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md)に記録済み。本設計では修正しない。削除パスは現行コードで修正済みとして設計へ反映する（実行確認は未実施）。仕様調整・修正後は関係するケースの根拠と期待値を更新し、無関係なassertを弱めない。
+一覧の不一致は[既存Todo](../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md)に記録済み。APIは維持し、フロント側のwire型と参照を修正済み。削除パスは現行コードで修正済みとして設計へ反映する（実行確認は未実施）。仕様調整・修正後は関係するケースの根拠と期待値を更新し、無関係なassertを弱めない。
 
 ## 2. 責務・処理順序・配置
 
@@ -33,7 +33,7 @@
 | --- | --- |
 | `src/app/item-list/draft/page.tsx` | async PageはItemListUIへタイトルとDraftItemListを渡す。metadataはタイトル・説明・noindex/nofollow。自身の一覧fetchなし |
 | `draftItemList.tsx`（同ディレクトリ） | 入力中の値、確定検索語、ページ1始まりを保持→getListUrl→SWR→商品行／空表示。各行に現在キーのmutateを渡す |
-| `draftItem.tsx` | ID付き詳細Link、name/titleの空補完、createdAtの保存日時、画像・価格のProps、リンク外のRemoveFloat |
+| `draftItem.tsx` | 数値ID付き詳細Link、name/titleの空補完、createdAtの保存日時、画像・価格のProps、リンク外のRemoveFloat |
 | `removeFloat.tsx` | メニュー→楽観的キャッシュ除去（再検証false）→DELETE待機→成否いずれも再検証要求→成功toast／ApiError toast／通常例外alert |
 | `api/client.ts` | 一覧URLのtrim・encode、fetcher再export、DELETEのapiFetch呼び出し。認証・HTTP判定は共通関数 |
 | CSS2ファイル | `draftItemList.module.css` と `removeFloat.module.css`。DOM単体で寸法や重なりを保証せずOケースへ |
@@ -53,9 +53,9 @@ client固有fixture/setupの予定は `test/fixtures/item-list/draft/{fixtures,s
 
 ## 3. fixture・共通アサーション・非同期の管理
 
-- 時計は例として `2026-11-12T00:00:00.000Z` に固定、標準下書きはid文字列`101`、name「検証用シャツ」、price=12345、画像 `/test-item.jpg`、title「動画A」、createdAtは1時間前。単体は型に合うDateを渡す。URLには検索語「 シャツ & + # ? / % _ 」や日本語を使いtrim・encodeを検証する。
-- フロントfixtureは `{itemDraftList:[row],totalPages:3}`。wire fixtureは `{itemDraftList:[{itemDraft:{id:101,name:...,price:12345,first_image_url:...,title:...,createdAt:"2026-11-11T23:00:00.000Z"}}],totalPages:3}`。この2種類を明示し、wireを `ItemDraft[]` にcastしない。正常のC-Nケースの平坦fixtureは現行UIの連携限定で、実API互換を保証しない。
-- null/undefinedのname/titleや画像は単体の防御分岐へ直接渡す条件。通常型から外れる入力であることを明記。実API nullデータはC-A01のwire側で確認する。price=null時の「0円」等の補完は未確定であり、新たな期待を作らない。
+- 時計は例として `2026-11-12T00:00:00.000Z` に固定、標準下書きは数値ID `101`、name「検証用シャツ」、price=12345、画像 `/test-item.jpg`、title「動画A」、createdAtは1時間前。単体もISO日時文字列を渡す。URLには検索語「 シャツ & + # ? / % _ 」や日本語を使いtrim・encodeを検証する。
+- 共通fixtureは `{itemDraftList:[{itemDraft:row}],totalPages:3}`。wire fixtureは `{itemDraftList:[{itemDraft:{id:101,name:...,price:12345,first_image_url:...,title:...,createdAt:"2026-11-11T23:00:00.000Z"}}],totalPages:3}`。全階層で同じwrapped構造を使い、wireを別構造へcastしない。
+- nullのname/titleや画像は正式なAPI型内の条件として検証する。実API nullデータはC-A01のwire側で確認する。price=nullは `-`、number/stringは桁区切り円表示とする。
 - E2Eは認証ユーザーA/B、Aの21件（20件＋2ページ目1件）、Bと所有者nullの下書き、保護対象item/item_editingとマスターを用意。createdAt同値の異なるIDを含め、DB照会でcreatedAt DESC/id DESC順と照合する。検索用にnameだけ一致・titleだけ一致・不一致、通常文字としての `%`・`_` を含む行を分ける。入力正規化のみの実装に合わせ、照合用保存文字列も意図した形にする。
 - E2EはテストDBの接続先と `current_database()` を検証し、既存fixtureの `test_db` ガードと同等の防護を使う。実環境のデータ・本番認証に接続しない。テスト所有者・作成IDで限定cleanupし、起動したプロセスを停止する。migration・syncは実行しない。
 - SWRはケースごとに `provider: () => new Map()`、focus/reconnect再検証・エラーretry・dedupeの設定をケースで明示し、単なる再試行を新しい業務操作と数えない。初期GET後は操作が加える要求を記録する。データを消すために全体cacheを共有しない。
@@ -78,12 +78,12 @@ IDのU/C/P/Eは上記の階層、Nは正常、AはAPI契約、Lは一覧状態�
 | U-L04 P0 | 確定検索中の2ページ目で入力を空／半角空白／全角空白にする | 確定keywordも解除、page=1、URLにkeywordなし。検索入力そのものは渡された空白を維持 |
 | U-L05 P1 | SWRにerror、dataなし／前回dataあり | 現行は専用エラー文言なし。dataがあればその行、なければ検索欄のみ。404やloginへの独自遷移を仮定しない |
 | U-I01 P0 | 標準商品行、子部品と日時関数をspy | Linkは `/item/draft/101`、name/title、保存日時を表示。createdAtを日時関数へ渡す。画像はstatus:null/showSold:false、価格はsale_flag:false/showSale:falseと割引0。RemoveFloatへIDと同一mutate、削除はLinkの外 |
-| U-I02 P1 | name/title nullまたは省略相当、画像空文字 | name/titleは空文字。画像へ空URLを渡す。価格nullの成功表示はこの型外ケースから発明しない |
+| U-I02 P1 | name/title nullまたは省略相当、画像空文字 | name/titleは空文字。画像へ空URLを渡す。価格nullは `-` を価格部品へ渡す |
 | U-D01 P0 | メニュー初期・三点クリック2回・表示後overlayクリック | 初期削除文言なし。開閉が反映、overlayで閉じる。メニュー操作だけではDELETE・mutate・成功通知なし |
 | U-D02 P0 | 削除API保留→成功。mutateのupdaterへ対象含む2件を与える | 最初のmutateはupdaterとfalse。対象だけ除去、totalPages・他行・元配列不変。fetchRemoveItemへ下書きIDを1回渡す。保留中に成功通知なし。成功後mutate()と「下書き商品を削除しました」toast、error/alertなし |
-| U-D03 P1 | updaterへundefined／空配列／対象不存在のdata | undefined維持、配列は空／元の他行を保持。totalPages維持。数値idと文字列IDの直接比較はU-X01へ |
+| U-D03 P1 | updaterへundefined／空配列／対象不存在のdata | undefined維持、配列は空／元の他行を保持。totalPages維持。数値IDの照合はU-X01へ |
 | U-D04 P0 | APIがApiError／通常Errorをreject | 両方mutate()で再取得要求。前者は「下書き商品の削除に失敗しました」、後者は既存システムエラーalert。成功通知なし。画面の復元完了をmutateモックだけで保証しない |
-| U-X01 P2 | 文字列IDで削除、cache行のidが数値。API保留中に同一削除を2回 | strict比較では数値ID行が除去されない、二重操作の抑止なしという現状を観測。通常の型内成功と区別。新たな拒否仕様は作らない |
+| U-X01 P2 | 数値IDで削除、cache行もwrapped内の数値ID。API保留中に同一削除を2回 | 対象の数値ID行が正しく除去され、二重操作の抑止は現状ないことを観測。通常の型内成功と区別。新たな拒否仕様は作らない |
 
 mutateの最初の呼出しはtryの外、再取得mutateはawaitされていない。任意のmutate rejectを握り潰せると仮定せず、未処理Promiseを残すモックを作らない。再取得失敗と通知順は結合C-E02でHTTP境界から確認する。
 
@@ -91,19 +91,19 @@ mutateの最初の呼出しはtryの外、再取得mutateはawaitされていな
 
 | ID・優先度 | fixture・操作・障害注入 | 期待結果・限界 |
 | --- | --- | --- |
-| C-N01 P0 | 平坦fixture、実一覧とSWR、検索入力→送信→ページ2 | 表示はGET本文と一致。入力だけで新keyword要求なし、送信後trim済keyword＋page1、ページボタンでpage2。同じキャッシュキーへの不要な手動再取得は要求しない |
-| C-N02 P0 | 平坦fixtureで確定検索中page2から非空入力、次に空白へ変更 | 先に旧keywordのpage1へ戻り、空白でkeywordなしpage1へ。入力途中と検索確定を混同しない |
-| C-N03 P0 | 平坦2件、DELETEと後続GETをそれぞれ保留 | 対象のみ即時消失、残る行・件数情報は維持。DELETE成功後のGET完了でサーバー返却の行・totalPagesへ更新。成功toastはDELETE成功後で、GET完了待ちとは限らない |
-| C-E01 P0 | 平坦2件、DELETEはJSON401/404/500、再GETは元の2件 | 一度楽観除去後に再取得で復元、失敗toastのみ。401でもこの部品は勝手にlogin遷移しない。正規ルートとの整合はC-A02で別に判定 |
+| C-N01 P0 | wire fixture、実一覧とSWR、検索入力→送信→ページ2 | 表示はGET本文と一致。入力だけで新keyword要求なし、送信後trim済keyword＋page1、ページボタンでpage2。同じキャッシュキーへの不要な手動再取得は要求しない |
+| C-N02 P0 | wire fixtureで確定検索中page2から非空入力、次に空白へ変更 | 先に旧keywordのpage1へ戻り、空白でkeywordなしpage1へ。入力途中と検索確定を混同しない |
+| C-N03 P0 | wrapped配列2件、DELETEと後続GETをそれぞれ保留 | 対象のみ即時消失、残る行・件数情報は維持。DELETE成功後のGET完了でサーバー返却の行・totalPagesへ更新。成功toastはDELETE成功後で、GET完了待ちとは限らない |
+| C-E01 P0 | wrapped配列2件、DELETEはJSON401/404/500、再GETは元の2件 | 一度楽観除去後に再取得で復元、失敗toastのみ。401でもこの部品は勝手にlogin遷移しない。正規ルートとの整合はC-A02で別に判定 |
 | C-E02 P1 | DELETE非JSON429／network error、またはDELETE成功＋再GET失敗 | 前2つは通常例外alert、成功通知なし。後者はDELETE成功toastを出すが再GET失敗を理由に削除失敗とはしない。復元を保証せずcache状態・errorを記録 |
 | C-E03 P1 | 古い検索AのGETを保留→新しいBのGET成功→A解放 | 現在の検索入力・キーはB、Aの遅い応答でB表示を上書きしない。別キーのSWR cacheは独立 |
 | C-X01 P2 | 2ページ目の最後1件を削除、再GETが空・totalPages=1 | 空案内、pageNumberは2のまま、Paginationは表示されない現行挙動を観測。前ページへ自動移動する新仕様は設けない |
-| C-A01 P0 | 実API同形のwrapped配列・数値ID・ISO日時、さらにnullable項目のwire fixture | 契約ケースの主期待は本人の非null商品名・価格・正しいIDのLinkが描画されること。現行の参照不一致は失敗として記録し、例外発生を成功条件にしない。nullable価格の補完は仕様未確定として別記 |
+| C-A01 P0 | 実API同形のwrapped配列・数値ID・ISO日時、さらにnullable項目のwire fixture | 契約ケースの主期待は本人の非null商品名・価格・正しいIDのLinkが描画されること。正しい商品情報と価格表示を検証し、旧失敗はレポートの履歴へ残す。nullable価格は `-` と表示する |
 | C-A02 P0 | 正規DELETE `/api/item-draft/101` だけhandler登録。actual request URLを記録して削除 | 対象正規URLへbodyなしDELETE、成功後再GETを期待。異なるパスは未一致として検出し、URL補正や救済handlerは置かない |
-| P-N01 P1 | 実ItemListUI＋実一覧、平坦fixture | 「下書き商品」のタイトルと検索・一覧・ページングが同じ構成で接続。共通Backはrouter.back要求まで。全デザイン・実遷移・認証middlewareは保証外 |
+| P-N01 P1 | 実ItemListUI＋実一覧、wire fixture | 「下書き商品」のタイトルと検索・一覧・ページングが同じ構成で接続。共通Backはrouter.back要求まで。全デザイン・実遷移・認証middlewareは保証外 |
 | P-N02 P1 | 同構成でGET空配列・totalPages=0／遅延GET | 空だけで空案内。遅延中は空案内を先走って出さない。UIにないLoading文言を必須にしない |
 
-平坦fixtureのC-N03/C-E01でも正規DELETE `/api/item-draft/:id` をHTTP境界として制御する。平坦fixtureの成功は実一覧JSON互換や実サーバーへの疎通を保証しない。C-A01で実JSONとの整合、C-A02で削除要求の正規URLを別判定する。
+wire fixtureのC-N03/C-E01でも正規DELETE `/api/item-draft/:id` をHTTP境界として制御する。wire fixtureの成功は実一覧JSON互換や実サーバーへの疎通を保証しない。C-A01で実JSONとの整合、C-A02で削除要求の正規URLを別判定する。
 
 ## 6. E2E：実認証・実API・DBの契約
 
@@ -111,7 +111,7 @@ mutateの最初の呼出しはtryの外、再取得mutateはawaitされていな
 
 | ID・優先度 | 前提・手順 | 期待結果・停止位置 |
 | --- | --- | --- |
-| E-N01 P0 | Aで一覧を開く。21件とB/所有者nullの下書きをseed | GET200、wire構造は実API仕様通り、件数20・totalPages=2、DBと同順序、本人分だけ。画面も本人の名前・価格・IDを利用できる。現状wire不一致をここで検出し、画面後続不能なら失敗として止める |
+| E-N01 P0 | Aで一覧を開く。21件とB/所有者nullの下書きをseed | GET200、wire構造は実API仕様通り、件数20・totalPages=2、DBと同順序、本人分だけ。画面も本人の名前・価格・IDを利用できる。wire接続が再度壊れた場合は失敗として止める |
 | E-N02 P0 | E-N01疎通後、ページ2と検索（name一致/title一致/0件、`%`/`_`文字） | page2は残り1件、検索条件と取得JSON・totalPagesがDBと一致。空検索結果totalPages=0。GET前後で下書き・保護データ不変。入力正規化の全組合せはserver既存テストへ委譲 |
 | E-D01 P0 | 正常表示したAの対象行から削除。削除前snapshotを保持 | 正規DELETE200、対象item_draftだけ物理削除、再取得一覧から消える。同一所有者の別下書き、B、item、item_editing、マスター不変。正規ルートへ直接DELETEして画面成功の代用にしない |
 | E-S01 P0 | sessionなしで一覧要求、次にログイン済みでaccess-tokenを消して一覧を再取得 | 前者はmiddlewareで/loginへredirect、保護一覧情報なし。後者はGETが認証なしで実401となり保護データが返らない。画面エラー文言や自動logoutは仕様にないため必須にしない |
@@ -134,7 +134,7 @@ mutateの最初の呼出しはtryの外、再取得mutateはawaitされていな
 ## 8. 実装優先度・実行計画・完了条件
 
 1. 環境・Node指定バージョン・import・SWR cache分離を確認し、U-A01/U-L01/U-D02とC-A01/C-A02の接続契約を先行する。接続不整合を発見しても勝手に本番を修正せず、失敗・修正案としてレポートへ残す。
-2. 独立した単体と平坦fixture結合は接続契約の失敗中も実装・確認可能。E2EはDB/schema/認証ガード確認→E-N01を先行。失敗すれば後続検索・削除はその前提未成立として保留し、同じ原因で多数の後続ケースを繰り返さない。空一覧の認証ケースは独立して継続できる。
+2. 独立した単体とwire fixture結合は接続契約の失敗中も実装・確認可能。E2EはDB/schema/認証ガード確認→E-N01を先行。失敗すれば後続検索・削除はその前提未成立として保留し、同じ原因で多数の後続ケースを繰り返さない。空一覧の認証ケースは独立して継続できる。
 3. 正式な契約整合と環境復旧後、保留ケースを再開。変更時は該当ファイルと隣接接続を再実行し、統合時に対象一括実行・静的検査を一度行う。分担する場合は単体／結合／E2Eでworktreeと担当ファイルを分け、統合担当が環境確認・集計・ログ更新を担う。
 
 以下は後続作業で使うコマンドの計画であり、今回は実行しない。
@@ -153,4 +153,8 @@ npm run typecheck
 
 本番tsconfigの実際のinclude/excludeとテスト用tsconfigの差を実装時に確認する。通常lintに含まれないE2E TS等があれば既存ESLintで対象を明示して追加検査し、通すための共有設定変更は行わない。3ブラウザーの画面差はO03、主要なAPI/DB契約はまずChromiumで検証する。実装時に新しい環境障害・失敗がなければ同じ検証を反復しない。
 
-本設計の完了条件は参照先・予定配置・責務・ケースの整合確認。後続の自動検証完了は各条件の実装と実結果の記録、未実装・未実行・失敗・中断の分離、接続不整合の扱いの明示で判断する。全成功には実JSONと正規DELETEの疎通が必要で、平坦fixtureだけの成功をページ全体の完了としない。O01～O03、価格nullの表示契約、既知の接続不整合、実E2E環境は未確認。テスト・lint・型検査・ブラウザー操作は今回未実行。
+本設計の完了条件は参照先・予定配置・責務・ケースの整合確認。後続の自動検証完了は各条件の実装と実結果の記録、未実装・未実行・失敗・中断の分離、接続不整合の扱いの明示で判断する。全成功には実JSONと正規DELETEの疎通が必要で、wire fixtureだけの成功をページ全体の完了としない。O01～O03、実E2E環境は未確認。テスト・lint・型検査・ブラウザー操作は今回未実行。
+
+## F1修正後の追記
+
+ユーザー指示によりAPIを変更せずdraft/types.tsをwireに整合した。全単体・結合fixtureをwrapped配列・数値ID・ISO日時へ移行し、U-X01の旧ID不一致観測は数値ID削除の回帰検証へ置換した。C-A01の価格nullは「-」、number/stringは桁区切り円表示を検証する。AF-I01をnullから表示用文字列への変換ケースとして追加する。旧失敗履歴はレポートに残す。

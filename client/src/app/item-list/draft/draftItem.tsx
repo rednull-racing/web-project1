@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { KeyedMutator } from "swr";
 import { ItemImage } from "../_components/itemImage";
 import { ItemPrice } from "../_components/itemPrice";
-import type { ItemDraft } from "../types";
+import type { ItemDraft, DraftListResponse } from "./types";
 import styles from "./draftItemList.module.css";
 import { RemoveFloat } from "./removeFloat";
 
@@ -12,10 +12,7 @@ export const DraftItem = ({
     mutate,
 }: {
     itemDraft: ItemDraft;
-    mutate: KeyedMutator<{
-        itemDraftList: ItemDraft[];
-        totalPages: number;
-    }>;
+    mutate: KeyedMutator<DraftListResponse>;
 }) => {
     const itemPageLink = `/item/draft/${itemDraft.id}`;
     const previewDateLabel = "保存日時";
@@ -28,7 +25,7 @@ export const DraftItem = ({
                     <div className={styles.itemImageText}>
                         <ItemImage
                             data={{
-                                first_image_url: itemDraft.first_image_url,
+                                first_image_url: itemDraft.first_image_url ?? "",
                                 status: null,
                             }}
                             showSold={false}
@@ -52,7 +49,7 @@ export const DraftItem = ({
 
                     <ItemPrice
                         data={{
-                            price: itemDraft.price,
+                            price: itemDraft.price ?? "-",
                             sale_flag: false,
                             before_price: 0,
                             discount_rate: 0,
@@ -65,7 +62,7 @@ export const DraftItem = ({
                 {
                     <RemoveFloat
                         itemDraftId={itemDraft.id}
-                        mutate={mutate as unknown as Parameters<typeof RemoveFloat>[0]["mutate"]}
+                        mutate={mutate}
                     />
                 }
             </div>

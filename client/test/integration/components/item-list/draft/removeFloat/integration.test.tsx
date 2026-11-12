@@ -11,7 +11,7 @@ describe("削除HTTPとSWRキャッシュ", () => {
         const deletion = deferred<void>(), refresh = deferred<void>(), started = deferred<void>();
         let gets = 0; const requests: { url: string; body: string }[] = [];
         server.use(http.get(`${base}/item-draft/list`, async () => {
-            if (++gets > 1) { started.resolve(); await refresh.promise; return HttpResponse.json({ itemDraftList: [row("102")], totalPages: 1 }); }
+            if (++gets > 1) { started.resolve(); await refresh.promise; return HttpResponse.json({ itemDraftList: [{ itemDraft: row(102) }], totalPages: 1 }); }
             return HttpResponse.json(response());
         }), http.delete(`${base}/item-draft/101`, async ({ request }) => {
             requests.push({ url: request.url, body: await request.text() }); await deletion.promise; return HttpResponse.json({});

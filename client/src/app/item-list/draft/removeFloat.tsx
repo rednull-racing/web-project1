@@ -6,18 +6,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { KeyedMutator } from "swr";
-import { ItemDraft } from "../types";
+import type { DraftListResponse } from "./types";
 import { fetchRemoveItem } from "./api/client";
 import styles from "./removeFloat.module.css";
 
-type Response = {
-    itemDraftList: ItemDraft[];
-    totalPages: number;
-};
-
 type Props = {
-    itemDraftId: string;
-    mutate: KeyedMutator<Response>;
+    itemDraftId: number;
+    mutate: KeyedMutator<DraftListResponse>;
 };
 
 export const RemoveFloat = ({ itemDraftId, mutate }: Props) => {
@@ -29,13 +24,13 @@ export const RemoveFloat = ({ itemDraftId, mutate }: Props) => {
             if (!currentData) return currentData;
             return {
                 ...currentData,
-                itemDraftList: currentData.itemDraftList.filter((itemDraft) => itemDraft.id !== itemDraftId),
+                itemDraftList: currentData.itemDraftList.filter(({ itemDraft }) => itemDraft.id !== itemDraftId),
             };
         }, false);
 
         const toastBaseText = "下書き商品";
         try {
-            await fetchRemoveItem(itemDraftId);
+            await fetchRemoveItem(String(itemDraftId));
             mutate();
             toast.success(`${toastBaseText}を削除しました`);
         } catch (err) {

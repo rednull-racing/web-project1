@@ -14,7 +14,7 @@ const search = async (value: string) => {
     await user.keyboard("{Enter}");
 };
 
-describe("下書き一覧のSWRと実コンポーネント連携（平坦fixture）", () => {
+describe("下書き一覧のSWRと実コンポーネント連携（実API形式fixture）", () => {
     it("C-N01 入力時は検索せず送信とページ操作でGET条件を更新する", async () => {
         const urls: URL[] = [];
         server.use(http.get(`${base}/item-draft/list`, ({ request }) => {
@@ -56,7 +56,7 @@ describe("下書き一覧のSWRと実コンポーネント連携（平坦fixture
         server.use(http.get(`${base}/item-draft/list`, async ({ request }) => {
             const keyword = new URL(request.url).searchParams.get("keyword");
             if (keyword === "A") { started.resolve(); await gate.promise; }
-            return HttpResponse.json({ itemDraftList: [{ ...row(), name: keyword || "初期" }], totalPages: 1 });
+            return HttpResponse.json({ itemDraftList: [{ itemDraft: { ...row(), name: keyword || "初期" } }], totalPages: 1 });
         }));
         mount(); await screen.findByRole("heading", { name: "初期" });
         try {
@@ -72,7 +72,7 @@ describe("下書き一覧のSWRと実コンポーネント連携（平坦fixture
         const pages: string[] = [];
         server.use(http.get(`${base}/item-draft/list`, ({ request }) => {
             const page = new URL(request.url).searchParams.get("page") || "1"; pages.push(page);
-            return HttpResponse.json({ itemDraftList: deleted ? [] : [row()], totalPages: deleted ? 1 : 2 });
+            return HttpResponse.json({ itemDraftList: deleted ? [] : [{ itemDraft: row() }], totalPages: deleted ? 1 : 2 });
         }), http.delete(`${base}/item-draft/101`, () => { deleted = true; return HttpResponse.json({}); }));
         mount(); await heading(); await userEvent.setup().click(screen.getByRole("button", { name: "2" })); await heading();
         await remove(); await screen.findByText("商品が見つかりません");
