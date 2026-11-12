@@ -1,45 +1,37 @@
-import { ItemAttributes } from "@/types/itemAttributes";
+import type { ItemAttributes } from "@/types/itemAttributes";
 
 export type Sale = {
-    id: string;
-    discount_rate: number;
-    discount_amount: number;
-    before_price: number;
+    discount_rate: number | string | null;
+    discount_amount: number | string | null;
+    before_price: number | string | null;
     sale_flag: boolean;
 };
 
 export type Video = {
-    id: string;
-    title: string;
+    title: string | null;
 };
 
 export type Item = {
-    id: string;
-    name: string;
-    price: number;
+    id: number;
+    name: string | null;
+    price: number | string;
     status: "active" | "soldout";
     gender_type: "men" | "women" | "unisex";
     age_type: "adult" | "kids" | "both";
-    first_image_url: string;
-    attributes: ItemAttributes;
+    first_image_url: string | null;
+    attributes?: ItemAttributes;
+    uploaded_at?: string | null;
     Video: Video | null;
     Sale: Sale | null;
 };
 
-export type ItemDraft = {
-    id: string;
-    name: string;
-    price: number;
-    first_image_url: string;
-    title: string;
-    createdAt: Date;
-};
+export type { ItemDraft } from "./draft/types";
 
 export type ItemTrash = {
-    id: string;
-    name: string;
-    price: number;
-    first_image_url: string;
-    title: string;
-    createdAt: Date;
+    id: number;
+    name: string | null;
+    price: number | string;
+    first_image_url: string | null;
+    title: string | null;
+    createdAt: string;
 };

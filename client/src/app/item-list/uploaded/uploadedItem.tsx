@@ -10,7 +10,7 @@ export const UploadedItem = ({
 }: {
     item: Item;
     mutate: KeyedMutator<{
-        itemList: Item[];
+        itemList: { item: Item }[];
         totalPages: number;
     }>;
 }) => {

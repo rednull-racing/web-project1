@@ -16,7 +16,7 @@ type Props = {
 };
 
 type Response = {
-    itemList: Item[];
+    itemList: { item: Item }[];
     totalPages: number;
 };
 
@@ -53,7 +53,7 @@ export const CartList = ({ relatedItemList }: Props) => {
 
             {itemList && itemList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemList.map((item) => (
+                    {itemList.map(({ item }) => (
                         <CartItem key={item.id} item={item} mutate={mutate} />
                     ))}
 

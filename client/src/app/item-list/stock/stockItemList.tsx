@@ -10,7 +10,7 @@ import { StockItem } from "./stockItem";
 import styles from "./stockItemList.module.css";
 
 type Response = {
-    itemList: Item[];
+    itemList: { item: Item }[];
     totalPages: number;
 };
 
@@ -47,7 +47,7 @@ export const StockItemList = () => {
 
             {itemList && itemList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemList.map((item) => (
+                    {itemList.map(({ item }) => (
                         <StockItem key={item.id} item={item} mutate={mutate} />
                     ))}
 

@@ -89,11 +89,14 @@ flowchart TD
 - 両者は共通クライアント `apiFetch` を使用し、`NEXT_PUBLIC_API_URL` を基点にトークン必須判定・Bearer付与・JSON読取り・`ApiError` 送出を行う。
 - キャッシュ変更、通知、画面遷移は `CartActions` が担当する。
 
-### 表示データの型と接続時の確認点
+### 表示データの型とAPI接続
 
-- フロントの一覧型は `{ itemList: Item[]; totalPages: number }`。`Item` は [../types.ts](../types.ts) にあり、商品情報・status・性別/年齢・nullableな `Video` / `Sale` 等を持つ。
-- おすすめの `Items` は `@/types/itemListTypes` の別の型で、共通 `ItemListRow` に渡す。
-- 現行バックエンドの `getCartItemListUseCase` は `itemList: { item: 商品情報 }[]` を返す一方、フロントは平坦な `Item[]` を直接描画する。共通fetcherには展開変換がないため、接続時は両者のレスポンス形状を確認する。
+- `../types.ts` の `Item` を使用する。レスポンスは `{ itemList: { item: Item }[]; totalPages: number }` とし、描画時に要素の `item` を取り出す。
+- IDは数値、商品名・画像URLはnullable。Videoはnullableなtitleのみ、Saleはnullableな割引率・割引額・変更前価格とsale_flagを持ち、関連IDは返却されない。
+- 価格は `number | string` とし、このページでnull価格は許容しない。共通ItemPriceが数値文字列を含む価格を桁区切りと「円」で表示する。
+- 楽観的削除はキャッシュのラッパー構造を維持し、`item.id` を数値IDで比較する。HTTPパスの文字列化は通信境界で行う。
+- おすすめのItemsは `@/types/itemListTypes` の別型を維持する。
+- 共通fetcherはレスポンスをそのまま返す。APIは変更せず、フロントの型・描画・キャッシュ操作を返却構造に合わせる。
 
 ## デザイン・CSS
 

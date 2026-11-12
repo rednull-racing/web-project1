@@ -11,7 +11,7 @@ import { fetchRemoveItem } from "./api/client";
 import styles from "./removeFloat.module.css";
 
 type Response = {
-    itemList: Item[];
+    itemList: { item: Item }[];
     totalPages: number;
 };
 
@@ -23,7 +23,7 @@ type Props = {
 export const RemoveFloat = ({ item, mutate }: Props) => {
     const [floatVisible, setFloatVisible] = useState(false);
 
-    const remove = async (itemId: string) => {
+    const remove = async (itemId: number) => {
         const removeBasePath = `item-like/${itemId}`;
 
         // 楽観的更新
@@ -31,7 +31,7 @@ export const RemoveFloat = ({ item, mutate }: Props) => {
             if (!currentData) return currentData;
             return {
                 ...currentData,
-                itemList: currentData.itemList.filter((item) => item.id !== itemId),
+                itemList: currentData.itemList.filter(({ item }) => item.id !== itemId),
             };
         }, false);
 

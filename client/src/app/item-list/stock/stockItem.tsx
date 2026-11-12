@@ -10,7 +10,7 @@ export const StockItem = ({
 }: {
     item: Item;
     mutate: KeyedMutator<{
-        itemList: Item[];
+        itemList: { item: Item }[];
         totalPages: number;
     }>;
 }) => {
@@ -35,7 +35,7 @@ export const StockItem = ({
                                 <div className={styles.stockDiv}>
                                     <p className={styles.stockLabel}>在庫数：</p>
                                     <p className={`${styles.stock} ${styles.line1}`}>
-                                        {item.attributes.inventory?.current.toLocaleString()}
+                                        {item.attributes?.inventory?.current.toLocaleString()}
                                     </p>
                                 </div>
                             }

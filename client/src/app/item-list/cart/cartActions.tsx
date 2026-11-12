@@ -10,7 +10,7 @@ import { fetchRemoveCart } from "./api/cart";
 import styles from "./cart.module.css";
 
 type Response = {
-    itemList: Item[];
+    itemList: { item: Item }[];
     totalPages: number;
 };
 
@@ -22,9 +22,9 @@ type Props = {
 export const CartActions = ({ item, mutate }: Props) => {
     const router = useRouter();
 
-    const buy = async (itemId: string) => {
+    const buy = async (itemId: number) => {
         try {
-            const data = await fetchBuy(itemId);
+            const data = await fetchBuy(String(itemId));
             // 配送ページとカラー選択ページをできれば1つにまとめる
             router.push(`/buy/trans/${String(data.deliveryId)}`);
         } catch (err) {
@@ -40,17 +40,17 @@ export const CartActions = ({ item, mutate }: Props) => {
         }
     };
 
-    const remove = async (itemId: string) => {
+    const remove = async (itemId: number) => {
         // 楽観的更新
         mutate((currentData) => {
             if (!currentData) return currentData;
             return {
                 ...currentData,
-                itemList: currentData.itemList.filter((item) => item.id !== itemId),
+                itemList: currentData.itemList.filter(({ item }) => item.id !== itemId),
             };
         }, false);
         try {
-            await fetchRemoveCart(itemId);
+            await fetchRemoveCart(String(itemId));
             mutate();
             toast.success("カートから削除しました");
         } catch (err) {

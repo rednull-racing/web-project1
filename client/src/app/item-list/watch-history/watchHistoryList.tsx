@@ -10,7 +10,7 @@ import { WatchHistoryItem } from "./watchHistoryItem";
 import styles from "./watchHistoryList.module.css";
 
 type Response = {
-    itemList: Item[];
+    itemList: { item: Item }[];
     totalPages: number;
 };
 
@@ -47,7 +47,7 @@ export const WatchHistoryList = () => {
 
             {itemList && itemList.length > 0 && (
                 <main className={styles.itemListSection}>
-                    {itemList.map((item) => (
+                    {itemList.map(({ item }) => (
                         <WatchHistoryItem key={item.id} item={item} mutate={mutate} />
                     ))}
 

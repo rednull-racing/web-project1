@@ -77,13 +77,13 @@ flowchart TD
 - 共通 `@/lib/fetcher` を再exportする。取得できたトークンをBearerヘッダーに付けてGETし、成功時はJSON、HTTPエラー時は通常の `Error` を返す／投げる。
 - バックエンドは本人の商品に絞り込み、status未指定なら `active`・`soldout` を対象とする。検索は正規化・記号エスケープ後の部分一致とする。
 
-### 表示データの型と接続上の現状
+### 表示データの型とAPI接続
 
-- [../types.ts](../types.ts) の `Item` を使用し、クライアントは `{ itemList: Item[]; totalPages: number }` を前提に直接商品行へ渡す。
-- `Item` はID、商品名、価格、status、性別・年齢区分、画像URL、`attributes`、nullableな `Video`・`Sale` を持つ。この画面ではattributesを描画に使わない。
-- 現行バックエンドの `getUploadedItemListUseCase` は `itemList: { item: 商品データ }[]` を返し、クライアントの直接配列という想定と一致していない。
-- 共通fetcherにラッパーを展開する処理はない。関連データの型も含め、接続変更時はクライアント型と実際のレスポンスの対応を確認する。
-- 返却形式の不一致は [対応Todo](../../../../../docs/todo/P1-bug/align-item-list-response-with-client.md) を参照する。
+- `../types.ts` の `Item` を使用する。レスポンスは `{ itemList: { item: Item }[]; totalPages: number }` とし、描画時に要素の `item` を取り出す。
+- IDは数値、商品名・画像URLはnullable。Videoはnullableなtitleのみ、Saleはnullableな割引率・割引額・変更前価格とsale_flagを持ち、関連IDは返却されない。
+- 価格は `number | string` とし、このページでnull価格は許容しない。共通ItemPriceが数値文字列を含む価格を桁区切りと「円」で表示する。
+- 出品日時uploaded_atはISO文字列またはnull。この一覧APIはattributesを返却しない。
+- 共通fetcherはレスポンスをそのまま返す。APIは変更せず、フロントの型・描画・キャッシュ操作を返却構造に合わせる。
 
 ## デザイン・CSS
 
