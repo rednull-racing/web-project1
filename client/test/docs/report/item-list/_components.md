@@ -1,6 +1,55 @@
 # item-list 共通コンポーネント 単体テストレポート
 
-## 最新結果・範囲
+## 最新結果：2026-11-12 F1修正後の再検証
+
+F1の修正案を適用し、共通4部品・73テストを再実行して**73成功・失敗0**。F1は修正・再検証済み。U-P03の2条件とU-P13の1条件はいずれも成功し、U-P13の通知なしassertも完了した。設計34 IDの自動ケースは全実装・実行済み。未実装・未実行・中断・pending/skip/todo・未処理例外は今回の自動単体実行で各0。
+
+今回変更したファイルは `src/app/item-list/_components/test/pagination.test.tsx`、[設計書](../../architecture/item-list/_components.md)、本レポート、リポジトリルートの `docs/log_memo/codex_log.md`。本番実装と他のテスト条件は維持した。F2の既存静的診断、指定Node.js26環境、O01～O03の人間確認は引き続き残件。単体成功と全検査成功を区別する。
+
+### F1の適用内容と根拠
+
+- 対応する元ケースIDはU-P03/U-P13を維持。幅768・currentPage=5・totalPages=10の期待列を `1,2,3,4,5,6,7,...,10` から `1,...,3,4,5,6,7,...,10` へ訂正した。
+- 本番のdelta=2では周辺ページが3～7となる。`currentPage - delta > 2` が成立するため2は省略され、コンポーネント仕様の前後2件と一致する。ユーザー指示に従いこの現行仕様を正とし、設計書の根拠説明・期待値とテストの2箇所だけを揃えた。
+- 767px側の期待値、他のID、重複防止・button属性・コールバック・active検証は維持。ケースの削除やskip、assert削除はない。旧失敗と提案時の内容は下記の初回履歴に残す。
+
+### 今回の実行と集計
+
+実行ディレクトリは `client/`。Node.js v22.22.2、既存Vitest 5.0.5を使用し、各コマンドの先頭に `PATH=/home/conta/.nvm/versions/node/v22.22.2/bin:$PATH` を指定。依存や共有設定の変更はない。
+
+```bash
+npm run test:unit -- src/app/item-list/_components/test/ --reporter=default --reporter=json --outputFile.json=/tmp/item-list-f1-results.json
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+./node_modules/.bin/eslint src/app/item-list/_components/test/
+```
+
+| ファイル（`src/app/item-list/_components/test/` 配下） | 実行 | 成功 | 失敗 |
+| --- | --- | --- | --- |
+| `itemImage.test.tsx` | 9 | 9 | 0 |
+| `itemPrice.test.tsx` | 16 | 16 | 0 |
+| `pagination.test.tsx` | 27 | 27 | 0 |
+| `searchField.test.tsx` | 21 | 21 | 0 |
+| 合計 | 73 | 73 | 0 |
+
+集計元は `/tmp/item-list-f1-results.json` の実ファイル4件のassertionResults、標準出力は `/tmp/item-list-f1-unit.log`（いずれも一時成果物）。初回実行と重複加算していない。ケース対応は初回表と同一で、U-P03を「2件成功」、U-P13を「1件成功」へ更新したものが現在の判定となる。他32 IDも今回の再実行ですべて成功。カバレッジは未取得。
+
+| 静的検査 | 今回結果 | 根拠（一時ログ） |
+| --- | --- | --- |
+| 対象eslint | 成功、診断0 | `/tmp/item-list-f1-eslint.log` |
+| テスト用型検査 | 成功、診断0 | `/tmp/item-list-f1-test-types.log` |
+| 全体lint | 失敗、23 errors・34 warnings、対象テスト診断0 | `/tmp/item-list-f1-lint.log` |
+| 本番型検査 | 失敗、50診断。前回と診断出力一致 | `/tmp/item-list-f1-types.log` |
+
+全体lintと本番型検査はF2で記載した既存の対象外診断。今回も修正していない。モック・実処理・保証範囲は初回と同じで、next/imageのみ置換、Font Awesomeと対象本体は実物、通信・DBなし。目視観測O01～O03は今回も未実行・人間確認待ちで、自動成功件数に含めない。Node.js指定バージョン、SSR/Hydration、実レイアウト・実検索・実遷移は未確認。
+
+---
+
+## 初回実装・実行の履歴（2026-11-12、F1修正前）
+
+以下の末尾までの記述・判定・「最新」「最終」「今回」は初回実行時点の履歴。71成功・2失敗やF1提案のみの記述は過去結果であり、現在は上記の再検証結果が優先する。
+
+## 初回結果・範囲
 
 実行日：2026-11-12。[設計書](../../architecture/item-list/_components.md)の自動単体34 IDを4ファイル・73テストに実装し、最終実行は**71成功・2失敗**。失敗はU-P03の768px条件とU-P13。人間観測O01～O03は未実行・人間確認待ち。未実装の自動ケース0、中断0、ランナーのpending/skip/todoと未処理例外は最終実行で各0。自動検証全体は未完了であり、成功扱いにはしない。
 

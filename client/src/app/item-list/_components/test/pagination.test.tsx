@@ -57,7 +57,7 @@ describe("Pagination 表示条件とページ列", () => {
 
     it.each([
         { width: 767, pages: ["1", "...", "4", "5", "6", "...", "10"] },
-        { width: 768, pages: ["1", "2", "3", "4", "5", "6", "7", "...", "10"] },
+        { width: 768, pages: ["1", "...", "3", "4", "5", "6", "7", "...", "10"] },
     ])("U-P03 入力%jで768px境界に応じた周辺ページを表示する", ({ width, pages }) => {
         setWidth(width);
         const { container } = render(<Pagination {...createProps()} />);
@@ -161,7 +161,7 @@ describe("Pagination 操作通知と再描画", () => {
         expectPages(container, ["1", "...", "4", "5", "6", "...", "10"]);
         setWidth(768);
         rerender(<Pagination {...props} />);
-        expectPages(container, ["1", "2", "3", "4", "5", "6", "7", "...", "10"]);
+        expectPages(container, ["1", "...", "3", "4", "5", "6", "7", "...", "10"]);
         expect(props.onPageChange).not.toHaveBeenCalled();
     });
 });
