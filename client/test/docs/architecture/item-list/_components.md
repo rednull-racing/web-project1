@@ -1,0 +1,138 @@
+# item-list 共通コンポーネント 単体テスト設計書
+
+## 1. 対象・根拠・範囲
+
+本書のパスは、リンクおよび明記したものを除き `client/` 基準とする。
+対象は `src/app/item-list/_components/` の全4 TSXファイルと共通CSS。
+[コンポーネント仕様](../../../../src/app/item-list/_components/AGENTS.md)と各本番ファイルを根拠に、[設計書規則](../AGENTS.md)・[テスト規則](../../../AGENTS.md)に従って単体テストを設計する。
+
+今回の成果物は本書のみ。テストコード・fixtureの作成、テスト実行、lint・型検査、レポート・Codexログの記入は行わない。以下はすべて未実装・未実行の計画であり、成功結果を示さない。
+
+| 対象ファイル | 責務・処理順序 | 単体テストの予定配置 |
+| --- | --- | --- |
+| `src/app/item-list/_components/itemImage.tsx` | 画像URLのフォールバック→画像表示→売切れ条件判定 | `src/app/item-list/_components/test/itemImage.test.tsx` |
+| `src/app/item-list/_components/itemPrice.tsx` | 現在価格整形→セール表示条件→正の割引値表示 | `src/app/item-list/_components/test/itemPrice.test.tsx` |
+| `src/app/item-list/_components/pagination.tsx` | 総数による非表示→描画時の幅による範囲生成→操作通知 | `src/app/item-list/_components/test/pagination.test.tsx` |
+| `src/app/item-list/_components/searchField.tsx` | 親の値を表示→変更通知／送信通知。trimは装飾の判定のみ | `src/app/item-list/_components/test/searchField.test.tsx` |
+| `src/app/item-list/_components/listParts.module.css` | 4部品の装飾、768px以上の画像・文字サイズ | JSの独立した単体テストは作らない。関連classの条件はTSX側、実際の描画は目視観測 |
+| `src/app/item-list/_components/AGENTS.md` | 上記部品の仕様資料 | 実行対象外 |
+
+全テストコードおよび必要なテスト専用helperは指定の `src/app/item-list/_components/test/` 内に置く。現在このディレクトリに対象テストはない。
+API通信、認証・認可、保存、検索結果取得、実際のページ遷移は親やサーバーの責務であり本書の対象外。コンポーネント結合・ページ結合・E2Eは今回計画しない。親からの再描画は `rerender` で入力契約を検証し、親の実装を接続しない。
+
+## 2. 環境・依存境界・共通検証
+
+- 既存のVitest unit project、React Testing Library、jsdom、user-eventを使用する。設定は `vitest.config.mts`、共通setupは `test/fixtures/setup.ts`。ライブラリ・共有設定の追加変更は不要。
+- 対象コンポーネント本体を実行する。`next/image` は入力したsrc・alt・width・height・classNameをDOMのimgへ渡す型付きの薄いモックにする。画像最適化、ネットワーク、読み込み失敗時の挙動は保証しない。
+- Font Awesomeは原則実物を使用する。検索アイコンにはrole・ラベルがないため、その箇所のみ `svg[name="search_icon"]` を対象コンテナ内で取得する。モックでbuttonやキーボード機能を追加して現行契約を変えない。
+- CSSは既存設定で取り込み、条件付きclassだけはimportしたCSS Modulesの `styles.active` / `styles.activeIcon` を用いて確認する。生成名を直書きせず、色・寸法・配置・hoverをjsdomで評価しない。
+- 通信依存はないためHTTP成功・失敗の注入やMSW handler追加は不要。既存setupのMSWはそのまま利用する。コールバックは `vi.fn`、例外を投げないものを用い、通知回数・引数を検証する。
+- DOM取得は画像のalt、価格のheading、ページボタンのroleと名前、前後ボタンのtitle、入力のplaceholder「検索」を使う。スナップショットや内部stateに依存しない。
+- ケースごとに新しいpropsとモックを生成する。共通setupがDOM cleanup・MSWリセット・タイマー復元を行う。幅の差し替えは元の `window.innerWidth` のproperty descriptorを保存して復元し、モック履歴・実装もリセットする。fake timer・固定sleepは不要。ユーザー操作はawaitする。
+- 価格の標準期待値は既定ロケールをja-JPとして `￥12,345` のようにリテラルで定める。実装は引数なしの `toLocaleString()` を使用するため、実装時にランナーの既定ロケールを確認する。異なる場合はロケール依存と明示し、対象関数の出力をそのまま期待値に流用しない。
+
+標準fixture（各テストファイル内でfactory化し、ケースごとに差分を上書きする）：
+
+| 対象 | 標準入力 |
+| --- | --- |
+| ItemImage | `data={first_image_url:"/test-item.jpg", status:"active"}`, `showSold=true` |
+| ItemPrice | `data={price:12345, sale_flag:true, before_price:20000, discount_rate:20, discount_amount:1000}`, `showSale=true` |
+| Pagination | `currentPage=5`, `totalPages=10`, 幅768、新しい `onPageChange` |
+| SearchField | `searchValue="シャツ"`、新しい `onChange` / `onSubmit` |
+
+IDの `U` は単体、`I/R/P/S` は画像／価格／ページ番号／検索、連番は観点を表す。`O` は人間による観測。P0は基本契約・境界、P1は補完分岐、P2は目視観測。1行の列挙条件は独立したテストへ展開し、ID数を実行テスト件数とは扱わない。
+
+## 3. ItemImage
+
+| ID・優先度 | 条件・操作 | 期待結果 |
+| --- | --- | --- |
+| U-I01 P0 | 標準入力で描画 | alt「商品画像」の画像が1枚。srcは指定URL、width/heightは各80 |
+| U-I02 P0 | URLを空文字にする | srcは `/no-image(1x1).png`。画像のaltと寸法は維持 |
+| U-I03 P0 | `showSold=true/false` × `status=active/soldout/null` の6条件 | trueかつsoldoutのみ `SOLD` が1件。他の5条件では存在しない。画像は常に表示 |
+| U-I04 P1 | URL・status・showSoldを変更してrerender（売切表示→非表示→再表示） | 最新URLと最新条件だけを反映。古い画像やSOLDが重複しない |
+
+URLのnull/undefinedは型契約外なので必須入力として扱わない。空文字フォールバックと画像読込エラー時のフォールバックは別物であり、後者の機能を仮定しない。
+
+## 4. ItemPrice
+
+| ID・優先度 | 条件・操作 | 期待結果 |
+| --- | --- | --- |
+| U-R01 P0 | 標準入力 | headingは `￥12,345`、変更前価格は `￥20,000`、`20% OFF`、`1,000円引き` を各1件表示 |
+| U-R02 P0 | `showSale=true/false` × `sale_flag=true/false` | 両方trueのみ変更前価格と割引を表示。他3条件は現在価格のみ。割引を正に保ちゲート条件を検証 |
+| U-R03 P0 | セール有効、割引率を -1/0/1、割引額は0 | 前2条件は割引表示なし、1のみ `1% OFF`。現在価格と変更前価格は常に存在 |
+| U-R04 P0 | セール有効、割引額を -1/0/1、割引率は0 | 前2条件は割引表示なし、1のみ `1円引き`。現在価格と変更前価格は常に存在 |
+| U-R05 P1 | セール有効、率・額をともに0 | 変更前価格は表示、割引テキストは両方非表示 |
+| U-R06 P0 | 現在価格を0/999/1000、変更前価格を0（セール有効） | headingは `￥0` / `￥999` / `￥1,000`、変更前価格は `￥0`。0を欠損として消さない。重複価格はheadingとpを区別して確認 |
+| U-R07 P1 | before_price=20000、率20、額1000に対しprice=12345のまま描画 | 値の整合性から再計算せず、受け取った4つの値をそのまま整形表示 |
+| U-R08 P1 | セール有効から無効へ、価格も変更してrerender | 最新の現在価格を表示し、旧価格・割引テキストは残らない |
+
+負の割引値は `> 0` の条件境界を直接渡すテストであり、通常の商品入力で許容されることを意味しない。NaN/Infinity、価格の下限・最大値、割引率100超の拒否は契約未定義のため新しいバリデーションを要求しない。
+
+## 5. Pagination
+
+ページ列は前後アイコンを除いた数値ボタンと省略spanのDOM順序を示す。各描画で数値の重複がなく、前後ボタンが `type="button"` であることも確認する。
+
+| ID・優先度 | 条件・操作 | 期待結果 |
+| --- | --- | --- |
+| U-P01 P0 | totalPages=-1/0/1 | コンテナが空。ボタン・省略表示なし、通知なし。-1はガードへの直接入力であり通常のページ総数ではない |
+| U-P02 P0 | totalPages=2、currentPage=1/2、幅767/768 | 列は `1,2`。省略なし。前へは1でのみ、次へは2でのみdisabled |
+| U-P03 P0 | currentPage=5,totalPages=10、幅767/768 | 767は `1,...,4,5,6,...,10`、768は `1,2,3,4,5,6,7,...,10`。閾値を含む側を確認 |
+| U-P04 P0 | 幅768,totalPages=10、currentPage=1/10 | 1では `1,2,3,...,10`、10では `1,...,8,9,10`。範囲外・端点重複なし |
+| U-P05 P0 | 幅767,totalPages=10、currentPage=3/4 | 3では `1,2,3,4,...,10`、4では `1,...,3,4,5,...,10`。左省略条件の境界 |
+| U-P06 P0 | 幅767,totalPages=10、currentPage=7/8 | 7では `1,...,6,7,8,...,10`、8では `1,...,7,8,9,10`。右省略条件の境界 |
+| U-P07 P1 | 幅768,totalPages=5,currentPage=3 | 列は `1,2,3,4,5`、省略なし |
+| U-P08 P0 | 標準入力で数値1/4/5/10を個別クリック | 各1回、クリックした番号のみを通知。現在ページ5の再クリックも通知し、自動的にページを変えない |
+| U-P09 P0 | currentPage=5で前へ／次へを個別クリック | 各1回、4／6を通知。親が再描画しない限り現在ページは5のまま |
+| U-P10 P0 | currentPage=1で前へ、10で次へをクリック | disabledで通知0回。1で次へは2、10で前へは9を各1回通知 |
+| U-P11 P1 | 省略spanをクリック | 通知なし。省略はボタンではない |
+| U-P12 P1 | currentPageを5→6にrerender | activeは6のみに移り、5から除去。ページ列も最新値に対応 |
+| U-P13 P1 | 幅767で描画→幅768に差し替えて同じpropsでrerender | 描画時の幅でU-P03の広い列へ更新。resize監視機能や自動更新は要求しない |
+
+範囲内の整数 `1 <= currentPage <= totalPages` を通常契約とする。範囲外・小数のcurrentPageを補正する仕様はないため、ボタンのdisabledを強制解除したりハンドラーを直接実行してclamp分岐を通したりしない。windowなしのSSR分岐、SSRとHydrationの整合性はDOM単体では保証しない。
+
+## 6. SearchField
+
+| ID・優先度 | 条件・操作 | 期待結果 |
+| --- | --- | --- |
+| U-S01 P0 | 標準入力で描画 | textboxの値は「シャツ」、type=text、name=itemList_search、placeholder=検索、autocomplete=off |
+| U-S02 P0 | searchValueを「シャツ」→「靴」→空文字へrerender | 各値をそのまま表示。再描画だけではonChange/onSubmitとも未呼出 |
+| U-S03 P0 | searchValue=""で1文字「あ」を入力 | onChangeは1回、イベント対象のnameとvalueはitemList_search／あ。onSubmitは未呼出 |
+| U-S04 P0 | 固定searchValue="シャツ"、親更新なしで末尾へ1文字入力、その後rerender | onChangeで変更候補を通知するが親propsが制御値。親が新しい値「シャツ赤」を渡した後にその値を表示。内部stateによる確定を期待しない |
+| U-S05 P0 | 値を「シャツ」/空文字/半角空白のみ/全角空白のみとしEnter | 各1回、引数なしでonSubmit。空や空白でも拒否しない。Enter自体はonChangeを呼ばない |
+| U-S06 P0 | U-S05の4入力で検索アイコンをクリック | 各1回、引数なしでonSubmit。onChangeは未呼出 |
+| U-S07 P0 | textboxでEscape/ArrowRight/Tab | onSubmitなし。実際のフォーカスの見え方は目視対象 |
+| U-S08 P1 | 空文字/半角空白/全角空白/「 シャツ 」を渡す | 最後だけactiveIconあり。他はなし。表示値はtrimせず元の文字列を維持 |
+| U-S09 P1 | アイコンを2回クリック、またはEnterを2回押す | 各操作につき1回、合計2回通知。送信中管理や重複抑止をこの部品へ要求しない |
+
+onChangeイベントの値は通知時にspy内で記録し、制御値復元後のイベントDOMを遅れて参照しない。親状態更新を確かめるための実ページ・検索APIとの結合は行わない。
+
+## 7. 人間による目視観測との境界
+
+以下は自動単体テストが保証しない対象固有の観測手順。今回の作業では実施せず、単体テストの成功件数にも含めない。すべて担当は「人間」、実施状況は「人間確認待ち」。将来の結果記録先は `test/docs/report/item-list/_components.md`（予定。今回は作成・記入しない）。
+
+| ID・優先度 | 前提環境・データ | 操作 | 目視の期待結果 |
+| --- | --- | --- | --- |
+| O01 P2 | Chromium、幅375/767/768/1280、対象部品を表示する既存一覧、必要なら一覧を閲覧できるログイン済みアカウント。画像あり/なし・売切れ・セール商品 | 各幅で商品行を見る | 画像の比率・角丸、SOLDの重なり、変更前価格の取消線・割引表示が読め、行が崩れない |
+| O02 P2 | 同ブラウザー、幅767/768、10ページ以上の既存一覧、同アカウント | ページ移動・幅変更後の表示、Tab/Enterでページボタンを操作 | activeとdisabledが判別でき、フォーカスが見え、列が収まる。幅変更だけでの再計算は契約にないため自動追従を合格条件にしない |
+| O03 P2 | 同ブラウザー、幅375/1280、検索可能な既存一覧、同アカウント | 日本語入力、Enterと検索アイコンで送信 | 入力欄とアイコンが重ならず、クリックと入力の操作感を確認。IME変換中のEnterや検索アイコンのキーボード到達性は観測結果を残し、単体設計だけで利用可能と断定しない |
+
+実際の検索・遷移・レスポンシブ描画、ブラウザー差やSSRは未確認であり、部品のコールバック通知と同一の保証と扱わない。
+
+## 8. 将来の実装順序・確認計画・完了条件
+
+1. 既存環境・import・共通setupと既定ロケールを確認し、U-I01/U-R01/U-P02/U-S01を代表ケースとして先行する。
+2. P0の分岐・操作を実装後、P1を追加する。共通setup失敗なら全ケースを保留し復旧後に再開。Imageモックのみの失敗なら画像ケースを保留し、他3ファイルは進められる。
+3. 変更したファイルの対象テストから確認する。4ファイルの統合後に下記の対象一括実行と静的検査を行い、未解決の失敗か新しい変更がなければ反復しない。
+
+以下は将来の実行計画であり、今回は実行しない。実行ディレクトリはリポジトリルートから `cd client`。
+
+```bash
+npm run test:unit -- src/app/item-list/_components/test/
+npm run lint
+npm run typecheck
+./node_modules/.bin/tsc --noEmit -p test/tsconfig.json
+```
+
+本番用 `tsconfig.json` は現時点で `src/**/test` を除外していない。テスト用tsconfigは単体・結合・設定類を明示的に含めるため、両方の検査を計画する。通常lintは `eslint .` でTSXも対象に含む。実装時に対象外TSが生じた場合は既存ESLintでそのパスを追加検査し、共有設定は変更しない。
+
+本書の完了条件は対象ファイル・仕様・ケース・予定配置・リンク・差分の整合確認。後続の自動検証の完了条件は全設計条件の実装、対象テストと静的検査の確認、モックと幅の復元、未確認事項の明示とする。O01～O03は人間の結果を受領するまで別途未確認であり、自動検証完了に含めない。今回、実装・実行・レポート記入は行っていない。
