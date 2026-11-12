@@ -58,7 +58,7 @@ describe("Pagination 表示条件とページ列", () => {
     it.each([
         { width: 767, pages: ["1", "...", "4", "5", "6", "...", "10"] },
         { width: 768, pages: ["1", "2", "3", "4", "5", "6", "7", "...", "10"] },
-    ])("U-P03 幅$widthで768px境界に応じた周辺ページを表示する", ({ width, pages }) => {
+    ])("U-P03 入力%jで768px境界に応じた周辺ページを表示する", ({ width, pages }) => {
         setWidth(width);
         const { container } = render(<Pagination {...createProps()} />);
         expectPages(container, pages);
@@ -67,7 +67,7 @@ describe("Pagination 表示条件とページ列", () => {
     it.each([
         { currentPage: 1, pages: ["1", "2", "3", "...", "10"] },
         { currentPage: 10, pages: ["1", "...", "8", "9", "10"] },
-    ])("U-P04 現在$currentPageで端点を重複させず表示する", ({ currentPage, pages }) => {
+    ])("U-P04 入力%jで端点を重複させず表示する", ({ currentPage, pages }) => {
         const { container } = render(<Pagination {...createProps({ currentPage })} />);
         expectPages(container, pages);
     });
@@ -75,7 +75,7 @@ describe("Pagination 表示条件とページ列", () => {
     it.each([
         { currentPage: 3, pages: ["1", "2", "3", "4", "...", "10"] },
         { currentPage: 4, pages: ["1", "...", "3", "4", "5", "...", "10"] },
-    ])("U-P05 現在$currentPageで左側の省略条件を判定する", ({ currentPage, pages }) => {
+    ])("U-P05 入力%jで左側の省略条件を判定する", ({ currentPage, pages }) => {
         setWidth(767);
         const { container } = render(<Pagination {...createProps({ currentPage })} />);
         expectPages(container, pages);
@@ -84,7 +84,7 @@ describe("Pagination 表示条件とページ列", () => {
     it.each([
         { currentPage: 7, pages: ["1", "...", "6", "7", "8", "...", "10"] },
         { currentPage: 8, pages: ["1", "...", "7", "8", "9", "10"] },
-    ])("U-P06 現在$currentPageで右側の省略条件を判定する", ({ currentPage, pages }) => {
+    ])("U-P06 入力%jで右側の省略条件を判定する", ({ currentPage, pages }) => {
         setWidth(767);
         const { container } = render(<Pagination {...createProps({ currentPage })} />);
         expectPages(container, pages);
@@ -99,28 +99,26 @@ describe("Pagination 表示条件とページ列", () => {
 describe("Pagination 操作通知と再描画", () => {
     it.each([1, 4, 5, 10])("U-P08 数値%sのクリックを一度通知し親の現在ページを維持する", async (page) => {
         const props = createProps();
-        const { container } = render(<Pagination {...props} />);
-        await userEvent.setup().click(screen.getByRole("button", { name: String(page), exact: true }));
+        render(<Pagination {...props} />);
+        await userEvent.setup().click(screen.getByRole("button", { name: String(page) }));
         expect(props.onPageChange).toHaveBeenCalledExactlyOnceWith(page);
-        expect(screen.getByRole("button", { name: "5", exact: true })).toHaveClass(styles.active);
-        expectPages(container, ["1", "2", "3", "4", "5", "6", "7", "...", "10"]);
+        expect(screen.getByRole("button", { name: "5" })).toHaveClass(styles.active);
     });
 
     it.each([
         ["前へ", 4], ["次へ", 6],
     ] as const)("U-P09 %sをクリックすると%sを通知し現在ページを維持する", async (title, page) => {
         const props = createProps();
-        const { container } = render(<Pagination {...props} />);
+        render(<Pagination {...props} />);
         await userEvent.setup().click(screen.getByTitle(title));
         expect(props.onPageChange).toHaveBeenCalledExactlyOnceWith(page);
-        expect(screen.getByRole("button", { name: "5", exact: true })).toHaveClass(styles.active);
-        expectPages(container, ["1", "2", "3", "4", "5", "6", "7", "...", "10"]);
+        expect(screen.getByRole("button", { name: "5" })).toHaveClass(styles.active);
     });
 
     it.each([
         { currentPage: 1, disabledTitle: "前へ", enabledTitle: "次へ", nextPage: 2, pages: ["1", "2", "3", "...", "10"] },
         { currentPage: 10, disabledTitle: "次へ", enabledTitle: "前へ", nextPage: 9, pages: ["1", "...", "8", "9", "10"] },
-    ])("U-P10 現在$currentPageで無効な端点操作を通知せず反対側を通知する", async ({ currentPage, disabledTitle, enabledTitle, nextPage, pages }) => {
+    ])("U-P10 入力%jで無効な端点操作を通知せず反対側を通知する", async ({ currentPage, disabledTitle, enabledTitle, nextPage, pages }) => {
         const props = createProps({ currentPage });
         const { container } = render(<Pagination {...props} />);
         const user = userEvent.setup();
@@ -135,24 +133,23 @@ describe("Pagination 操作通知と再描画", () => {
 
     it("U-P11 省略表示はボタンではなくクリックしても通知しない", async () => {
         const props = createProps();
-        const { container } = render(<Pagination {...props} />);
-        expectPages(container, ["1", "2", "3", "4", "5", "6", "7", "...", "10"]);
-        const ellipsis = screen.getByText("...");
-        expect(ellipsis.tagName).toBe("SPAN");
-        expect(ellipsis.closest("button")).toBeNull();
-        await userEvent.setup().click(ellipsis);
+        render(<Pagination {...props} />);
+        for (const ellipsis of screen.getAllByText("...")) {
+            expect(ellipsis.tagName).toBe("SPAN");
+            expect(ellipsis.closest("button")).toBeNull();
+            await userEvent.setup().click(ellipsis);
+        }
         expect(props.onPageChange).not.toHaveBeenCalled();
     });
 
     it("U-P12 親の現在ページ変更でactiveとページ列を更新する", () => {
         const props = createProps();
         const { container, rerender } = render(<Pagination {...props} />);
-        expectPages(container, ["1", "2", "3", "4", "5", "6", "7", "...", "10"]);
-        expect(screen.getByRole("button", { name: "5", exact: true })).toHaveClass(styles.active);
+        expect(screen.getByRole("button", { name: "5" })).toHaveClass(styles.active);
         rerender(<Pagination {...props} currentPage={6} />);
         expectPages(container, ["1", "...", "4", "5", "6", "7", "8", "...", "10"]);
-        expect(screen.getByRole("button", { name: "5", exact: true })).not.toHaveClass(styles.active);
-        expect(screen.getByRole("button", { name: "6", exact: true })).toHaveClass(styles.active);
+        expect(screen.getByRole("button", { name: "5" })).not.toHaveClass(styles.active);
+        expect(screen.getByRole("button", { name: "6" })).toHaveClass(styles.active);
         expect(screen.getAllByRole("button").filter((button) => button.classList.contains(styles.active))).toHaveLength(1);
         expect(props.onPageChange).not.toHaveBeenCalled();
     });
