@@ -17,7 +17,7 @@ export const Star = ({ userId }: Props) => {
             try {
                 const data = await fetchStar(userId);
                 setStar(data.user.star_average || 0);
-            } catch (err) {}
+            } catch {}
         };
 
         fetchData();

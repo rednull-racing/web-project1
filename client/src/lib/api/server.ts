@@ -1,4 +1,5 @@
 import { getToken } from "next-auth/jwt";
+import type { GetTokenParams } from "next-auth/jwt";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getValidAccessToken } from "../refreshToken";
@@ -15,7 +16,7 @@ export const apiFetchServer = async <T>(path: string, options: FetchOptions = {}
         req: {
             headers: Object.fromEntries(headerStore.entries()),
             cookies: Object.fromEntries(cookieStore.getAll().map((c) => [c.name, c.value])),
-        } as any,
+        } as GetTokenParams["req"],
         secret: process.env.NEXTAUTH_SECRET!,
     });
 

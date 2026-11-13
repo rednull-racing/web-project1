@@ -35,18 +35,18 @@ export const SearchInputPC = ({ loggedIn }: Props) => {
     useEffect(() => {
         if (!loggedIn || !isFocused) return;
 
+        const searchHistory = async () => {
+            try {
+                const dataList = await fetchGetSearchHistory();
+
+                setSearchHis(dataList);
+            } catch {}
+        };
+
         searchHistory();
     }, [loggedIn, isFocused]);
 
     if (!isPC) return null;
-
-    const searchHistory = async () => {
-        try {
-            const dataList = await fetchGetSearchHistory();
-
-            setSearchHis(dataList);
-        } catch (err) {}
-    };
 
     const fetchSuggest = async (word: string) => {
         if (!word.trim()) {
@@ -58,7 +58,7 @@ export const SearchInputPC = ({ loggedIn }: Props) => {
             const suggest = await fetchGetSuggestWords(word);
 
             setSuggestList(suggest);
-        } catch (err) {
+        } catch {
             setSuggestList([]);
         }
     };
