@@ -1,5 +1,26 @@
 # 在庫一覧 テストレポート
 
+## F1・F2修正（2026-11-13、最新）
+
+ユーザー指示により本番UIを修正。以下の初回結果・本番未変更の記述は履歴。
+F1: 共通TitleAndBackをtype=button・aria-label=戻るのボタンに変更。
+既存backButton CSSを利用し、アイコンとrouter.back/pushの処理を維持。
+P-N01をSVG属性取得からbutton/戻る取得へ変更した。
+F2: stockのSWR errorを参照し、失敗時も空配列と同じ「商品が見つかりません」を表示。
+失敗時は一覧とpaginationを非表示にし、初回読込中の空案内は表示しない。
+旧I-E01の「失敗時に案内なし」は今回の明示仕様に合わせて期待値を変更した。
+API・認証・DBは未変更。uploadedは今回の修正対象外。
+
+clientで実行:
+- npm run test:integration -- test/integration/components/item-list/stock test/integration/pages/item-list/stock test/integration/pages/item-list/draft test/integration/pages/item-list/trash
+
+Vitestの最終出力で4ファイル12件成功、失敗・skip0。stock7件、draft/trashページ回帰5件。
+実SWR/一覧/共通UIを使用、HTTPはMSW、認証tokenとNext routerはモック。
+npm run lint・npm run typecheck・./node_modules/.bin/tsc --noEmit -p test/tsconfig.jsonはすべて成功。
+E2E・単体・目視は今回未再実行。F3のWebKit環境問題とO01/O02は残件。
+
+## 初回結果・実行履歴
+
 2026-11-13。[設計書](../../architecture/item-list/stock.md)に対応。
 単体9件・コンポーネント結合6件・ページDOM結合1件成功。
 E2Eは9件中7件成功・2件失敗。Chromium/Firefox各3件成功、WebKit認証後2件401・未認証1件成功。人間観測O01/O02は未確認。

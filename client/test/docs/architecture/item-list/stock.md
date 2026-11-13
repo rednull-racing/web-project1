@@ -10,7 +10,8 @@ src/app/item-list/stock/AGENTS.md、同page.tsx・stockItemList.tsx・stockItem.
 ../types.ts、types/itemAttributes.ts、ItemListUIと共通検索・価格・画像・ページ部品を根拠とする。
 APIはルートserver/src/routes/items.tsのGET /items/list/stock、
 services/items/query/list/userItemList.tsの実attributesと並び順を照合。
-本番修正・API変更・DB構造変更・在庫編集機能の追加は対象外。
+ユーザー指示によりF1の戻るボタン化・F2の取得失敗時の空案内表示を修正する。
+API変更・DB構造変更・在庫編集機能の追加は対象外。
 uploadedの空表示に関するユーザー指示をstock固有文言変更の許可へ拡張しない。
 
 Pageは非同期Server Component、一覧取得はクライアントSWR。
@@ -19,7 +20,7 @@ Pageは非同期Server Component、一覧取得はクライアントSWR。
 フロントはstatus/limitを送らない。バックエンドが本人のactive/soldoutを20件ずつ
 uploaded_at DESC,id DESCで返す。検索の正規化・記号escapeはAPIが担当。
 在庫はattributes.inventory.currentを表示し、色/サイズから再集計しない。
-未取得/エラーの専用表示なし、空配列のみ「商品が見つかりません」。
+未取得中は空案内なし。取得失敗または空配列では「商品が見つかりません」。取得失敗時は一覧を非表示にする。
 在庫の負数禁止など新しい入力契約は本作業で定めない。
 
 ## 階層・配置・fixture・保証
@@ -57,9 +58,9 @@ N正常、V境界、A競合/認可、E障害。優先度とIDは独立。
 | I-N02/P0 | page2→入力→Enter→clear | page1へ、未確定keywordなし、確定後反映、clear解除 |
 | I-N03/P1 | 検索アイコン→0件 | 検索確定・空案内・ページボタンなし |
 | I-A01/P0 | 旧検索保留→新検索完了→旧解除 | 新結果維持、旧結果非表示 |
-| I-E01/P1 | HTTP500→unmount→正常mount | 空配列扱いしない、商品非表示、再取得復帰（現行挙動の観測） |
+| I-E01/P1 | HTTP500→unmount→正常mount | 空配列と同じ案内、商品非表示、再取得復帰 |
 | I-V01/P0 | 初回応答保留→0件 | 未取得で空案内なし、応答後空案内、リンクなし |
-| P-N01/P1 | 実ページ枠に一覧、戻る操作 | 在庫一覧の見出し・検索・在庫表示、back要求 |
+| P-N01/P1 | 実ページ枠に一覧、戻る操作 | 在庫一覧の見出し・検索・在庫表示、button/戻るの操作でback要求 |
 | E-N01/P0 | 実ログイン、本人21/他人1/所有者null1、同日時 | 20+1のID降順、本人のみ、1234/0/attributes{}、実heading/link、SOLDなし、Video/Sale null・機密列なし、DB不変 |
 | E-N02/P0 | %と不一致検索Enter、seller_id偽装API | 実HTTP検索と0件表示、本人制約維持、DB不変 |
 | E-A01/P0 | 未認証一覧GET | 401、商品情報非公開、DB不変 |

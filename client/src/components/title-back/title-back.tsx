@@ -17,7 +17,10 @@ export const TitleAndBack = ({ title, url }: pageTitleProps) => {
         <div className="mb-2">
             <h1 className={styles.title}>{title}</h1>
 
-            <FontAwesomeIcon
+            <button
+                type="button"
+                aria-label="戻る"
+                className={styles.backButton}
                 onClick={() => {
                     if (url) {
                         router.push(url);
@@ -25,9 +28,9 @@ export const TitleAndBack = ({ title, url }: pageTitleProps) => {
                     }
                     router.back();
                 }}
-                icon={faAngleLeft}
-                className={styles.back}
-            />
+            >
+                <FontAwesomeIcon icon={faAngleLeft} className={styles.back} />
+            </button>
         </div>
     );
 };
