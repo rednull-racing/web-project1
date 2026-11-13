@@ -214,3 +214,12 @@ npm run test:e2e -- E2E/upload
 追加AF-F1/F2/F5/F6/F9/F10は単体/結合で上記契約・失敗後の停止位置を検証する。F10は数値IDを含むGET初期値からフォーム送信し、本番PUT/POST schemaに適合することを比較する。F9は202受付のみで通知/遷移せず、processingまたはURL変更後のconvertedで進み、failed/時間切れ/中断時に停止。転送再開は同マウント・同内容の保存応答と成功済みFileを再利用する範囲。
 
 今回テストはユーザー指示により未実行。既存実行結果を修正後の成功とみなさない。
+
+## 14. 2026-11-13 ブランド・カテゴリーのlint修正に伴う補完
+
+対象は `src/app/upload/brandInput.tsx`・`category.tsx` と対応する単体テスト。U09/U11・AF-F7の契約を維持し、既存ケースの期待値は変更しない。HTTP境界は既存MSW、通知はspyで確認し、実API・DB・人間目視は本修正の対象外。
+
+- AF-F7（U11補完）: 候補取得後、親からvalueを空文字へ更新し、再入力する。新しい応答前に消去済み候補が復活しない。
+- AF-F7（U09補完）: 初期level2に対応する親Aの取得を保留し、親Bを選択してBの応答を返してからAを解放する。Bの候補・親表示が維持される。既存の未選択開始の競合ケースも維持する。
+
+実行は `npm run test:unit -- src/app/upload/test/brandInput.test.tsx src/app/upload/test/category.test.tsx`、`npm run lint`、`npm run typecheck`、`./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`。結果と確認限界は[レポート第13節](../../report/upload/itemUpload.md#brand-category-lint-20261113)を参照。

@@ -1,6 +1,10 @@
 # 商品アップロード・商品編集ページ テスト結果・修正案
 
-## 最新結果（2026-11-04・F1〜F10修正後）
+## 最新の部分検証（2026-11-13・ブランド/カテゴリーのlint修正）
+
+対象2ファイルの関連単体テスト20件成功（Brand 10・Category 10）、全体lint・テスト用型検査成功。本番型検査は既存のparams型不整合・upload/okのseller_id型エラーで失敗。今回は下記の301件全体を再実行していない。詳細は[第13節](#brand-category-lint-20261113)を参照。
+
+## 前回の全体結果（2026-11-04・F1〜F10修正後）
 
 **関連テスト301件すべて成功（28ファイル）、失敗・skip・未処理例外なし。** フロント単体155、フォーム結合66、サーバー単体7、実DB25、Chromiumページ結合40、実DB E2E8。代表ケース・初回失敗・再実行を重複加算していない。ファイル別件数は [機械集計](itemUpload.results.json)、実行内容と残件は第12節を参照。
 
@@ -255,3 +259,22 @@ npm run test:e2e -- E2E/upload/itemUploadPage/saveDraft/flow.spec.ts --project e
 - Firefox/WebKit、実動画変換・署名期限切れ/リロード復旧・別タブ競合、Node26、人間観測O01〜O05、カバレッジは未確認。テスト成功をこれらの完了とはしない。
 
 各検査ログは `/tmp/upload-fixes-{client-lint,client-types,client-test-types,server-lint,server-types,server-test-types,e2e-types,e2e-lint,build}.log`。今回の完了範囲は関連テスト実行・テスト側の前提修正・結果記録であり、静的検査を含む全項目の成功ではない。
+
+<a id="brand-category-lint-20261113"></a>
+
+## 13. 2026-11-13 ブランド・カテゴリーのlint修正後の部分検証
+
+依頼対象の2ファイルについて、effect内の同期state更新を整理した。Brandは空文字への遷移時と候補選択イベントで候補を消去する。Categoryは初期選択をstateの初期値に移し、初回の制約通知と取得はeffectに残す。候補取得結果の反映はPromise完了後に行い、その時点でもrequestVersionを照合する。業務上の選択条件・リクエスト・待ち時間・既存テストの期待値は変更していない。
+
+実行ディレクトリは `client/`。
+
+| コマンド・対象 | 結果 |
+| --- | --- |
+| `npm run test:unit -- src/app/upload/test/brandInput.test.tsx src/app/upload/test/category.test.tsx` | 2ファイル20件成功（各10件）。失敗・skip・未処理例外なし |
+| `npm run lint` | 全体成功、指摘0件 |
+| `npm run typecheck` | 既存の生成型params不整合・`src/app/upload/ok/[id]/page.tsx:35` のItem.seller_id未定義で失敗。対象2ファイルの診断なし |
+| `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` | 成功 |
+
+U09/U11・AF-F7の既存18件に、設計第14節の2条件を追加した。Brandでは300ms debounce、500ms選択抑止、150ms blur、候補選択、空・失敗・unmount、エンコード、応答逆転を確認。Categoryでは初期level1/level2、親子選択、選択しない、取得失敗、応答逆転、unmount後の通知抑止を確認した。
+
+実コンポーネントをjsdomで動かし、HTTPは既存MSWで置換。実API/DB・フォーム全体・build・ブラウザー・人間目視は今回未実施、カバレッジ未取得。過去の全体件数に今回の再実行分を重複加算しない。集計根拠は今回のVitest標準出力（2 files / 20 passed）。静的検査の一時ログは `/tmp/upload-brand-category-lint.log`、`/tmp/upload-brand-category-typecheck.log`、`/tmp/upload-brand-category-test-types.log`。

@@ -74,3 +74,9 @@ Node22.22.2で全体lintは既存23 errors/37 warnings。今回のpage.tsx・ser
 `client/src/app/search/itemList.tsx` の初回effectを除去し、画面幅はstateの遅延初期化で判定する。従来はeffectが初期値isDesktop=false・viewMode=videoを参照し、全画面幅でlimit=6になり、その後のモード切り替えでも変化しなかった。この実挙動を維持してlimit=6に固定し、初期値36から6への切り替えによる余分なAPIキー変更を除去した。PC動画18件・商品36件等への変更は行っていない。画面幅の再判定も従来どおりリサイズでは行わない。
 
 対象eslintは0エラー・0警告（上表のsearch/itemListの残件は解消）。全体lint・typecheckには対象外の既存エラーが残る。build・ブラウザー操作確認・自動テストは未実施。本Todoは他ファイルの残件があるため未完了。
+
+## 2026-11-13 brandInput・categoryの追加修正
+
+依頼対象2ファイルのeffect内同期state更新を整理し、対象・client全体のlintが指摘0件で成功した。ブランド検索・カテゴリー初期化と応答競合の単体テスト20件、テスト用型検査も成功。詳細は `client/test/docs/report/upload/itemUpload.md` 第13節。過去の残件表は各修正前の履歴であり、現在のlint残件を示さない。
+
+本番typecheckは既存params型不整合とupload/okのseller_id型エラーで失敗し、build・人間目視は今回未実施。lint違反の解消は完了したが、本Todoの検証項目すべての完了とはせず、型エラーと未確認事項を残す。
