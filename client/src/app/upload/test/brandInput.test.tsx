@@ -110,6 +110,27 @@ describe("BrandInput", () => {
         await waitFor(() => expect(urls).toHaveLength(1));
         expect(new URL(urls[0]).searchParams.get("keyword")).toBe("A&B#C");
     });
+    it("U11 外部から空入力へ変更すると候補を消し、再入力でも古い候補を復活させない", async () => {
+        server.use(
+            http.get("https://api.test/brands/suggest", ({ request }) => {
+                const keyword = new URL(request.url).searchParams.get("keyword") ?? "";
+                return HttpResponse.json({
+                    brands: [{ id: keyword, name: `候補${keyword}`, name_normalized: keyword }],
+                });
+            }),
+        );
+        const onChange = vi.fn();
+        const { rerender } = render(<BrandInput value={{ id: null, name: "A" }} onChange={onChange} />);
+        fireEvent.focus(screen.getByPlaceholderText("ブランド名を入力"));
+        expect(await screen.findByText("候補A")).toBeInTheDocument();
+
+        rerender(<BrandInput value={{ id: null, name: "" }} onChange={onChange} />);
+        expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+        rerender(<BrandInput value={{ id: null, name: "B" }} onChange={onChange} />);
+        expect(screen.queryByText("候補A")).not.toBeInTheDocument();
+        expect(await screen.findByText("候補B")).toBeInTheDocument();
+        expect(onChange).not.toHaveBeenCalled();
+    });
     it("AF-F7 古い応答は新しいブランド候補を上書きしない", async () => {
         let release!: () => void;
         const delayed = new Promise<void>((resolve) => {
