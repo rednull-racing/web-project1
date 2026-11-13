@@ -45,6 +45,7 @@ export type Item = {
     age_type: "adult" | "kids" | "both";
     status: "active" | "soldout";
     price: number;
+    seller_id: number;
 };
 
 export type ItemEditing = {
