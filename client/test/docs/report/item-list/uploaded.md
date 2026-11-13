@@ -1,10 +1,10 @@
 # 出品した商品一覧 テストレポート
 
 2026-11-13。[設計書](../../architecture/item-list/uploaded.md)に対応。
-最新追記: [F2テスト側修正後の結果](#f2再検証2026-11-13)を参照。単体8件・結合8件は前回結果で今回未再実行。
-初回結果: 単体8件・結合8件成功、静的検査成功。E2E代表1件はsetup失敗で業務assert未到達。
-E2E残り2ケースと他ブラウザーは前提失敗による未実行。O01/O02は人間確認待ち。
-設計・テスト実装・実行結果記録を実施。本番コード・DB構造は変更していない。全体検証完了ではない。
+最新: [E2E再実行](#e2e再実行2026-11-13)で全3ケース×3ブラウザーの9件を実行し、7件成功・2件失敗。
+Chromium/Firefoxは各3件成功、WebKitは未認証1件成功・認証後の一覧2件失敗。
+DBガード停止は解消。WebKitのHTTP環境とSecure Cookieの問題が残る。
+単体8件・結合8件と人間観測は今回未再実行。以下の初回結果表は履歴。
 
 ## 実装・結果対応
 
@@ -142,3 +142,71 @@ SET NULLだったのはitem_idであり、seller_idモデルも変更前はNO AC
 今回の明示指示で初めて両seller_idモデルとDBをSET NULLへ変更した。
 F2の外部キー停止条件はDB上で解消済み。E2E本体は今回未再実行で、
 Next/API起動・実認証からの代表再検証は引き続き必要。
+
+## E2E再実行（2026-11-13）
+
+### 最新集計
+
+集計元はPlaywright JSON /tmp/uploaded-e2e-final.json（一時成果物）。
+3設計ID×3ブラウザー=9件。7 passed、2 failed、skip0、retry0。
+事前の代表単独実行は合算しない。未処理例外として独立したランナーエラーなし。
+失敗ケース内の例外は以下に記録。全件成功ではない。
+
+| project | E-N01 | E-N02 | E-A01 |
+| --- | --- | --- | --- |
+| Chromium | 成功 | 成功 | 成功 |
+| Firefox | 成功 | 成功 | 成功 |
+| WebKit | HTTP401で失敗 | itemList未定義のmapで失敗 | 成功 |
+
+成功範囲: 実NextAuth、実Express itemsルート、test_db、本人21件の20+1ページ、
+同日時ID降順・他人/所有者null除外、nullable Video/Sale、画面リンク、
+selling/soldの実HTTP条件、%検索・0件・seller_id偽装、未認証401とDB不変。
+人間の見た目・操作感・フォーカスの確認は行っていない。
+
+### 準備・コマンド・途中経過
+
+1. DB修復後の代表実行はガード・seedを通過し、既存Nextの実ログインで失敗。
+2. clientで NEXT_PUBLIC_API_URL=http://127.0.0.1:4333/api npm run build を実行し成功。
+   専用Nextを127.0.0.1:3032で起動。API_URLは上記proxy、
+   NEXTAUTH_URLは同Next URL、secretはserver/.env.testの値を非表示で読込。
+3. 実ログイン成功後、一覧応答待機が30秒でtimeout。traceのconsoleで
+   CORS preflightにAccess-Control-Allow-Originがないことを確認。
+4. test/fixtures/item-list/draft/backendHarness.tsのproxyがOrigin/preflight要求ヘッダーと
+   CORS応答ヘッダーを転送していなかったため修正。API応答は実物のまま、
+   本番CORS設定や認証・Cookie設定は変更していない。
+5. Chromium代表E-N01成功後、以下の全体実行を実施。
+
+実行場所test/:
+```bash
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3032 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.0.0.1:4332/api ITEM_DRAFT_E2E_PROXY_URL=http://127.0.0.1:4333/api PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/uploaded-e2e-final.json npm run test:e2e -- E2E/item-list/uploaded/getUploadedItemList/flow.spec.ts --reporter=list,json
+```
+
+Nextは検証終了後停止。fixtureのfinallyでテストデータとExpress/proxyを後片付け。
+testでnpm run typecheck成功。変更したbackendHarness.tsは既存server依存の
+ESLint/TypeScript ESLint recommended設定をAPIから適用し診断0。
+client本番コード未変更のため単体/結合・client全体静的検査は再実行していない。
+git diff --check成功。カバレッジ未取得。
+
+### F4: テストproxyのCORS転送不足（修正・検証済み）
+
+業務HTTPを置換せずCORS関連ヘッダーを双方向転送する修正。
+Chromium代表成功と上記全体実行で通信成立を確認。
+元のtimeout期待や認証assertは緩めていない。
+
+### F5: WebKitのHTTP/Secure Cookie環境（未解消）
+
+E-N01: ログイン後の一覧GETが401（期待200）。
+E-N02: 同じ認証不足の応答にitemListがなくmapがTypeError。
+タブ結果・後続の検索/偽装・DB不変assertは未到達。
+traceでWebKitの一覧GETにAuthorizationがないことを確認。
+ページ応答はaccess-tokenにPath=/; Secure; SameSite=laxを設定している。
+本番モードのmiddlewareはSecureを付け、getAccessTokenはdocument.cookieから読む。
+HTTPのローカル環境でWebKitが同Cookieを利用できていないと推定する。
+Chromium/Firefoxの成功をWebKit成功へ読み替えない。
+
+修正案・再開条件: 信頼済みローカル証明書を使うHTTPSのNext/API proxyを準備し、
+URL・CORS・NextAuthを揃えてWebKitの2ケースを再実行する。
+既存ハーネスはHTTP loopbackを前提とするためHTTPS対応には別途環境整備が必要。
+認証モック・Cookie手動注入・本番Secure無効化は行っていない。
+E-N02にはHTTP200を確認してからJSONを読むassertを追加する余地があるが、
+今回の実測は上記のTypeErrorとして保持する。

@@ -92,7 +92,7 @@ export const test = base.extend<{ e2e: Harness }>({
                         const chunks: Buffer[] = [];
                         for await (const chunk of req) chunks.push(Buffer.from(chunk));
                         const headers = new Headers();
-                        for (const key of ["authorization", "content-type", "cookie"])
+                        for (const key of ["authorization", "content-type", "cookie", "origin", "access-control-request-method", "access-control-request-headers"])
                             if (req.headers[key]) headers.set(key, String(req.headers[key]));
                         const response = await http(`${path}${input.search}`, {
                             method: req.method,
@@ -106,9 +106,20 @@ export const test = base.extend<{ e2e: Harness }>({
                                 body: (await response.clone().json()) as Record<string, unknown>,
                             });
                         }
-                        res.writeHead(response.status, {
+                        const responseHeaders: Record<string, string> = {
                             "Content-Type": response.headers.get("content-type") ?? "application/json",
-                        });
+                        };
+                        for (const key of [
+                            "access-control-allow-origin",
+                            "access-control-allow-credentials",
+                            "access-control-allow-methods",
+                            "access-control-allow-headers",
+                            "vary",
+                        ]) {
+                            const value = response.headers.get(key);
+                            if (value !== null) responseHeaders[key] = value;
+                        }
+                        res.writeHead(response.status, responseHeaders);
                         res.end(Buffer.from(await response.arrayBuffer()));
                     } catch {
                         res.writeHead(502, { "Content-Type": "application/json" });

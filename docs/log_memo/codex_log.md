@@ -1599,3 +1599,9 @@
 - 両seller_idのON DELETEをSET NULLへ変更するup/down migrationとモデル・テスト条件を追加更新。
 - neondb/test_dbへ今回のmigrationだけを適用し、外部キーと適用履歴を確認済み。
 - ON UPDATE NO ACTIONを維持。server lint・typecheck成功。E2E本体は未再実行。
+
+## 20261113_frontend-architecture_uploaded_E2E再実行
+
+- DBガード解消と実認証通過を確認し、テストproxyのCORSヘッダー転送を修正。
+- 3ブラウザー9件を実行。Chromium/Firefox各3成功、WebKit1成功2失敗。
+- WebKitのHTTP/Secure Cookie環境の残件と実行条件をレポートへ記録。E2E型検査・対象lint成功。
