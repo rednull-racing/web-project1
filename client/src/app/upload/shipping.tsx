@@ -1,7 +1,7 @@
 "use client";
 
 import { InputTitle, Textarea } from "@/components/inputForm";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ShippingDayOption, ShippingServiceOption, TodouhukenOption } from "./types/types";
 import styles from "./upload.module.css";
 
@@ -26,27 +26,7 @@ type Props = {
 export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }: Props) => {
     const [openServiceSelect, setOpenServiceSelect] = useState(false);
     const [openPlaceSelect, setOpenPlaceSelect] = useState(false);
-    const [selectDayText, setSelectDayText] = useState("");
-    const [selectServiceText, setSelectServiceText] = useState("");
-    const [selectPlaceText, setSelectPlaceText] = useState("");
-
-    useEffect(() => {
-        if (value.day_id) {
-            setSelectDayText(value.day_name ?? "");
-        }
-
-        if (value.service_id) {
-            setSelectServiceText(value.service_name ?? "");
-        }
-
-        if (value.place_id) {
-            setSelectPlaceText(value.place_name ?? "");
-        }
-    }, [value.day_id, value.day_name, value.service_id, value.service_name, value.place_id, value.place_name]);
-
     const handleChangeDay = (day: ShippingDayOption) => {
-        setSelectDayText(day.name);
-
         if (value.day_id !== day.id) {
             onChange({
                 ...value,
@@ -57,8 +37,6 @@ export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }:
     };
 
     const handleChangeService = (service: ShippingServiceOption) => {
-        setSelectServiceText(service.name);
-
         if (value.service_id !== service.id) {
             onChange({
                 ...value,
@@ -69,8 +47,6 @@ export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }:
     };
 
     const handleChangePlace = (place: TodouhukenOption) => {
-        setSelectPlaceText(place.name);
-
         if (value.place_id !== place.id) {
             onChange({
                 ...value,
@@ -100,7 +76,7 @@ export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }:
                                 type="radio"
                                 name="day_option"
                                 value={day.name}
-                                checked={selectDayText === day.name}
+                                checked={value.day_name === day.name}
                                 onChange={() => handleChangeDay(day)}
                                 className={styles.radio}
                                 required
@@ -117,7 +93,7 @@ export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }:
                     <InputTitle title="配送方法" hissu />
                     <input
                         type="text"
-                        value={selectServiceText}
+                        value={value.service_name ?? ""}
                         placeholder="配送方法を選択"
                         onFocus={() => setOpenServiceSelect(true)}
                         onBlur={() => setTimeout(() => setOpenServiceSelect(false), 150)}
@@ -132,7 +108,7 @@ export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }:
                                 <li
                                     key={service.id}
                                     onMouseDown={() => handleChangeService(service)}
-                                    data-selected={selectServiceText === service.name}
+                                    data-selected={value.service_name === service.name}
                                     className={styles.selectLi}
                                 >
                                     {service.name}
@@ -147,7 +123,7 @@ export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }:
                     <InputTitle title="発送元地域" hissu />
                     <input
                         type="text"
-                        value={selectPlaceText}
+                        value={value.place_name ?? ""}
                         placeholder="発送元地域を選択"
                         onFocus={() => setOpenPlaceSelect(true)}
                         onBlur={() => setTimeout(() => setOpenPlaceSelect(false), 150)}
@@ -162,7 +138,7 @@ export const ShippingInput = ({ allDay, allService, allPlace, value, onChange }:
                                 <li
                                     key={t.id}
                                     onMouseDown={() => handleChangePlace(t)}
-                                    data-selected={selectPlaceText === t.name}
+                                    data-selected={value.place_name === t.name}
                                     className={styles.selectLi}
                                 >
                                     {t.name}

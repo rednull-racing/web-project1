@@ -28,24 +28,18 @@ const MAX_SIZE = 500 * 1024 * 1024; // 500MB
 export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVideoUrl }: Props) => {
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+    
     useEffect(() => {
-        if (!value.videoFile) {
-            setVideoPreview(null);
-            return;
-        }
-        const url = URL.createObjectURL(value.videoFile);
-        setVideoPreview(url);
-        return () => URL.revokeObjectURL(url);
-    }, [value.videoFile]);
+        return () => {
+            if (videoPreview) URL.revokeObjectURL(videoPreview);
+        };
+    }, [videoPreview]);
+    
     useEffect(() => {
-        if (!value.thumbnailFile) {
-            setThumbnailPreview(null);
-            return;
-        }
-        const url = URL.createObjectURL(value.thumbnailFile);
-        setThumbnailPreview(url);
-        return () => URL.revokeObjectURL(url);
-    }, [value.thumbnailFile]);
+        return () => {
+            if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);
+        };
+    }, [thumbnailPreview]);
 
     const handleChangeVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -62,6 +56,7 @@ export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVi
             videoFile: file,
             videoUploaded: false,
         });
+        setVideoPreview(URL.createObjectURL(file));
     };
 
     const handleChangeThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +69,7 @@ export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVi
             thumbnailPreview: null,
             thumbnailUploaded: false,
         });
+        setThumbnailPreview(URL.createObjectURL(file));
     };
 
     const handleChangeTitle = (title: string) => {

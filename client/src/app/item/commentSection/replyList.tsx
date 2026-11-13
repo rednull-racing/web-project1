@@ -34,7 +34,7 @@ export const ReplyList = ({ parentId, page, loggedIn, sellerMe, optimisticCommen
         };
 
         fetchComment();
-    }, [parentId, page, refreshTrigger]);
+    }, [parentId, page, sellerMe, refreshTrigger]);
 
     const allComments = [...optimisticComments, ...comments];
 

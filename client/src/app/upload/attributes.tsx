@@ -5,7 +5,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import styles from "./attributesCard.module.css";
 import CStyles from "./upload.module.css";
 
@@ -31,8 +31,6 @@ type Props = {
 };
 
 export const AttributesInput = ({ value, onChange, imageUrlMap }: Props) => {
-    const [showVariants, setShowVariants] = useState(false);
-
     const previewMap = useMemo(() => {
         const map = new Map<string, string>();
 
@@ -44,12 +42,6 @@ export const AttributesInput = ({ value, onChange, imageUrlMap }: Props) => {
 
         return map;
     }, [value.colorVariants]);
-
-    useEffect(() => {
-        if (value.colorVariants.length > 0) {
-            setShowVariants(true);
-        }
-    }, [value.colorVariants.length]);
 
     useEffect(() => {
         return () => {
@@ -68,7 +60,6 @@ export const AttributesInput = ({ value, onChange, imageUrlMap }: Props) => {
         });
 
         if (safeNum > 1 && value.colorVariants.length === 0) {
-            setShowVariants(true);
             onChange({
                 ...value,
                 all_inventory: safeNum,
@@ -77,7 +68,6 @@ export const AttributesInput = ({ value, onChange, imageUrlMap }: Props) => {
         }
 
         if (safeNum === 1) {
-            setShowVariants(false);
             onChange({
                 ...value,
                 all_inventory: safeNum,
@@ -164,7 +154,7 @@ export const AttributesInput = ({ value, onChange, imageUrlMap }: Props) => {
         });
 
         if (nextVariants.length === 0) {
-            setShowVariants(false);
+            // Variants are hidden automatically when the last one is removed.
         }
     };
 
@@ -220,7 +210,7 @@ export const AttributesInput = ({ value, onChange, imageUrlMap }: Props) => {
                 />
             </div>
 
-            {showVariants && (
+            {value.colorVariants.length > 0 && (
                 <div className={styles.cardWrapper}>
                     {value.colorVariants.map((variant) => {
                         const previewUrl = previewMap.get(variant._uiId) ?? imageUrlMap.get(variant._uiId) ?? null;

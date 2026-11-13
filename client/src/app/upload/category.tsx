@@ -1,7 +1,7 @@
 "use client";
 
 import { InputTitle } from "@/components/inputForm";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Categories } from "./types/types";
 import styles from "./upload.module.css";
@@ -11,6 +11,13 @@ export type CategoryValue = {
     name: string;
     parent_id: number | null;
     level: number;
+};
+
+const NONE_CATEGORY: CategoryValue = {
+    id: null,
+    name: "選択しない",
+    parent_id: null,
+    level: 2,
 };
 
 type Props = {
@@ -42,6 +49,39 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
         },
         [],
     );
+
+    const fetchLevel2 = useCallback(async (parentId: number) => {
+        const version = ++requestVersion.current;
+        setLoading(true);
+        setLevel2List([]);
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${parentId}/level2`, {
+                cache: "no-store",
+            });
+
+            const data = await res.json();
+            if (version !== requestVersion.current) return;
+
+            if (!res.ok) {
+                console.error(data.message);
+                toast.error("詳細カテゴリーの取得に失敗しました。");
+                setLoading(false);
+                return;
+            }
+
+            const category2 = data.category2;
+
+            setLevel2List([...category2, NONE_CATEGORY]);
+
+            setLoading(false);
+        } catch (err) {
+            if (version !== requestVersion.current) return;
+            toast.error("詳細カテゴリーの取得に失敗しました。");
+            console.error(err);
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (initializedRef.current) return;
@@ -85,14 +125,7 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
         }
 
         initializedRef.current = true;
-    }, [value, level1List]);
-
-    const NONE_CATEGORY: CategoryValue = {
-        id: null,
-        name: "選択しない",
-        parent_id: null,
-        level: 2,
-    };
+    }, [value, level1List, fetchLevel2, onConstraintChange]);
 
     const handleLevel1Set = (cat: Categories) => {
         setLoading(true);
@@ -117,39 +150,6 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
         const idNum = Number(cat.id);
 
         fetchLevel2(idNum);
-    };
-
-    const fetchLevel2 = async (parentId: number) => {
-        const version = ++requestVersion.current;
-        setLoading(true);
-        setLevel2List([]);
-
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${parentId}/level2`, {
-                cache: "no-store",
-            });
-
-            const data = await res.json();
-            if (version !== requestVersion.current) return;
-
-            if (!res.ok) {
-                console.error(data.message);
-                toast.error("詳細カテゴリーの取得に失敗しました。");
-                setLoading(false);
-                return;
-            }
-
-            const category2 = data.category2;
-
-            setLevel2List([...category2, NONE_CATEGORY]);
-
-            setLoading(false);
-        } catch (err) {
-            if (version !== requestVersion.current) return;
-            toast.error("詳細カテゴリーの取得に失敗しました。");
-            console.error(err);
-            setLoading(false);
-        }
     };
 
     const handleLevel2Set = (cat: Categories) => {

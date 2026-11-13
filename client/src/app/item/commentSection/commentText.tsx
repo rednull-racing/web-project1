@@ -13,6 +13,7 @@ type Props = {
 export const CommentText = ({ comment, page }: Props) => {
     const [expanded, setExpanded] = useState(false);
     const [overflowing, setOverflowing] = useState(false);
+    const [contentHeight, setContentHeight] = useState(0);
     const textRef = useRef<HTMLParagraphElement>(null);
     const text = comment.text || "";
 
@@ -20,6 +21,7 @@ export const CommentText = ({ comment, page }: Props) => {
         const el = textRef.current;
         if (el) {
             setOverflowing(el.scrollHeight > el.clientHeight);
+            setContentHeight(el.scrollHeight);
         }
     }, [text]);
 
@@ -36,7 +38,7 @@ export const CommentText = ({ comment, page }: Props) => {
                 ref={textRef}
                 className={`${styles.text} ${!expanded ? styles.clamp : ""}`}
                 style={{
-                    maxHeight: expanded ? textRef.current?.scrollHeight : "5.2rem",
+                    maxHeight: expanded ? `${contentHeight}px` : "5.2rem",
                     transition: "max-height 0.3s ease",
                 }}
             >

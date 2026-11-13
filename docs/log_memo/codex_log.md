@@ -1557,3 +1557,9 @@
 - 未使用import・変数・catch引数、返信一覧とNextAuthの型を修正し、検索履歴取得関数をeffect内へ移動。
 - lintは23エラー・34警告から20エラー・7警告へ減少。挙動判断が必要なHooks指摘は変更せず既存Todoへ記録。
 - 関連API単体テスト16件成功。typecheckは既存params型不整合・upload/okのseller_id型エラーで失敗。build・ブラウザー確認は未実施。
+
+## 20261113_frontend-components_lpItemListのlintエラーを解消
+
+- 表示件数をstateの遅延初期化で設定し、初回モバイル取得後のstate更新をeffect内の非同期関数へ整理。件数・768pxの境界・初回取得条件を維持。
+- 対象eslintはエラー・警告0件。全体lint・typecheckは対象外の既存エラーで失敗。build・ブラウザー確認は未実施。
+- 対象を含む既存の未コミット変更を保持。他者の変更を混入させないため今回の変更も未コミットで保持。

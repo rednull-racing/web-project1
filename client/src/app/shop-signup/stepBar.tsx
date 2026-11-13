@@ -13,12 +13,15 @@ export const StepBar = () => {
     const itemRef = useRef<(HTMLDivElement | null)[]>([]);
 
     useEffect(() => {
-        setWidth(window.innerWidth);
+        const frame = window.requestAnimationFrame(() => setWidth(window.innerWidth));
 
         const handleResize = () => setWidth(window.innerWidth);
         window.addEventListener("resize", handleResize);
 
-        return () => window.removeEventListener("resize", handleResize);
+        return () => {
+            window.cancelAnimationFrame(frame);
+            window.removeEventListener("resize", handleResize);
+        };
     }, []);
 
     useEffect(() => {

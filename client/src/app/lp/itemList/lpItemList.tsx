@@ -28,19 +28,8 @@ export const LpItemList = ({ defaultVideoList }: Props) => {
     const [pageIL, setPageIL] = useState(1);
     const [totalPagesVL, setTotalPagesVL] = useState(defaultVideoList.totalPages);
     const [totalPagesIL, setTotalPagesIL] = useState(1);
-    const [limitVL, setLimitVL] = useState(15);
-    const [limitIL, setLimitIL] = useState(36);
-
-    useEffect(() => {
-        const isDesktop = window.innerWidth >= 768;
-
-        if (!isDesktop) {
-            const newLimit = 6;
-            setLimitVL(newLimit);
-            setLimitIL(18);
-            setVL(1, newLimit);
-        }
-    }, []);
+    const [limitVL] = useState(() => (typeof window !== "undefined" && window.innerWidth < 768 ? 6 : 15));
+    const [limitIL] = useState(() => (typeof window !== "undefined" && window.innerWidth < 768 ? 18 : 36));
 
     const setVL = async (page: number, limit: number) => {
         try {
@@ -52,6 +41,25 @@ export const LpItemList = ({ defaultVideoList }: Props) => {
             setPageVL(page);
         } catch {}
     };
+
+    useEffect(() => {
+        const isDesktop = window.innerWidth >= 768;
+
+        if (!isDesktop) {
+            const loadVideoList = async () => {
+                try {
+                    const data = await fetchVL(1, 6);
+
+                    setVideoList(data.items);
+                    setVisibleIL(false);
+                    setTotalPagesVL(data.totalPages);
+                    setPageVL(1);
+                } catch {}
+            };
+
+            loadVideoList();
+        }
+    }, []);
 
     const setIL = async (page: number, limit: number) => {
         try {

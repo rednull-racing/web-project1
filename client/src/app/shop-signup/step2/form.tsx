@@ -58,11 +58,7 @@ export const Form = ({ shopSignupId, account }: Props) => {
 
     useEffect(() => {
         if (isSelectingBank) return;
-        if (!bankQuery || bankQuery === account.bank_name) {
-            setBankSuggestions([]);
-            setShowBankSuggest(false);
-            return;
-        }
+        if (!bankQuery || bankQuery === account.bank_name) return;
 
         if (suggestTimeout.current) clearTimeout(suggestTimeout.current);
 
@@ -94,11 +90,7 @@ export const Form = ({ shopSignupId, account }: Props) => {
 
     useEffect(() => {
         if (isSelectingBranch) return;
-        if (!branchQuery || branchQuery === account.branch) {
-            setBranchSuggestions([]);
-            setShowBranchSuggest(false);
-            return;
-        }
+        if (!branchQuery || branchQuery === account.branch) return;
 
         const controller = new AbortController();
         const timeoutId = setTimeout(async () => {
@@ -178,7 +170,11 @@ export const Form = ({ shopSignupId, account }: Props) => {
                 <input
                     type="text"
                     value={bankQuery}
-                    onChange={(e) => setBankQuery(e.target.value)}
+                    onChange={(e) => {
+                        setBankQuery(e.target.value);
+                        setBankSuggestions([]);
+                        setShowBankSuggest(false);
+                    }}
                     onFocus={() => {
                         setShowBankSuggest(true);
                         setShowBranchSuggest(false);
@@ -216,7 +212,11 @@ export const Form = ({ shopSignupId, account }: Props) => {
                 <input
                     type="text"
                     value={branchQuery}
-                    onChange={(e) => setBranchQuery(e.target.value)}
+                    onChange={(e) => {
+                        setBranchQuery(e.target.value);
+                        setBranchSuggestions([]);
+                        setShowBranchSuggest(false);
+                    }}
                     onFocus={() => {
                         setShowBranchSuggest(true);
                         setShowBankSuggest(false);

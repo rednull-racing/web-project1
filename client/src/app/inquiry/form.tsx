@@ -24,7 +24,7 @@ export const Form = ({ user }: Props) => {
 
     useEffect(() => {
         router.refresh();
-    }, []);
+    }, [router]);
 
     const submit = async () => {
         const emailTrim = email.trim();

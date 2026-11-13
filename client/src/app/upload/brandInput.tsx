@@ -15,7 +15,6 @@ type Props = {
 };
 
 export const BrandInput = ({ value, onChange }: Props) => {
-    const [brandName, setBrandName] = useState("");
     const [openSuggest, setOpenSuggest] = useState(false);
     const [isSelecting, setIsSelecting] = useState(false);
 
@@ -41,20 +40,19 @@ export const BrandInput = ({ value, onChange }: Props) => {
     const suggestTimeout = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (value.id) {
-            setBrandName(value.name);
-        }
-    }, [value.id, value.name]);
-
-    useEffect(() => {
         const version = ++requestVersion.current;
-        if (brandName.length === 0) {
+        let isActive = true;
+        if (value.name.length === 0) {
             setSuggestions([]);
-            return;
+            return () => {
+                isActive = false;
+            };
         }
         if (isSelecting) {
             setSuggestions([]);
-            return;
+            return () => {
+                isActive = false;
+            };
         }
 
         if (suggestTimeout.current) clearTimeout(suggestTimeout.current);
@@ -62,14 +60,14 @@ export const BrandInput = ({ value, onChange }: Props) => {
         suggestTimeout.current = setTimeout(async () => {
             try {
                 const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/brands/suggest?${new URLSearchParams({ keyword: brandName })}`,
+                    `${process.env.NEXT_PUBLIC_API_URL}/brands/suggest?${new URLSearchParams({ keyword: value.name })}`,
                     {
                         cache: "no-store",
                     },
                 );
 
                 const data = await res.json();
-                if (version !== requestVersion.current) return;
+                if (!isActive || version !== requestVersion.current) return;
 
                 if (!res.ok) {
                     console.error("ブランド名検索エラー：", data.message);
@@ -80,22 +78,21 @@ export const BrandInput = ({ value, onChange }: Props) => {
 
                 setSuggestions(data.brands);
             } catch (err) {
-                if (version !== requestVersion.current) return;
+                if (!isActive || version !== requestVersion.current) return;
                 console.error(err);
                 setSuggestions([]);
             }
         }, 300);
 
         return () => {
-            requestVersion.current++;
+            isActive = false;
             if (suggestTimeout.current) clearTimeout(suggestTimeout.current);
         };
-    }, [brandName, isSelecting, value.name]);
+    }, [value.name, isSelecting]);
 
     const handleChangeBrand = (name: string) => {
         requestVersion.current++;
         setIsSelecting(false);
-        setBrandName(name);
 
         onChange({
             id: null,
@@ -108,7 +105,7 @@ export const BrandInput = ({ value, onChange }: Props) => {
             <InputTitle title="ブランド名を入力" />
             <input
                 type="text"
-                value={brandName}
+                value={value.name}
                 onChange={(e) => handleChangeBrand(e.target.value)}
                 placeholder="ブランド名を入力"
                 onFocus={() => setOpenSuggest(true)}
@@ -126,7 +123,6 @@ export const BrandInput = ({ value, onChange }: Props) => {
                             onMouseDown={() => {
                                 requestVersion.current++;
                                 setIsSelecting(true);
-                                setBrandName(brand.name);
                                 onChange({
                                     id: brand.id,
                                     name: brand.name,

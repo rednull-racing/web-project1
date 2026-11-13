@@ -3,7 +3,7 @@
 import { Button, InputStr } from "@/components/inputForm";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { SITE } from "../../../config/site";
 import { ApiError } from "../../../lib/api/apiError";
@@ -33,18 +33,7 @@ export const AddressEditForm = ({ address, page, purchaseSessionId, shopId, shop
 
     const router = useRouter();
 
-    useEffect(() => {
-        if (isInitialLoad) {
-            setIsInitialLoad(false);
-            return;
-        }
-
-        if (postNumber.length === 7) {
-            handleZipSearch();
-        }
-    }, [postNumber, isInitialLoad]);
-
-    const handleZipSearch = async () => {
+    const handleZipSearch = useCallback(async () => {
         if (!postNumber || postNumber.length < 7) {
             toast.error("7桁の郵便番号を入力してください。");
             return;
@@ -64,7 +53,18 @@ export const AddressEditForm = ({ address, page, purchaseSessionId, shopId, shop
 
             alert("システムエラーが発生しました。時間をおいて再試行してください");
         }
-    };
+    }, [postNumber]);
+
+    useEffect(() => {
+        if (isInitialLoad) {
+            setIsInitialLoad(false);
+            return;
+        }
+
+        if (postNumber.length === 7) {
+            handleZipSearch();
+        }
+    }, [postNumber, isInitialLoad, handleZipSearch]);
 
     const submit = async () => {
         if (!postNumber || !todouhuken || !shikutyouson || !banchi) {

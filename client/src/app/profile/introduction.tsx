@@ -11,12 +11,14 @@ type Props = {
 export const Introduction = ({ data }: Props) => {
     const [expanded, setExpanded] = useState(false);
     const [overflowing, setOverflowing] = useState(false);
+    const [contentHeight, setContentHeight] = useState(0);
     const textRef = useRef<HTMLParagraphElement>(null);
     const text = data.user.user_introduction || "";
 
     useEffect(() => {
         const el = textRef.current;
         if (el) {
+            setContentHeight(el.scrollHeight);
             setOverflowing(el.scrollHeight > el.clientHeight);
         }
     }, [text]);
@@ -27,7 +29,7 @@ export const Introduction = ({ data }: Props) => {
                 ref={textRef}
                 className={`${styles.introduction} ${!expanded ? styles.clamp : ""}`}
                 style={{
-                    maxHeight: expanded ? textRef.current?.scrollHeight : "6rem",
+                    maxHeight: expanded ? `${contentHeight}px` : "6rem",
                     transition: "max-height 0.3s ease",
                 }}
             >
