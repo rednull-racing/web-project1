@@ -96,7 +96,7 @@ describe("Category", () => {
         if (kind === "empty") expect(await screen.findByText("選択しない")).toBeInTheDocument();
         else await waitFor(() => expect(error).toHaveBeenCalledWith("詳細カテゴリーの取得に失敗しました。"));
     });
-    it("AF-F7 親Aの遅い応答はB選択後の候補を上書きしない", async () => {
+    it.each([false, true])("AF-F7 初期選択%sで親Aの遅い応答はB選択後の候補を上書きしない", async (initialSelection) => {
         let resolveA!: () => void;
         const delayed = new Promise<void>((resolve) => {
             resolveA = resolve;
@@ -126,12 +126,12 @@ describe("Category", () => {
                 return HttpResponse.json({ category2: [{ ...child, id: "21", parent_id: 2, name: "ズボン" }] });
             }),
         );
-        setup();
+        setup(initialSelection ? child : undefined);
         const choose = async (name: string) => {
             fireEvent.focus(screen.getAllByPlaceholderText("カテゴリーを選択してください")[0]);
             await userEvent.click(screen.getByText(name));
         };
-        await choose("トップス");
+        if (!initialSelection) await choose("トップス");
         await waitFor(() => expect(requested).toBe(true));
         await choose("ボトムス");
         fireEvent.focus(screen.getAllByPlaceholderText("カテゴリーを選択してください")[1]);

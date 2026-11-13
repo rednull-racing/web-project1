@@ -33,11 +33,37 @@ type Props = {
 };
 
 export const Category = ({ level1List, value, onChange, onConstraintChange }: Props) => {
+    const [initialSelection] = useState(() => {
+        const parent =
+            value.level === 2 && value.parent_id
+                ? level1List.find((cat) => Number(cat.id) === Number(value.parent_id))
+                : undefined;
+        const selectedLevel1: CategoryValue | null =
+            value.level === 1
+                ? value
+                : parent
+                  ? { id: parent.id, name: parent.name, parent_id: null, level: 1 }
+                  : null;
+        const constraintCategory = value.level === 1 ? level1List.find((cat) => cat.id === value.id) : parent;
+
+        return {
+            selectedLevel1,
+            displayLevel1: selectedLevel1?.name ?? "",
+            displayLevel2: parent ? value.name : "",
+            parentId: parent ? value.parent_id : null,
+            constraint: constraintCategory
+                ? {
+                      allowed_gender: constraintCategory.allowed_gender ?? null,
+                      allowed_age: constraintCategory.allowed_age ?? null,
+                  }
+                : null,
+        };
+    });
     const [level2List, setLevel2List] = useState<Categories[]>([]);
-    const [selectedLevel1, setSelectedLevel1] = useState<CategoryValue | null>(null);
-    const [displayLevel1, setDisplayLevel1] = useState("");
-    const [displayLevel2, setDisplayLevel2] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [selectedLevel1, setSelectedLevel1] = useState(initialSelection.selectedLevel1);
+    const [displayLevel1, setDisplayLevel1] = useState(initialSelection.displayLevel1);
+    const [displayLevel2, setDisplayLevel2] = useState(initialSelection.displayLevel2);
+    const [loading, setLoading] = useState(initialSelection.parentId !== null);
     const [openLevel1, setOpenLevel1] = useState(false);
     const [openLevel2, setOpenLevel2] = useState(false);
 
@@ -52,8 +78,6 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
 
     const fetchLevel2 = useCallback(async (parentId: number) => {
         const version = ++requestVersion.current;
-        setLoading(true);
-        setLevel2List([]);
 
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/${parentId}/level2`, {
@@ -66,69 +90,41 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
             if (!res.ok) {
                 console.error(data.message);
                 toast.error("詳細カテゴリーの取得に失敗しました。");
-                setLoading(false);
-                return;
+                return { version, categories: null };
             }
 
-            const category2 = data.category2;
-
-            setLevel2List([...category2, NONE_CATEGORY]);
-
-            setLoading(false);
+            return { version, categories: [...data.category2, NONE_CATEGORY] };
         } catch (err) {
             if (version !== requestVersion.current) return;
             toast.error("詳細カテゴリーの取得に失敗しました。");
             console.error(err);
-            setLoading(false);
+            return { version, categories: null };
         }
+    }, []);
+
+    const applyLevel2Result = useCallback((result: Awaited<ReturnType<typeof fetchLevel2>>) => {
+        if (!result || result.version !== requestVersion.current) return;
+
+        if (result.categories) setLevel2List(result.categories);
+        setLoading(false);
     }, []);
 
     useEffect(() => {
         if (initializedRef.current) return;
 
-        if (value.level === 1) {
-            setSelectedLevel1(value);
-            setDisplayLevel1(value.name);
-            setDisplayLevel2("");
-
-            const cat = level1List.find((c) => c.id === value.id);
-            if (cat) {
-                onConstraintChange({
-                    allowed_gender: cat.allowed_gender ?? null,
-                    allowed_age: cat.allowed_age ?? null,
-                });
-            }
+        if (initialSelection.constraint) {
+            onConstraintChange(initialSelection.constraint);
         }
-
-        if (value.level === 2 && value.parent_id) {
-            const parent = level1List.find((cat) => Number(cat.id) === Number(value.parent_id));
-
-            if (parent) {
-                const parentCategoryValue: CategoryValue = {
-                    id: parent.id,
-                    name: parent.name,
-                    parent_id: null,
-                    level: 1,
-                };
-
-                setDisplayLevel1(parent?.name ?? "");
-                setSelectedLevel1(parentCategoryValue);
-                setDisplayLevel2(value.name);
-
-                onConstraintChange({
-                    allowed_gender: parent.allowed_gender ?? null,
-                    allowed_age: parent.allowed_age ?? null,
-                });
-
-                fetchLevel2(value.parent_id);
-            }
+        if (initialSelection.parentId !== null) {
+            fetchLevel2(initialSelection.parentId).then(applyLevel2Result);
         }
 
         initializedRef.current = true;
-    }, [value, level1List, fetchLevel2, onConstraintChange]);
+    }, [initialSelection, fetchLevel2, applyLevel2Result, onConstraintChange]);
 
     const handleLevel1Set = (cat: Categories) => {
         setLoading(true);
+        setLevel2List([]);
         setSelectedLevel1(cat);
 
         onChange({
@@ -149,7 +145,7 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
 
         const idNum = Number(cat.id);
 
-        fetchLevel2(idNum);
+        fetchLevel2(idNum).then(applyLevel2Result);
     };
 
     const handleLevel2Set = (cat: Categories) => {
