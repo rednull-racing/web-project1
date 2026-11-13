@@ -12,6 +12,7 @@ F2: stockのSWR errorを参照し、失敗時も空配列と同じ「商品が�
 API・認証・DBは未変更。uploadedは今回の修正対象外。
 
 clientで実行:
+
 - npm run test:integration -- test/integration/components/item-list/stock test/integration/pages/item-list/stock test/integration/pages/item-list/draft test/integration/pages/item-list/trash
 
 Vitestの最終出力で4ファイル12件成功、失敗・skip0。stock7件、draft/trashページ回帰5件。
@@ -30,19 +31,19 @@ E2Eは9件中7件成功・2件失敗。Chromium/Firefox各3件成功、WebKit認
 
 パスはclient/基準、E2Eはルートtest/基準。
 
-| ID | 実装 | 結果・確認内容 |
-| --- | --- | --- |
-| U-N01 | src/app/item-list/stock/api/test/client.test.ts | 3展開成功。page・空/空白・trim/日本語&%encode、statusなし |
-| U-V01 | src/app/item-list/stock/test/stockItem.test.tsx | 3展開成功。在庫0/1/1234、桁区切り、色別在庫非集計、SOLDなし、href、mutate未呼出し |
-| U-V02 | 同上 | 2展開成功。attributes省略/空、nullable name/Video/image/日時、fallback画像と価格文字列 |
-| U-N02 | 同上 | 1件成功。Sale文字列・null割引額・動画 |
-| I-N01 | test/integration/components/item-list/stock/list/integration.test.tsx | 1件成功。wrapped JSON・在庫表示・実fetcher Bearer・page/status条件 |
-| I-N02/I-N03 | 同上 | 2件成功。ページ2→入力で1、Enter確定・clear解除・アイコン検索・空応答 |
-| I-A01 | 同上 | 1件成功。遅い旧応答を解除後も新検索のheadingを維持 |
-| I-E01 | 同上 | 1件成功。HTTP500で空応答扱いしない現状、再mountで復帰 |
-| I-V01 | 同上 | 1件成功。未取得中空案内なし、空配列後のみ案内・リンクなし |
-| P-N01 | test/integration/pages/item-list/stock/page.test.tsx | 1件成功。実ページ枠/見出し/検索/在庫表示とrouter.back要求 |
-| O01/O02 | 設計書の人間観測表 | 人間確認待ち。3browser×3画面幅、見た目・操作感・keyboard/focus・遅延時表示 |
+| ID          | 実装                                                                  | 結果・確認内容                                                                         |
+| ----------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| U-N01       | src/app/item-list/stock/api/test/client.test.ts                       | 3展開成功。page・空/空白・trim/日本語&%encode、statusなし                              |
+| U-V01       | src/app/item-list/stock/test/stockItem.test.tsx                       | 3展開成功。在庫0/1/1234、桁区切り、色別在庫非集計、SOLDなし、href、mutate未呼出し      |
+| U-V02       | 同上                                                                  | 2展開成功。attributes省略/空、nullable name/Video/image/日時、fallback画像と価格文字列 |
+| U-N02       | 同上                                                                  | 1件成功。Sale文字列・null割引額・動画                                                  |
+| I-N01       | test/integration/components/item-list/stock/list/integration.test.tsx | 1件成功。wrapped JSON・在庫表示・実fetcher Bearer・page/status条件                     |
+| I-N02/I-N03 | 同上                                                                  | 2件成功。ページ2→入力で1、Enter確定・clear解除・アイコン検索・空応答                   |
+| I-A01       | 同上                                                                  | 1件成功。遅い旧応答を解除後も新検索のheadingを維持                                     |
+| I-E01       | 同上                                                                  | 1件成功。HTTP500で空応答扱いしない現状、再mountで復帰                                  |
+| I-V01       | 同上                                                                  | 1件成功。未取得中空案内なし、空配列後のみ案内・リンクなし                              |
+| P-N01       | test/integration/pages/item-list/stock/page.test.tsx                  | 1件成功。実ページ枠/見出し/検索/在庫表示とrouter.back要求                              |
+| O01/O02     | 設計書の人間観測表                                                    | 人間確認待ち。3browser×3画面幅、見た目・操作感・keyboard/focus・遅延時表示             |
 
 単体2ファイル9件、結合2ファイル7件。成功16、失敗0、skip/pending0。
 JSON assertionResultsに基づき、describe数や再実行を加算しない。
@@ -55,6 +56,7 @@ API/DB認可はMSWや固定tokenでは保証せずE2Eへ分担。
 ## 実行条件・コマンド
 
 Node v26.12.1、既存依存。clientで以下を実行:
+
 - npm run test:unit -- src/app/item-list/stock --reporter=json --outputFile=/tmp/stock-unit.json
 - npm run test:integration -- test/integration/components/item-list/stock test/integration/pages/item-list/stock --reporter=json --outputFile=/tmp/stock-integration.json
 - npm run lint
@@ -87,7 +89,6 @@ uploadedの空表示文言指示をstockへ自動適用せず、本番の表示�
 失敗表示や統一空案内が必要ならstock側の契約を確定したうえで設計・テストを更新する。
 専用UI追加を今回の必須修正とは判定しない。
 
-
 ## E2E実接続結果
 
 ファイル: test/E2E/item-list/stock/getStockItemList/flow.spec.ts、
@@ -96,11 +97,11 @@ fixture: test/fixtures/item-list/stock/harness.ts（ルート基準）。
 expected7/unexpected2/skipped0/flaky0、duration約51.9秒。
 3設計ID×3projectの9件。代表単独成功は合算しない。
 
-| ケース | Chromium | Firefox | WebKit |
-| --- | --- | --- | --- |
-| E-N01 | 成功 | 成功 | 初回GET 401、期待200で失敗 |
-| E-N02 | 成功 | 成功 | 初回GET 401、期待200で失敗 |
-| E-A01 | 成功 | 成功 | 成功 |
+| ケース | Chromium | Firefox | WebKit                     |
+| ------ | -------- | ------- | -------------------------- |
+| E-N01  | 成功     | 成功    | 初回GET 401、期待200で失敗 |
+| E-N02  | 成功     | 成功    | 初回GET 401、期待200で失敗 |
+| E-A01  | 成功     | 成功    | 成功                       |
 
 E-N01成功では本人21件・他人/owner null除外、同日時ID DESCの20+1、
 実Pageのheading、行hrefと商品名、価格と区別した在庫0/1,234、
@@ -120,10 +121,13 @@ Express4332/proxy4333は既存実ハーネスが起動する。
 業務API・認証をモックせずtest_dbへ接続。DB migration/syncは実行していない。
 
 testで代表:
+
 ```bash
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3032 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.0.0.1:4332/api ITEM_DRAFT_E2E_PROXY_URL=http://127.0.0.1:4333/api npm run test:e2e -- E2E/item-list/stock/getStockItemList/flow.spec.ts --project e2e-chromium --grep E-N01 --reporter=list
 ```
+
 成功後、grep/projectを外して全3browser:
+
 ```bash
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3032 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.0.0.1:4332/api ITEM_DRAFT_E2E_PROXY_URL=http://127.0.0.1:4333/api PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/stock-e2e-final.json npm run test:e2e -- E2E/item-list/stock/getStockItemList/flow.spec.ts --reporter=list,json
 ```

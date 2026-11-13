@@ -39,11 +39,7 @@ export const Category = ({ level1List, value, onChange, onConstraintChange }: Pr
                 ? level1List.find((cat) => Number(cat.id) === Number(value.parent_id))
                 : undefined;
         const selectedLevel1: CategoryValue | null =
-            value.level === 1
-                ? value
-                : parent
-                  ? { id: parent.id, name: parent.name, parent_id: null, level: 1 }
-                  : null;
+            value.level === 1 ? value : parent ? { id: parent.id, name: parent.name, parent_id: null, level: 1 } : null;
         const constraintCategory = value.level === 1 ? level1List.find((cat) => cat.id === value.id) : parent;
 
         return {

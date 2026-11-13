@@ -1,12 +1,7 @@
 import { test, expect, openDraft, apiOrigin, setBrowserSession } from "../../../../fixtures/item/itemDraftPage/browser";
 import { emptyBrowserDraft } from "../../../../fixtures/item/itemDraftPage/browserData";
 for (const empty of [false, true]) {
-    test(`B-N01 ${empty ? "未入力" : "標準"}データのSSRとHydration`, async ({
-        page,
-        draft,
-        putDraft,
-        errors,
-    }) => {
+    test(`B-N01 ${empty ? "未入力" : "標準"}データのSSRとHydration`, async ({ page, draft, putDraft, errors }) => {
         if (empty) {
             Object.assign(draft, emptyBrowserDraft(), { id: draft.id });
             await putDraft(draft);

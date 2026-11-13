@@ -268,12 +268,12 @@ npm run test:e2e -- E2E/upload/itemUploadPage/saveDraft/flow.spec.ts --project e
 
 実行ディレクトリは `client/`。
 
-| コマンド・対象 | 結果 |
-| --- | --- |
-| `npm run test:unit -- src/app/upload/test/brandInput.test.tsx src/app/upload/test/category.test.tsx` | 2ファイル20件成功（各10件）。失敗・skip・未処理例外なし |
-| `npm run lint` | 全体成功、指摘0件 |
-| `npm run typecheck` | 既存の生成型params不整合・`src/app/upload/ok/[id]/page.tsx:35` のItem.seller_id未定義で失敗。対象2ファイルの診断なし |
-| `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json` | 成功 |
+| コマンド・対象                                                                                       | 結果                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `npm run test:unit -- src/app/upload/test/brandInput.test.tsx src/app/upload/test/category.test.tsx` | 2ファイル20件成功（各10件）。失敗・skip・未処理例外なし                                                              |
+| `npm run lint`                                                                                       | 全体成功、指摘0件                                                                                                    |
+| `npm run typecheck`                                                                                  | 既存の生成型params不整合・`src/app/upload/ok/[id]/page.tsx:35` のItem.seller_id未定義で失敗。対象2ファイルの診断なし |
+| `./node_modules/.bin/tsc --noEmit -p test/tsconfig.json`                                             | 成功                                                                                                                 |
 
 U09/U11・AF-F7の既存18件に、設計第14節の2条件を追加した。Brandでは300ms debounce、500ms選択抑止、150ms blur、候補選択、空・失敗・unmount、エンコード、応答逆転を確認。Categoryでは初期level1/level2、親子選択、選択しない、取得失敗、応答逆転、unmount後の通知抑止を確認した。
 

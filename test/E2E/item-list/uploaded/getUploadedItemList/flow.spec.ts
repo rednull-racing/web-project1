@@ -1,6 +1,9 @@
 import { test, expect, authHeader } from "../../../../fixtures/item-list/uploaded/harness.js";
 
-type Body = { itemList: { item: { id: number; name: string; status: string; Video: null; Sale: null } }[]; totalPages: number };
+type Body = {
+    itemList: { item: { id: number; name: string; status: string; Video: null; Sale: null } }[];
+    totalPages: number;
+};
 
 test("E-N01 本人21件の順序・20件ページングと実画面のwire接続", async ({ page, context, baseURL, e2e, uploaded }) => {
     if (!baseURL) throw new Error("E2E_ENV_STOP: baseURL required");
@@ -9,7 +12,7 @@ test("E-N01 本人21件の順序・20件ページングと実画面のwire接続
     await page.goto("/item-list/uploaded");
     const result = await response;
     expect(result.status()).toBe(200);
-    const body = await result.json() as Body;
+    const body = (await result.json()) as Body;
     const expected = uploaded.rows.slice(0, 21).reverse();
     expect(body.totalPages).toBe(2);
     expect(body.itemList.map(({ item }) => item.id)).toEqual(expected.slice(0, 20).map((row) => row.id));
@@ -26,17 +29,38 @@ test("E-N01 本人21件の順序・20件ページングと実画面のwire接続
     await uploaded.unchanged();
 });
 
-test("E-N02 selling/soldタブの実status接続と検索・0件・所有権偽装", async ({ page, context, baseURL, e2e, uploaded }) => {
+test("E-N02 selling/soldタブの実status接続と検索・0件・所有権偽装", async ({
+    page,
+    context,
+    baseURL,
+    e2e,
+    uploaded,
+}) => {
     if (!baseURL) throw new Error("E2E_ENV_STOP: baseURL required");
     await e2e.login(context, baseURL);
-    for (const [tab, status] of [["selling", "active"], ["sold", "soldout"]]) {
+    for (const [tab, status] of [
+        ["selling", "active"],
+        ["sold", "soldout"],
+    ]) {
         const response = page.waitForResponse((r) => new URL(r.url()).searchParams.get("status") === status);
         await page.goto(`/item-list/uploaded?tab=${tab}`);
-        const body = await (await response).json() as Body;
-        expect(body.itemList.map(({ item }) => item.id)).toEqual(uploaded.rows.slice(0, 21).filter((row) => row.status === status).reverse().map((row) => row.id));
+        const body = (await (await response).json()) as Body;
+        expect(body.itemList.map(({ item }) => item.id)).toEqual(
+            uploaded.rows
+                .slice(0, 21)
+                .filter((row) => row.status === status)
+                .reverse()
+                .map((row) => row.id),
+        );
     }
-    for (const [keyword, ids] of [["%", [uploaded.rows[0].id]], ["一致なし", []]] as const) {
-        const response = await context.request.get(`${e2e.express.href.replace(/\/$/, "")}/items/list/uploaded?page=1&keyword=${encodeURIComponent(keyword)}&seller_id=${e2e.seed.other.id}`, { headers: await authHeader(context) });
+    for (const [keyword, ids] of [
+        ["%", [uploaded.rows[0].id]],
+        ["一致なし", []],
+    ] as const) {
+        const response = await context.request.get(
+            `${e2e.express.href.replace(/\/$/, "")}/items/list/uploaded?page=1&keyword=${encodeURIComponent(keyword)}&seller_id=${e2e.seed.other.id}`,
+            { headers: await authHeader(context) },
+        );
         expect(response.status()).toBe(200);
         expect(((await response.json()) as Body).itemList.map(({ item }) => item.id)).toEqual(ids);
     }

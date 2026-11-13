@@ -1576,7 +1576,7 @@
 - 初期値36→6のAPIキー変更を除去。対象eslintは0エラー・0警告。全体lint・typecheckは対象外の既存エラーで失敗。
 - 差分チェック成功。build・ブラウザー操作確認・自動テストは未実施。既存Todoへ結果と維持した挙動を記録。
 
-## 20261113_frontend-components_ブランドとカテゴリー入力のlint修正
+## 20261113*frontend-components*ブランドとカテゴリー入力のlint修正
 
 - Brandの空入力・候補選択時の消去を整理し、Categoryの初期選択を遅延初期化。検索待ち時間・制約通知・古い応答除外を維持。
 - 関連単体テスト20件・client全体lint・テスト用型検査成功。本番型検査は既存params型不整合・upload/okのseller_id型エラーで失敗。

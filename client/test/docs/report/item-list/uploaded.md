@@ -9,6 +9,7 @@ I-E01の旧期待「HTTP500で空案内なし」を新仕様へ変更し、リ�
 設計書とページAGENTSも更新した。
 
 clientで実行:
+
 - npm run test:integration -- test/integration/components/item-list/uploaded test/integration/pages/item-list/uploaded
 
 Vitestの最終出力は2ファイル8件成功、失敗・skip0。
@@ -29,17 +30,17 @@ DBガード停止は解消。WebKitのHTTP環境とSecure Cookieの問題が残�
 
 パスはclient/基準、E2Eのみルート基準。
 
-| 設計ID | テストファイル | 最新結果・assert範囲 |
-| --- | --- | --- |
-| U-N01/U-V01 | src/app/item-list/uploaded/api/test/client.test.ts | 4件成功、3tab URL・trim/encode・空検索・null key |
-| U-N02/U-V02 | src/app/item-list/uploaded/test/uploadedItem.test.tsx | 4件成功、性別3展開・kids・リンク・価格文字列・nullable・画像fallback・SOLD・Sale |
-| I-N01 | test/integration/components/item-list/uploaded/list/integration.test.tsx | 3件成功、wrapped JSON・page/status・実fetcher Bearer |
-| I-N02/I-N03 | 同上 | 2件成功、ページ/検索確定・解除・アイコン・0件とpagination非表示 |
-| I-A01/I-E01 | 同上 | 2件成功、遅い旧応答上書き防止・500時空案内なし・再mount復帰 |
-| P-N01 | test/integration/pages/item-list/uploaded/page.test.tsx | 1件成功、実タブ/枠/一覧、3tab pushとback。非同期Page本体・実遷移は対象外 |
-| E-N01 | test/E2E/item-list/uploaded/getUploadedItemList/flow.spec.ts | Chromium代表setup失敗、一覧GET・wire・所有権・20+1・DB不変のassertすべて未到達 |
-| E-N02/E-A01 | 同上 | 実装済み未実行、status/検索/偽装/未認証契約は未保証 |
-| O01/O02 | 設計書の人間観測表 | 人間確認待ち。全3ブラウザー・3画面幅・操作/フォーカス・非同期表示未確認 |
+| 設計ID      | テストファイル                                                           | 最新結果・assert範囲                                                             |
+| ----------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| U-N01/U-V01 | src/app/item-list/uploaded/api/test/client.test.ts                       | 4件成功、3tab URL・trim/encode・空検索・null key                                 |
+| U-N02/U-V02 | src/app/item-list/uploaded/test/uploadedItem.test.tsx                    | 4件成功、性別3展開・kids・リンク・価格文字列・nullable・画像fallback・SOLD・Sale |
+| I-N01       | test/integration/components/item-list/uploaded/list/integration.test.tsx | 3件成功、wrapped JSON・page/status・実fetcher Bearer                             |
+| I-N02/I-N03 | 同上                                                                     | 2件成功、ページ/検索確定・解除・アイコン・0件とpagination非表示                  |
+| I-A01/I-E01 | 同上                                                                     | 2件成功、遅い旧応答上書き防止・500時空案内なし・再mount復帰                      |
+| P-N01       | test/integration/pages/item-list/uploaded/page.test.tsx                  | 1件成功、実タブ/枠/一覧、3tab pushとback。非同期Page本体・実遷移は対象外         |
+| E-N01       | test/E2E/item-list/uploaded/getUploadedItemList/flow.spec.ts             | Chromium代表setup失敗、一覧GET・wire・所有権・20+1・DB不変のassertすべて未到達   |
+| E-N02/E-A01 | 同上                                                                     | 実装済み未実行、status/検索/偽装/未認証契約は未保証                              |
+| O01/O02     | 設計書の人間観測表                                                       | 人間確認待ち。全3ブラウザー・3画面幅・操作/フォーカス・非同期表示未確認          |
 
 単体2ファイル8件、結合2ファイル8件。16件成功、失敗0・skip/pending0。
 各ランナーJSONのassertionResultsから集計しdescribe件数を加算していない。
@@ -50,6 +51,7 @@ E2Eは別集計: 代表1件failed（setup）、残り2IDは未実行でskip件�
 
 Node v26.12.1、既存インストール済み依存を使用。新規依存追加なし。
 clientで実行:
+
 - npm run test:unit -- src/app/item-list/uploaded --reporter=json --outputFile=/tmp/uploaded-unit.json
 - npm run test:integration -- test/integration/components/item-list/uploaded test/integration/pages/item-list/uploaded --reporter=json --outputFile=/tmp/uploaded-integration.json
 - npm run lint
@@ -107,7 +109,6 @@ P-N01は実PageのsearchParams既定値やmetadataを検証していない。実
 人間は設計書O01/O02の前提・手順で確認し、本書へ結果を追記する。
 F1は仕様判断、F2は環境復旧が必要。未確認項目を成功とみなしていない。
 
-
 ## F2再検証（2026-11-13）
 
 今回の対象は共有E2E fixture test/fixtures/item/itemDraftPage/database.ts。
@@ -120,10 +121,11 @@ F1は仕様判断、F2は環境復旧が必要。未確認項目を成功とみ�
   接続先・認証情報など任意の依存エラー内容は出力しない。
 
 代表E-N01をREADMEと同じコマンド（--reporter=list追加）で段階的に再検証。
+
 1. FK期待値のみ修正後: schema mismatch item_draftでsetup停止。
 2. 下書きセール列修正後: foreign key mismatch item_editing.seller_idでsetup停止。
-最終ランナー結果は1 failed（setup）、業務assert未到達・seed未実施。
-後続E-N02/E-A01と他ブラウザーは共通前提失敗で保留。再試行を成功件数へ合算しない。
+   最終ランナー結果は1 failed（setup）、業務assert未到達・seed未実施。
+   後続E-N02/E-A01と他ブラウザーは共通前提失敗で保留。再試行を成功件数へ合算しない。
 
 実DBを読み取り照合した結果:
 item_editing_seller_id_fkeyは参照先user、ON UPDATE NO ACTION、ON DELETE NO ACTION。
@@ -143,7 +145,6 @@ client ESLintから対象指定した試行はoutside of base pathで対象外�
 F1の更新: ユーザーはエラー専用表示・retry UI追加を不要とし、
 0件時は一律「出品した商品はありません。」を表示する仕様を指定した。
 旧F1の追加UI提案は取り下げ。本番表示と既存テストの変更は今回のF2修正対象外。
-
 
 ## F2 外部キー変更の適用（2026-11-13）
 
@@ -171,11 +172,11 @@ Next/API起動・実認証からの代表再検証は引き続き必要。
 事前の代表単独実行は合算しない。未処理例外として独立したランナーエラーなし。
 失敗ケース内の例外は以下に記録。全件成功ではない。
 
-| project | E-N01 | E-N02 | E-A01 |
-| --- | --- | --- | --- |
-| Chromium | 成功 | 成功 | 成功 |
-| Firefox | 成功 | 成功 | 成功 |
-| WebKit | HTTP401で失敗 | itemList未定義のmapで失敗 | 成功 |
+| project  | E-N01         | E-N02                     | E-A01 |
+| -------- | ------------- | ------------------------- | ----- |
+| Chromium | 成功          | 成功                      | 成功  |
+| Firefox  | 成功          | 成功                      | 成功  |
+| WebKit   | HTTP401で失敗 | itemList未定義のmapで失敗 | 成功  |
 
 成功範囲: 実NextAuth、実Express itemsルート、test_db、本人21件の20+1ページ、
 同日時ID降順・他人/所有者null除外、nullable Video/Sale、画面リンク、
@@ -196,6 +197,7 @@ selling/soldの実HTTP条件、%検索・0件・seller_id偽装、未認証401�
 5. Chromium代表E-N01成功後、以下の全体実行を実施。
 
 実行場所test/:
+
 ```bash
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3032 ITEM_DRAFT_E2E_EXPRESS_URL=http://127.0.0.1:4332/api ITEM_DRAFT_E2E_PROXY_URL=http://127.0.0.1:4333/api PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/uploaded-e2e-final.json npm run test:e2e -- E2E/item-list/uploaded/getUploadedItemList/flow.spec.ts --reporter=list,json
 ```

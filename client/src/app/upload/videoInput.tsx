@@ -28,13 +28,13 @@ const MAX_SIZE = 500 * 1024 * 1024; // 500MB
 export const VideoInput = ({ value, onChange, videoRef, thumbnailRef, existingVideoUrl }: Props) => {
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-    
+
     useEffect(() => {
         return () => {
             if (videoPreview) URL.revokeObjectURL(videoPreview);
         };
     }, [videoPreview]);
-    
+
     useEffect(() => {
         return () => {
             if (thumbnailPreview) URL.revokeObjectURL(thumbnailPreview);

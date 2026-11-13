@@ -11,9 +11,17 @@ vi.mock("next/image", () => ({
     ),
 }));
 beforeEach(() => vi.stubEnv("NEXT_PUBLIC_API_URL", base));
-export const mount = (children: ReactNode) => render(
-    <SWRConfig value={{ provider: () => new Map(), revalidateOnFocus: false,
-        revalidateOnReconnect: false, shouldRetryOnError: false, dedupingInterval: 0 }}>
-        {children}
-    </SWRConfig>,
-);
+export const mount = (children: ReactNode) =>
+    render(
+        <SWRConfig
+            value={{
+                provider: () => new Map(),
+                revalidateOnFocus: false,
+                revalidateOnReconnect: false,
+                shouldRetryOnError: false,
+                dedupingInterval: 0,
+            }}
+        >
+            {children}
+        </SWRConfig>,
+    );

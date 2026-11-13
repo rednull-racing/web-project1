@@ -44,24 +44,24 @@ Node22.22.2で全体lintは既存23 errors/37 warnings。今回のpage.tsx・ser
 
 `npm run lint` は23エラー・34警告から20エラー・7警告へ減少した。残件は以下。依存配列の変更、初期化・同期処理の移動、DOM測定方法の変更は表示・通信・更新タイミングへの影響確認が必要なため保持する。今後の修正では親から渡される値・関数の安定性、初回表示、画面幅、入力・再取得・非同期応答を確認し、必要な仕様判断を先に確定する。
 
-| ファイル（client/基準） | 残るルール・行 |
-| --- | --- |
-| `src/app/edit/address/addressEditForm.tsx` | react-hooks/exhaustive-deps: 45 |
-| `src/app/inquiry/form.tsx` | react-hooks/exhaustive-deps: 27 |
-| `src/app/item/commentSection/commentText.tsx` | react-hooks/refs: 38, 39 |
-| `src/app/item/commentSection/replyList.tsx` | react-hooks/exhaustive-deps: 37 |
-| `src/app/lp/itemList/lpItemList.tsx` | react-hooks/immutability: 41 |
-| `src/app/profile/introduction.tsx` | react-hooks/refs: 29, 30 |
-| `src/app/profile/itemList.tsx` | react-hooks/immutability: 45 / react-hooks/exhaustive-deps: 47 |
-| `src/app/search/itemList.tsx` | react-hooks/set-state-in-effect: 27 / react-hooks/exhaustive-deps: 38 |
-| `src/app/shop-signup/step2/form.tsx` | react-hooks/set-state-in-effect: 62, 98 |
-| `src/app/shop-signup/stepBar.tsx` | react-hooks/set-state-in-effect: 16 |
-| `src/app/upload/attributes.tsx` | react-hooks/set-state-in-effect: 50 |
-| `src/app/upload/brandInput.tsx` | react-hooks/set-state-in-effect: 45, 52 / react-hooks/exhaustive-deps: 90 |
-| `src/app/upload/category.tsx` | react-hooks/immutability: 83 / react-hooks/exhaustive-deps: 88 |
-| `src/app/upload/condition.tsx` | react-hooks/set-state-in-effect: 25 |
-| `src/app/upload/shipping.tsx` | react-hooks/set-state-in-effect: 35 |
-| `src/app/upload/videoInput.tsx` | react-hooks/set-state-in-effect: 33, 42 |
+| ファイル（client/基準）                       | 残るルール・行                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------- |
+| `src/app/edit/address/addressEditForm.tsx`    | react-hooks/exhaustive-deps: 45                                           |
+| `src/app/inquiry/form.tsx`                    | react-hooks/exhaustive-deps: 27                                           |
+| `src/app/item/commentSection/commentText.tsx` | react-hooks/refs: 38, 39                                                  |
+| `src/app/item/commentSection/replyList.tsx`   | react-hooks/exhaustive-deps: 37                                           |
+| `src/app/lp/itemList/lpItemList.tsx`          | react-hooks/immutability: 41                                              |
+| `src/app/profile/introduction.tsx`            | react-hooks/refs: 29, 30                                                  |
+| `src/app/profile/itemList.tsx`                | react-hooks/immutability: 45 / react-hooks/exhaustive-deps: 47            |
+| `src/app/search/itemList.tsx`                 | react-hooks/set-state-in-effect: 27 / react-hooks/exhaustive-deps: 38     |
+| `src/app/shop-signup/step2/form.tsx`          | react-hooks/set-state-in-effect: 62, 98                                   |
+| `src/app/shop-signup/stepBar.tsx`             | react-hooks/set-state-in-effect: 16                                       |
+| `src/app/upload/attributes.tsx`               | react-hooks/set-state-in-effect: 50                                       |
+| `src/app/upload/brandInput.tsx`               | react-hooks/set-state-in-effect: 45, 52 / react-hooks/exhaustive-deps: 90 |
+| `src/app/upload/category.tsx`                 | react-hooks/immutability: 83 / react-hooks/exhaustive-deps: 88            |
+| `src/app/upload/condition.tsx`                | react-hooks/set-state-in-effect: 25                                       |
+| `src/app/upload/shipping.tsx`                 | react-hooks/set-state-in-effect: 35                                       |
+| `src/app/upload/videoInput.tsx`               | react-hooks/set-state-in-effect: 33, 42                                   |
 
 検証: `npm run test:unit -- src/lib/api/test/confirmServer.test.ts src/lib/api/test/confirmClient.test.ts` は2ファイル16件成功（HTTP・認証の依存はモック）。`npm run typecheck` は既存の `.next/types` のparams型不整合（関連Todo: [align-next-page-params-generated-types.md](align-next-page-params-generated-types.md)）と `src/app/upload/ok/[id]/page.tsx:35` の `Item.seller_id` 未定義で失敗。後者は今回変更していない型とページの不整合で、所有者判定に関わるため実レスポンスと認可契約を確認して別途修正する。ブラウザー動作・buildは未実施。lint全通過には至らないため本Todoは未完了として残す。
 

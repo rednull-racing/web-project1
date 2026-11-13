@@ -90,9 +90,13 @@ export const openDatabase = async () => {
                 [table],
             );
             if (
-                !["id", "seller_id", "createdAt", "updatedAt", ...copyColumns.filter((name) => table === "item_editing" || !saleColumns.has(name))].every((name) =>
-                    columns.rows.some((column) => column.column_name === name),
-                )
+                ![
+                    "id",
+                    "seller_id",
+                    "createdAt",
+                    "updatedAt",
+                    ...copyColumns.filter((name) => table === "item_editing" || !saleColumns.has(name)),
+                ].every((name) => columns.rows.some((column) => column.column_name === name))
             )
                 throw new Error(`schema mismatch ${table}`);
             const byName = new Map(columns.rows.map((column) => [column.column_name, column]));
@@ -112,11 +116,13 @@ export const openDatabase = async () => {
                 "shipping_service_id",
                 "shipping_place_id",
             ])
-                if ((table === "item_editing" || !saleColumns.has(name)) && byName.get(name)?.data_type !== "integer") throw new Error(`integer type mismatch ${table}`);
+                if ((table === "item_editing" || !saleColumns.has(name)) && byName.get(name)?.data_type !== "integer")
+                    throw new Error(`integer type mismatch ${table}`);
             if (byName.get("attributes")?.udt_name !== "jsonb" || byName.get("image_url")?.udt_name !== "_text")
                 throw new Error(`JSON/array type mismatch ${table}`);
             for (const name of ["recommend", "sale_flag"])
-                if ((table === "item_editing" || !saleColumns.has(name)) && byName.get(name)?.data_type !== "boolean") throw new Error(`boolean type mismatch ${table}`);
+                if ((table === "item_editing" || !saleColumns.has(name)) && byName.get(name)?.data_type !== "boolean")
+                    throw new Error(`boolean type mismatch ${table}`);
             for (const name of ["name", "title", "video_status", "shipping_service_free_text"])
                 if (byName.get(name)?.character_maximum_length !== 255)
                     throw new Error(`string length mismatch ${table}`);
@@ -137,7 +143,8 @@ export const openDatabase = async () => {
                 "discount_rate",
                 "discount_amount",
             ])
-                if ((table === "item_editing" || !saleColumns.has(name)) && byName.get(name)?.is_nullable !== "YES") throw new Error(`nullable mismatch ${table}`);
+                if ((table === "item_editing" || !saleColumns.has(name)) && byName.get(name)?.is_nullable !== "YES")
+                    throw new Error(`nullable mismatch ${table}`);
             const foreignKeys = await db.query<{
                 column_name: string;
                 target: string;
@@ -168,17 +175,20 @@ export const openDatabase = async () => {
                     !fk ||
                     fk.target !== target ||
                     fk.update_action !== "a" ||
-                    fk.delete_action !==
-                        (name.startsWith("brand") || name === "seller_id" ? "n" : "a")
+                    fk.delete_action !== (name.startsWith("brand") || name === "seller_id" ? "n" : "a")
                 )
                     throw new Error(`foreign key mismatch ${table}.${name}`);
             }
         }
     } catch (error) {
         await db.end().catch(() => undefined);
-        const detail = error instanceof Error && /^(schema mismatch|integer type mismatch|JSON\/array type mismatch|boolean type mismatch|string length mismatch|nullable mismatch|foreign key mismatch) item_(draft|editing)(\.[a-z_]+)?$/.test(error.message)
-            ? error.message
-            : "connection or schema query failed";
+        const detail =
+            error instanceof Error &&
+            /^(schema mismatch|integer type mismatch|JSON\/array type mismatch|boolean type mismatch|string length mismatch|nullable mismatch|foreign key mismatch) item_(draft|editing)(\.[a-z_]+)?$/.test(
+                error.message,
+            )
+                ? error.message
+                : "connection or schema query failed";
         throw new Error(`E2E_ENV_STOP: test_db verification failed (${detail}); no seed performed`);
     }
     if (!env.NEXTAUTH_SECRET) {

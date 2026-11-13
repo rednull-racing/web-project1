@@ -92,7 +92,14 @@ export const test = base.extend<{ e2e: Harness }>({
                         const chunks: Buffer[] = [];
                         for await (const chunk of req) chunks.push(Buffer.from(chunk));
                         const headers = new Headers();
-                        for (const key of ["authorization", "content-type", "cookie", "origin", "access-control-request-method", "access-control-request-headers"])
+                        for (const key of [
+                            "authorization",
+                            "content-type",
+                            "cookie",
+                            "origin",
+                            "access-control-request-method",
+                            "access-control-request-headers",
+                        ])
                             if (req.headers[key]) headers.set(key, String(req.headers[key]));
                         const response = await http(`${path}${input.search}`, {
                             method: req.method,
