@@ -1,7 +1,8 @@
 # 出品した商品一覧 テストレポート
 
 2026-11-13。[設計書](../../architecture/item-list/uploaded.md)に対応。
-最新: 単体8件・結合8件成功、静的検査成功。E2E代表1件はsetup失敗で業務assert未到達。
+最新追記: [F2テスト側修正後の結果](#f2再検証2026-11-13)を参照。単体8件・結合8件は前回結果で今回未再実行。
+初回結果: 単体8件・結合8件成功、静的検査成功。E2E代表1件はsetup失敗で業務assert未到達。
 E2E残り2ケースと他ブラウザーは前提失敗による未実行。O01/O02は人間確認待ち。
 設計・テスト実装・実行結果記録を実施。本番コード・DB構造は変更していない。全体検証完了ではない。
 
@@ -86,3 +87,40 @@ Authorizationがnullだった。対象テスト直下にvi.mockを置き、Beare
 P-N01は実PageのsearchParams既定値やmetadataを検証していない。実Nextの確認はE2E再開時に補う。
 人間は設計書O01/O02の前提・手順で確認し、本書へ結果を追記する。
 F1は仕様判断、F2は環境復旧が必要。未確認項目を成功とみなしていない。
+
+
+## F2再検証（2026-11-13）
+
+今回の対象は共有E2E fixture test/fixtures/item/itemDraftPage/database.ts。
+本番・DB・migrationは変更していない。
+
+- item_editing.seller_idのON DELETE期待値を旧NO ACTIONからモデル定義のSET NULLへ修正。
+- item_draftにはないbefore_price/discount_rate/discount_amount/sale_flagを、
+  同テーブルの必須列・型・nullable検証およびseedから除外。item_editingの検証・seedは維持。
+- エラーを一律に隠していたcatchを修正。既知の検証メッセージだけを許可し、
+  接続先・認証情報など任意の依存エラー内容は出力しない。
+
+代表E-N01をREADMEと同じコマンド（--reporter=list追加）で段階的に再検証。
+1. FK期待値のみ修正後: schema mismatch item_draftでsetup停止。
+2. 下書きセール列修正後: foreign key mismatch item_editing.seller_idでsetup停止。
+最終ランナー結果は1 failed（setup）、業務assert未到達・seed未実施。
+後続E-N02/E-A01と他ブラウザーは共通前提失敗で保留。再試行を成功件数へ合算しない。
+
+実DBを読み取り照合した結果:
+item_editing_seller_id_fkeyは参照先user、ON UPDATE NO ACTION、ON DELETE NO ACTION。
+モデルはON DELETE SET NULLであり、この点の不一致は実在する。
+したがって初回停止はテストの存在しない下書き列条件が原因だったが、
+それを除いた現在は実DBの外部キー条件で停止している。
+旧レポートの「個別差分未特定」は初回時点の記録。
+
+修正済みテスト条件を再び緩めず、DBを唯一の正とする方針に従い、
+どちらの削除動作を正式契約とするか確認してからモデル/DB/テストを整合する。
+DB変更は今回の依頼に含まないため未実施。
+
+testでnpm run typecheck成功、git diff --check成功。
+client ESLintから対象指定した試行はoutside of base pathで対象外となり、lint成功とは扱わない。
+単体・結合・client全体の静的検査は今回未再実行。
+
+F1の更新: ユーザーはエラー専用表示・retry UI追加を不要とし、
+0件時は一律「出品した商品はありません。」を表示する仕様を指定した。
+旧F1の追加UI提案は取り下げ。本番表示と既存テストの変更は今回のF2修正対象外。
