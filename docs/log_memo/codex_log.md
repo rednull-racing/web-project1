@@ -1551,3 +1551,9 @@
 - trashレポートF1へ、30日経過後のitem_trash削除は後日cronで対応し、フロント・一覧API変更不要と追記。
 - 旧提案・E-X01履歴と現在の確定方針を区別。cron未実装を明記し、残件の記述も整合。
 - 文書のみ変更。差分確認済み、テストは再実行していない。
+
+## 20261113_frontend-components_clientのlint指摘を仕様維持で修正
+
+- 未使用import・変数・catch引数、返信一覧とNextAuthの型を修正し、検索履歴取得関数をeffect内へ移動。
+- lintは23エラー・34警告から20エラー・7警告へ減少。挙動判断が必要なHooks指摘は変更せず既存Todoへ記録。
+- 関連API単体テスト16件成功。typecheckは既存params型不整合・upload/okのseller_id型エラーで失敗。build・ブラウザー確認は未実施。
