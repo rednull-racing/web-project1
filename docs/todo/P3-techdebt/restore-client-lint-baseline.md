@@ -64,3 +64,7 @@ Node22.22.2で全体lintは既存23 errors/37 warnings。今回のpage.tsx・ser
 | `src/app/upload/videoInput.tsx` | react-hooks/set-state-in-effect: 33, 42 |
 
 検証: `npm run test:unit -- src/lib/api/test/confirmServer.test.ts src/lib/api/test/confirmClient.test.ts` は2ファイル16件成功（HTTP・認証の依存はモック）。`npm run typecheck` は既存の `.next/types` のparams型不整合（関連Todo: [align-next-page-params-generated-types.md](align-next-page-params-generated-types.md)）と `src/app/upload/ok/[id]/page.tsx:35` の `Item.seller_id` 未定義で失敗。後者は今回変更していない型とページの不整合で、所有者判定に関わるため実レスポンスと認可契約を確認して別途修正する。ブラウザー動作・buildは未実施。lint全通過には至らないため本Todoは未完了として残す。
+
+## 2026-11-13 profile/itemListの追加修正
+
+`client/src/app/profile/itemList.tsx` の表示件数を遅延初期化し、初回モバイル取得をeffect内の非同期関数へ移した。マウント時のuserIdをrefに保持し、従来の初回だけの取得を維持する。対象eslintは0エラー・0警告（上表のprofile/itemListの残件は解消）。全体lintは対象外の3エラー・1警告で失敗し、本Todoは未完了。typecheckは既存のparams型不整合とupload/okのseller_id型エラーで失敗し、対象ファイルの診断はない。build・ブラウザー操作確認は未実施。

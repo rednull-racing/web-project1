@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "../../styles/components-style/profileItemList.module.css";
 import { fetchIL, fetchVL } from "./api/itemList";
 import pageStyle from "./profile.module.css";
@@ -32,17 +32,27 @@ export const ItemList = ({ userId, defaultVideoList, adminPage }: Props) => {
     const [pageIL, setPageIL] = useState(1);
     const [totalPagesVL, setTotalPagesVL] = useState(defaultVideoList.totalPages);
     const [totalPagesIL, setTotalPagesIL] = useState(1);
-    const [limitVL, setLimitVL] = useState(15);
-    const [limitIL, setLimitIL] = useState(36);
+    const [limitVL] = useState(() => (typeof window !== "undefined" && window.innerWidth < 768 ? 6 : 15));
+    const [limitIL] = useState(() => (typeof window !== "undefined" && window.innerWidth < 768 ? 18 : 36));
+    // 初回のモバイル向け取得は、従来どおりマウント時のユーザーを対象にする。
+    const initialUserId = useRef(userId);
 
     useEffect(() => {
         const isDesktop = window.innerWidth >= 768;
 
         if (!isDesktop) {
-            const newLimit = 6;
-            setLimitVL(newLimit);
-            setLimitIL(18);
-            setVL(1, newLimit);
+            const loadVideoList = async () => {
+                try {
+                    const data = await fetchVL({ page: 1, limit: 6, userId: initialUserId.current });
+
+                    setVideoList(data.items);
+                    setVisibleIL(false);
+                    setTotalPagesVL(data.totalPages);
+                    setPageVL(1);
+                } catch {}
+            };
+
+            loadVideoList();
         }
     }, []);
 
