@@ -1605,3 +1605,9 @@
 - DBガード解消と実認証通過を確認し、テストproxyのCORSヘッダー転送を修正。
 - 3ブラウザー9件を実行。Chromium/Firefox各3成功、WebKit1成功2失敗。
 - WebKitのHTTP/Secure Cookie環境の残件と実行条件をレポートへ記録。E2E型検査・対象lint成功。
+
+## 20261113_frontend-architecture_stockページテスト
+
+- 在庫一覧の4階層テスト設計・単体/結合/E2E実装と対応レポートを作成。
+- 単体9・結合7件成功、lint・本番/テスト型検査成功。E2E9件中7成功2失敗。
+- WebKit認証後401とHTTPS環境での再開案、人間観測未確認をレポートへ記録。
