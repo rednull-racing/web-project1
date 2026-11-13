@@ -1593,3 +1593,9 @@
 - 下書きに存在しないセール列の検証・seedと、編集seller外部キーの期待値を修正。
 - E2E型検査成功。代表は実DBのitem_editing.seller_id削除動作不一致でsetup停止。
 - DBは変更せず、実測した外部キー条件・再開条件をレポートへ追記。
+
+## 20261113_backend-migration_draft_editing_seller_SET_NULL
+
+- 両seller_idのON DELETEをSET NULLへ変更するup/down migrationとモデル・テスト条件を追加更新。
+- neondb/test_dbへ今回のmigrationだけを適用し、外部キーと適用履歴を確認済み。
+- ON UPDATE NO ACTIONを維持。server lint・typecheck成功。E2E本体は未再実行。

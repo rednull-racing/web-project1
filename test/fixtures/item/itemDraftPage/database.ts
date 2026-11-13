@@ -169,7 +169,7 @@ export const openDatabase = async () => {
                     fk.target !== target ||
                     fk.update_action !== "a" ||
                     fk.delete_action !==
-                        (name.startsWith("brand") || (table === "item_editing" && name === "seller_id") ? "n" : "a")
+                        (name.startsWith("brand") || name === "seller_id" ? "n" : "a")
                 )
                     throw new Error(`foreign key mismatch ${table}.${name}`);
             }

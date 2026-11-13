@@ -124,3 +124,21 @@ client ESLintから対象指定した試行はoutside of base pathで対象外�
 F1の更新: ユーザーはエラー専用表示・retry UI追加を不要とし、
 0件時は一律「出品した商品はありません。」を表示する仕様を指定した。
 旧F1の追加UI提案は取り下げ。本番表示と既存テストの変更は今回のF2修正対象外。
+
+
+## F2 外部キー変更の適用（2026-11-13）
+
+ユーザー指定によりitem_draft.seller_id・item_editing.seller_idをSET NULLへ変更。
+20261113090000-set-null-draft-editing-seller.jsを--name指定し、
+development（実DB neondb）・test（test_db）の両方に適用済み。
+各DBのpg_constraintとSequelizeMetaを読み取り、両FKの参照先user、
+ON DELETE SET NULL、ON UPDATE NO ACTION、適用履歴1件を確認した。
+モデル2ファイルと共有E2Eガードも両seller_idのSET NULLへ整合した。
+up/downは各DB内でトランザクション実行し、downはNO ACTIONへ戻す。
+他の未適用migrationは実行していない。server lint・typecheck成功。
+
+訂正: 過去の説明でitem_editing.seller_idのモデルがSET NULLとしたのは誤読。
+SET NULLだったのはitem_idであり、seller_idモデルも変更前はNO ACTIONだった。
+今回の明示指示で初めて両seller_idモデルとDBをSET NULLへ変更した。
+F2の外部キー停止条件はDB上で解消済み。E2E本体は今回未再実行で、
+Next/API起動・実認証からの代表再検証は引き続き必要。

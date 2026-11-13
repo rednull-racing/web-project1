@@ -161,7 +161,7 @@ ItemEditing.init(
                 key: "id",
             },
             onUpdate: "NO ACTION",
-            onDelete: "NO ACTION",
+            onDelete: "SET NULL",
         },
         first_image_url: {
             type: DataTypes.TEXT,
