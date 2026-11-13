@@ -18,7 +18,7 @@ type Props = {
 export const SearchInputMobile = ({ loggedIn }: Props) => {
     const [value, setValue] = useState("");
     const [isMobile, setIsMobile] = useState(true);
-    const [isFocused, setIsFocused] = useState(false);
+    const [, setIsFocused] = useState(false);
     const [searchMode, setSearchMode] = useState(false);
     const [searchHis, setSearchHis] = useState<string[]>([]);
     const [suggestList, setSuggestList] = useState<string[]>([]);
@@ -41,7 +41,7 @@ export const SearchInputMobile = ({ loggedIn }: Props) => {
             const dataList = await fetchGetSearchHistory();
 
             setSearchHis(dataList);
-        } catch (err) {}
+        } catch {}
     };
 
     const fetchSuggest = async (word: string) => {
@@ -54,7 +54,7 @@ export const SearchInputMobile = ({ loggedIn }: Props) => {
             const suggest = await fetchGetSuggestWords(word);
 
             setSuggestList(suggest);
-        } catch (err) {
+        } catch {
             setSuggestList([]);
         }
     };

@@ -13,7 +13,7 @@ export function useInfinitePagination<T, TItem>({ apiKey, getItems, hasMore }: P
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     // SWRInfinite
-    const { data, mutate, size, setSize, isValidating } = useSWRInfinite<T>(apiKey, async (url: string) => {
+    const { data, mutate, setSize, isValidating } = useSWRInfinite<T>(apiKey, async (url: string) => {
         return fetcher<T>(url);
     });
 
