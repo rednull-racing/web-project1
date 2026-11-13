@@ -25,6 +25,13 @@ export const BrandInput = ({ value, onChange }: Props) => {
             name_normalized: string;
         }[]
     >([]);
+    const isEmpty = value.name.length === 0;
+    const [wasEmpty, setWasEmpty] = useState(isEmpty);
+
+    if (isEmpty !== wasEmpty) {
+        setWasEmpty(isEmpty);
+        if (isEmpty) setSuggestions([]);
+    }
 
     const requestVersion = useRef(0);
     const selectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,14 +49,7 @@ export const BrandInput = ({ value, onChange }: Props) => {
     useEffect(() => {
         const version = ++requestVersion.current;
         let isActive = true;
-        if (value.name.length === 0) {
-            setSuggestions([]);
-            return () => {
-                isActive = false;
-            };
-        }
-        if (isSelecting) {
-            setSuggestions([]);
+        if (value.name.length === 0 || isSelecting) {
             return () => {
                 isActive = false;
             };
@@ -123,6 +123,7 @@ export const BrandInput = ({ value, onChange }: Props) => {
                             onMouseDown={() => {
                                 requestVersion.current++;
                                 setIsSelecting(true);
+                                setSuggestions([]);
                                 onChange({
                                     id: brand.id,
                                     name: brand.name,
