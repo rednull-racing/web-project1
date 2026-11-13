@@ -1,6 +1,5 @@
 "use client";
 
-import { getAccessToken } from "@/lib/getAccessToken";
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -36,7 +35,7 @@ export const AdminSection = ({ userId, adminPage }: Props) => {
                 const data = await fetchGetAdminProfile(userId);
 
                 setData(data.user);
-            } catch (err) {
+            } catch {
                 router.push(`/profile/${userId}`);
                 return;
             }

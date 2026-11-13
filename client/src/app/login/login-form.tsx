@@ -50,7 +50,7 @@ export const LoginForm = () => {
 
                 router.push("/my-page");
             }
-        } catch (err) {
+        } catch {
             alert("システムエラーが発生しました。時間をおいて再試行してください");
             setPassword("");
             setVisible(false);

@@ -28,7 +28,7 @@ export const ResetForm = () => {
             toast.success("メールを送信しました");
             setEmail("");
             setLoading(false);
-        } catch (err) {
+        } catch {
             toast.success("メールを送信しました");
             setEmail("");
             setLoading(false);

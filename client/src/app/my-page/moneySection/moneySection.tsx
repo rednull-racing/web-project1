@@ -1,4 +1,3 @@
-import { IconAlertTriangle } from "@tabler/icons-react";
 import { AlertMoney } from "../../../components";
 import { User } from "../types";
 import styles from "./styles.module.css";

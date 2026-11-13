@@ -38,7 +38,7 @@ const fetcher = async (url: string) => {
 
         const data = await res.json();
         return data.commentList;
-    } catch (err) {}
+    } catch {}
 };
 
 export const CommentSection = ({ id, sellerMe, commentCount, page, loggedIn, item, me }: Props) => {

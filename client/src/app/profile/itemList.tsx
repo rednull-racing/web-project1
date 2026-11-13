@@ -54,7 +54,7 @@ export const ItemList = ({ userId, defaultVideoList, adminPage }: Props) => {
             setVisibleIL(false);
             setTotalPagesVL(data.totalPages);
             setPageVL(page);
-        } catch (err) {}
+        } catch {}
     };
 
     const setIL = async (page: number, limit: number) => {
@@ -65,7 +65,7 @@ export const ItemList = ({ userId, defaultVideoList, adminPage }: Props) => {
             setVisibleIL(true);
             setTotalPagesIL(data.totalPages);
             setPageIL(page);
-        } catch (err) {}
+        } catch {}
     };
 
     const renderPagination = (currentPage: number, totalPages: number, onPageChange: (page: number) => void) => {

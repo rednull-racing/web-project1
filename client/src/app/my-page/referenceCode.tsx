@@ -50,7 +50,7 @@ export const ReferenceCode = ({ itemCount, referenceCount }: Props) => {
                                 try {
                                     await navigator.clipboard.writeText(referenceCodeOutput);
                                     toast.success("コピーしました");
-                                } catch (err) {
+                                } catch {
                                     toast.error("コピー失敗しました。");
                                 }
                             }}

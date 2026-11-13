@@ -45,7 +45,7 @@ export const CommentList = ({ id, sellerMe, comments, page, loggedIn, item, me, 
     };
 
     // CommentFormに渡すmutateをラップ
-    const replyMutate = (parentId: string) => (updater?: any, revalidate?: boolean) => {
+    const replyMutate = (parentId: string) => (updater?: any) => {
         if (typeof updater === "function") {
             // 返信　楽観的更新
             setOptimisticReplies((prev) => ({

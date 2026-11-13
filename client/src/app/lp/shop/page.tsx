@@ -1,15 +1,9 @@
 import { authOptions } from "@/lib/auth";
-import { Items } from "@/types/itemListTypes";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { SITE } from "../../../config/site";
 import { fetchGetHasShop, fetchLpVideoList } from "../api/server";
 import { Lp } from "../lp";
-
-type Res = {
-    items: Items[];
-    totalPages: number;
-};
 
 export const metadata: Metadata = {
     title: SITE.appName,

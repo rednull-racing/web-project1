@@ -5,7 +5,6 @@ for (const empty of [false, true]) {
         page,
         draft,
         putDraft,
-        request,
         errors,
     }) => {
         if (empty) {
@@ -98,7 +97,7 @@ for (const width of [375, 767, 768, 1024]) {
         await expect(page.getByRole("button", { name: "削除する", exact: true })).toBeInViewport();
     });
 }
-test("B-S03 SSRとHydrationでHTMLを実行しない", async ({ page, draft, putDraft, request }) => {
+test("B-S03 SSRとHydrationでHTMLを実行しない", async ({ page, draft, putDraft }) => {
     const text = '<img src=x onerror="window.__draftXss=true"><script>window.__draftXss=true</script>';
     draft.name = text;
     draft.summary = text;

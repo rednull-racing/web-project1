@@ -52,7 +52,7 @@ export const VerifyForm = () => {
             await sleep(1500);
 
             router.push("/my-page");
-        } catch (err) {
+        } catch {
             alert("システムエラーが発生しました。時間をおいて再試行してください");
 
             setCode("");

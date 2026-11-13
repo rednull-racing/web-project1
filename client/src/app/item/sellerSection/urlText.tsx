@@ -13,7 +13,7 @@ export const UrlText = () => {
         try {
             await navigator.clipboard.writeText(fullUrl);
             toast.success("リンクをコピーしました！");
-        } catch (err) {
+        } catch {
             toast.error("コピー失敗！");
         }
     };

@@ -27,10 +27,10 @@ export const ReplyList = ({ parentId, page, loggedIn, sellerMe, optimisticCommen
     useEffect(() => {
         const fetchComment = async () => {
             try {
-                const data: any = await fetchGetReplyList({ parentId, sellerMe, page });
+                const data = await fetchGetReplyList({ parentId, sellerMe, page });
 
-                setComments(data.commentList as Comment[]);
-            } catch (err) {}
+                setComments(data.commentList);
+            } catch {}
         };
 
         fetchComment();

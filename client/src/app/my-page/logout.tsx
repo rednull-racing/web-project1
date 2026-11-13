@@ -18,7 +18,7 @@ export const Logout = () => {
             await fetchCookieClear();
 
             router.push("/");
-        } catch (err) {
+        } catch {
             alert("システムエラーが発生しました。時間をおいて再試行してください。");
         }
     };
