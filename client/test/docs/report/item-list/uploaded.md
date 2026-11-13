@@ -1,5 +1,24 @@
 # 出品した商品一覧 テストレポート
 
+## F1修正（2026-11-13、最新）
+
+ユーザー指示により、取得失敗時も0件と同じ「商品が見つかりません」を表示する本番UIへ変更。
+SWR errorがある場合は一覧・ページネーションを非表示にする。未取得中は案内なし。
+API・認証・DBは未変更。過去のF1の専用エラー/retry UI提案と「出品した商品はありません。」指定は、今回の指示による表示契約で更新する。
+I-E01の旧期待「HTTP500で空案内なし」を新仕様へ変更し、リンク非表示・正常再mountでの復帰確認は維持。
+設計書とページAGENTSも更新した。
+
+clientで実行:
+- npm run test:integration -- test/integration/components/item-list/uploaded test/integration/pages/item-list/uploaded
+
+Vitestの最終出力は2ファイル8件成功、失敗・skip0。
+実SWR/一覧/共通UIを使用し、HTTPはMSW、認証tokenとNext routerはモック。
+npm run lint・npm run typecheck・./node_modules/.bin/tsc --noEmit -p test/tsconfig.jsonはすべて成功。
+単体・E2E・目視は今回未再実行。WebKitの既存2件失敗とO01/O02は継続残件。
+以下の初回結果・過去の仕様指示は履歴。
+
+## 過去の結果・実行履歴
+
 2026-11-13。[設計書](../../architecture/item-list/uploaded.md)に対応。
 最新: [E2E再実行](#e2e再実行2026-11-13)で全3ケース×3ブラウザーの9件を実行し、7件成功・2件失敗。
 Chromium/Firefoxは各3件成功、WebKitは未認証1件成功・認証後の一覧2件失敗。

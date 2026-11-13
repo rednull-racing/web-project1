@@ -75,12 +75,12 @@ describe("uploaded SWR HTTP integration", () => {
         expect(screen.getByRole("heading", { name: "新" })).toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "旧" })).not.toBeInTheDocument();
     });
-    it("I-E01 500は空応答扱いしない・再マウントで復帰（観測）", async () => {
+    it("I-E01 500は0件と同じ案内・再マウントで復帰", async () => {
         const seen = deferred();
         server.use(http.get(`${base}/items/list/uploaded`, () => { seen.resolve(); return new HttpResponse(null, { status: 500 }); }));
         const view = mount(<UploadedItemList uploadedTab="all" />);
         await act(async () => seen.promise);
-        expect(screen.queryByText("商品が見つかりません")).not.toBeInTheDocument();
+        await screen.findByText("商品が見つかりません");
         expect(screen.queryByRole("link")).not.toBeInTheDocument();
         view.unmount();
         server.use(http.get(`${base}/items/list/uploaded`, () => HttpResponse.json(response())));

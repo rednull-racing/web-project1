@@ -24,7 +24,7 @@ export const UploadedItemList = ({ uploadedTab }: Props) => {
     const [pageNumber, setPageNumber] = useState(1);
 
     const apiUrl = getListUrl(pageNumber, searchKeyword, uploadedTab);
-    const { data, mutate } = useSWR<Response>(apiUrl, fetcher);
+    const { data, error, mutate } = useSWR<Response>(apiUrl, fetcher);
     const itemList = data?.itemList;
     const totalPages = data?.totalPages ?? 1;
 
@@ -49,7 +49,7 @@ export const UploadedItemList = ({ uploadedTab }: Props) => {
                 }}
             />
 
-            {itemList && itemList.length > 0 && (
+            {!error && itemList && itemList.length > 0 && (
                 <main className={styles.itemListSection}>
                     {itemList.map(({ item }) => (
                         <UploadedItem key={item.id} item={item} mutate={mutate} />
@@ -59,7 +59,7 @@ export const UploadedItemList = ({ uploadedTab }: Props) => {
                 </main>
             )}
 
-            {itemList?.length === 0 && <p className={styles.noItem}>商品が見つかりません</p>}
+            {(error || itemList?.length === 0) && <p className={styles.noItem}>商品が見つかりません</p>}
         </>
     );
 };

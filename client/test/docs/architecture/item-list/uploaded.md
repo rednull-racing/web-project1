@@ -11,7 +11,9 @@
 APIはserver/src/routes/items.tsのGET /items/list/uploaded、
 controllers/items/items.ts、services/items/query/list/userItemList.tsを照合する。
 既存の一覧返却整合履歴はdocs/todo/done/align-item-list-response-with-client.md（ルート基準）。
-本作業はテスト・文書のみ。本番修正、API変更、DB構造変更、migration実行は対象外。
+ユーザー指示によりF1の取得失敗表示を本番UIにも反映する。
+取得失敗時は0件と同じ「商品が見つかりません」を表示し、一覧とページネーションを非表示にする。未取得中は空案内を出さない。
+API変更、DB構造変更、migration実行は対象外。
 
 Pageがtab（省略時all）をタブと一覧へ渡す。一覧は入力値・確定検索語・ページ番号から
 URLを作りSWR→fetcher→Bearer認証付きGET→wrapped配列→商品行・Paginationの順で接続する。
@@ -55,7 +57,7 @@ N=正常、V=境界、A=競合/認可、E=障害。IDと優先度は独立。
 | I-N02 / P0 | page2→入力→Enter→clear | 入力でpage1へ、確定前keywordなし、Enter後keyword反映、clearで解除 |
 | I-N03 / P1 | 入力後検索アイコン、0件応答 | 検索確定後のみ空案内、paginationなし |
 | I-A01 / P0 | 旧検索を保留、新検索を先に完了、旧応答解除 | 新検索結果を維持、旧結果を表示しない |
-| I-E01 / P1 | 初回HTTP500→unmount→正常再mount | 失敗を空応答扱いせずリンクなし、再取得で復帰。現状の専用エラー表示欠落は観測として報告 |
+| I-E01 / P1 | 初回HTTP500→unmount→正常再mount | 0件と同じ案内を表示、リンクなし、再取得で復帰 |
 | P-N01 / P1 | 実ページ枠と一覧、3タブと戻る操作 | 検索/一覧が接続、router.pushが各tab URL、router.back呼出し |
 
 E2Eのケース・前提は下記を実装ファイルと照合し、環境停止は成功に含めない。
@@ -79,7 +81,7 @@ item_draft/item_editingの追加schema guardも前提となる。
 | ID | 担当・前提 | 手順 | 期待・状態 |
 | --- | --- | --- | --- |
 | O01 | 人間、Chromium/Firefox/WebKit、359/768/1280px、ログイン済み、販売中・売切れ・Saleあり | 一覧・画像・SOLD・価格を比較、3タブ/詳細/戻る、キーボードとフォーカス確認 | 文字切れ・重なりなし、意図した詳細へ遷移、フォーカス追跡可能。人間確認待ち |
-| O02 | 人間、同環境、遅い通信・500・0件を準備 | 読込→正常/空/失敗を観測 | ちらつき・操作応答・状態差を記録。専用エラー未実装はF1へ照合。人間確認待ち |
+| O02 | 人間、同環境、遅い通信・500・0件を準備 | 読込→正常/空/失敗を観測 | ちらつき・操作応答・状態差を記録。失敗時も0件と同じ案内。人間確認待ち |
 
 ## 実行順・完了条件
 
